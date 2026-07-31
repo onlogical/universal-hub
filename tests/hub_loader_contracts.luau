@@ -11,6 +11,7 @@ local expectedHubPaths = {
     "modules/Registry.lua",
     "modules/Session.lua",
     "modules/Overlay.lua",
+    "modules/PresentationHost.lua",
     "games/Catalog.lua",
     "init.lua",
 }

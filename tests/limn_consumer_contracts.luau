@@ -47,6 +47,8 @@ for _, path in ipairs({
 end
 local Store = require("../modules/Store")
 local Overlay = require("../modules/Overlay")
+local PresentationHost = require("../modules/PresentationHost")
+local RivalsPresentation = require("../games/rivals/Presentation")
 
 local function newSignal()
     local listeners = {}
@@ -165,6 +167,8 @@ local overlay = Overlay.new({
     },
     cosmetics = false,
     gameLabel = "Limn Contract",
+    presentation = RivalsPresentation,
+    presentationHost = PresentationHost,
     getCamera = function()
         return {
             ViewportSize = Vector2.new(1280, 720),

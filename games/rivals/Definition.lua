@@ -120,6 +120,7 @@ return {
         placeIds = { 17625359962 },
     },
     module = "games/rivals/Adapter",
+    presentation = "games/rivals/Presentation",
     sources = {
         "games/rivals/Adapter",
         "games/rivals/Targeting",
@@ -130,5 +131,6 @@ return {
         "games/rivals/Effects",
         "games/rivals/Movement",
         "games/rivals/CombatState",
+        "games/rivals/Presentation",
     },
 }

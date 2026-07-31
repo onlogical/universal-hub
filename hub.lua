@@ -79,6 +79,7 @@ for _, path in ipairs({
     "modules/Registry.lua",
     "modules/Session.lua",
     "modules/Overlay.lua",
+    "modules/PresentationHost.lua",
     "games/Catalog.lua",
 }) do
     fetch(path)

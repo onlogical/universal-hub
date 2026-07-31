@@ -18,6 +18,7 @@ local function definition(id, options)
         },
         match = options.match,
         module = options.module,
+        presentation = options.presentation,
         sources = options.sources or {},
     }
 end
@@ -131,7 +132,27 @@ expectError("must include its module", function()
     })
     candidate.factory = nil
     candidate.module = "games/One"
-    candidate.sources = { "games/OneHelper" }
+    candidate.presentation = "games/OnePresentation"
+    candidate.sources = { "games/OneHelper", "games/OnePresentation" }
+    Registry.Validate(candidate)
+end)
+expectError("presentation must be a valid source path", function()
+    local candidate = definition("missing-presentation", {
+        gameIds = { 10 },
+    })
+    candidate.factory = nil
+    candidate.module = "games/One"
+    candidate.sources = { "games/One" }
+    Registry.Validate(candidate)
+end)
+expectError("must include its presentation", function()
+    local candidate = definition("missing-presentation-source", {
+        gameIds = { 10 },
+    })
+    candidate.factory = nil
+    candidate.module = "games/One"
+    candidate.presentation = "games/OnePresentation"
+    candidate.sources = { "games/One" }
     Registry.Validate(candidate)
 end)
 

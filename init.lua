@@ -44,6 +44,7 @@ local MenuToggle = import("modules/MenuToggle")
 local Registry = import("modules/Registry")
 local Session = import("modules/Session")
 local Overlay = import("modules/Overlay")
+local PresentationHost = import("modules/PresentationHost")
 local Catalog = import("games/Catalog")
 
 local registry = Registry.new()
@@ -61,6 +62,7 @@ assert(
 )
 local adapterModule = import(adapterDefinition.module)
 assert(type(adapterModule) == "table" and type(adapterModule.new) == "function", "Invalid game adapter module")
+local presentation = import(adapterDefinition.presentation)
 local features = adapterDefinition.features
 
 local Limn = assert(configuration.Limn, "Universal Hub loader must stage Limn before init")
@@ -316,6 +318,8 @@ local overlayCreated, overlayResult = pcall(Overlay.new, {
         return success and parent or nil
     end)(),
     optionLabels = features.optionLabels,
+    presentation = presentation,
+    presentationHost = PresentationHost,
     inputService = UserInputService,
     limn = drawingRuntime,
     setFov = function(value, persist)

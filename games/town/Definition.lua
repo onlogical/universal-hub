@@ -91,6 +91,7 @@ return {
         placeIds = { 4991214437 },
     },
     module = "games/Town",
+    presentation = "games/town/Presentation",
     sources = {
         "games/Town",
         "games/town/Canonical",
@@ -98,5 +99,6 @@ return {
         "games/town/CopyEngine",
         "games/town/CopyPlan",
         "games/town/ExecutionPlan",
+        "games/town/Presentation",
     },
 }

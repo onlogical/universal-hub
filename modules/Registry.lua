@@ -87,6 +87,10 @@ function Registry.Validate(definition)
     if hasModule then
         assert(validSourcePath(definition.module), "Game definition module must be a valid source path")
         assert(definition.match == nil, "Module game definitions must not contain runtime callbacks")
+        assert(
+            validSourcePath(definition.presentation),
+            "Game definition presentation must be a valid source path"
+        )
     else
         assert(type(definition.factory) == "function", "Game definition factory must be a function")
     end
@@ -104,6 +108,10 @@ function Registry.Validate(definition)
     end
     if hasModule then
         assert(seenSources[definition.module], "Game definition sources must include its module")
+        assert(
+            seenSources[definition.presentation],
+            "Game definition sources must include its presentation"
+        )
     end
 
     assert(type(definition.defaults) == "table", "Game definition defaults must be a table")

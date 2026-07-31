@@ -113,7 +113,9 @@ return {
         placeIds = { 114234929420007 },
     },
     module = "games/Counterblox",
+    presentation = "games/counterblox/Presentation",
     sources = {
         "games/Counterblox",
+        "games/counterblox/Presentation",
     },
 }

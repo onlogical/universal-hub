@@ -13,6 +13,47 @@ Drawing = {
 
 local Store = require("../modules/Store")
 local Overlay = require("../modules/Overlay")
+local PresentationHost = require("../modules/PresentationHost")
+local RivalsPresentation = require("../games/rivals/Presentation")
+local TownPresentation = require("../games/town/Presentation")
+
+local FullPresentation = {}
+function FullPresentation.mount(host)
+    host:aim()
+    host:rate("aimSmoothness", "Aim Smoothness")
+    host:rate("headshotRate", "Headshot Rate")
+    host:rate("missRate", "Miss Rate")
+    host:section("rage", "AIM")
+    host:option("rage", 1, "silentAim", "Camera Aim")
+    host:option("rage", 1, "shotAim", "Silent Aim")
+    host:option("rage", 1, "wallbang", "Wallbang", "silentAim")
+    host:option("rage", 2, "humanAim", "Human Aim", "silentAim")
+    host:option("rage", 2, "rapidFire", "Rapid Fire")
+    host:option("rage", 3, "triggerBot", "Trigger Bot")
+    host:option("rage", 3, "alwaysScoped", "Always Scoped")
+    host:option("rage", 3, "noSpread", "No Spread")
+    host:option("rage", 4, "noRecoil", "No Recoil")
+    host:option("rage", 4, "noWeaponSlow", "No Weapon Slow")
+    host:section("melee", "MELEE")
+    host:option("melee", 1, "knifeAura", "Knife Aura")
+    host:option("melee", 1, "microStep", "Micro Step", "knifeAura")
+    host:section("movement", "MOVEMENT")
+    host:option("movement", 1, "spinBot", "Spin Bot")
+    host:option("movement", 1, "bhop", "Bunny Hop")
+    host:section("world", "WORLD")
+    host:option("world", 1, "autoPickup", "Auto Pickup")
+    host:section("visuals", "VISUALS")
+    host:option("visuals", 1, "boxes", "Hitboxes")
+    host:option("visuals", 1, "chams", "Chams")
+    host:option("visuals", 2, "names", "Names")
+    host:option("visuals", 2, "health", "Health")
+    host:option("visuals", 3, "weapon", "Weapons")
+    host:option("visuals", 3, "noFlash", "No Flash")
+    host:option("visuals", 4, "noSmoke", "No Smoke")
+    host:option("visuals", 4, "bombTimer", "Bomb Timer")
+    host:option("visuals", 5, "utilityEsp", "Utility ESP")
+    host:cosmetics()
+end
 
 local nodes = {}
 local destroyed = false
@@ -278,6 +319,8 @@ local overlay = Overlay.new({
         end,
     },
     gameLabel = "Test Game",
+    presentation = FullPresentation,
+    presentationHost = PresentationHost,
     getCamera = function()
         return {
             ViewportSize = Vector2.new(1280, 720),
@@ -1095,6 +1138,8 @@ local rivalsOverlay = Overlay.new({
         end,
     },
     gameLabel = "RIVALS",
+    presentation = RivalsPresentation,
+    presentationHost = PresentationHost,
     getCamera = function()
         return {
             ViewportSize = Vector2.new(1280, 720),
@@ -1155,6 +1200,8 @@ local townOverlay = Overlay.new({
         "plotCopy",
     },
     cosmetics = false,
+    presentation = TownPresentation,
+    presentationHost = PresentationHost,
     copyPlot = function(ownerName, saveName)
         table.insert(plotCopyRequests, {
             ownerName = ownerName,
@@ -1237,23 +1284,21 @@ plotCopy.ownerButton.callbacks.click()
 assert(
     plotOwnerRequests == 1
         and plotCopy.ownerIndicator.Text == "^"
-        and #townOverlay.plotDropdownItems == 2
-        and townOverlay.plotDropdownItems[1].label.Text == "Zulu"
-        and townOverlay.plotDropdownItems[2].label.Text == "Alpha",
+        and #plotCopy.dropdownItems == 2
+        and plotCopy.dropdownItems[1].label.Text == "Zulu"
+        and plotCopy.dropdownItems[2].label.Text == "Alpha",
     "The Town player dropdown must populate from listPlotOwners"
 )
-townOverlay.plotDropdownItems[2].row.callbacks.click()
+plotCopy.dropdownItems[2].row.callbacks.click()
 assert(
-    townOverlay.selectedPlotOwner == "Alpha"
-        and plotCopy.ownerValue.Text == "Alpha"
+    plotCopy.ownerValue.Text == "Alpha"
         and plotCopy.saveValue.Text == "copy_Alpha",
     "Selecting a player must update the dropdown and seed an editable save name"
 )
 plotCopy.saveButton.callbacks.click()
 plotCopy.saveInput.Text = "My_Exact-Save_42"
 assert(
-    townOverlay.plotSaveName == "My_Exact-Save_42"
-        and plotCopy.saveValue.Text == "My_Exact-Save_42",
+    plotCopy.saveValue.Text == "My_Exact-Save_42",
     "Typing in the Town save-name input must preserve and display the exact value"
 )
 store:Patch({
