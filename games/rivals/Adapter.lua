@@ -1,6 +1,9 @@
 local Rivals = {
     id = "rivals",
     label = "RIVALS",
+    hydroxide = {
+        "targeting",
+    },
     manifest = {
         gameIds = { 6035872082 },
         placeIds = { 17625359962 },
@@ -341,8 +344,8 @@ function Rivals.new(context)
     local effects = Effects.new({
         clock = clock,
         collectionService = CollectionService,
-        drawing = context.oh.drawing,
         lighting = Lighting,
+        limn = context.limn,
         localPlayer = LocalPlayer,
         playerGui = context.playerGui,
         projectileAim = ProjectileAim,

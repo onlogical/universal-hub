@@ -19,3 +19,5 @@ loadstring(game:HttpGet("https://3xjn.github.io/universal-hub/bootstrap.lua?v=".
 ```
 
 Works with Volt and Potassium; press `Right Shift` to toggle the menu.
+
+Limn is the hub's sole drawing and input runtime. Universal Hub owns its panels, state, persistence, and game adapters; scoped Hydroxide `Targeting`, `Closure`, and `Lifecycle` helpers are loaded independently without starting or replacing the Hydroxide application.

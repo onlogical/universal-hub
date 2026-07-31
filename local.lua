@@ -25,9 +25,21 @@ end
 local configuration
 
 local function loadHub()
-    local hydroxideChunk, hydroxideError =
-        loadstring(readfile(configuration.HydroxideRoot .. "/init.lua"), "hydroxide/init.lua")
-    assert(hydroxideChunk, hydroxideError)()
+    local limnSource = readfile(configuration.LimnPath)
+    local limnChunk, limnError = loadstring(limnSource, "vendor/Limn.lua")
+    local Limn = assert(limnChunk, limnError)()
+    assert(type(Limn) == "table" and type(Limn.new) == "function", "Universal Hub requires Limn")
+
+    local helpersPath = configuration.HydroxideRoot .. "/modules/Helpers.lua"
+    local helpersChunk, helpersError = loadstring(readfile(helpersPath), "hydroxide/modules/Helpers.lua")
+    local Helpers = assert(helpersChunk, helpersError)()
+    assert(
+        type(Helpers) == "table" and type(Helpers.load) == "function",
+        "Universal Hub requires Hydroxide Helpers.load"
+    )
+
+    configuration.Limn = Limn
+    configuration.HydroxideHelpers = Helpers
     if not ownsFlight() then
         return
     end
@@ -53,6 +65,7 @@ local function startBootstrap()
     configuration = environment.UniversalHubConfig or {}
     configuration.LocalRoot = configuration.LocalRoot or "universal-hub/local"
     configuration.HydroxideRoot = configuration.HydroxideRoot or "hydroxide/local"
+    configuration.LimnPath = configuration.LimnPath or "limn/dist/Limn.lua"
     local importCache = {}
     configuration.Import = function(path)
         assert(
@@ -71,13 +84,25 @@ local function startBootstrap()
         importCache[path] = result
         return result
     end
+    local hydroxideModules = {
+        ["modules/Closure"] = true,
+        ["modules/Lifecycle"] = true,
+        ["modules/Targeting"] = true,
+    }
+    local hydroxideCache = {}
+    configuration.HydroxideImport = function(path)
+        assert(hydroxideModules[path] == true, "Unknown Hydroxide helper module: " .. tostring(path))
+        if hydroxideCache[path] ~= nil then
+            return hydroxideCache[path]
+        end
+        local file = path .. ".lua"
+        local source = readfile(configuration.HydroxideRoot .. "/" .. file)
+        local chunk, compileError = loadstring(source, "hydroxide/" .. file)
+        local result = assert(chunk, compileError)()
+        hydroxideCache[path] = assert(result, "Hydroxide helper module returned nil: " .. path)
+        return hydroxideCache[path]
+    end
     environment.UniversalHubConfig = configuration
-
-    local hydroxideConfiguration = environment.HydroxideConfig or {}
-    hydroxideConfiguration.Web = false
-    hydroxideConfiguration.LocalRoot = configuration.HydroxideRoot
-    hydroxideConfiguration.Branch = hydroxideConfiguration.Branch or "dev"
-    environment.HydroxideConfig = hydroxideConfiguration
 
     local synapse = environment.syn
     local queue = type(environment.queue_on_teleport) == "function"

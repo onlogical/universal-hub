@@ -20,6 +20,7 @@ local Town = {
     cosmetics = false,
     id = "town",
     label = "Town",
+    hydroxide = {},
     manifest = {
         gameIds = { 1718755273 },
         placeIds = { 4991214437 },

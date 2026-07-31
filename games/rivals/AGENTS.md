@@ -11,6 +11,11 @@ flow.
 `hub.lua` must also list every remotely loaded source. Keep both import lists
 in sync when adding, renaming, or removing a module.
 
+The adapter receives the selected scoped Hydroxide helper namespace plus a
+Limn runtime. It must not read `environment.oh`, raw `Drawing`, or a Limn
+filesystem path. Retained trajectory lines belong to a game-owned Limn canvas
+that is destroyed with the adapter.
+
 The per-frame flow is:
 
 1. `Adapter` reads the live RIVALS controllers and combat state.
@@ -62,7 +67,7 @@ The per-frame flow is:
     Gunblade combo state.
 - `Effects.lua`
   - Throwable/utility discovery, classification, visibility suppression, and
-    trajectory drawing.
+    trajectory drawing on a game-owned Limn canvas.
   - Subspace Tripmine uses projected oriented bounds for its wireframe cube.
 - `Movement.lua`
   - Bunny hop and slide behavior behind active/combat/input-capture gates.

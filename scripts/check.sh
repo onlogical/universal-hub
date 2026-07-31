@@ -62,6 +62,7 @@ lune run tests/menu_toggle_contracts.luau
 lune run tests/registry_contracts.luau
 lune run tests/session_contracts.luau
 lune run tests/overlay_contracts.luau
+lune run tests/limn_consumer_contracts.luau
 lune run tests/town_canonical_contracts.luau
 lune run tests/town_checkpoint_contracts.luau
 lune run tests/town_copy_engine_contracts.luau
@@ -75,4 +76,7 @@ lune run tests/rivals_combat_state_contracts.luau
 lune run tests/rivals_adapter_contracts.luau
 lune run tests/shot_presentation_binding_contracts.luau
 lune run tests/scoped_accuracy_contracts.luau
+if [ -n "${LIMN_ROOT:-}" ]; then
+    cmp "$LIMN_ROOT/dist/Limn.lua" vendor/Limn.lua
+fi
 printf 'universal-hub-check-ok\n'

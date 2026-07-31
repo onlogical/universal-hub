@@ -9,19 +9,30 @@ type HttpGame = typeof(game) & {
 }
 local httpGame = game :: HttpGame
 
-if not environment.oh or not environment.oh.drawing or not environment.oh.targeting then
-    local hydroxideConfiguration = environment.HydroxideConfig or {}
-    hydroxideConfiguration.Owner = configuration.HydroxideOwner or "3xjn"
-    hydroxideConfiguration.Branch = configuration.HydroxideBranch or "dev"
-    hydroxideConfiguration.Web = true
-    environment.HydroxideConfig = hydroxideConfiguration
+local limnSource = httpGame:HttpGet(sourceBaseUrl .. "vendor/Limn.lua", true)
+local limnChunk, limnError = loadstring(limnSource, "vendor/Limn.lua")
+local Limn = assert(limnChunk, limnError)()
+assert(type(Limn) == "table" and type(Limn.new) == "function", "Universal Hub requires Limn")
 
-    local hydroxideUrl = configuration.HydroxideUrl
-        or "https://raw.githubusercontent.com/3xjn/hydroxide/dev/init.lua"
-    local hydroxideSource = httpGame:HttpGet(hydroxideUrl, true)
-    local hydroxideChunk, hydroxideError = loadstring(hydroxideSource, "hydroxide/init.lua")
-    assert(hydroxideChunk, hydroxideError)()
+local hydroxideCommit = "8e2d4a84ddb4b7ef901af170966a43b3b35fbaa7"
+local hydroxideSourceBaseUrl =
+    ("https://raw.githubusercontent.com/3xjn/hydroxide/%s/"):format(hydroxideCommit)
+local hydroxideSources = {}
+for _, path in ipairs({
+    "modules/Helpers.lua",
+    "modules/Closure.lua",
+    "modules/Lifecycle.lua",
+    "modules/Targeting.lua",
+}) do
+    hydroxideSources[path] = httpGame:HttpGet(hydroxideSourceBaseUrl .. path, true)
 end
+local helpersChunk, helpersError =
+    loadstring(hydroxideSources["modules/Helpers.lua"], "hydroxide/modules/Helpers.lua")
+local Helpers = assert(helpersChunk, helpersError)()
+assert(
+    type(Helpers) == "table" and type(Helpers.load) == "function",
+    "Universal Hub requires Hydroxide Helpers.load"
+)
 
 local sources = {}
 for _, path in ipairs({
@@ -52,11 +63,41 @@ for _, path in ipairs({
     sources[path] = httpGame:HttpGet(sourceBaseUrl .. path, true)
 end
 environment.UniversalHubConfig = configuration
+local importCache = {}
 configuration.Import = function(path)
+    assert(
+        type(path) == "string"
+            and path:match("^[%w_/%-]+$") ~= nil
+            and not path:find("//", 1, true),
+        "Invalid hub module path"
+    )
+    if importCache[path] ~= nil then
+        return importCache[path]
+    end
     local file = path .. ".lua"
     local chunk, compileError = loadstring(assert(sources[file], "Unknown hub module: " .. path), file)
-    return assert(chunk, compileError)()
+    local result = assert(chunk, compileError)()
+    importCache[path] = result
+    return result
 end
+local hydroxideCache = {}
+configuration.HydroxideImport = function(path)
+    assert(
+        path == "modules/Closure" or path == "modules/Lifecycle" or path == "modules/Targeting",
+        "Unknown Hydroxide helper module: " .. tostring(path)
+    )
+    if hydroxideCache[path] ~= nil then
+        return hydroxideCache[path]
+    end
+    local file = path .. ".lua"
+    local chunk, compileError =
+        loadstring(assert(hydroxideSources[file], "Unknown Hydroxide source: " .. path), "hydroxide/" .. file)
+    local result = assert(chunk, compileError)()
+    hydroxideCache[path] = assert(result, "Hydroxide helper module returned nil: " .. path)
+    return hydroxideCache[path]
+end
+configuration.HydroxideHelpers = Helpers
+configuration.Limn = Limn
 
 local initSource = httpGame:HttpGet(sourceBaseUrl .. "init.lua", true)
 local initChunk, initError = loadstring(initSource, "init.lua")

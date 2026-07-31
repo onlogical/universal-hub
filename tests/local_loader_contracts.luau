@@ -1,5 +1,15 @@
 local fs = require("@lune/fs")
 local source = fs.readFile("local.lua")
+assert(
+    source:find('configuration.LimnPath', 1, true)
+        and source:find('modules/Helpers.lua', 1, true),
+    "Local bootstrap must stage Limn and Hydroxide Helpers before init"
+)
+assert(
+    not source:find('HydroxideRoot .. "/init.lua"', 1, true)
+        and not source:find("environment.HydroxideConfig", 1, true),
+    "Local bootstrap must not execute or configure the Hydroxide application"
+)
 local exited = false
 local loaded = {}
 local queuedTeleportSource
@@ -10,7 +20,7 @@ local waitedForLoad = false
 local gameLoaded = false
 local duplicateDuringLoadResult
 local attemptedDuplicateDuringLoad = false
-local failHydroxide = false
+local failHelpers = false
 local environment = {
     queue_on_teleport = function(source)
         queueCount += 1
@@ -31,6 +41,7 @@ local environment = {
         end,
     },
 }
+environment.OriginalOh = environment.oh
 
 function getgenv()
     return environment
@@ -57,9 +68,12 @@ end
 
 function readfile(path)
     table.insert(loaded, path)
-    if path == "hydroxide/local/init.lua" then
-        if failHydroxide then
-            error("intentional hydroxide failure")
+    if path == "limn/dist/Limn.lua" then
+        return [[return { new = function() end }]]
+    end
+    if path == "hydroxide/local/modules/Helpers.lua" then
+        if failHelpers then
+            error("intentional helpers failure")
         end
         if not attemptedDuplicateDuringLoad then
             attemptedDuplicateDuringLoad = true
@@ -67,18 +81,31 @@ function readfile(path)
             duplicateDuringLoadResult = assert(duplicateChunk, duplicateCompileError)()
         end
         return [[
-local previous = getgenv().oh
-if previous and previous.Exit then
-    previous.Exit()
-end
-getgenv().oh = {
-    drawing = {},
-    targeting = {
-        observeCharacter = function() end,
-    },
+return {
+    load = function(options)
+        local files = {
+            closure = "modules/Closure",
+            lifecycle = "modules/Lifecycle",
+            targeting = "modules/Targeting",
+        }
+        local namespace = {}
+        for _, name in ipairs(options.modules or {}) do
+            namespace[name] = options.import(files[name])
+        end
+        return namespace
+    end,
 }
 ]]
     end
+    if path == "hydroxide/local/modules/Targeting.lua" then
+        return [[return { nearestPlayer = function() end }]]
+    end
+    if path == "hydroxide/local/modules/Closure.lua"
+        or path == "hydroxide/local/modules/Lifecycle.lua"
+    then
+        return [[return {}]]
+    end
+    assert(path ~= "hydroxide/local/init.lua", "Local loader must never execute hydroxide/init.lua")
     if path:sub(1, #"universal-hub/local/") == "universal-hub/local/"
         and path ~= "universal-hub/local/init.lua"
     then
@@ -98,8 +125,24 @@ assert(
     "Local loader must resolve the production Town dependency graph"
 )
 assert(
-    type(getgenv().oh.targeting.observeCharacter) == "function",
-    "Local loader must refresh Hydroxide helpers before loading a game adapter"
+    type(getgenv().UniversalHubConfig.Limn.new) == "function",
+    "Local loader must stage Limn before loading a game adapter"
+)
+local helpers = getgenv().UniversalHubConfig.HydroxideHelpers.load({
+    import = getgenv().UniversalHubConfig.HydroxideImport,
+    modules = { "targeting" },
+})
+assert(
+    type(helpers.targeting.nearestPlayer) == "function",
+    "Local loader must load selected stable helpers through Helpers.load"
+)
+assert(
+    not pcall(getgenv().UniversalHubConfig.HydroxideImport, "modules/Store"),
+    "Hydroxide imports must not resolve Universal Hub modules"
+)
+assert(
+    getgenv().oh == getgenv().OriginalOh,
+    "Local loader must not replace the unrelated Hydroxide namespace"
 )
 return "local-loader-ok"
 ]]
@@ -123,8 +166,13 @@ assert(
 local deferredResult = pendingBootstrap()
 assert(deferredResult == "local-loader-ok")
 assert(waitedForLoad, "Local loader must yield to Roblox startup when launched from autoexec")
-assert(exited == true, "Refreshing Hydroxide must let its initializer clean up the previous session")
-assert(loaded[1] == "hydroxide/local/init.lua" and loaded[2] == "universal-hub/local/init.lua")
+assert(exited == false, "Scoped helper loading must not exit an unrelated Hydroxide session")
+assert(
+    loaded[1] == "limn/dist/Limn.lua"
+        and loaded[2] == "hydroxide/local/modules/Helpers.lua"
+        and loaded[3] == "universal-hub/local/init.lua",
+    "Local bootstrap must stage Limn and Helpers before Universal Hub"
+)
 local function loadedCount(path)
     local count = 0
     for _, loadedPath in ipairs(loaded) do
@@ -135,16 +183,19 @@ local function loadedCount(path)
     return count
 end
 assert(
-    loadedCount("hydroxide/local/init.lua") == 1
+    loadedCount("hydroxide/local/init.lua") == 0
+        and loadedCount("limn/dist/Limn.lua") == 1
+        and loadedCount("hydroxide/local/modules/Helpers.lua") == 1
+        and loadedCount("hydroxide/local/modules/Targeting.lua") == 1
         and loadedCount("universal-hub/local/init.lua") == 1,
-    "A duplicate local bootstrap must not initialize Hydroxide or the hub twice"
+    "A duplicate local bootstrap must stage each selected dependency and hub exactly once"
 )
 assert(
     loadedCount("universal-hub/local/games/town/ExecutionPlan.lua") == 1
         and loadedCount("universal-hub/local/games/town/Canonical.lua") == 1,
     "The local loader must read nested Town modules from its selected local root"
 )
-assert(duplicateDuringLoadResult == nil, "A duplicate local bootstrap during Hydroxide init must coalesce")
+assert(duplicateDuringLoadResult == nil, "A duplicate local bootstrap during helper staging must coalesce")
 
 waitedForLoad = false
 pendingBootstrap = nil
@@ -161,10 +212,10 @@ assert(not waitedForLoad, "Manual execution in a loaded game must start immediat
 assert(queueCount == 2, "Manual reexecution after a completed flight must start a fresh bootstrap")
 
 game.JobId = "local-error-job"
-failHydroxide = true
+failHelpers = true
 local errorChunk, errorCompileError = loadstring(source, "local.lua")
 assert(not pcall(assert(errorChunk, errorCompileError)), "A failed local flight must surface its initialization error")
-failHydroxide = false
+failHelpers = false
 local retryChunk, retryCompileError = loadstring(source, "local.lua")
 local retryResult = assert(retryChunk, retryCompileError)()
 assert(retryResult == "local-loader-ok", "A failed local flight must release ownership for a retry")

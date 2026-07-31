@@ -25,6 +25,9 @@ local Counterblox = {
     },
     id = "counterblox",
     label = "Counterblox",
+    hydroxide = {
+        "targeting",
+    },
     manifest = {
         gameIds = { 7633926880 },
         placeIds = { 114234929420007 },

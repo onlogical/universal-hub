@@ -1,20 +1,37 @@
 local Session = {}
 Session.__index = Session
 
+function Session.stopPrevious(environment)
+    assert(type(environment) == "table", "Hub session cleanup requires an environment")
+    local previous = environment.UniversalHubSession
+    if type(previous) ~= "table" or type(previous.stop) ~= "function" then
+        return nil
+    end
+
+    local helpers = environment.oh
+    local resources = type(helpers) == "table" and helpers.Resources or nil
+    local legacyIndex = type(resources) == "table" and table.find(resources, previous) or nil
+
+    previous:stop()
+    if environment.UniversalHubSession == previous then
+        environment.UniversalHubSession = nil
+    end
+    if legacyIndex and resources[legacyIndex] == previous then
+        table.remove(resources, legacyIndex)
+    end
+    return previous
+end
+
 function Session.new(options)
     assert(options and options.environment, "Hub session requires an environment")
     assert(options.store, "Hub session requires a store")
     assert(options.overlay, "Hub session requires an overlay")
     assert(options.adapter, "Hub session requires an adapter")
 
-    local previous = options.environment.UniversalHubSession
-    if previous and type(previous.stop) == "function" then
-        previous:stop()
-    end
-
     local self = setmetatable({
         adapter = options.adapter,
         environment = options.environment,
+        inputCapture = options.inputCapture,
         overlay = options.overlay,
         resources = {},
         settingsChanged = options.settingsChanged,
@@ -37,9 +54,9 @@ function Session:Add(cleanup)
     return cleanup
 end
 
-function Session:patchSettings(patch)
+function Session:patchSettings(patch, persist)
     self.store:Patch({ settings = patch })
-    if self.settingsChanged then
+    if persist ~= false and self.settingsChanged then
         self.settingsChanged(self.store:Get().settings)
     end
 end
@@ -52,22 +69,22 @@ function Session:setOption(name, enabled)
     })
 end
 
-function Session:setFov(value)
+function Session:setFov(value, persist)
     local state = self.store:Get()
     local settings = state.settings
     self:patchSettings({
         fov = math.clamp(value, settings.minimumFov, settings.maximumFov),
-    })
+    }, persist)
 end
 
-function Session:setRate(name, value)
+function Session:setRate(name, value, persist)
     assert(
         name == "aimSmoothness" or name == "headshotRate" or name == "missRate",
         "Unknown hub rate: " .. tostring(name)
     )
     self:patchSettings({
         [name] = math.clamp(math.round(value), 0, 100),
-    })
+    }, persist)
 end
 
 function Session:setCosmeticsOpen(open)
@@ -108,6 +125,9 @@ function Session:stop()
     end
     if self.overlay and type(self.overlay.destroy) == "function" then
         pcall(self.overlay.destroy, self.overlay)
+    end
+    if self.inputCapture and type(self.inputCapture.Destroy) == "function" then
+        pcall(self.inputCapture.Destroy, self.inputCapture)
     end
     if self.store and type(self.store.Destroy) == "function" then
         self.store:Destroy()

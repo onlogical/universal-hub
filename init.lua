@@ -20,23 +20,7 @@ local function import(path)
     return result
 end
 
-local oh = environment.oh
-assert(
-    oh
-        and oh.drawing
-        and oh.targeting
-        and type(oh.drawing.createSurface) == "function"
-        and type(oh.targeting.nearestPlayer) == "function",
-    "Universal Hub requires the Hydroxide core to be loaded first"
-)
-
-local drawingControls = assert(oh.load, "Universal Hub requires Hydroxide helper loading")("controls")
-
-local previous = environment.UniversalHubSession
-if previous and type(previous.stop) == "function" then
-    previous:stop()
-end
-
+local GuiService = game:GetService("GuiService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -75,6 +59,42 @@ assert(
     adapterDefinition,
     ("Universal Hub does not support game %s / place %s"):format(tostring(game.GameId), tostring(game.PlaceId))
 )
+
+local Limn = assert(configuration.Limn, "Universal Hub loader must stage Limn before init")
+assert(type(Limn) == "table" and type(Limn.new) == "function", "Universal Hub requires Limn")
+local Helpers =
+    assert(configuration.HydroxideHelpers, "Universal Hub loader must stage Hydroxide Helpers before init")
+local hydroxideImport =
+    assert(configuration.HydroxideImport, "Universal Hub loader must stage a Hydroxide importer before init")
+assert(
+    type(Helpers) == "table" and type(Helpers.load) == "function",
+    "Universal Hub requires Hydroxide Helpers.load"
+)
+local helpers = Helpers.load({
+    import = hydroxideImport,
+    modules = adapterDefinition.hydroxide or {},
+})
+for _, name in ipairs(adapterDefinition.hydroxide or {}) do
+    assert(type(helpers[name]) == "table", "Missing Hydroxide helper module: " .. tostring(name))
+end
+
+Session.stopPrevious(environment)
+local drawingRuntime = Limn.new({
+    Drawing = Drawing,
+    DrawingImmediate = DrawingImmediate,
+    Vector2 = Vector2,
+    Input = {
+        MapPosition = function(position)
+            local topLeftInset = GuiService:GetGuiInset()
+            return position + topLeftInset
+        end,
+        -- The visible menu intentionally sinks pointer input before Limn receives it.
+        Processed = "allow",
+    },
+})
+configuration.Limn = nil
+configuration.HydroxideHelpers = nil
+configuration.HydroxideImport = nil
 
 local defaultSettings = {
     aimSmoothness = 0,
@@ -161,6 +181,18 @@ if adapterDefinition.id == "town" then
     end
 end
 
+local startupCleanups = {}
+local function ownStartup(cleanup)
+    table.insert(startupCleanups, cleanup)
+end
+local function failStartup(message)
+    for index = #startupCleanups, 1, -1 do
+        pcall(startupCleanups[index])
+    end
+    table.clear(startupCleanups)
+    error(message, 0)
+end
+
 local store = Store.new({
     activeWeapon = nil,
     activeWeaponKind = nil,
@@ -204,14 +236,24 @@ local store = Store.new({
     settings = settings,
     status = ("Loading %s"):format(adapterDefinition.label),
 })
+ownStartup(function()
+    store:Destroy()
+end)
 environment.UniversalHubSettings = store:Get().settings
 
 local session
 local overlay
 local adapter
-local inputCapture = InputCapture.new({
+local inputCaptureCreated, inputCaptureResult = pcall(InputCapture.new, {
     releaseMouseOnDisable = adapterDefinition.id == "town",
 })
+if not inputCaptureCreated then
+    failStartup(inputCaptureResult)
+end
+local inputCapture = inputCaptureResult
+ownStartup(function()
+    inputCapture:Destroy()
+end)
 local thirdPersonState
 
 local function setInputCaptured(captured)
@@ -245,14 +287,12 @@ local adapterCapabilities = type(adapterDefinition.capabilitiesFor) == "function
             placeId = game.PlaceId,
         })
     or adapterDefinition.capabilities
-overlay = Overlay.new({
+local overlayCreated, overlayResult = pcall(Overlay.new, {
     capabilities = adapterCapabilities,
     cosmetics = adapterDefinition.cosmetics,
     cycleGlove = function(direction)
         adapter:cycleGlove(direction)
     end,
-    drawing = oh.drawing,
-    drawingControls = drawingControls,
     gameLabel = adapterDefinition.label,
     getCamera = function()
         return Workspace.CurrentCamera
@@ -348,8 +388,10 @@ overlay = Overlay.new({
         return success and parent or nil
     end)(),
     optionLabels = adapterDefinition.optionLabels,
-    setFov = function(value)
-        session:setFov(value)
+    inputService = UserInputService,
+    limn = drawingRuntime,
+    setFov = function(value, persist)
+        session:setFov(value, persist)
     end,
     setCosmeticsOpen = function(open)
         session:setCosmeticsOpen(open)
@@ -371,8 +413,8 @@ overlay = Overlay.new({
             end
         end
     end,
-    setRate = function(name, value)
-        session:setRate(name, value)
+    setRate = function(name, value, persist)
+        session:setRate(name, value, persist)
     end,
     cycleSkin = function(direction)
         adapter:cycleSkin(direction)
@@ -400,6 +442,13 @@ overlay = Overlay.new({
     end,
     store = store,
 })
+if not overlayCreated then
+    failStartup(overlayResult)
+end
+overlay = overlayResult
+ownStartup(function()
+    overlay:destroy()
+end)
 
 local created, result = pcall(adapterDefinition.new, {
     aimClick = mouse2click,
@@ -446,7 +495,8 @@ local created, result = pcall(adapterDefinition.new, {
             + Vector3.new(look.X, 0, look.Z) * forward
         return direction.Magnitude > 1 and direction.Unit or direction
     end,
-    oh = oh,
+    limn = drawingRuntime,
+    oh = helpers,
     render = function(observations, mousePosition, utilityObservations)
         overlay:render(observations, mousePosition, utilityObservations)
     end,
@@ -478,11 +528,14 @@ local created, result = pcall(adapterDefinition.new, {
     workspace = Workspace,
 })
 if not created then
-    overlay:destroy()
-    store:Destroy()
-    error(result, 0)
+    failStartup(result)
 end
 adapter = result
+ownStartup(function()
+    if type(adapter.stop) == "function" then
+        adapter:stop()
+    end
+end)
 if type(adapter.inspectCopyRecovery) == "function" then
     local recovered, _recoveryError = pcall(function()
         adapter:inspectCopyRecovery()
@@ -500,35 +553,42 @@ if type(adapter.inspectCopyRecovery) == "function" then
     end
 end
 
-session = Session.new({
+local sessionCreated, sessionResult = pcall(Session.new, {
     adapter = adapter,
     environment = environment,
+    inputCapture = inputCapture,
     overlay = overlay,
     settingsChanged = function(updatedSettings)
         configStore:save(updatedSettings)
     end,
     store = store,
 })
-session.adapterId = adapterDefinition.id
-session.game = adapterDefinition.label
-session.registry = registry
-session.state = store:Get()
-session.store = store
-local menuToggleConnection = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-    if MenuToggle.shouldToggle(input, gameProcessedEvent, UserInputService) then
-        session:toggleMenu()
-    end
-end)
-session:Add(function()
-    menuToggleConnection:Disconnect()
-end)
-session:Add(function()
-    inputCapture:Destroy()
-end)
+if not sessionCreated then
+    failStartup(sessionResult)
+end
+session = sessionResult
+table.clear(startupCleanups)
+local finalized, finalError = pcall(function()
+    session.adapterId = adapterDefinition.id
+    session.game = adapterDefinition.label
+    session.registry = registry
+    session.state = store:Get()
+    session.store = store
+    local menuToggleConnection = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+        if MenuToggle.shouldToggle(input, gameProcessedEvent, UserInputService) then
+            session:toggleMenu()
+        end
+    end)
+    session:Add(function()
+        menuToggleConnection:Disconnect()
+    end)
 
-oh.Resources = oh.Resources or {}
-table.insert(oh.Resources, session)
-local readyStatus = ("%s ready"):format(adapterDefinition.label)
-store:Patch({ status = readyStatus })
-print("[Universal Hub]", readyStatus)
+    local readyStatus = ("%s ready"):format(adapterDefinition.label)
+    store:Patch({ status = readyStatus })
+    print("[Universal Hub]", readyStatus)
+end)
+if not finalized then
+    session:stop()
+    error(finalError, 0)
+end
 return session
