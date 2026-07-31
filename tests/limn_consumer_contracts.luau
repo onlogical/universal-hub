@@ -12,6 +12,9 @@ Drawing = {
 local limnPath = "vendor/Limn.lua"
 local limnChunk, limnError = loadstring(fs.readFile(limnPath), limnPath)
 local Limn = assert(limnChunk, limnError)()
+local PresentationRuntime = require("../modules/presentation/Runtime")
+local StandardPanels = require("../modules/presentation/StandardPanels")
+local CosmeticsPanel = require("../modules/presentation/CosmeticsPanel")
 local initSource = fs.readFile("init.lua")
 local helpersLoadAt = assert(initSource:find("Helpers.load", 1, true))
 local previousStopAt = assert(initSource:find("Session.stopPrevious", 1, true))
@@ -169,6 +172,11 @@ local overlay = Overlay.new({
     gameLabel = "Limn Contract",
     presentation = RivalsPresentation,
     presentationHost = PresentationHost,
+    presentationParts = {
+        cosmetics = CosmeticsPanel,
+        standard = StandardPanels,
+    },
+    presentationRuntime = PresentationRuntime,
     getCamera = function()
         return {
             ViewportSize = Vector2.new(1280, 720),

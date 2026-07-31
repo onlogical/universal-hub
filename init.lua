@@ -45,6 +45,9 @@ local Registry = import("modules/Registry")
 local Session = import("modules/Session")
 local Overlay = import("modules/Overlay")
 local PresentationHost = import("modules/PresentationHost")
+local PresentationRuntime = import("modules/presentation/Runtime")
+local StandardPanels = import("modules/presentation/StandardPanels")
+local CosmeticsPanel = import("modules/presentation/CosmeticsPanel")
 local Catalog = import("games/Catalog")
 
 local registry = Registry.new()
@@ -320,6 +323,11 @@ local overlayCreated, overlayResult = pcall(Overlay.new, {
     optionLabels = features.optionLabels,
     presentation = presentation,
     presentationHost = PresentationHost,
+    presentationParts = {
+        cosmetics = CosmeticsPanel,
+        standard = StandardPanels,
+    },
+    presentationRuntime = PresentationRuntime,
     inputService = UserInputService,
     limn = drawingRuntime,
     setFov = function(value, persist)

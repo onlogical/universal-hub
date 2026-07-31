@@ -224,7 +224,7 @@ function Overlay.new(context)
         self.surface:bindInput(context.inputService)
     end
     self:_build()
-    self.presentationHost = context.presentationHost.mount({
+    local presentationRuntime = context.presentationRuntime.new({
         activeSliderVisuals = self.activeSliderVisuals,
         capabilities = context.capabilities,
         cosmeticsSupported = context.cosmetics ~= false,
@@ -233,19 +233,27 @@ function Overlay.new(context)
         interactive = function(node)
             return self:_interactive(node)
         end,
-        layout = function()
-            self:_layout()
+        node = function(kind, properties, pointerEvents)
+            return self.surface:create(kind, properties, {
+                pointerEvents = pointerEvents == true,
+            })
         end,
         optionSupport = self.optionSupport,
+        refreshVisibility = function()
+            self:_setMenuVisible(context.store:Get().menuVisible ~= false)
+        end,
+        requestLayout = function()
+            self:_layout()
+        end,
         setControlColor = function(node, color)
             self:_setControlColor(node, color)
         end,
-        surface = self.surface,
         text = function(properties, pointerEvents)
             return self:_text(properties, pointerEvents)
         end,
         theme = COLORS,
-    }, context.presentation)
+    }, context.presentationParts)
+    self.presentationHost = context.presentationHost.mount(presentationRuntime, context.presentation)
     self:_layout()
     self.immediateChams = pcall(function()
         self.chamPaintConnection = self.surface:paint(WORLD_LAYER.chams, function(renderer)

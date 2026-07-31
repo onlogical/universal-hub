@@ -14,6 +14,9 @@ Drawing = {
 local Store = require("../modules/Store")
 local Overlay = require("../modules/Overlay")
 local PresentationHost = require("../modules/PresentationHost")
+local PresentationRuntime = require("../modules/presentation/Runtime")
+local StandardPanels = require("../modules/presentation/StandardPanels")
+local CosmeticsPanel = require("../modules/presentation/CosmeticsPanel")
 local RivalsPresentation = require("../games/rivals/Presentation")
 local TownPresentation = require("../games/town/Presentation")
 
@@ -23,7 +26,7 @@ function FullPresentation.mount(host)
     host:rate("aimSmoothness", "Aim Smoothness")
     host:rate("headshotRate", "Headshot Rate")
     host:rate("missRate", "Miss Rate")
-    host:section("rage", "AIM")
+    host:section("rage", "AIM", 64, true)
     host:option("rage", 1, "silentAim", "Camera Aim")
     host:option("rage", 1, "shotAim", "Silent Aim")
     host:option("rage", 1, "wallbang", "Wallbang", "silentAim")
@@ -34,15 +37,15 @@ function FullPresentation.mount(host)
     host:option("rage", 3, "noSpread", "No Spread")
     host:option("rage", 4, "noRecoil", "No Recoil")
     host:option("rage", 4, "noWeaponSlow", "No Weapon Slow")
-    host:section("melee", "MELEE")
+    host:section("melee", "MELEE", 70)
     host:option("melee", 1, "knifeAura", "Knife Aura")
     host:option("melee", 1, "microStep", "Micro Step", "knifeAura")
-    host:section("movement", "MOVEMENT")
+    host:section("movement", "MOVEMENT", 70)
     host:option("movement", 1, "spinBot", "Spin Bot")
     host:option("movement", 1, "bhop", "Bunny Hop")
-    host:section("world", "WORLD")
+    host:section("world", "WORLD", 70)
     host:option("world", 1, "autoPickup", "Auto Pickup")
-    host:section("visuals", "VISUALS")
+    host:section("visuals", "VISUALS", 70)
     host:option("visuals", 1, "boxes", "Hitboxes")
     host:option("visuals", 1, "chams", "Chams")
     host:option("visuals", 2, "names", "Names")
@@ -321,6 +324,11 @@ local overlay = Overlay.new({
     gameLabel = "Test Game",
     presentation = FullPresentation,
     presentationHost = PresentationHost,
+    presentationParts = {
+        cosmetics = CosmeticsPanel,
+        standard = StandardPanels,
+    },
+    presentationRuntime = PresentationRuntime,
     getCamera = function()
         return {
             ViewportSize = Vector2.new(1280, 720),
@@ -1140,6 +1148,11 @@ local rivalsOverlay = Overlay.new({
     gameLabel = "RIVALS",
     presentation = RivalsPresentation,
     presentationHost = PresentationHost,
+    presentationParts = {
+        cosmetics = CosmeticsPanel,
+        standard = StandardPanels,
+    },
+    presentationRuntime = PresentationRuntime,
     getCamera = function()
         return {
             ViewportSize = Vector2.new(1280, 720),
@@ -1182,7 +1195,7 @@ assert(rivalsOverlay.controls.options.knifeAura == nil)
 assert(rivalsOverlay.controls.sections.rage ~= nil and rivalsOverlay.controls.sections.visuals ~= nil)
 assert(rivalsOverlay.controls.sections.melee == nil and rivalsOverlay.controls.sections.movement == nil)
 assert(
-    rivalsOverlay.controls.cosmetics.header.Visible == false,
+    next(rivalsOverlay.controls.cosmetics) == nil,
     "Adapters without cosmetics must omit the Counterblox cosmetics disclosure"
 )
 assert(
@@ -1202,6 +1215,11 @@ local townOverlay = Overlay.new({
     cosmetics = false,
     presentation = TownPresentation,
     presentationHost = PresentationHost,
+    presentationParts = {
+        cosmetics = CosmeticsPanel,
+        standard = StandardPanels,
+    },
+    presentationRuntime = PresentationRuntime,
     copyPlot = function(ownerName, saveName)
         table.insert(plotCopyRequests, {
             ownerName = ownerName,
@@ -1279,6 +1297,20 @@ assert(
         and plotCopy.progressTrack
         and plotCopy.progressFill,
     "Town must render plot selection, save-name, action, and progress controls"
+)
+assert(
+    townOverlay.controls.weaponSurface == nil
+        and townOverlay.controls.fovCircle == nil
+        and next(townOverlay.controls.cosmetics) == nil,
+    "Town must not construct hidden aim or cosmetics controls"
+)
+assert(
+    townOverlay.controls.sections.plotCopy.label.Position
+        == townOverlay.controls.panel.Position + Vector2.new(12, 60)
+        and plotCopy.ownerButton.Position
+            == townOverlay.controls.panel.Position + Vector2.new(12, 82)
+        and townOverlay.controls.panel.Size == Vector2.new(300, 286),
+    "Town panel ordering and geometry must remain unchanged"
 )
 plotCopy.ownerButton.callbacks.click()
 assert(

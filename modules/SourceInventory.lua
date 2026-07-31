@@ -10,6 +10,9 @@ local CORE = {
     "modules/Session",
     "modules/Overlay",
     "modules/PresentationHost",
+    "modules/presentation/Runtime",
+    "modules/presentation/StandardPanels",
+    "modules/presentation/CosmeticsPanel",
     "modules/SourceInventory",
     "games/Catalog",
 }
