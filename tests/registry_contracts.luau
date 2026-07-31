@@ -3,8 +3,14 @@ local Registry = require("../modules/Registry")
 local function definition(id, options)
     options = options or {}
     return {
+        defaults = options.defaults or {},
         factory = options.factory or function() end,
+        features = options.features or {
+            capabilities = {},
+        },
+        hydroxide = options.hydroxide or {},
         id = id,
+        initialState = options.initialState or {},
         label = options.label or id,
         manifest = options.manifest or {
             gameIds = options.gameIds,
@@ -68,6 +74,41 @@ expectError("sources must be a table", function()
         gameIds = { 10 },
     })
     candidate.sources = nil
+    Registry.Validate(candidate)
+end)
+expectError("defaults must be a table", function()
+    local candidate = definition("missing-defaults", {
+        gameIds = { 10 },
+    })
+    candidate.defaults = nil
+    Registry.Validate(candidate)
+end)
+expectError("initialState must be a table", function()
+    local candidate = definition("missing-state", {
+        gameIds = { 10 },
+    })
+    candidate.initialState = nil
+    Registry.Validate(candidate)
+end)
+expectError("features must be a table", function()
+    local candidate = definition("missing-features", {
+        gameIds = { 10 },
+    })
+    candidate.features = nil
+    Registry.Validate(candidate)
+end)
+expectError("capabilities must be a table", function()
+    local candidate = definition("missing-capabilities", {
+        gameIds = { 10 },
+    })
+    candidate.features.capabilities = nil
+    Registry.Validate(candidate)
+end)
+expectError("Hydroxide requirements must be a table", function()
+    local candidate = definition("missing-hydroxide", {
+        gameIds = { 10 },
+    })
+    candidate.hydroxide = nil
     Registry.Validate(candidate)
 end)
 expectError("duplicate source", function()

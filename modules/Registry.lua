@@ -27,6 +27,41 @@ local function validateManifestIds(manifest, field)
     return #values
 end
 
+local function validateData(value, path, seen)
+    local valueType = type(value)
+    assert(
+        valueType == "nil"
+            or valueType == "boolean"
+            or valueType == "number"
+            or valueType == "string"
+            or valueType == "table",
+        path .. " must contain only data"
+    )
+    if valueType ~= "table" then
+        return
+    end
+
+    seen = seen or {}
+    assert(not seen[value], path .. " must not contain cycles")
+    seen[value] = true
+    for key, child in pairs(value) do
+        validateData(key, path .. " key", seen)
+        validateData(child, path .. "." .. tostring(key), seen)
+    end
+    seen[value] = nil
+end
+
+local function validateStringList(values, path, allowed)
+    assert(type(values) == "table", path .. " must be a table")
+    local seen = {}
+    for _, value in ipairs(values) do
+        assert(type(value) == "string" and value ~= "", path .. " entries must be non-empty strings")
+        assert(not seen[value], path .. " contains duplicate entry: " .. value)
+        assert(not allowed or allowed[value], path .. " contains unsupported entry: " .. value)
+        seen[value] = true
+    end
+end
+
 function Registry.Validate(definition)
     assert(type(definition) == "table", "Game definition must be a table")
     assert(
@@ -51,6 +86,7 @@ function Registry.Validate(definition)
     assert(hasModule ~= hasFactory, "Game definition requires exactly one module or factory")
     if hasModule then
         assert(validSourcePath(definition.module), "Game definition module must be a valid source path")
+        assert(definition.match == nil, "Module game definitions must not contain runtime callbacks")
     else
         assert(type(definition.factory) == "function", "Game definition factory must be a function")
     end
@@ -69,6 +105,36 @@ function Registry.Validate(definition)
     if hasModule then
         assert(seenSources[definition.module], "Game definition sources must include its module")
     end
+
+    assert(type(definition.defaults) == "table", "Game definition defaults must be a table")
+    assert(type(definition.initialState) == "table", "Game definition initialState must be a table")
+    assert(type(definition.features) == "table", "Game definition features must be a table")
+    validateStringList(definition.features.capabilities, "Game definition capabilities")
+    assert(
+        definition.features.cosmetics == nil or type(definition.features.cosmetics) == "boolean",
+        "Game definition cosmetics must be a boolean when declared"
+    )
+    if definition.features.optionLabels ~= nil then
+        assert(type(definition.features.optionLabels) == "table", "Game definition optionLabels must be a table")
+    end
+    if definition.features.exclusiveOptions ~= nil then
+        assert(
+            type(definition.features.exclusiveOptions) == "table",
+            "Game definition exclusiveOptions must be a table"
+        )
+        for option, exclusions in pairs(definition.features.exclusiveOptions) do
+            assert(type(option) == "string" and option ~= "", "Game definition exclusion keys must be strings")
+            validateStringList(exclusions, "Game definition exclusion " .. option)
+        end
+    end
+    validateStringList(definition.hydroxide, "Hydroxide requirements", {
+        closure = true,
+        lifecycle = true,
+        targeting = true,
+    })
+    validateData(definition.defaults, "Game definition defaults")
+    validateData(definition.initialState, "Game definition initialState")
+    validateData(definition.features, "Game definition features")
 
     return definition
 end

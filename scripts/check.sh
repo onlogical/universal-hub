@@ -35,6 +35,10 @@ luau-lsp analyze \
     modules/Registry.lua \
     modules/Session.lua \
     modules/Overlay.lua \
+    games/Catalog.lua \
+    games/counterblox/Definition.lua \
+    games/rivals/Definition.lua \
+    games/town/Definition.lua \
     games/town/Canonical.lua \
     games/town/CheckpointStore.lua \
     games/town/CopyEngine.lua \
@@ -60,6 +64,7 @@ lune run tests/config_contracts.luau
 lune run tests/input_capture_contracts.luau
 lune run tests/menu_toggle_contracts.luau
 lune run tests/registry_contracts.luau
+lune run tests/catalog_contracts.luau
 lune run tests/session_contracts.luau
 lune run tests/overlay_contracts.luau
 lune run tests/limn_consumer_contracts.luau

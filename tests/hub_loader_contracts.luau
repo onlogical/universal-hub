@@ -110,8 +110,8 @@ local result = assert(chunk, compileError)()
 assert(result == "hub-loader-ok")
 assert(environment.StoreExecutions == 1, "Hub importer must execute a fetched module once")
 assert(
-    #requested == 29,
-    "Hub loader must fetch vendored Limn, pinned Helpers and leaves, init.lua, and twenty-three modules"
+    #requested == 33,
+    "Hub loader must fetch vendored Limn, pinned Helpers and leaves, init.lua, and twenty-seven modules"
 )
 local seen = {}
 for _, url in ipairs(requested) do

@@ -13,34 +13,13 @@ local Canonical = importDependency("games/town/Canonical", "./town/Canonical")
 local CopyEngine = importDependency("games/town/CopyEngine", "./town/CopyEngine")
 local ExecutionPlan = importDependency("games/town/ExecutionPlan", "./town/ExecutionPlan")
 
-local Town = {
-    capabilities = {
-        "plotCopy",
-    },
-    cosmetics = false,
-    id = "town",
-    label = "Town",
-    hydroxide = {},
-    manifest = {
-        gameIds = { 1718755273 },
-        placeIds = { 4991214437 },
-    },
-}
+local Town = {}
 
 local PREFERRED_BATCH_SIZE = 128
 local CLONE_REQUEST_SIZE = 513
 -- Scheduler tuning from current Town behavior; requires a separately authorized live probe.
 local COMMAND_COOLDOWN_SECONDS = 6
 local PLOT_ROOT_NAME = "Private Building Areas"
-
-local function contains(list, value)
-    for _, candidate in ipairs(list or {}) do
-        if candidate == value then
-            return true
-        end
-    end
-    return false
-end
 
 local function partType(part)
     if part:IsA("TrussPart") then
@@ -658,16 +637,6 @@ local function childOwnershipName(jobId, operation, partId, index)
         operation = operation,
         partId = partId,
     }):match(":(%x+)"):sub(1, 24)
-end
-
-function Town.match(context)
-    if contains(Town.manifest.placeIds, context.placeId) then
-        return 200
-    end
-    if contains(Town.manifest.gameIds, context.gameId) then
-        return 100
-    end
-    return 0
 end
 
 Town.partType = partType
@@ -2682,15 +2651,5 @@ function Town.new(context)
 
     return self
 end
-
-Town.factory = Town.new
-Town.sources = {
-    "games/Town",
-    "games/town/Canonical",
-    "games/town/CheckpointStore",
-    "games/town/CopyEngine",
-    "games/town/CopyPlan",
-    "games/town/ExecutionPlan",
-}
 
 return Town

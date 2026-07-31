@@ -20,6 +20,17 @@ local function import(path)
     return result
 end
 
+local function copyData(value)
+    if type(value) ~= "table" then
+        return value
+    end
+    local copy = {}
+    for key, child in pairs(value) do
+        copy[copyData(key)] = copyData(child)
+    end
+    return copy
+end
+
 local GuiService = game:GetService("GuiService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -33,23 +44,12 @@ local MenuToggle = import("modules/MenuToggle")
 local Registry = import("modules/Registry")
 local Session = import("modules/Session")
 local Overlay = import("modules/Overlay")
-local TownCheckpointStore = import("games/town/CheckpointStore")
-local Counterblox = import("games/Counterblox")
-local Town = import("games/Town")
-local Rivals = import("games/rivals/Adapter")
-local RivalsTargeting = import("games/rivals/Targeting")
-local RivalsProjectileAim = import("games/rivals/ProjectileAim")
-local RivalsShotPresentation = import("games/rivals/ShotPresentation")
-local RivalsScopedAccuracy = import("games/rivals/ScopedAccuracy")
-local RivalsWeaponPolicy = import("games/rivals/WeaponPolicy")
-local RivalsEffects = import("games/rivals/Effects")
-local RivalsMovement = import("games/rivals/Movement")
-local RivalsCombatState = import("games/rivals/CombatState")
+local Catalog = import("games/Catalog")
 
 local registry = Registry.new()
-registry:Register(Counterblox)
-registry:Register(Town)
-registry:Register(Rivals)
+for _, definitionPath in ipairs(Catalog) do
+    registry:Register(import(definitionPath))
+end
 
 local adapterDefinition = registry:Resolve({
     gameId = game.GameId,
@@ -59,6 +59,9 @@ assert(
     adapterDefinition,
     ("Universal Hub does not support game %s / place %s"):format(tostring(game.GameId), tostring(game.PlaceId))
 )
+local adapterModule = import(adapterDefinition.module)
+assert(type(adapterModule) == "table" and type(adapterModule.new) == "function", "Invalid game adapter module")
+local features = adapterDefinition.features
 
 local Limn = assert(configuration.Limn, "Universal Hub loader must stage Limn before init")
 assert(type(Limn) == "table" and type(Limn.new) == "function", "Universal Hub requires Limn")
@@ -96,43 +99,6 @@ configuration.Limn = nil
 configuration.HydroxideHelpers = nil
 configuration.HydroxideImport = nil
 
-local defaultSettings = {
-    aimSmoothness = 0,
-    autoPickup = false,
-    bhop = false,
-    boxes = true,
-    bombTimer = true,
-    chams = true,
-    fov = 180,
-    fovCircle = true,
-    fullScreenAim = false,
-    gloveColorOverride = false,
-    gloveOverride = false,
-    headshotRate = 0,
-    health = true,
-    humanAim = false,
-    knifeAura = false,
-    maximumFov = 500,
-    microStep = false,
-    minimumFov = 40,
-    missRate = 0,
-    names = true,
-    noFlash = false,
-    noRecoil = false,
-    noSmoke = false,
-    noSpread = false,
-    noWeaponSlow = false,
-    rapidFire = false,
-    alwaysScoped = false,
-    shotAim = false,
-    silentAim = false,
-    skinOverrides = {},
-    spinBot = false,
-    triggerBot = false,
-    utilityEsp = true,
-    wallbang = false,
-    weapon = true,
-}
 local configPath = configuration.ConfigPath or ("universal-hub/configs/%s.json"):format(adapterDefinition.id)
 local configStore = Config.new({
     decode = function(source)
@@ -146,7 +112,7 @@ local configStore = Config.new({
     readFile = type(readfile) == "function" and readfile or nil,
     writeFile = type(writefile) == "function" and writefile or nil,
 })
-local settings = configStore:load(defaultSettings)
+local settings = configStore:load(copyData(adapterDefinition.defaults))
 local hasPersistedConfig = type(isfile) == "function" and isfile(configPath)
 if not hasPersistedConfig then
     for name, value in pairs(environment.UniversalHubSettings or {}) do
@@ -158,6 +124,7 @@ end
 
 local townCheckpoint
 if adapterDefinition.id == "town" then
+    local TownCheckpointStore = import("games/town/CheckpointStore")
     townCheckpoint = TownCheckpointStore.new({
         decode = function(source)
             return HttpService:JSONDecode(source)
@@ -193,49 +160,10 @@ local function failStartup(message)
     error(message, 0)
 end
 
-local store = Store.new({
-    activeWeapon = nil,
-    activeWeaponKind = nil,
-    cosmeticWeapon = nil,
-    cosmetics = {
-        maximumWear = 1,
-        minimumWear = 0,
-        skin = "Stock",
-        skinCount = 1,
-        skinIndex = 1,
-        statTrak = false,
-        supportsStatTrak = false,
-        wear = 0,
-        weapon = nil,
-    },
-    cosmeticMode = "weapon",
-    cosmeticsOpen = false,
-    error = nil,
-    menuVisible = true,
-    observations = {},
-    plotCopy = {
-        active = false,
-        confirmedProgress = 0,
-        context = "",
-        phase = "Ready",
-        state = "idle",
-    },
-    bombObservation = {
-        visible = false,
-    },
-    utilityObservations = {},
-    gloves = {
-        maximumWear = 1,
-        minimumWear = 0,
-        skin = "Game equipped",
-        skinCount = 1,
-        skinIndex = 0,
-        wear = 0,
-        weapon = "Gloves",
-    },
-    settings = settings,
-    status = ("Loading %s"):format(adapterDefinition.label),
-})
+local initialState = copyData(adapterDefinition.initialState)
+initialState.settings = settings
+initialState.status = ("Loading %s"):format(adapterDefinition.label)
+local store = Store.new(initialState)
 ownStartup(function()
     store:Destroy()
 end)
@@ -280,16 +208,16 @@ local function setThirdPerson(enabled)
     end
 end
 
-local adapterCapabilities = type(adapterDefinition.capabilitiesFor) == "function"
-        and adapterDefinition.capabilitiesFor({
+local adapterCapabilities = type(adapterModule.capabilitiesFor) == "function"
+        and adapterModule.capabilitiesFor({
             fireTouchInterestAvailable = type(environment.firetouchinterest) == "function",
             gameId = game.GameId,
             placeId = game.PlaceId,
-        })
-    or adapterDefinition.capabilities
+        }, features.capabilities)
+    or features.capabilities
 local overlayCreated, overlayResult = pcall(Overlay.new, {
     capabilities = adapterCapabilities,
-    cosmetics = adapterDefinition.cosmetics,
+    cosmetics = features.cosmetics,
     cycleGlove = function(direction)
         adapter:cycleGlove(direction)
     end,
@@ -387,7 +315,7 @@ local overlayCreated, overlayResult = pcall(Overlay.new, {
         end)
         return success and parent or nil
     end)(),
-    optionLabels = adapterDefinition.optionLabels,
+    optionLabels = features.optionLabels,
     inputService = UserInputService,
     limn = drawingRuntime,
     setFov = function(value, persist)
@@ -405,9 +333,9 @@ local overlayCreated, overlayResult = pcall(Overlay.new, {
     end,
     setOption = function(name, enabled)
         session:setOption(name, enabled)
-        if enabled and adapterDefinition.exclusiveOptions then
+        if enabled and features.exclusiveOptions then
             for _, excluded in ipairs(
-                adapterDefinition.exclusiveOptions[name] or {}
+                features.exclusiveOptions[name] or {}
             ) do
                 session:setOption(excluded, false)
             end
@@ -450,7 +378,7 @@ ownStartup(function()
     overlay:destroy()
 end)
 
-local created, result = pcall(adapterDefinition.factory, {
+local created, result = pcall(adapterModule.new, {
     aimClick = mouse2click,
     aimPress = mouse2press,
     aimRelease = mouse2release,
@@ -496,6 +424,7 @@ local created, result = pcall(adapterDefinition.factory, {
         return direction.Magnitude > 1 and direction.Unit or direction
     end,
     limn = drawingRuntime,
+    capabilities = adapterCapabilities,
     oh = helpers,
     render = function(observations, mousePosition, utilityObservations)
         overlay:render(observations, mousePosition, utilityObservations)
@@ -505,14 +434,6 @@ local created, result = pcall(adapterDefinition.factory, {
         configStore:save(updatedSettings)
     end,
     setThirdPerson = setThirdPerson,
-    rivalsTargeting = RivalsTargeting,
-    projectileAim = RivalsProjectileAim,
-    shotPresentation = RivalsShotPresentation,
-    alwaysScoped = RivalsScopedAccuracy,
-    weaponPolicy = RivalsWeaponPolicy,
-    effects = RivalsEffects,
-    movement = RivalsMovement,
-    combatState = RivalsCombatState,
     checkpoint = townCheckpoint,
     gameId = game.GameId,
     generateGuid = function()

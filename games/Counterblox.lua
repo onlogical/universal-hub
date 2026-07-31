@@ -1,38 +1,4 @@
-local Counterblox = {
-    capabilities = {
-        "silentAim",
-        "triggerBot",
-        "wallbang",
-        "knifeAura",
-        "microStep",
-        "spinBot",
-        "bhop",
-        "rapidFire",
-        "bombTimer",
-        "utilityEsp",
-        "headshotRate",
-        "missRate",
-        "noSpread",
-        "noRecoil",
-        "noFlash",
-        "noSmoke",
-        "noWeaponSlow",
-        "boxes",
-        "chams",
-        "names",
-        "health",
-        "weapon",
-    },
-    id = "counterblox",
-    label = "Counterblox",
-    hydroxide = {
-        "targeting",
-    },
-    manifest = {
-        gameIds = { 7633926880 },
-        placeIds = { 114234929420007 },
-    },
-}
+local Counterblox = {}
 
 local KNIFE_AURA_INTERVAL = 0.06
 local KNIFE_EXTRA_REACH = 3
@@ -50,25 +16,6 @@ local BOMB_MARKER_MAX_DISTANCE = 350
 local BOMB_MARKER_THROUGH_WALL_DISTANCE = 160
 local UTILITY_MAX_DISTANCE = 500
 local MAX_ZONE_QUADS = 48
-
-local function contains(list, value)
-    for _, candidate in ipairs(list or {}) do
-        if candidate == value then
-            return true
-        end
-    end
-    return false
-end
-
-function Counterblox.match(context)
-    if contains(Counterblox.manifest.placeIds, context.placeId) then
-        return 200
-    end
-    if contains(Counterblox.manifest.gameIds, context.gameId) then
-        return 100
-    end
-    return 0
-end
 
 function Counterblox.cosmeticLabel(skin)
     local base, pattern = string.match(skin, "^(.-)_PATTERN_(%d+)$")
@@ -1800,7 +1747,7 @@ function Counterblox.new(context)
         restoreFunction(hooks.bulletTarget)
     end
 
-    self.capabilities = Counterblox.capabilities
+    self.capabilities = context.capabilities or {}
     self.classify = Counterblox.classifyWeapon
     self.isOpponent = isOpponent
     self.selectTarget = selectTarget
@@ -1926,10 +1873,5 @@ function Counterblox.new(context)
     end
     return self
 end
-
-Counterblox.factory = Counterblox.new
-Counterblox.sources = {
-    "games/Counterblox",
-}
 
 return Counterblox

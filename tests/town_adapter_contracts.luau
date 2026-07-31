@@ -6,6 +6,7 @@ Vector2 = roblox.Vector2
 Vector3 = roblox.Vector3
 
 local Town = require("../games/Town")
+local TownDefinition = require("../games/town/Definition")
 local townSource = fs.readFile("games/Town.lua")
 local initSource = fs.readFile("init.lua")
 
@@ -55,9 +56,7 @@ assert(
     "Town startup must inspect compatible recovery state"
 )
 
-assert(Town.match({ gameId = 0, placeId = 4991214437 }) == 200)
-assert(Town.match({ gameId = 1718755273, placeId = 0 }) == 100)
-assert(Town.match({ gameId = 0, placeId = 0 }) == 0)
+assert(TownDefinition.module == "games/Town")
 
 local sourcePlotFrame = CFrame.new(100, 0, -50) * CFrame.Angles(0, math.rad(90), 0)
 local targetPlotFrame = CFrame.new(-200, 0, 75) * CFrame.Angles(0, math.rad(-90), 0)

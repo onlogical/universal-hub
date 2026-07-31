@@ -1,45 +1,24 @@
-local Rivals = {
-    id = "rivals",
-    label = "RIVALS",
-    hydroxide = {
-        "targeting",
-    },
-    manifest = {
-        gameIds = { 6035872082 },
-        placeIds = { 17625359962 },
-    },
-    capabilities = {
-        "silentAim",
-        "shotAim",
-        "triggerBot",
-        "autoPickup",
-        "alwaysScoped",
-        "humanAim",
-        "bhop",
-        "aimSmoothness",
-        "headshotRate",
-        "missRate",
-        "boxes",
-        "chams",
-        "names",
-        "health",
-        "weapon",
-        "utilityEsp",
-        "noFlash",
-        "noSmoke",
-    },
-    optionLabels = {
-        humanAim = "Human Aim",
-        alwaysScoped = "Always Scoped",
-        silentAim = "Camera Aim",
-        shotAim = "Silent Aim",
-    },
-    exclusiveOptions = {
-        shotAim = { "silentAim", "humanAim" },
-        silentAim = { "shotAim" },
-    },
-    cosmetics = false,
-}
+local function importDependency(path, relativePath)
+    if type(getgenv) == "function" then
+        local environment = getgenv()
+        local configuration = environment and environment.UniversalHubConfig
+        if configuration and type(configuration.Import) == "function" then
+            return configuration.Import(path)
+        end
+    end
+    return require(relativePath)
+end
+
+local Targeting = importDependency("games/rivals/Targeting", "./Targeting")
+local ProjectileAim = importDependency("games/rivals/ProjectileAim", "./ProjectileAim")
+local ShotPresentation = importDependency("games/rivals/ShotPresentation", "./ShotPresentation")
+local ScopedAccuracy = importDependency("games/rivals/ScopedAccuracy", "./ScopedAccuracy")
+local WeaponPolicy = importDependency("games/rivals/WeaponPolicy", "./WeaponPolicy")
+local Effects = importDependency("games/rivals/Effects", "./Effects")
+local Movement = importDependency("games/rivals/Movement", "./Movement")
+local CombatState = importDependency("games/rivals/CombatState", "./CombatState")
+
+local Rivals = {}
 
 local TRIGGER_INTERVAL = 0.1
 local TRIGGER_RADIUS = 8
@@ -52,25 +31,6 @@ local RICOCHET_CACHE_INTERVAL = 0.15
 local SPLASH_CACHE_INTERVAL = 0.1
 local SLINGSHOT_CACHE_INTERVAL = 0.2
 local SLINGSHOT_HUMAN_AIM_MAX_SMOOTHNESS = 65
-
-local function contains(list, value)
-    for _, candidate in ipairs(list or {}) do
-        if candidate == value then
-            return true
-        end
-    end
-    return false
-end
-
-function Rivals.match(context)
-    if contains(Rivals.manifest.placeIds, context.placeId) then
-        return 200
-    end
-    if contains(Rivals.manifest.gameIds, context.gameId) then
-        return 100
-    end
-    return 0
-end
 
 function Rivals.controllersReady(
     cameraController,
@@ -115,12 +75,12 @@ function Rivals.isGunGamePlace(placeId)
     return placeId == GUN_GAME_PLACE_ID
 end
 
-function Rivals.capabilitiesFor(context)
+function Rivals.capabilitiesFor(context, declaredCapabilities)
     context = context or {}
     local autoPickupAvailable = Rivals.isGunGamePlace(context.placeId)
         and context.fireTouchInterestAvailable == true
     local capabilities = {}
-    for _, capability in ipairs(Rivals.capabilities) do
+    for _, capability in ipairs(declaredCapabilities or {}) do
         if capability ~= "autoPickup" or autoPickupAvailable then
             table.insert(capabilities, capability)
         end
@@ -243,14 +203,6 @@ function Rivals.new(context)
     assert(context.aimPress and context.aimRelease, "RIVALS adapter requires held aiming support")
     assert(context.hookFunction, "RIVALS adapter requires hookfunction")
     assert(context.restoreFunction, "RIVALS adapter requires restorefunction")
-    assert(context.rivalsTargeting, "RIVALS adapter requires its targeting module")
-    assert(context.projectileAim, "RIVALS adapter requires its projectile aim module")
-    assert(context.shotPresentation, "RIVALS adapter requires its shot presentation module")
-    assert(context.alwaysScoped, "RIVALS adapter requires its always-scoped module")
-    assert(context.weaponPolicy, "RIVALS adapter requires its weapon policy module")
-    assert(context.effects, "RIVALS adapter requires its effects module")
-    assert(context.movement, "RIVALS adapter requires its movement module")
-    assert(context.combatState, "RIVALS adapter requires its combat-state module")
 
     local clock = context.clock or os.clock
     local itemClock = context.itemClock or tick
@@ -304,14 +256,6 @@ function Rivals.new(context)
         "RIVALS adapter requires the live Pick Weapons page"
     )
     local spawn = context.spawn or task.spawn
-    local Targeting = context.rivalsTargeting
-    local ProjectileAim = context.projectileAim
-    local ShotPresentation = context.shotPresentation
-    local ScopedAccuracy = context.alwaysScoped
-    local WeaponPolicy = context.weaponPolicy
-    local Effects = context.effects
-    local Movement = context.movement
-    local CombatState = context.combatState
     local targeting = context.oh.targeting
     local store = context.store
     local stopped = false
@@ -1642,7 +1586,7 @@ function Rivals.new(context)
         renderConnection:Disconnect()
     end
 
-    self.capabilities = Rivals.capabilities
+    self.capabilities = context.capabilities or {}
     self.isOpponent = isOpponent
     self.selectTarget = selectTarget
 
@@ -1657,18 +1601,5 @@ function Rivals.new(context)
 
     return self
 end
-
-Rivals.factory = Rivals.new
-Rivals.sources = {
-    "games/rivals/Adapter",
-    "games/rivals/Targeting",
-    "games/rivals/ProjectileAim",
-    "games/rivals/ShotPresentation",
-    "games/rivals/ScopedAccuracy",
-    "games/rivals/WeaponPolicy",
-    "games/rivals/Effects",
-    "games/rivals/Movement",
-    "games/rivals/CombatState",
-}
 
 return Rivals

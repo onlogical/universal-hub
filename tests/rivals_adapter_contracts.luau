@@ -6,6 +6,7 @@ Vector2 = roblox.Vector2
 Vector3 = roblox.Vector3
 
 local Rivals = require("../games/rivals/Adapter")
+RivalsDefinition = require("../games/rivals/Definition")
 local RivalsTargeting = require("../games/rivals/Targeting")
 local RivalsProjectileAim = require("../games/rivals/ProjectileAim")
 local RivalsShotPresentation = require("../games/rivals/ShotPresentation")
@@ -14,21 +15,22 @@ local RivalsEffects = require("../games/rivals/Effects")
 local RivalsMovement = require("../games/rivals/Movement")
 local RivalsCombatState = require("../games/rivals/CombatState")
 
-assert(Rivals.match({ gameId = 6035872082, placeId = 0 }) == 100)
-assert(Rivals.match({ gameId = 0, placeId = 17625359962 }) == 200)
-assert(Rivals.match({ gameId = 0, placeId = 0 }) == 0)
-assert(Rivals.cosmetics == false)
+assert(RivalsDefinition.module == "games/rivals/Adapter")
+assert(RivalsDefinition.features.cosmetics == false)
 assert(
-    table.find(Rivals.capabilities, "silentAim")
-        and table.find(Rivals.capabilities, "shotAim")
-        and table.find(Rivals.capabilities, "triggerBot")
-        and table.find(Rivals.capabilities, "alwaysScoped")
-        and table.find(Rivals.capabilities, "humanAim")
-        and table.find(Rivals.capabilities, "aimSmoothness")
-        and table.find(Rivals.capabilities, "headshotRate")
-        and table.find(Rivals.capabilities, "missRate")
+    table.find(RivalsDefinition.features.capabilities, "silentAim")
+        and table.find(RivalsDefinition.features.capabilities, "shotAim")
+        and table.find(RivalsDefinition.features.capabilities, "triggerBot")
+        and table.find(RivalsDefinition.features.capabilities, "alwaysScoped")
+        and table.find(RivalsDefinition.features.capabilities, "humanAim")
+        and table.find(RivalsDefinition.features.capabilities, "aimSmoothness")
+        and table.find(RivalsDefinition.features.capabilities, "headshotRate")
+        and table.find(RivalsDefinition.features.capabilities, "missRate")
 )
-assert(not table.find(Rivals.capabilities, "wallbang"), "RIVALS must not advertise unverified hit forgery")
+assert(
+    not table.find(RivalsDefinition.features.capabilities, "wallbang"),
+    "RIVALS must not advertise unverified hit forgery"
+)
 assert(Rivals.isGunGamePlace(133215910299950) == true)
 assert(Rivals.isGunGamePlace(17625359962) == false)
 assert(
@@ -152,21 +154,21 @@ assert(
     table.find(Rivals.capabilitiesFor({
         fireTouchInterestAvailable = true,
         placeId = 133215910299950,
-    }), "autoPickup") ~= nil,
+    }, RivalsDefinition.features.capabilities), "autoPickup") ~= nil,
     "Supported Gun Game sessions must show Auto Pickup"
 )
 assert(
     table.find(Rivals.capabilitiesFor({
         fireTouchInterestAvailable = true,
         placeId = 17625359962,
-    }), "autoPickup") == nil,
+    }, RivalsDefinition.features.capabilities), "autoPickup") == nil,
     "Other RIVALS modes must hide Auto Pickup"
 )
 assert(
     table.find(Rivals.capabilitiesFor({
         fireTouchInterestAvailable = false,
         placeId = 133215910299950,
-    }), "autoPickup") == nil,
+    }, RivalsDefinition.features.capabilities), "autoPickup") == nil,
     "Gun Game must hide Auto Pickup when the executor cannot synthesize touch"
 )
 end
@@ -2282,8 +2284,8 @@ assert(
     "Disabling visual suppression must restore each effect's original state"
 )
 assert(
-    table.find(Rivals.capabilities, "noFlash") ~= nil
-        and table.find(Rivals.capabilities, "noSmoke") ~= nil,
+    table.find(RivalsDefinition.features.capabilities, "noFlash") ~= nil
+        and table.find(RivalsDefinition.features.capabilities, "noSmoke") ~= nil,
     "RIVALS must expose No Flash and No Smoke in the shared Visuals section"
 )
 
@@ -2471,6 +2473,7 @@ local environmentCast = function()
     return nil
 end
 local adapter = Rivals.new({
+    capabilities = RivalsDefinition.features.capabilities,
     aimPress = function()
         aimPresses += 1
     end,
@@ -2654,7 +2657,7 @@ assert(
         and state.utilityObservations.count == 1,
     "RIVALS must publish active-match throwable observations through Utility ESP"
 )
-assert(table.find(Rivals.capabilities, "utilityEsp") ~= nil)
+assert(table.find(RivalsDefinition.features.capabilities, "utilityEsp") ~= nil)
 assert(
     #rendered.observations == 2 and rendered.observations[2] == rangeObservation,
     "RIVALS observation pipeline must keep only the near player and range dummy"
@@ -4150,6 +4153,6 @@ assert(
         and cameraHarness.rotationDeltaDisconnected,
     "Stopping the adapter must remove every Silent Aim camera binding"
 )
-assert(table.find(Rivals.capabilities, "knifeMovement") == nil)
-assert(table.find(Rivals.capabilities, "bhop") ~= nil)
+assert(table.find(RivalsDefinition.features.capabilities, "knifeMovement") == nil)
+assert(table.find(RivalsDefinition.features.capabilities, "bhop") ~= nil)
 print("rivals-adapter-contracts-ok")

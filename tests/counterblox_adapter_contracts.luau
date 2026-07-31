@@ -4,10 +4,9 @@ Color3 = roblox.Color3
 Vector3 = roblox.Vector3
 
 local Counterblox = require("../games/Counterblox")
+local CounterbloxDefinition = require("../games/counterblox/Definition")
 
-assert(Counterblox.match({ gameId = 7633926880, placeId = 0 }) == 100)
-assert(Counterblox.match({ gameId = 0, placeId = 114234929420007 }) == 200)
-assert(Counterblox.match({ gameId = 0, placeId = 0 }) == 0)
+assert(CounterbloxDefinition.module == "games/Counterblox")
 
 assert(Counterblox.classifyWeapon({
     Bullet = {},
@@ -760,6 +759,7 @@ getrenv = function()
 end
 
 local initialized, adapter = pcall(Counterblox.new, {
+    capabilities = CounterbloxDefinition.features.capabilities,
     aimClick = function()
         heavyClickCount += 1
     end,
