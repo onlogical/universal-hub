@@ -15,6 +15,9 @@ return {
         triggerBot = true,
     },
     initialState = {
+        simpleGame = {
+            mode = "idle",
+        },
         status = "Simple Game idle",
     },
     features = {

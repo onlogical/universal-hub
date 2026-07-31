@@ -4,8 +4,13 @@ local Registry = require("../../modules/Registry")
 local SourceInventory = require("../../modules/SourceInventory")
 local PresentationHost = require("../../modules/PresentationHost")
 
-local Catalog = require("../fixtures/simplegame/Catalog")
-assert(#Catalog == 1, "Simple game fixture must add exactly one catalog entry")
+local Catalog = require("../../games/Catalog")
+table.insert(Catalog, "tests/fixtures/simplegame/Definition")
+assert(
+    Catalog[#Catalog] == "tests/fixtures/simplegame/Definition",
+    "Simple game fixture must enter through the real Catalog"
+)
+require("../catalog_contracts")
 
 local definition = Compatibility.Compose(require("../fixtures/simplegame/Definition"))
 Registry.Validate(definition)
@@ -13,6 +18,7 @@ assert(definition.composition == nil, "A simple game must not require a composit
 assert(definition.defaults.triggerBot == true, "Sparse game defaults must override compatibility defaults")
 assert(definition.defaults.boxes == true, "Shared compatibility defaults must be composed")
 assert(definition.initialState.status == "Simple Game idle", "Sparse initial state must override compatibility state")
+assert(definition.initialState.simpleGame.mode == "idle", "Sparse game state must allow legitimate additions")
 assert(definition.initialState.cosmetics.skin == "Stock", "Shared compatibility state must be composed")
 
 local registry = Registry.new()
@@ -22,14 +28,25 @@ assert(registry:Resolve({
     placeId = 0,
 }).id == "simplegame", "Simple game catalog entry must resolve through Registry")
 
+local catalogDefinitions = {}
+for _, path in ipairs(Catalog) do
+    table.insert(catalogDefinitions, Compatibility.Compose(require("../../" .. path)))
+end
 local inventory = SourceInventory.new({
     catalog = Catalog,
-    definitions = { definition },
+    definitions = catalogDefinitions,
 })
 local allowed = inventory:Allow("simplegame")
 assert(allowed["tests/fixtures/simplegame/Definition"], "Selected scope must include its catalog definition")
 assert(allowed["tests/fixtures/simplegame/Adapter"], "Selected scope must include its adapter")
 assert(allowed["tests/fixtures/simplegame/Presentation"], "Selected scope must include its presentation")
+
+local isolated = Compatibility.Compose(require("../fixtures/simplegame/Definition"))
+definition.initialState.simpleGame.mode = "mutated"
+assert(
+    isolated.initialState.simpleGame.mode == "idle",
+    "Game-owned sparse additions must be deep-copy isolated"
+)
 
 local adapter = require("../fixtures/simplegame/Adapter").new({})
 assert(type(adapter.stop) == "function", "Simple adapter must satisfy the cleanup seam")

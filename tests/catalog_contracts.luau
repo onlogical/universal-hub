@@ -7,6 +7,11 @@ local expectedCatalog = {
     "games/rivals/Definition",
     "games/town/Definition",
 }
+local legacyIds = {
+    counterblox = true,
+    rivals = true,
+    town = true,
+}
 
 local expectedDefaults = {
     aimSmoothness = 0,
@@ -132,6 +137,21 @@ local function assertDataOnly(value, path, seen)
     seen[value] = nil
 end
 
+local function assertDisjointTables(left, right, path, seen)
+    if type(left) ~= "table" or type(right) ~= "table" then
+        return
+    end
+    assert(left ~= right, path .. " must be deep-copied")
+    seen = seen or {}
+    if seen[left] then
+        return
+    end
+    seen[left] = true
+    for key, value in pairs(left) do
+        assertDisjointTables(value, right[key], path .. "." .. tostring(key), seen)
+    end
+end
+
 local Catalog = require("../games/Catalog")
 assert(#Catalog >= #expectedCatalog, "Catalog must preserve the current games")
 for index, path in ipairs(expectedCatalog) do
@@ -147,16 +167,49 @@ for _, path in ipairs(Catalog) do
     local definition = Compatibility.Compose(rawDefinition)
     Registry.Validate(definition)
     assert(definition.factory == nil and definition.match == nil, path .. " must not contain runtime callbacks")
-    assert(deepEqual(definition.defaults, expectedDefaults), path .. " must preserve the existing config defaults")
-    assert(
-        deepEqual(definition.initialState, expectedInitialState),
-        path .. " must preserve the selected-game initial state shape"
-    )
+    assert(type(definition.defaults) == "table", path .. " must compose defaults")
+    assert(type(definition.initialState) == "table", path .. " must compose initial state")
+    if legacyIds[definition.id] then
+        assert(deepEqual(definition.defaults, expectedDefaults), path .. " must preserve the existing config defaults")
+        assert(
+            deepEqual(definition.initialState, expectedInitialState),
+            path .. " must preserve the selected-game initial state shape"
+        )
+    end
     assert(fs.isFile(path .. ".lua"), path .. " must resolve to a definition source")
     assert(fs.isFile(definition.module .. ".lua"), path .. " must resolve to its behavior module")
+    assert(
+        fs.isFile(definition.presentation .. ".lua"),
+        path .. " must resolve to its presentation module"
+    )
+    assert(
+        table.find(definition.sources, definition.module)
+            and table.find(definition.sources, definition.presentation),
+        path .. " must own its behavior and presentation sources"
+    )
+    if definition.composition then
+        assert(
+            fs.isFile(definition.composition .. ".lua")
+                and table.find(definition.sources, definition.composition),
+            path .. " must own its optional composition source"
+        )
+    end
     for _, source in ipairs(definition.sources) do
         assert(fs.isFile(source .. ".lua"), path .. " declares a missing source: " .. source)
     end
+
+    local second = Compatibility.Compose(rawDefinition)
+    assert(deepEqual(definition, second), path .. " must compose deterministically")
+    assertDisjointTables(rawDefinition, definition, path .. " raw definition")
+    assertDisjointTables(definition, second, path .. " composed definition")
+    definition.defaults.skinOverrides.__catalogContract = true
+    definition.initialState.cosmetics.skin = "Mutated"
+    assert(
+        second.defaults.skinOverrides.__catalogContract == nil
+            and second.initialState.cosmetics.skin == "Stock",
+        path .. " must isolate composed compatibility tables"
+    )
+    definition = second
     definitions[definition.id] = definition
     rawDefinitions[definition.id] = rawDefinition
 end
