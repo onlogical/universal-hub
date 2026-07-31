@@ -37,8 +37,12 @@ lune run tests/input_capture_contracts.luau
 lune run tests/menu_toggle_contracts.luau
 lune run tests/registry_contracts.luau
 lune run tests/catalog_contracts.luau
+lune run tests/game_composition_contracts.luau
 lune run tests/source_inventory_contracts.luau
 lune run tests/presentation_host_contracts.luau
+for onboarding_contract in tests/game_onboarding/*.luau; do
+    lune run "$onboarding_contract"
+done
 lune run tests/session_contracts.luau
 lune run tests/overlay_contracts.luau
 lune run tests/limn_consumer_contracts.luau

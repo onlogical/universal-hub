@@ -16,6 +16,7 @@ local expectedHubPaths = {
     "modules/presentation/StandardPanels.lua",
     "modules/presentation/CosmeticsPanel.lua",
     "modules/SourceInventory.lua",
+    "games/Compatibility.lua",
     "games/Catalog.lua",
     "init.lua",
 }
@@ -110,6 +111,7 @@ return {
 
     if url == sourceBaseUrl .. "modules/Registry.lua"
         or url == sourceBaseUrl .. "modules/SourceInventory.lua"
+        or url == sourceBaseUrl .. "games/Compatibility.lua"
         or url == sourceBaseUrl .. "games/Catalog.lua"
         or url == sourceBaseUrl .. "games/counterblox/Definition.lua"
         or url == sourceBaseUrl .. "games/rivals/Definition.lua"

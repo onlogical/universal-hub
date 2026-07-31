@@ -9,6 +9,7 @@ local Town = require("../games/Town")
 local TownDefinition = require("../games/town/Definition")
 local townSource = fs.readFile("games/Town.lua")
 local initSource = fs.readFile("init.lua")
+local compositionSource = fs.readFile("games/town/Composition.lua")
 
 assert(not townSource:find("MAX_PARTS", 1, true), "Town must not retain an arbitrary total-part cap")
 assert(not townSource:find("options.maxParts", 1, true), "Town must not accept a hidden maximum override")
@@ -31,29 +32,43 @@ assert(
     "Town copy phases must not duplicate themselves in the global Hub status"
 )
 assert(
-    initSource:find('import("games/town/CheckpointStore")', 1, true),
-    "Town bootstrap must load the private checkpoint store"
+    TownDefinition.composition == "games/town/Composition",
+    "Town definition must select its private composition module"
 )
 assert(
-    initSource:find("universal-hub/private/town-copy", 1, true),
-    "Town bootstrap must own the documented private checkpoint root"
+    compositionSource:find('checkpointStore = "games/town/CheckpointStore"', 1, true),
+    "Town composition must declare its private checkpoint dependency"
+)
+assert(
+    compositionSource:find("universal-hub/private/town-copy", 1, true),
+    "Town composition must own the documented private checkpoint root"
 )
 for _, capability in ipairs({
-    "readFile",
-    "writeFile",
-    "isFile",
-    "deleteFile",
-    "makeFolder",
-    "listFiles",
+    "readFile = context.files.read",
+    "writeFile = context.files.write",
+    "isFile = context.files.isFile",
+    "deleteFile = context.files.delete",
+    "makeFolder = context.files.makeFolder",
+    "listFiles = context.files.list",
 }) do
     assert(
-        initSource:find(capability .. " =", 1, true),
-        "Town bootstrap must inject checkpoint capability " .. capability
+        compositionSource:find(capability, 1, true),
+        "Town composition must receive checkpoint capability " .. capability
     )
 end
 assert(
-    initSource:find("inspectCopyRecovery", 1, true),
-    "Town startup must inspect compatible recovery state"
+    compositionSource:find("inspectCopyRecovery", 1, true),
+    "Town composition startup must inspect compatible recovery state"
+)
+assert(
+    initSource:find("import(adapterDefinition.composition)", 1, true),
+    "Bootstrap must import only the selected definition's composition"
+)
+assert(
+    not initSource:find("games/town/CheckpointStore", 1, true)
+        and not initSource:find("universal-hub/private/town-copy", 1, true)
+        and not initSource:find("inspectCopyRecovery", 1, true),
+    "Bootstrap must not retain Town-specific checkpoint or recovery ownership"
 )
 
 assert(TownDefinition.module == "games/Town")

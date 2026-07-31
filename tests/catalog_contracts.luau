@@ -1,5 +1,6 @@
 local fs = require("@lune/fs")
 local Registry = require("../modules/Registry")
+local Compatibility = require("../games/Compatibility")
 
 local expectedCatalog = {
     "games/counterblox/Definition",
@@ -132,15 +133,21 @@ local function assertDataOnly(value, path, seen)
 end
 
 local Catalog = require("../games/Catalog")
-assert(deepEqual(Catalog, expectedCatalog), "Catalog order and definition paths must remain explicit")
+assert(#Catalog >= #expectedCatalog, "Catalog must preserve the current games")
+for index, path in ipairs(expectedCatalog) do
+    assert(Catalog[index] == path, "Catalog order and current definition paths must remain explicit")
+end
 
 local definitions = {}
+local rawDefinitions = {}
 for _, path in ipairs(Catalog) do
-    local definition = require("../" .. path)
-    assertDataOnly(definition, path)
+    local rawDefinition = require("../" .. path)
+    assertDataOnly(rawDefinition, path)
+    Registry.Validate(rawDefinition)
+    local definition = Compatibility.Compose(rawDefinition)
     Registry.Validate(definition)
     assert(definition.factory == nil and definition.match == nil, path .. " must not contain runtime callbacks")
-    assert(deepEqual(definition.defaults, expectedDefaults), path .. " must own the existing config defaults")
+    assert(deepEqual(definition.defaults, expectedDefaults), path .. " must preserve the existing config defaults")
     assert(
         deepEqual(definition.initialState, expectedInitialState),
         path .. " must preserve the selected-game initial state shape"
@@ -151,17 +158,26 @@ for _, path in ipairs(Catalog) do
         assert(fs.isFile(source .. ".lua"), path .. " declares a missing source: " .. source)
     end
     definitions[definition.id] = definition
+    rawDefinitions[definition.id] = rawDefinition
 end
 
-assert(#Catalog == 3, "Universal Hub must expose exactly the current three games")
+for _, id in ipairs({ "counterblox", "rivals", "town" }) do
+    assert(
+        next(rawDefinitions[id].defaults) == nil
+            and next(rawDefinitions[id].initialState) == nil,
+        id .. " definition must contain only sparse compatibility additions"
+    )
+end
 assert(definitions.counterblox.label == "Counterblox")
 assert(definitions.counterblox.module == "games/Counterblox")
+assert(definitions.counterblox.composition == "games/counterblox/Composition")
 assert(deepEqual(definitions.counterblox.hydroxide, { "targeting" }))
 assert(definitions.counterblox.features.cosmetics == nil)
 assert(table.find(definitions.counterblox.features.capabilities, "wallbang"))
 
 assert(definitions.rivals.label == "RIVALS")
 assert(definitions.rivals.module == "games/rivals/Adapter")
+assert(definitions.rivals.composition == nil)
 assert(deepEqual(definitions.rivals.hydroxide, { "targeting" }))
 assert(definitions.rivals.features.cosmetics == false)
 assert(definitions.rivals.features.optionLabels.silentAim == "Camera Aim")
@@ -170,18 +186,31 @@ assert(not table.find(definitions.rivals.features.capabilities, "wallbang"))
 
 assert(definitions.town.label == "Town")
 assert(definitions.town.module == "games/Town")
+assert(definitions.town.composition == "games/town/Composition")
 assert(deepEqual(definitions.town.hydroxide, {}))
 assert(definitions.town.features.cosmetics == false)
 assert(deepEqual(definitions.town.features.capabilities, { "plotCopy" }))
 
 local registry = Registry.new()
 for _, path in ipairs(Catalog) do
-    registry:Register(require("../" .. path))
+    registry:Register(Compatibility.Compose(require("../" .. path)))
 end
 assert(registry:Resolve({ gameId = 7633926880, placeId = 114234929420007 }).id == "counterblox")
 assert(registry:Resolve({ gameId = 6035872082, placeId = 17625359962 }).id == "rivals")
 assert(registry:Resolve({ gameId = 6035872082, placeId = 133215910299950 }).id == "rivals")
 assert(registry:Resolve({ gameId = 1718755273, placeId = 4991214437 }).id == "town")
+
+local counterCopy = Compatibility.Compose(rawDefinitions.counterblox)
+local rivalsCopy = Compatibility.Compose(rawDefinitions.rivals)
+counterCopy.defaults.skinOverrides.test = true
+counterCopy.initialState.cosmetics.skin = "Mutated"
+assert(
+    rivalsCopy.defaults.skinOverrides.test == nil
+        and rivalsCopy.initialState.cosmetics.skin == "Stock"
+        and next(rawDefinitions.counterblox.defaults) == nil
+        and next(rawDefinitions.counterblox.initialState) == nil,
+    "Compatibility composition must deep-copy every shared and game-owned table"
+)
 
 for _, path in ipairs({
     "games/Counterblox.lua",

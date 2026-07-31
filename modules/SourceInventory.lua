@@ -14,6 +14,7 @@ local CORE = {
     "modules/presentation/StandardPanels",
     "modules/presentation/CosmeticsPanel",
     "modules/SourceInventory",
+    "games/Compatibility",
     "games/Catalog",
 }
 

@@ -7,9 +7,12 @@ flow.
 
 ## Runtime shape
 
-`init.lua` imports these modules and injects them into `Adapter.new(context)`.
-`hub.lua` must also list every remotely loaded source. Keep both import lists
-in sync when adding, renaming, or removing a module.
+`games/rivals/Definition.lua` declares every RIVALS source. The packaged
+loader validates and prefetches that closed source set, then `init.lua`
+imports only the selected adapter and presentation. Add, rename, or remove
+RIVALS modules through the definition rather than a second bootstrap list.
+RIVALS has no composition module because it owns no custom startup or overlay
+actions.
 
 The adapter receives the selected scoped Hydroxide helper namespace plus a
 Limn runtime. It must not read `environment.oh`, raw `Drawing`, or a Limn

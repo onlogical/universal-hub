@@ -3,6 +3,7 @@ local Registry = require("../modules/Registry")
 local function definition(id, options)
     options = options or {}
     return {
+        composition = options.composition,
         defaults = options.defaults or {},
         factory = options.factory or function() end,
         features = options.features or {
@@ -153,6 +154,28 @@ expectError("must include its presentation", function()
     candidate.module = "games/One"
     candidate.presentation = "games/OnePresentation"
     candidate.sources = { "games/One" }
+    Registry.Validate(candidate)
+end)
+expectError("composition must be a valid source path", function()
+    local candidate = definition("invalid-composition", {
+        composition = "../games/Composition",
+        gameIds = { 10 },
+    })
+    candidate.factory = nil
+    candidate.module = "games/One"
+    candidate.presentation = "games/OnePresentation"
+    candidate.sources = { "games/One", "games/OnePresentation" }
+    Registry.Validate(candidate)
+end)
+expectError("must include its composition", function()
+    local candidate = definition("missing-composition-source", {
+        composition = "games/OneComposition",
+        gameIds = { 10 },
+    })
+    candidate.factory = nil
+    candidate.module = "games/One"
+    candidate.presentation = "games/OnePresentation"
+    candidate.sources = { "games/One", "games/OnePresentation" }
     Registry.Validate(candidate)
 end)
 

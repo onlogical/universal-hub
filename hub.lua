@@ -56,6 +56,7 @@ end
 
 local Registry = execute("modules/Registry.lua")
 local SourceInventory = execute("modules/SourceInventory.lua")
+local Compatibility = execute("games/Compatibility.lua")
 local catalog = execute("games/Catalog.lua")
 assert(type(catalog) == "table", "Universal Hub catalog must be a table")
 local registry = Registry.new()
@@ -66,7 +67,7 @@ for _, definitionPath in ipairs(catalog) do
     assert(not seenDefinitions[definitionPath], "Duplicate game definition path: " .. definitionPath)
     seenDefinitions[definitionPath] = true
 
-    local definition = execute(definitionPath .. ".lua")
+    local definition = Compatibility.Compose(execute(definitionPath .. ".lua"))
     Registry.Validate(definition)
     registry:Register(definition)
     table.insert(definitions, definition)

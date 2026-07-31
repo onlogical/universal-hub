@@ -112,6 +112,16 @@ function Registry.Validate(definition)
             seenSources[definition.presentation],
             "Game definition sources must include its presentation"
         )
+        if definition.composition ~= nil then
+            assert(
+                validSourcePath(definition.composition),
+                "Game definition composition must be a valid source path"
+            )
+            assert(
+                seenSources[definition.composition],
+                "Game definition sources must include its composition"
+            )
+        end
     end
 
     assert(type(definition.defaults) == "table", "Game definition defaults must be a table")

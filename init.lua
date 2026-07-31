@@ -31,6 +31,14 @@ local function copyData(value)
     return copy
 end
 
+local function extend(target, additions)
+    for key, value in pairs(additions or {}) do
+        assert(target[key] == nil, "Composition must not replace shared context: " .. tostring(key))
+        target[key] = value
+    end
+    return target
+end
+
 local GuiService = game:GetService("GuiService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
@@ -48,11 +56,12 @@ local PresentationHost = import("modules/PresentationHost")
 local PresentationRuntime = import("modules/presentation/Runtime")
 local StandardPanels = import("modules/presentation/StandardPanels")
 local CosmeticsPanel = import("modules/presentation/CosmeticsPanel")
+local Compatibility = import("games/Compatibility")
 local Catalog = import("games/Catalog")
 
 local registry = Registry.new()
 for _, definitionPath in ipairs(Catalog) do
-    registry:Register(import(definitionPath))
+    registry:Register(Compatibility.Compose(import(definitionPath)))
 end
 
 local adapterDefinition = registry:Resolve({
@@ -67,6 +76,32 @@ local adapterModule = import(adapterDefinition.module)
 assert(type(adapterModule) == "table" and type(adapterModule.new) == "function", "Invalid game adapter module")
 local presentation = import(adapterDefinition.presentation)
 local features = adapterDefinition.features
+local compositionModule
+local compositionDependencies = {}
+if adapterDefinition.composition then
+    compositionModule = import(adapterDefinition.composition)
+    assert(
+        type(compositionModule) == "table" and type(compositionModule.bind) == "function",
+        "Invalid game composition module"
+    )
+    local declaredSources = {}
+    for _, path in ipairs(adapterDefinition.sources) do
+        declaredSources[path] = true
+    end
+    local dependencyNames = {}
+    for name, path in pairs(compositionModule.dependencies or {}) do
+        assert(type(name) == "string" and name ~= "", "Composition dependency names must be strings")
+        assert(
+            type(path) == "string" and declaredSources[path],
+            "Composition dependency must be declared by the selected definition"
+        )
+        table.insert(dependencyNames, name)
+    end
+    table.sort(dependencyNames)
+    for _, name in ipairs(dependencyNames) do
+        compositionDependencies[name] = import(compositionModule.dependencies[name])
+    end
+end
 
 local Limn = assert(configuration.Limn, "Universal Hub loader must stage Limn before init")
 assert(type(Limn) == "table" and type(Limn.new) == "function", "Universal Hub requires Limn")
@@ -127,30 +162,69 @@ if not hasPersistedConfig then
     end
 end
 
-local townCheckpoint
-if adapterDefinition.id == "town" then
-    local TownCheckpointStore = import("games/town/CheckpointStore")
-    townCheckpoint = TownCheckpointStore.new({
+local session
+local overlay
+local adapter
+local store
+local function noAfterAdapter(_adapter) end
+local composition = {
+    adapter = {},
+    afterAdapter = noAfterAdapter,
+    inputCapture = {
+        releaseMouseOnDisable = false,
+    },
+    overlay = {},
+}
+if compositionModule then
+    composition = compositionModule.bind({
+        config = function(name, fallback)
+            local value = configuration[name]
+            return value == nil and fallback or value
+        end,
         decode = function(source)
             return HttpService:JSONDecode(source)
         end,
-        deleteFile = type(delfile) == "function" and delfile or nil,
         encode = function(value)
             return HttpService:JSONEncode(value)
         end,
-        isFile = type(isfile) == "function" and isfile or nil,
-        listFiles = type(listfiles) == "function" and listfiles or nil,
-        makeFolder = type(makefolder) == "function" and makefolder or nil,
-        readFile = type(readfile) == "function" and readfile or nil,
-        root = configuration.TownCopyCheckpointRoot or "universal-hub/private/town-copy",
+        files = {
+            delete = type(delfile) == "function" and delfile or nil,
+            isFile = type(isfile) == "function" and isfile or nil,
+            list = type(listfiles) == "function" and listfiles or nil,
+            makeFolder = type(makefolder) == "function" and makefolder or nil,
+            read = type(readfile) == "function" and readfile or nil,
+            write = type(writefile) == "function" and writefile or nil,
+        },
+        getAdapter = function()
+            return adapter
+        end,
+        getStore = function()
+            return store
+        end,
+        spawn = task.spawn,
         userId = LocalPlayer.UserId,
-        writeFile = type(writefile) == "function" and writefile or nil,
-    })
-    if townCheckpoint.available then
-        pcall(function()
-            townCheckpoint:prune()
-        end)
-    end
+    }, compositionDependencies)
+    assert(type(composition) == "table", "Game composition must return a table")
+    assert(
+        composition.adapter == nil or type(composition.adapter) == "table",
+        "Game composition adapter context must be a table"
+    )
+    assert(
+        composition.inputCapture == nil or type(composition.inputCapture) == "table",
+        "Game composition input context must be a table"
+    )
+    assert(
+        composition.overlay == nil or type(composition.overlay) == "table",
+        "Game composition overlay context must be a table"
+    )
+    assert(
+        composition.afterAdapter == nil or type(composition.afterAdapter) == "function",
+        "Game composition afterAdapter must be a function"
+    )
+    composition.adapter = composition.adapter or {}
+    composition.afterAdapter = composition.afterAdapter or noAfterAdapter
+    composition.inputCapture = composition.inputCapture or {}
+    composition.overlay = composition.overlay or {}
 end
 
 local startupCleanups = {}
@@ -168,17 +242,14 @@ end
 local initialState = copyData(adapterDefinition.initialState)
 initialState.settings = settings
 initialState.status = ("Loading %s"):format(adapterDefinition.label)
-local store = Store.new(initialState)
+store = Store.new(initialState)
 ownStartup(function()
     store:Destroy()
 end)
 environment.UniversalHubSettings = store:Get().settings
 
-local session
-local overlay
-local adapter
 local inputCaptureCreated, inputCaptureResult = pcall(InputCapture.new, {
-    releaseMouseOnDisable = adapterDefinition.id == "town",
+    releaseMouseOnDisable = composition.inputCapture.releaseMouseOnDisable == true,
 })
 if not inputCaptureCreated then
     failStartup(inputCaptureResult)
@@ -220,96 +291,12 @@ local adapterCapabilities = type(adapterModule.capabilitiesFor) == "function"
             placeId = game.PlaceId,
         }, features.capabilities)
     or features.capabilities
-local overlayCreated, overlayResult = pcall(Overlay.new, {
+local overlayContext = {
     capabilities = adapterCapabilities,
     cosmetics = features.cosmetics,
-    cycleGlove = function(direction)
-        adapter:cycleGlove(direction)
-    end,
     gameLabel = adapterDefinition.label,
     getCamera = function()
         return Workspace.CurrentCamera
-    end,
-    listPlotOwners = function()
-        if adapter and type(adapter.listPlotOwners) == "function" then
-            return adapter:listPlotOwners()
-        end
-        return {}
-    end,
-    copyPlot = function(ownerName, saveName)
-        if not adapter or type(adapter.copyPlot) ~= "function" then
-            return false, "Plot copying is not ready"
-        end
-        task.spawn(function()
-            adapter:copyPlot(ownerName, saveName)
-        end)
-        return true
-    end,
-    cancelPlotCopy = function()
-        if adapter and type(adapter.cancelCopy) == "function" then
-            task.spawn(function()
-                adapter:cancelCopy()
-            end)
-            return true
-        end
-        return false, "Plot copy cancellation is not ready"
-    end,
-    confirmPlotCopy = function()
-        if adapter and type(adapter.confirmCopy) == "function" then
-            task.spawn(function()
-                adapter:confirmCopy()
-            end)
-            return true
-        end
-        return false, "Plot copy confirmation is not ready"
-    end,
-    discardPlotCopy = function()
-        if adapter and type(adapter.discardCopy) == "function" then
-            task.spawn(function()
-                adapter:discardCopy()
-            end)
-            return true
-        end
-        return false, "Plot copy discard is not ready"
-    end,
-    resumePlotCopy = function()
-        if adapter and type(adapter.resumeCopy) == "function" then
-            task.spawn(function()
-                adapter:resumeCopy()
-            end)
-            return true
-        end
-        return false, "Plot copy resume is not ready"
-    end,
-    retryPlotCopyCleanup = function()
-        if adapter and type(adapter.retryCopyCleanup) == "function" then
-            task.spawn(function()
-                adapter:retryCopyCleanup()
-            end)
-            return true
-        end
-        return false, "Plot copy cleanup is not ready"
-    end,
-    cleanupPlotCopyCheckpoint = function()
-        if adapter and type(adapter.cleanupCopyCheckpoint) == "function" then
-            task.spawn(function()
-                adapter:cleanupCopyCheckpoint()
-            end)
-            return true
-        end
-        return false, "Local copy recovery cleanup is not ready"
-    end,
-    reportPlotCopyError = function(message)
-        store:Patch({
-            plotCopy = {
-                active = false,
-                confirmedProgress = 0,
-                context = message,
-                error = message,
-                phase = "Copy blocked",
-                state = "error",
-            },
-        })
     end,
     uiParent = (function()
         local success, parent = pcall(function()
@@ -356,32 +343,10 @@ local overlayCreated, overlayResult = pcall(Overlay.new, {
     setRate = function(name, value, persist)
         session:setRate(name, value, persist)
     end,
-    cycleSkin = function(direction)
-        adapter:cycleSkin(direction)
-    end,
-    cycleCosmeticWeapon = function(direction)
-        adapter:cycleCosmeticWeapon(direction)
-    end,
-    resetSkin = function()
-        adapter:resetSkin()
-    end,
-    resetGlove = function()
-        adapter:resetGlove()
-    end,
-    setGloveWear = function(alpha)
-        adapter:setGloveWear(alpha)
-    end,
-    setGloveColor = function(color)
-        adapter:setGloveColor(color)
-    end,
-    setWear = function(alpha)
-        adapter:setWear(alpha)
-    end,
-    toggleStatTrak = function()
-        adapter:toggleStatTrak()
-    end,
     store = store,
-})
+}
+extend(overlayContext, composition.overlay)
+local overlayCreated, overlayResult = pcall(Overlay.new, overlayContext)
 if not overlayCreated then
     failStartup(overlayResult)
 end
@@ -390,7 +355,7 @@ ownStartup(function()
     overlay:destroy()
 end)
 
-local created, result = pcall(adapterModule.new, {
+local adapterContext = {
     aimClick = mouse2click,
     aimPress = mouse2press,
     aimRelease = mouse2release,
@@ -446,7 +411,6 @@ local created, result = pcall(adapterModule.new, {
         configStore:save(updatedSettings)
     end,
     setThirdPerson = setThirdPerson,
-    checkpoint = townCheckpoint,
     gameId = game.GameId,
     generateGuid = function()
         return HttpService:GenerateGUID(false)
@@ -459,7 +423,9 @@ local created, result = pcall(adapterModule.new, {
     store = store,
     wait = task.wait,
     workspace = Workspace,
-})
+}
+extend(adapterContext, composition.adapter)
+local created, result = pcall(adapterModule.new, adapterContext)
 if not created then
     failStartup(result)
 end
@@ -469,21 +435,8 @@ ownStartup(function()
         adapter:stop()
     end
 end)
-if type(adapter.inspectCopyRecovery) == "function" then
-    local recovered, _recoveryError = pcall(function()
-        adapter:inspectCopyRecovery()
-    end)
-    if not recovered then
-        store:Patch({
-            plotCopy = {
-                active = false,
-                context = "Recovery inspection failed before any Town mutation",
-                error = "Persistent copy recovery could not be inspected",
-                phase = "Copy blocked",
-                state = "error",
-            },
-        })
-    end
+if composition.afterAdapter then
+    composition.afterAdapter(adapter)
 end
 
 local sessionCreated, sessionResult = pcall(Session.new, {
