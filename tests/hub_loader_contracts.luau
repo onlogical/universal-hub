@@ -1,6 +1,7 @@
 local fs = require("@lune/fs")
 local source = fs.readFile("hub.lua")
-local hydroxideCommit = "8e2d4a84ddb4b7ef901af170966a43b3b35fbaa7"
+local oldHydroxideCommit = "8e2d4a84ddb4b7ef901af170966a43b3b35fbaa7"
+local hydroxideCommit = "c0bcd94dd43b84eaf4f0a9f87daab86b701a3682"
 local sourceBaseUrl = "https://raw.githubusercontent.com/3xjn/universal-hub/main/"
 local Catalog = require("../games/Catalog")
 local expectedHubPaths = {
@@ -46,6 +47,10 @@ assert(
         and source:find("modules/Lifecycle.lua", 1, true)
         and source:find("modules/Targeting.lua", 1, true),
     "Packaged bootstrap must pin Limn and the stable Hydroxide helper source set"
+)
+assert(
+    not source:find(oldHydroxideCommit, 1, true),
+    "Packaged bootstrap must not retain the pre-raycastIgnore Hydroxide pin"
 )
 assert(
     not source:find("/hydroxide/dev/init.lua", 1, true)
@@ -207,10 +212,22 @@ for index, url in ipairs(requested) do
     assert(not url:find("/modules/Drawing", 1, true))
     assert(not url:find("/modules/DrawingControls", 1, true))
     assert(not url:find("/modules/Remote.lua", 1, true))
+    assert(not url:find(oldHydroxideCommit, 1, true))
 end
 for url in pairs(expectedUrls) do
     assert(seen[url], "Hub loader did not fetch declared source: " .. url)
 end
+local hydroxideRequestCount = 0
+for url in pairs(seen) do
+    if url:find("https://raw.githubusercontent.com/3xjn/hydroxide/", 1, true) == 1 then
+        hydroxideRequestCount += 1
+        assert(
+            url:find(hydroxideRoot, 1, true) == 1,
+            "Every Hydroxide helper request must use the immutable raycastIgnore pin"
+        )
+    end
+end
+assert(hydroxideRequestCount == 4, "Packaged bootstrap must fetch only Helpers and three stable leaves")
 local lastDefinitionAt = 0
 for _, path in ipairs(Catalog) do
     lastDefinitionAt = math.max(lastDefinitionAt, assert(requestedAt[sourceBaseUrl .. path .. ".lua"]))

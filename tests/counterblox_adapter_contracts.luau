@@ -927,6 +927,7 @@ currentCamera.CameraSubject = {
 renderCallback()
 assert(
     adapterState.lastObserveOptions.raycastIgnore
+        and #adapterState.lastObserveOptions.raycastIgnore == 1
         and adapterState.lastObserveOptions.raycastIgnore[1] == spectatedCharacter,
     "Spectator ESP visibility must ignore the character occupying the followed camera"
 )

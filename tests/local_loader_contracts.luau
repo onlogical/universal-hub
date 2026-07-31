@@ -10,6 +10,20 @@ assert(
         and not source:find("environment.HydroxideConfig", 1, true),
     "Local bootstrap must not execute or configure the Hydroxide application"
 )
+local hydroxideAllowlist = assert(source:match("local hydroxideModules = {(.-)}"))
+for _, path in ipairs({
+    "modules/Closure",
+    "modules/Lifecycle",
+    "modules/Targeting",
+}) do
+    assert(hydroxideAllowlist:find(path, 1, true), "Local bootstrap must retain stable helper " .. path)
+end
+assert(
+    not hydroxideAllowlist:find("Drawing", 1, true)
+        and not hydroxideAllowlist:find("Remote", 1, true)
+        and not source:find("raw.githubusercontent.com/3xjn/hydroxide", 1, true),
+    "Local bootstrap must use only its configured Hydroxide root and stable helper allowlist"
+)
 local exited = false
 local loaded = {}
 local queuedTeleportSource

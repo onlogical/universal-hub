@@ -4,7 +4,7 @@ set -euo pipefail
 repository_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repository_root"
 
-for required_tool in luau-lsp lune; do
+for required_tool in curl luau-lsp lune; do
     if ! command -v "$required_tool" >/dev/null 2>&1; then
         printf 'Missing required tool: %s\n' "$required_tool" >&2
         exit 1
@@ -28,6 +28,7 @@ luau-lsp analyze \
     --definitions "@volt=$hydroxide_root/_Index/volt/volt.d.luau" \
     "${luau_sources[@]}"
 
+./scripts/check-hydroxide-pin.sh
 lune run tests/store_contracts.luau
 lune run tests/remote_loader_contracts.luau
 lune run tests/hub_loader_contracts.luau

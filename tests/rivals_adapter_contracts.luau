@@ -2402,7 +2402,8 @@ local targeting = {
         assert(options.isEligible(enemyPlayer, target.character) == true)
         assert(options.screenOrigin == mousePosition)
         assert(
-            table.find(options.raycastIgnore or {}, smokeCloud) ~= nil,
+            #(options.raycastIgnore or {}) == 1
+                and options.raycastIgnore[1] == smokeCloud,
             "Camera Aim, Human Aim, and Trigger Bot visibility must treat active SmokeCloud volumes as transparent"
         )
         return { farObservation, table.unpack(observations) }
