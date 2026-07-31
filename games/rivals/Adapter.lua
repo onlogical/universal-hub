@@ -1658,4 +1658,17 @@ function Rivals.new(context)
     return self
 end
 
+Rivals.factory = Rivals.new
+Rivals.sources = {
+    "games/rivals/Adapter",
+    "games/rivals/Targeting",
+    "games/rivals/ProjectileAim",
+    "games/rivals/ShotPresentation",
+    "games/rivals/ScopedAccuracy",
+    "games/rivals/WeaponPolicy",
+    "games/rivals/Effects",
+    "games/rivals/Movement",
+    "games/rivals/CombatState",
+}
+
 return Rivals

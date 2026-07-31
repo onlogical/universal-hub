@@ -1,6 +1,78 @@
 local Registry = {}
 Registry.__index = Registry
 
+local function validSourcePath(path)
+    return type(path) == "string"
+        and path ~= ""
+        and path:match("^[%w_/%-]+$") ~= nil
+        and not path:find("//", 1, true)
+end
+
+local function validateManifestIds(manifest, field)
+    local values = manifest[field]
+    if values == nil then
+        return 0
+    end
+    assert(type(values) == "table", "Game definition manifest " .. field .. " must be a table")
+
+    local seen = {}
+    for _, value in ipairs(values) do
+        assert(
+            type(value) == "number" and value > 0 and value % 1 == 0,
+            "Game definition manifest ids must be positive integers"
+        )
+        assert(not seen[value], "Game definition manifest contains duplicate id: " .. tostring(value))
+        seen[value] = true
+    end
+    return #values
+end
+
+function Registry.Validate(definition)
+    assert(type(definition) == "table", "Game definition must be a table")
+    assert(
+        type(definition.id) == "string" and definition.id:match("%S") ~= nil,
+        "Game definition requires a non-empty id"
+    )
+    assert(
+        type(definition.label) == "string" and definition.label:match("%S") ~= nil,
+        "Game definition requires a non-empty label"
+    )
+    assert(type(definition.manifest) == "table", "Game definition requires a manifest")
+
+    local gameIdCount = validateManifestIds(definition.manifest, "gameIds")
+    local placeIdCount = validateManifestIds(definition.manifest, "placeIds")
+    assert(
+        gameIdCount + placeIdCount > 0,
+        "Game definition manifest requires a numeric gameId or placeId"
+    )
+
+    local hasModule = definition.module ~= nil
+    local hasFactory = definition.factory ~= nil
+    assert(hasModule ~= hasFactory, "Game definition requires exactly one module or factory")
+    if hasModule then
+        assert(validSourcePath(definition.module), "Game definition module must be a valid source path")
+    else
+        assert(type(definition.factory) == "function", "Game definition factory must be a function")
+    end
+
+    assert(type(definition.sources) == "table", "Game definition sources must be a table")
+    local seenSources = {}
+    for _, source in ipairs(definition.sources) do
+        assert(
+            type(source) ~= "string" or not source:match("%.lua$"),
+            "Game definition sources use module paths without .lua"
+        )
+        assert(validSourcePath(source), "Game definition source must be a valid module path")
+        assert(not seenSources[source], "Game definition contains duplicate source: " .. source)
+        seenSources[source] = true
+    end
+    if hasModule then
+        assert(seenSources[definition.module], "Game definition sources must include its module")
+    end
+
+    return definition
+end
+
 local function matchManifest(manifest, context)
     local score = 0
 
@@ -22,23 +94,24 @@ end
 function Registry.new()
     return setmetatable({
         adapters = {},
+        order = {},
     }, Registry)
 end
 
-function Registry:Register(adapter)
-    assert(type(adapter) == "table", "Hub adapter must be a table")
-    assert(type(adapter.id) == "string", "Hub adapter requires an id")
-    assert(type(adapter.new) == "function", "Hub adapter requires new(context)")
+function Registry:Register(definition)
+    Registry.Validate(definition)
+    assert(self.adapters[definition.id] == nil, "Duplicate game definition id: " .. definition.id)
 
-    self.adapters[adapter.id] = adapter
-    return adapter
+    self.adapters[definition.id] = definition
+    table.insert(self.order, definition)
+    return definition
 end
 
 function Registry:Resolve(context)
-    local selected
+    local selected = {}
     local selectedScore = 0
 
-    for _, adapter in pairs(self.adapters) do
+    for _, adapter in ipairs(self.order) do
         local score
         if type(adapter.match) == "function" then
             score = adapter.match(context)
@@ -52,17 +125,34 @@ function Registry:Resolve(context)
         end
 
         if type(score) == "number" and score > selectedScore then
-            selected = adapter
+            selected = { adapter }
             selectedScore = score
+        elseif type(score) == "number" and score > 0 and score == selectedScore then
+            table.insert(selected, adapter)
         end
     end
 
-    return selected, selectedScore
+    if #selected > 1 then
+        local ids = {}
+        for _, definition in ipairs(selected) do
+            table.insert(ids, definition.id)
+        end
+        table.sort(ids)
+        error(
+            ("Ambiguous game definitions at score %s: %s"):format(
+                tostring(selectedScore),
+                table.concat(ids, ", ")
+            ),
+            2
+        )
+    end
+
+    return selected[1], selectedScore
 end
 
 function Registry:List()
     local adapters = {}
-    for _, adapter in pairs(self.adapters) do
+    for _, adapter in ipairs(self.order) do
         table.insert(adapters, adapter)
     end
     table.sort(adapters, function(left, right)

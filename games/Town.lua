@@ -2683,4 +2683,14 @@ function Town.new(context)
     return self
 end
 
+Town.factory = Town.new
+Town.sources = {
+    "games/Town",
+    "games/town/Canonical",
+    "games/town/CheckpointStore",
+    "games/town/CopyEngine",
+    "games/town/CopyPlan",
+    "games/town/ExecutionPlan",
+}
+
 return Town

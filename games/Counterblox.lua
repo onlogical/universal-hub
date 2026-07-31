@@ -1927,4 +1927,9 @@ function Counterblox.new(context)
     return self
 end
 
+Counterblox.factory = Counterblox.new
+Counterblox.sources = {
+    "games/Counterblox",
+}
+
 return Counterblox

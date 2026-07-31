@@ -450,7 +450,7 @@ ownStartup(function()
     overlay:destroy()
 end)
 
-local created, result = pcall(adapterDefinition.new, {
+local created, result = pcall(adapterDefinition.factory, {
     aimClick = mouse2click,
     aimPress = mouse2press,
     aimRelease = mouse2release,
