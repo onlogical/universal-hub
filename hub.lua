@@ -55,6 +55,7 @@ local function execute(path)
 end
 
 local Registry = execute("modules/Registry.lua")
+local SourceInventory = execute("modules/SourceInventory.lua")
 local catalog = execute("games/Catalog.lua")
 assert(type(catalog) == "table", "Universal Hub catalog must be a table")
 local registry = Registry.new()
@@ -71,32 +72,37 @@ for _, definitionPath in ipairs(catalog) do
     table.insert(definitions, definition)
 end
 
-for _, path in ipairs({
-    "modules/Store.lua",
-    "modules/Config.lua",
-    "modules/InputCapture.lua",
-    "modules/MenuToggle.lua",
-    "modules/Registry.lua",
-    "modules/Session.lua",
-    "modules/Overlay.lua",
-    "modules/PresentationHost.lua",
-    "games/Catalog.lua",
-}) do
-    fetch(path)
-end
-for _, definition in ipairs(definitions) do
-    for _, modulePath in ipairs(definition.sources) do
-        fetch(modulePath .. ".lua")
-    end
+local inventory = SourceInventory.new({
+    catalog = catalog,
+    definitions = definitions,
+})
+local selectedDefinition = registry:Resolve({
+    gameId = game.GameId,
+    placeId = game.PlaceId,
+})
+assert(
+    selectedDefinition,
+    ("Universal Hub does not support game %s / place %s"):format(
+        tostring(game.GameId),
+        tostring(game.PlaceId)
+    )
+)
+for _, modulePath in ipairs(inventory:All()) do
+    fetch(modulePath .. ".lua")
 end
 environment.UniversalHubConfig = configuration
 local importCache = {}
+local allowedImports = inventory:Allow(selectedDefinition.id)
 configuration.Import = function(path)
     assert(
         type(path) == "string"
             and path:match("^[%w_/%-]+$") ~= nil
             and not path:find("//", 1, true),
         "Invalid hub module path"
+    )
+    assert(
+        allowedImports[path],
+        "Hub module is outside selected game source scope: " .. tostring(path)
     )
     if importCache[path] ~= nil then
         return importCache[path]

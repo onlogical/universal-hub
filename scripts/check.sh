@@ -37,6 +37,7 @@ lune run tests/input_capture_contracts.luau
 lune run tests/menu_toggle_contracts.luau
 lune run tests/registry_contracts.luau
 lune run tests/catalog_contracts.luau
+lune run tests/source_inventory_contracts.luau
 lune run tests/presentation_host_contracts.luau
 lune run tests/session_contracts.luau
 lune run tests/overlay_contracts.luau

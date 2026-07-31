@@ -12,6 +12,7 @@ local expectedHubPaths = {
     "modules/Session.lua",
     "modules/Overlay.lua",
     "modules/PresentationHost.lua",
+    "modules/SourceInventory.lua",
     "games/Catalog.lua",
     "init.lua",
 }
@@ -60,10 +61,14 @@ function getgenv()
     return environment
 end
 
-game = {}
+game = {
+    GameId = 7633926880,
+    PlaceId = 114234929420007,
+}
 function game:HttpGet(url, noCache)
     assert(noCache == true, "Hub loader must bypass the executor HTTP cache")
     table.insert(requested, url)
+    environment.RequestCount = #requested
 
     if url == sourceBaseUrl .. "vendor/Limn.lua" then
         return [[return { new = function() end }]]
@@ -101,6 +106,7 @@ return {
     end
 
     if url == sourceBaseUrl .. "modules/Registry.lua"
+        or url == sourceBaseUrl .. "modules/SourceInventory.lua"
         or url == sourceBaseUrl .. "games/Catalog.lua"
         or url == sourceBaseUrl .. "games/counterblox/Definition.lua"
         or url == sourceBaseUrl .. "games/rivals/Definition.lua"
@@ -121,6 +127,17 @@ assert(type(configuration.Import) == "function", "Hub loader must install its ow
 local first = configuration.Import("modules/Store")
 local second = configuration.Import("modules/Store")
 assert(first == second, "Hub importer must cache Universal Hub modules")
+local requestCount = getgenv().RequestCount
+configuration.Import("games/Counterblox")
+assert(
+    getgenv().RequestCount == requestCount,
+    "Selected imports must execute already-prefetched bytes without lazy requests"
+)
+assert(
+    not pcall(configuration.Import, "games/rivals/Adapter")
+        and not pcall(configuration.Import, "games/town/Presentation"),
+    "Selected runtime importer must reject sources owned only by other definitions"
+)
 assert(not pcall(configuration.Import, "../modules/Store"), "Hub importer must validate paths")
 local helpers = configuration.HydroxideHelpers.load({
     import = configuration.HydroxideImport,
@@ -221,5 +238,44 @@ for _, url in ipairs(requested) do
             )
         end
     end
+end
+invalidDefinitionPath = nil
+
+local originalHttpGet = game.HttpGet
+function game:HttpGet(url, noCache)
+    local result = originalHttpGet(self, url, noCache)
+    if url == sourceBaseUrl .. "games/rivals/Definition.lua" then
+        return result:gsub(
+            'sources = {',
+            'sources = {\n        "games/Counterblox",',
+            1
+        )
+    end
+    return result
+end
+requested = {}
+environment.UniversalHubConfig = {
+    SourceBaseUrl = sourceBaseUrl,
+}
+local duplicateSucceeded, duplicateMessage = pcall(function()
+    local duplicateChunk, duplicateCompileError = loadstring(source, "hub-duplicate-owner.lua")
+    assert(duplicateChunk, duplicateCompileError)()
+end)
+assert(
+    not duplicateSucceeded
+        and tostring(duplicateMessage):find(
+            "Source path owned by multiple game definitions: games/Counterblox (counterblox, rivals)",
+            1,
+            true
+        ),
+    "Packaged bootstrap must reject cross-definition source ownership deterministically"
+)
+for _, url in ipairs(requested) do
+    assert(
+        url ~= sourceBaseUrl .. "games/Counterblox.lua"
+            and url ~= sourceBaseUrl .. "games/rivals/Adapter.lua"
+            and url ~= sourceBaseUrl .. "games/Town.lua",
+        "Source ownership must validate globally before any game source fetch"
+    )
 end
 print("hub-loader-contracts-ok")

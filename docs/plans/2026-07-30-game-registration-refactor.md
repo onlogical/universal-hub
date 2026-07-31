@@ -113,7 +113,10 @@ Rules:
 4. `Move game metadata into catalog definitions`
 5. `Drive remote sources from game catalog`
 6. `Move game panels behind presentation host` — manager-gated Phase 4 only.
-7. `Split game lifecycles along owned boundaries` — only after Phase 4 parity and only where failing contracts prove it is needed.
+7. `Close packaged game source scopes` — independent-review correction.
+8. `Replace the presentation host monolith` — independent-review correction.
+9. `Compose sparse game definitions locally` — independent-review correction.
+10. `Split game lifecycles along owned boundaries` — only after screenshot parity and only where failing contracts prove it is needed.
 
 Each commit must contain its direct tests and must pass its phase checks before the next commit begins. Do not push, open a PR, merge, publish, or mutate Roblox without explicit manager follow-up.
 
@@ -607,6 +610,79 @@ Capture before/after screenshots in RIVALS, Counterblox, and Town at the same vi
 git add modules/PresentationHost.lua modules/Overlay.lua init.lua games/rivals/Presentation.lua games/counterblox/Presentation.lua games/town/Presentation.lua games/rivals/Definition.lua games/counterblox/Definition.lua games/town/Definition.lua tests/presentation_host_contracts.luau tests/overlay_contracts.luau tests/catalog_contracts.luau scripts/check.sh
 git commit -m "Move game panels behind presentation host"
 ```
+
+## Independent review FIX: closed source scopes
+
+**Files:**
+
+- Create failing-first: `tests/source_inventory_contracts.luau`
+- Modify failing-first: `tests/hub_loader_contracts.luau`
+- Modify: `hub.lua`
+- Modify: `scripts/check.sh`
+- Modify: this plan
+
+**Contracts and implementation:**
+
+1. Prove red for cross-definition duplicate ownership, missing/undeclared sources, order-independent ownership diagnostics, selected-game import denial, invalid definitions before any game fetch, and eager deterministic/no-lazy loading.
+2. Build a complete core/definition source-owner map after every definition validates and before any declared game source is fetched. Each path has exactly one owner; only an explicit core/shared declaration may be shared.
+3. Continue eager pinned prefetch of the validated source union, but install `configuration.Import` with a closed allowlist containing core/shared modules, catalog/definition modules required by init, and only the resolved definition's declared sources.
+4. Run the two focused loader/inventory contracts, strict analysis, full `scripts/check.sh`, and `git diff --check`.
+5. Commit as `Close packaged game source scopes`.
+
+Stop before implementation if closed scoping requires network-lazy loading, broader remote trust, or a new Hydroxide dependency.
+
+## Independent review FIX: thin presentation host
+
+**Files:**
+
+- Rewrite failing-first: `tests/presentation_host_contracts.luau`
+- Modify failing-first: `tests/overlay_contracts.luau`
+- Replace: `modules/PresentationHost.lua`
+- Create cohesive generic UH presentation modules under `modules/presentation/`
+- Modify: `modules/Overlay.lua`
+- Rewrite composition: `games/counterblox/Presentation.lua`
+- Rewrite composition: `games/rivals/Presentation.lua`
+- Rewrite composition: `games/town/Presentation.lua`
+
+**Contracts and implementation:**
+
+1. Prove red that the host receives only a generic UH facade; contains no `surface`, `create`, Limn/Canvas/Element access, Town/cosmetics text, or game option labels; and supports a minimal presentation through mount/layout/render/reload/destroy without aim or cosmetics.
+2. Extract small cohesive generic control/panel construction and registered layout/render behavior above Limn. Overlay retains the Limn surface and supplies a generic facade; the host only validates and mounts the selected presentation.
+3. Move ordered aim/rate/option/cosmetics composition into Counterblox and RIVALS presentation modules. Move Town copy/recovery panel composition and action selection into Town presentation; Town mounts neither aim nor cosmetics.
+4. Preserve supported `overlay.controls` keys, exact labels/status/copy strings, callback timing, geometry, capability gating, z-order, visibility, and cleanup.
+5. Run focused presentation/overlay/Limn contracts, strict analysis, full `scripts/check.sh`, and `git diff --check`.
+6. Commit as `Replace presentation host monolith`.
+
+Stop immediately for any copy/status/layout/state choice or Town behavior overlap. Live screenshot QA remains blocked until all automated/audit fixes are green and matching baselines are available.
+
+## Independent review FIX: sparse definitions and game-local composition
+
+**Files:**
+
+- Create: `games/Compatibility.lua`
+- Create game-local composition modules under each game package
+- Modify: `games/counterblox/Definition.lua`
+- Modify: `games/rivals/Definition.lua`
+- Modify: `games/town/Definition.lua`
+- Modify: `modules/Registry.lua`
+- Modify: `init.lua`
+- Modify failing-first: `tests/catalog_contracts.luau`
+- Create failing-first: `tests/game_onboarding_contracts.luau`
+- Modify stale architecture wording only: `games/rivals/AGENTS.md`
+
+**Contracts and implementation:**
+
+1. Prove red for a canonical deep-copied compatibility defaults/state base, sparse per-game additions/overrides, exact final three-game state/config equality, selected-only composition import, no Town/cosmetics adapter-id branching in init, and a fourth-game fixture added with only Definition/Adapter/Presentation/Catalog/test files.
+2. Compose each pure Definition from `games/Compatibility.lua` without sharing mutable tables. Definitions remain data-only and may name an optional pure composition module path.
+3. Import only the selected composition binder. Give it a narrow context so it registers game-local startup patch/actions without services, Limn objects, raw Drawing, or runtime behavior in the Definition.
+4. Remove game-specific startup/action maps and adapter-id branches from `init.lua` while preserving exact settings/state/config keys, startup order, and Town recovery behavior.
+5. Update only stale architecture claims in `games/rivals/AGENTS.md`.
+6. Run focused catalog/onboarding/adapter contracts, strict analysis, full `scripts/check.sh`, and `git diff --check`.
+7. Commit as `Compose sparse game definitions locally`.
+
+The raw-Lighting suppression included in `c66466f` is already-published Limn baseline behavior and remains unchanged by these corrective commits.
+
+The existing `raycastIgnore` calls remain preservation-only. Do not change the current Hydroxide pin until the Hydroxide manager supplies a published generic Targeting commit; report the exact pin change required when that commit is available.
 
 ## Task 6: Split lifecycle boundaries only where required
 
