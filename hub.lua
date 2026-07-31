@@ -35,6 +35,42 @@ assert(
 )
 
 local sources = {}
+local function validModulePath(path)
+    return type(path) == "string"
+        and path ~= ""
+        and path:match("^[%w_/%-]+$") ~= nil
+        and not path:find("//", 1, true)
+end
+
+local function fetch(path)
+    if sources[path] == nil then
+        sources[path] = httpGame:HttpGet(sourceBaseUrl .. path, true)
+    end
+    return sources[path]
+end
+
+local function execute(path)
+    local chunk, compileError = loadstring(fetch(path), path)
+    return assert(chunk, compileError)()
+end
+
+local Registry = execute("modules/Registry.lua")
+local catalog = execute("games/Catalog.lua")
+assert(type(catalog) == "table", "Universal Hub catalog must be a table")
+local registry = Registry.new()
+local definitions = {}
+local seenDefinitions = {}
+for _, definitionPath in ipairs(catalog) do
+    assert(validModulePath(definitionPath), "Invalid game definition path")
+    assert(not seenDefinitions[definitionPath], "Duplicate game definition path: " .. definitionPath)
+    seenDefinitions[definitionPath] = true
+
+    local definition = execute(definitionPath .. ".lua")
+    Registry.Validate(definition)
+    registry:Register(definition)
+    table.insert(definitions, definition)
+end
+
 for _, path in ipairs({
     "modules/Store.lua",
     "modules/Config.lua",
@@ -44,27 +80,13 @@ for _, path in ipairs({
     "modules/Session.lua",
     "modules/Overlay.lua",
     "games/Catalog.lua",
-    "games/counterblox/Definition.lua",
-    "games/rivals/Definition.lua",
-    "games/town/Definition.lua",
-    "games/town/Canonical.lua",
-    "games/town/CheckpointStore.lua",
-    "games/town/CopyEngine.lua",
-    "games/town/CopyPlan.lua",
-    "games/town/ExecutionPlan.lua",
-    "games/Counterblox.lua",
-    "games/Town.lua",
-    "games/rivals/Adapter.lua",
-    "games/rivals/Targeting.lua",
-    "games/rivals/ProjectileAim.lua",
-    "games/rivals/ShotPresentation.lua",
-    "games/rivals/ScopedAccuracy.lua",
-    "games/rivals/WeaponPolicy.lua",
-    "games/rivals/Effects.lua",
-    "games/rivals/Movement.lua",
-    "games/rivals/CombatState.lua",
 }) do
-    sources[path] = httpGame:HttpGet(sourceBaseUrl .. path, true)
+    fetch(path)
+end
+for _, definition in ipairs(definitions) do
+    for _, modulePath in ipairs(definition.sources) do
+        fetch(modulePath .. ".lua")
+    end
 end
 environment.UniversalHubConfig = configuration
 local importCache = {}
