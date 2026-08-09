@@ -9,13 +9,21 @@ local CORE = {
     "modules/Registry",
     "modules/Session",
     "modules/Overlay",
+    "modules/EspColorPolicy",
+    "modules/NativeVisualPolicy",
+    "modules/NativeWorldRenderer",
+    "modules/WorldRenderer",
+    "modules/NativeMenu",
+    "modules/HubView",
     "modules/PresentationHost",
+    "modules/presentation/Catalog",
     "modules/presentation/Runtime",
     "modules/presentation/StandardPanels",
     "modules/presentation/CosmeticsPanel",
     "modules/SourceInventory",
     "games/Compatibility",
     "games/Catalog",
+    "games/Counterblox",
 }
 
 local function copyList(source)

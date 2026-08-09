@@ -1,19 +1,118 @@
+local function importDependency(path, relativePath)
+    if type(getgenv) == "function" then
+        local environment = getgenv()
+        local configuration = environment and environment.UniversalHubConfig
+        if configuration and type(configuration.Import) == "function" then
+            return configuration.Import(path)
+        end
+    end
+    return require(relativePath)
+end
+
+local NativeVisualPolicy = importDependency("modules/NativeVisualPolicy", "./NativeVisualPolicy")
+local EspColorPolicy = importDependency("modules/EspColorPolicy", "./EspColorPolicy")
 local Overlay = {}
 Overlay.__index = Overlay
 
-local COLORS = {
-    accent = Color3.fromRGB(98, 214, 173),
-    accentSurface = Color3.fromRGB(23, 53, 45),
-    border = Color3.fromRGB(41, 50, 58),
-    danger = Color3.fromRGB(230, 107, 110),
-    elevated = Color3.fromRGB(21, 28, 35),
-    hover = Color3.fromRGB(28, 37, 45),
-    panel = Color3.fromRGB(17, 23, 29),
-    panelShadow = Color3.fromRGB(4, 7, 9),
-    secondary = Color3.fromRGB(167, 176, 184),
-    text = Color3.fromRGB(243, 246, 247),
-    toggleActive = Color3.fromRGB(74, 166, 139),
+local PRESENTATION_TOKENS = {
+    font = {
+        control = Drawing.Fonts.Plex,
+        heading = Drawing.Fonts.Plex,
+    },
+    control = {
+        borderThickness = 1,
+        fovCircleSides = 96,
+        fovCircleThickness = 1.5,
+        fovThumbRadius = 8,
+        progressTrackHeight = 4,
+        rateThumbRadius = 7,
+        segmentCornerRadius = 4,
+        sliderCircleSides = 32,
+        sliderTrackHeight = 5,
+        switchCircleSides = 24,
+        switchInnerRadius = 9,
+        switchInnerTrackHeight = 18,
+        switchKnobRadius = 9,
+        switchKnobRimRadius = 9.5,
+        switchOuterRadius = 11,
+        switchOuterTrackHeight = 22,
+        switchTrackWidth = 20,
+    },
+    layout = {
+        cardContentInset = 16,
+        cardInset = 20,
+        contentTopWithTabs = 158,
+        contentTopWithoutTabs = 72,
+        contentWidth = 350,
+        headerContentInset = 20,
+        headerHeight = 64,
+        initialHeight = 790,
+        innerControlWidth = 350,
+        shellRightInset = 44,
+        shellTopInset = 20,
+        shellWidth = 390,
+        shadowX = 3,
+        shadowY = 4,
+        statusDotRightInset = 18,
+        statusDotTop = 45,
+        statusTop = 36,
+        tabBarHeight = 44,
+        tabsTop = 84,
+        titleTop = 13,
+    },
+    opacity = {
+        divider = 0.58,
+        edge = 0.72,
+        focus = 0.96,
+        fovCircle = 0.8,
+        hitbox = 0.01,
+        quietControl = 0.98,
+        subDivider = 0.38,
+    },
+    type = {
+        display = 18,
+        eyebrow = 9,
+        header = 16,
+        label = 13,
+        meta = 10,
+        primary = 12,
+        rateValue = 15,
+        row = 12,
+        section = 16,
+        status = 11,
+    },
 }
+
+local COLORS = {
+    accent = Color3.fromRGB(160, 225, 194),
+    accentSurface = Color3.fromRGB(30, 53, 44),
+    border = Color3.fromRGB(39, 41, 46),
+    danger = Color3.fromRGB(255, 118, 87),
+    elevated = Color3.fromRGB(31, 33, 37),
+    header = Color3.fromRGB(25, 26, 30),
+    hover = Color3.fromRGB(37, 39, 43),
+    panel = Color3.fromRGB(24, 26, 29),
+    panelShadow = Color3.fromRGB(12, 14, 16),
+    secondary = Color3.fromRGB(190, 192, 195),
+    signal = Color3.fromRGB(98, 214, 173),
+    team = Color3.fromRGB(101, 157, 214),
+    tertiary = Color3.fromRGB(128, 132, 138),
+    text = Color3.fromRGB(243, 243, 244),
+    track = Color3.fromRGB(55, 56, 61),
+    tokens = PRESENTATION_TOKENS,
+    toggleActive = Color3.fromRGB(160, 225, 194),
+}
+
+local function playerColor(observation, visible)
+    local presentation = observation.presentation
+    if type(presentation) == "table" and presentation.color ~= nil then
+        return presentation.color
+    end
+    if observation.tone == "team" then
+        return COLORS.team
+    end
+    return visible == true and COLORS.signal or COLORS.danger
+end
 
 local WORLD_LAYER = {
     chams = 10,
@@ -48,7 +147,52 @@ local UTILITY_CUBE_EDGES = {
     { 4, 8 },
 }
 
+local function convexHull(points)
+    if #points < 3 then
+        return points
+    end
+    table.sort(points, function(left, right)
+        return left.X == right.X and left.Y < right.Y or left.X < right.X
+    end)
+    local unique = {}
+    for _, point in ipairs(points) do
+        local previous = unique[#unique]
+        if not previous or previous.X ~= point.X or previous.Y ~= point.Y then
+            table.insert(unique, point)
+        end
+    end
+    if #unique < 3 then
+        return unique
+    end
+    local function cross(origin, left, right)
+        return (left.X - origin.X) * (right.Y - origin.Y)
+            - (left.Y - origin.Y) * (right.X - origin.X)
+    end
+    local lower = {}
+    for _, point in ipairs(unique) do
+        while #lower >= 2 and cross(lower[#lower - 1], lower[#lower], point) <= 0 do
+            table.remove(lower)
+        end
+        table.insert(lower, point)
+    end
+    local upper = {}
+    for index = #unique, 1, -1 do
+        local point = unique[index]
+        while #upper >= 2 and cross(upper[#upper - 1], upper[#upper], point) <= 0 do
+            table.remove(upper)
+        end
+        table.insert(upper, point)
+    end
+    table.remove(lower)
+    table.remove(upper)
+    for _, point in ipairs(upper) do
+        table.insert(lower, point)
+    end
+    return lower
+end
+
 local BODY_CUBE_OPACITY = 0.18
+local NATIVE_PREVIEW_FILL_TRANSPARENCY = NativeVisualPolicy.FILL_TRANSPARENCY
 local EVENT_SIGNALS = {
     click = "Clicked",
     drag = "Dragged",
@@ -171,7 +315,7 @@ function Overlay.new(context)
     assert(context.store, "Hub overlay requires a reactive store")
 
     local primitiveSupport = {}
-    for _, kind in ipairs({ "Square", "Circle", "Text", "Quad", "Line" }) do
+    for _, kind in ipairs({ "Square", "Circle", "Text", "Triangle", "Quad", "Line" }) do
         primitiveSupport[kind] = context.limn:supportsPrimitive(kind)
     end
     local optionSupport = {
@@ -201,7 +345,7 @@ function Overlay.new(context)
     }, Overlay)
 
     local missingPrimitives = {}
-    for _, kind in ipairs({ "Square", "Circle", "Text" }) do
+    for _, kind in ipairs({ "Square", "Circle", "Text", "Triangle" }) do
         if not primitiveSupport[kind] then
             table.insert(missingPrimitives, kind)
         end
@@ -220,16 +364,23 @@ function Overlay.new(context)
     self.available = true
     self.surface = createCanvasView(context.limn)
     self.canvas = self.surface.canvas
-    if context.inputService then
+    if context.inputService and not context.worldOnly then
         self.surface:bindInput(context.inputService)
     end
-    self:_build()
-    local presentationRuntime = context.presentationRuntime.new({
+    if not context.worldOnly then
+        self:_build()
+        local presentationRuntime = context.presentationRuntime.new({
         activeSliderVisuals = self.activeSliderVisuals,
         capabilities = context.capabilities,
         cosmeticsSupported = context.cosmetics ~= false,
         context = context,
         controls = self.controls,
+        createKeybindControl = function(options)
+            return context.limn:createKeybindControl(self.canvas, options)
+        end,
+        createSegmentedControl = function(options)
+            return context.limn:createSegmentedControl(self.canvas, options)
+        end,
         interactive = function(node)
             return self:_interactive(node)
         end,
@@ -245,6 +396,9 @@ function Overlay.new(context)
         requestLayout = function()
             self:_layout()
         end,
+        requestRender = function()
+            self:_renderState(context.store:Get())
+        end,
         setControlColor = function(node, color)
             self:_setControlColor(node, color)
         end,
@@ -253,8 +407,9 @@ function Overlay.new(context)
         end,
         theme = COLORS,
     }, context.presentationParts)
-    self.presentationHost = context.presentationHost.mount(presentationRuntime, context.presentation)
-    self:_layout()
+        self.presentationHost = context.presentationHost.mount(presentationRuntime, context.presentation)
+        self:_layout()
+    end
     self.immediateChams = pcall(function()
         self.chamPaintConnection = self.surface:paint(WORLD_LAYER.chams, function(renderer)
             self:_paintChams(renderer)
@@ -268,9 +423,11 @@ function Overlay.new(context)
             self:_paintUtilityZones(renderer)
         end)
     end)
-    self.unsubscribe = context.store:Subscribe(function(state)
-        self:_renderState(state)
-    end)
+    if not context.worldOnly then
+        self.unsubscribe = context.store:Subscribe(function(state)
+            self:_renderState(state)
+        end)
+    end
     return self
 end
 
@@ -307,37 +464,38 @@ end
 function Overlay:_build()
     local surface = self.surface
     local controls = self.controls
+    local layoutTokens = PRESENTATION_TOKENS.layout
 
     controls.panelShadow = surface:create("Square", {
         Color = COLORS.panelShadow,
         Filled = true,
-        Size = Vector2.new(300, 596),
-        Transparency = 0.42,
+        Size = Vector2.new(layoutTokens.shellWidth, layoutTokens.initialHeight),
+        Transparency = 0.32,
         Visible = true,
         ZIndex = 198,
     }, { pointerEvents = false })
     controls.panel = self:_capture(surface:create("Square", {
         Color = COLORS.panel,
         Filled = true,
-        Size = Vector2.new(300, 596),
-        Transparency = 0.97,
+        Size = Vector2.new(layoutTokens.shellWidth, layoutTokens.initialHeight),
+        Transparency = 1,
         Visible = true,
         ZIndex = 200,
     }))
     controls.panelBorder = surface:create("Square", {
         Color = COLORS.border,
         Filled = false,
-        Size = Vector2.new(300, 596),
+        Size = Vector2.new(layoutTokens.shellWidth, layoutTokens.initialHeight),
         Thickness = 1,
         Transparency = 0.9,
         Visible = true,
         ZIndex = 206,
     }, { pointerEvents = false })
     controls.headerSurface = surface:create("Square", {
-        Color = COLORS.elevated,
+        Color = COLORS.header,
         Filled = true,
-        Size = Vector2.new(300, 54),
-        Transparency = 0.96,
+        Size = Vector2.new(layoutTokens.shellWidth, layoutTokens.headerHeight),
+        Transparency = 1,
         Visible = true,
         ZIndex = 201,
     }, { pointerEvents = false })
@@ -360,30 +518,13 @@ function Overlay:_build()
     end)
     controls.title = self:_text({
         Color = COLORS.text,
-        Size = 16,
+        Size = PRESENTATION_TOKENS.type.header,
         Text = "Universal Hub · " .. (self.context.gameLabel or "Universal"),
         ZIndex = 202,
     })
-    controls.hideButton = self:_interactive(surface:create("Square", {
-        Color = COLORS.elevated,
-        Filled = true,
-        Size = Vector2.new(58, 22),
-        Visible = true,
-        ZIndex = 202,
-    }))
-    controls.hideLabel = self:_text({
-        Center = true,
-        Color = COLORS.secondary,
-        Size = 11,
-        Text = "RSHIFT",
-        ZIndex = 203,
-    })
-    controls.hideButton:on("click", function()
-        self.context.setMenuVisible(false)
-    end)
     controls.status = self:_text({
         Color = COLORS.secondary,
-        Size = 13,
+        Size = PRESENTATION_TOKENS.type.status,
         Text = "Inspecting client",
         ZIndex = 202,
     })
@@ -405,7 +546,11 @@ function Overlay:_layout()
 
     local controls = self.controls
     local panelSize = controls.panel.Size
-    local defaultPosition = Vector2.new(math.max(20, camera.ViewportSize.X - 324), 20)
+    local layoutTokens = PRESENTATION_TOKENS.layout
+    local defaultPosition = Vector2.new(
+        math.max(layoutTokens.shellRightInset, camera.ViewportSize.X - panelSize.X - layoutTokens.shellRightInset),
+        layoutTokens.shellTopInset
+    )
     local requestedPosition = self.panelPosition or defaultPosition
     local x = math.clamp(requestedPosition.X, 0, math.max(0, camera.ViewportSize.X - panelSize.X))
     local y = math.clamp(requestedPosition.Y, 0, math.max(0, camera.ViewportSize.Y - panelSize.Y))
@@ -413,15 +558,16 @@ function Overlay:_layout()
         self.panelPosition = Vector2.new(x, y)
     end
     controls.panel.Position = Vector2.new(x, y)
-    controls.panelShadow.Position = Vector2.new(x + 5, y + 6)
+    controls.panelShadow.Position = Vector2.new(x + layoutTokens.shadowX, y + layoutTokens.shadowY)
     controls.panelBorder.Position = Vector2.new(x, y)
     controls.headerSurface.Position = Vector2.new(x, y)
     controls.headerRail.Position = Vector2.new(x, y)
-    controls.title.Position = Vector2.new(x + 16, y + 12)
-    controls.hideButton.Position = Vector2.new(x + 232, y + 8)
-    controls.hideLabel.Position = Vector2.new(x + 261, y + 13)
-    controls.status.Position = Vector2.new(x + 16, y + 32)
-    controls.statusDot.Position = Vector2.new(x + 284, y + 41)
+    controls.title.Position = Vector2.new(x + layoutTokens.headerContentInset, y + layoutTokens.titleTop)
+    controls.status.Position = Vector2.new(x + layoutTokens.headerContentInset, y + layoutTokens.statusTop)
+    controls.statusDot.Position = Vector2.new(
+        x + panelSize.X - layoutTokens.statusDotRightInset,
+        y + layoutTokens.statusDotTop
+    )
     self.presentationHost:layout(x, y)
 end
 
@@ -433,8 +579,6 @@ function Overlay:_setMenuVisible(visible)
         "panelBorder",
         "headerSurface",
         "title",
-        "hideButton",
-        "hideLabel",
         "status",
     }) do
         controls[name].Visible = visible
@@ -456,9 +600,11 @@ function Overlay:_renderState(state)
     local controls = self.controls
     controls.status.Text = state.status or "Ready"
     controls.status.Color = state.error and COLORS.danger or COLORS.secondary
-    controls.statusDot.Color = state.error and COLORS.danger or COLORS.accent
+    controls.statusDot.Color = state.error and COLORS.danger or COLORS.signal
+    self:_layout()
     self.presentationHost:render(state)
     self:_layout()
+    self.presentationHost:render(state)
     self:_setMenuVisible(state.menuVisible ~= false)
 end
 
@@ -575,6 +721,7 @@ function Overlay:_getPlayerNodes(player)
 
     nodes = {
         bodyParts = {},
+        nativeHull = {},
         box = self.surface:create("Square", {
             Color = COLORS.danger,
             Filled = false,
@@ -659,6 +806,41 @@ function Overlay:_syncBodyPartNodes(nodes, count)
     end
 end
 
+function Overlay:_ensureNativeBodyPartOutlines(cube)
+    if cube.outlines or not self.primitiveSupport.Quad then
+        return
+    end
+    cube.outlines = {}
+    for _faceIndex = 1, #BODY_CUBE_FACES do
+        table.insert(
+            cube.outlines,
+            self.surface:create("Quad", {
+                Color = COLORS.danger,
+                Filled = false,
+                Thickness = NativeVisualPolicy.OUTLINE_THICKNESS,
+                Transparency = 0,
+                Visible = false,
+                ZIndex = WORLD_LAYER.player,
+            }, { pointerEvents = false })
+        )
+    end
+end
+
+function Overlay:_syncNativeHull(nodes, count)
+    while #nodes.nativeHull < count do
+        table.insert(nodes.nativeHull, self.surface:create("Line", {
+            Color = COLORS.danger,
+            Thickness = NativeVisualPolicy.OUTLINE_THICKNESS,
+            Transparency = 0,
+            Visible = false,
+            ZIndex = WORLD_LAYER.player,
+        }, { pointerEvents = false }))
+    end
+    for index = count + 1, #nodes.nativeHull do
+        nodes.nativeHull[index].Visible = false
+    end
+end
+
 function Overlay:_getUtilityNodes(index)
     local nodes = self.utilityNodes[index]
     if nodes then
@@ -734,17 +916,32 @@ function Overlay:_paintChams(renderer)
     end
 
     for _, observation in ipairs(paint.observations) do
-        if observation.bounds then
+        if observation.previewRenderer ~= "native" and observation.bounds then
             for _, bodyPart in ipairs(observation.bodyParts or {}) do
                 local corners = bodyPart.corners
-                if type(corners) == "table" and #corners == 8 then
-                    local color = bodyPart.visible == true and COLORS.accent or COLORS.danger
+                local eligiblePart = not (observation.previewRenderer == "native"
+                    and paint.excludeAccessories == true
+                    and bodyPart.accessory == true)
+                if eligiblePart and type(corners) == "table" and #corners == 8 then
+                    local fallbackColor = observation.previewRenderer == "native"
+                        and (observation.tone == "team"
+                            and NativeVisualPolicy.COLORS.team
+                            or NativeVisualPolicy.COLORS.danger)
+                        or playerColor(observation, bodyPart.visible)
+                    local color = EspColorPolicy.color(paint.settings, "fill", fallbackColor, observation.tone)
                     for _, cornerIndices in ipairs(BODY_CUBE_FACES) do
                         local pointA = corners[cornerIndices[1]]
                         local pointB = corners[cornerIndices[2]]
                         local pointC = corners[cornerIndices[3]]
                         local pointD = corners[cornerIndices[4]]
-                        renderer.FilledQuad(pointA, pointB, pointC, pointD, color, BODY_CUBE_OPACITY)
+                        local transparency = EspColorPolicy.fillAlpha(
+                            paint.settings,
+                            observation.previewRenderer == "native"
+                                and (1 - NATIVE_PREVIEW_FILL_TRANSPARENCY)
+                                or BODY_CUBE_OPACITY,
+                            observation.tone
+                        )
+                        renderer.FilledQuad(pointA, pointB, pointC, pointD, color, transparency)
                     end
                 end
             end
@@ -761,7 +958,7 @@ function Overlay:_paintUtilityZones(renderer)
     for _, observation in ipairs(paint.observations) do
         local tone = observation.tone
         local color = tone == "danger" and COLORS.danger
-            or (tone == "smoke" and COLORS.secondary or COLORS.accent)
+            or (tone == "smoke" and COLORS.secondary or COLORS.signal)
         local opacity = tone == "smoke" and 0.08 or 0.14
         for _, polygon in ipairs(observation.polygons or {}) do
             if type(polygon) == "table" and #polygon == 4 then
@@ -780,7 +977,7 @@ function Overlay:_renderUtilities(observations, enabled)
         local nodes = self:_getUtilityNodes(index)
         local tone = observation.tone
         local color = tone == "danger" and COLORS.danger
-            or (tone == "smoke" and COLORS.secondary or COLORS.accent)
+            or (tone == "smoke" and COLORS.secondary or COLORS.signal)
         local corners = observation.wireframeCorners
         local wireframeVisible = enabled
             and self.primitiveSupport.Line
@@ -869,8 +1066,12 @@ function Overlay:render(observations, mousePosition, utilityObservations)
         and settings.chams == true
         and self.optionSupport.chams ~= false
     self.chamPaint.observations = observations
+    self.chamPaint.excludeAccessories = settings.chamsExcludeAccessories == true
+    self.chamPaint.settings = settings
     self:_renderBomb(state.bombObservation, settings)
-    self.presentationHost:setMousePosition(mousePosition)
+    if self.presentationHost then
+        self.presentationHost:setMousePosition(mousePosition)
+    end
     local seen = {}
 
     for _, observation in ipairs(observations) do
@@ -878,19 +1079,51 @@ function Overlay:render(observations, mousePosition, utilityObservations)
             local nodes = self:_getPlayerNodes(observation.player)
             local bounds = observation.bounds
             local visible = observation.visible == true
-            local color = visible and COLORS.accent or COLORS.danger
+            local nativePreview = observation.previewRenderer == "native"
+            local nativeColor = observation.tone == "team"
+                and NativeVisualPolicy.COLORS.team
+                or NativeVisualPolicy.COLORS.danger
+            local fallbackColor = nativePreview and nativeColor or playerColor(observation, visible)
+            local outlineColor = EspColorPolicy.color(settings, "outline", fallbackColor, observation.tone)
+            local nameColor = EspColorPolicy.color(settings, "name", fallbackColor, observation.tone)
+            local weaponColor = EspColorPolicy.color(settings, "weapon", fallbackColor, observation.tone)
             local bodyParts = observation.bodyParts or {}
+            local perPartPreview = settings.chamsPerPart == true
+                or settings.chamsExcludeAccessories == true
+            local hullPoints = {}
             seen[observation.player] = true
 
             self:_syncBodyPartNodes(nodes, #bodyParts)
             for index, bodyPart in ipairs(bodyParts) do
                 local cube = nodes.bodyParts[index]
                 local corners = bodyPart.corners
+                local validCorners = type(corners) == "table" and #corners == 8
+                local eligiblePart = not (nativePreview
+                    and settings.chamsExcludeAccessories == true
+                    and bodyPart.accessory == true)
                 local cubeVisible = settings.chams == true
+                    and not nativePreview
                     and self.optionSupport.chams ~= false
-                    and type(corners) == "table"
-                    and #corners == 8
-                local cubeColor = bodyPart.visible == true and COLORS.accent or COLORS.danger
+                    and validCorners
+                    and eligiblePart
+                local outlineVisible = nativePreview
+                    and perPartPreview
+                    and settings.boxes == true
+                    and validCorners
+                    and eligiblePart
+                if nativePreview and not perPartPreview and settings.boxes == true
+                    and validCorners and eligiblePart
+                then
+                    for _, point in ipairs(corners) do
+                        table.insert(hullPoints, point)
+                    end
+                end
+                local cubeFallback = nativePreview
+                    and nativeColor
+                    or playerColor(observation, bodyPart.visible)
+                local cubeColor = nativePreview
+                    and EspColorPolicy.color(settings, "outline", cubeFallback, observation.tone)
+                    or EspColorPolicy.color(settings, "fill", cubeFallback, observation.tone)
 
                 if not self.immediateChams then
                     for faceIndex, cornerIndices in ipairs(BODY_CUBE_FACES) do
@@ -903,19 +1136,51 @@ function Overlay:render(observations, mousePosition, utilityObservations)
                         end
                         if face then
                             face.Color = cubeColor
+                            face.Transparency = EspColorPolicy.fillAlpha(
+                                settings,
+                                nativePreview and (1 - NATIVE_PREVIEW_FILL_TRANSPARENCY) or BODY_CUBE_OPACITY,
+                                observation.tone
+                            )
                             face.Visible = cubeVisible
                         end
                     end
                 end
+
+                if nativePreview then
+                    self:_ensureNativeBodyPartOutlines(cube)
+                end
+                for faceIndex, outline in ipairs(cube.outlines or {}) do
+                    local cornerIndices = BODY_CUBE_FACES[faceIndex]
+                    if outlineVisible then
+                        outline.PointA = corners[cornerIndices[1]]
+                        outline.PointB = corners[cornerIndices[2]]
+                        outline.PointC = corners[cornerIndices[3]]
+                        outline.PointD = corners[cornerIndices[4]]
+                    end
+                    outline.Color = cubeColor
+                    outline.Visible = outlineVisible
+                end
+            end
+
+            local hull = nativePreview and not perPartPreview and convexHull(hullPoints) or {}
+            self:_syncNativeHull(nodes, #hull)
+            for index, line in ipairs(nodes.nativeHull) do
+                local visibleHull = index <= #hull and #hull >= 3
+                if visibleHull then
+                    line.From = hull[index]
+                    line.To = hull[index % #hull + 1]
+                end
+                line.Color = outlineColor
+                line.Visible = visibleHull
             end
 
             nodes.box.Position = bounds.position
             nodes.box.Size = bounds.size
-            nodes.box.Color = color
-            nodes.box.Visible = settings.boxes == true
+            nodes.box.Color = outlineColor
+            nodes.box.Visible = settings.boxes == true and not nativePreview
 
             nodes.name.Position = Vector2.new(bounds.position.X + bounds.size.X * 0.5, bounds.position.Y - 15)
-            nodes.name.Color = color
+            nodes.name.Color = nameColor
             nodes.name.Text = observation.player.Name
             nodes.name.Visible = settings.names == true
 
@@ -929,7 +1194,7 @@ function Overlay:render(observations, mousePosition, utilityObservations)
             nodes.healthFill.Position =
                 Vector2.new(bounds.position.X - 9, bounds.position.Y + 1 + innerHeight - fillHeight)
             nodes.healthFill.Size = Vector2.new(4, fillHeight)
-            nodes.healthFill.Color = COLORS.danger:Lerp(COLORS.accent, math.sqrt(healthFraction))
+            nodes.healthFill.Color = EspColorPolicy.healthColor(settings, healthFraction, COLORS.danger, COLORS.signal, observation.tone)
             nodes.healthFill.Visible = settings.health == true and fillHeight > 0
             nodes.healthTip.Position = Vector2.new(bounds.position.X - 10, nodes.healthFill.Position.Y - 1)
             nodes.healthTip.Size = Vector2.new(6, 2)
@@ -947,6 +1212,7 @@ function Overlay:render(observations, mousePosition, utilityObservations)
                 bounds.position.Y + bounds.size.Y + 18
             )
             nodes.weapon.Text = observation.weapon or ""
+            nodes.weapon.Color = weaponColor
             nodes.weapon.Visible = settings.weapon == true and observation.weapon ~= nil
         end
     end
@@ -969,7 +1235,7 @@ function Overlay:destroy()
     end
     self.destroyed = true
 
-    if self.context.setInputCaptured then
+    if not self.context.worldOnly and self.context.setInputCaptured then
         self.context.setInputCaptured(false)
     end
     if self.unsubscribe then

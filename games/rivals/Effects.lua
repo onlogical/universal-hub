@@ -16,7 +16,6 @@ local Effects = {}
 Effects.__index = Effects
 
 local THROWABLE_MAX_DISTANCE = 2000
-local THROWABLE_REFRESH_INTERVAL = 0.2
 local WIREFRAME_CUBE_OFFSETS = {
     Vector3.new(-0.5, -0.5, -0.5),
     Vector3.new(0.5, -0.5, -0.5),
@@ -27,6 +26,20 @@ local WIREFRAME_CUBE_OFFSETS = {
     Vector3.new(0.5, 0.5, 0.5),
     Vector3.new(-0.5, 0.5, 0.5),
 }
+local function connectSignal(signal, callback)
+    if not signal or type(signal.Connect) ~= "function" then
+        return nil
+    end
+    local succeeded, connection = pcall(signal.Connect, signal, callback)
+    return succeeded and connection or nil
+end
+
+local function disconnect(connection)
+    if connection and type(connection.Disconnect) == "function" then
+        pcall(connection.Disconnect, connection)
+    end
+end
+
 local function hierarchyAttribute(instance, name)
     local current = instance
     for _depth = 1, 32 do
@@ -175,6 +188,7 @@ function Effects.throwableObservation(camera, candidate, environmentID, worldRoo
         screenPosition = Vector2.new(point.X, point.Y),
         tone = descriptor.tone,
         wireframeCorners = wireframeCorners,
+        worldPosition = part.Position,
     }
 end
 
@@ -183,61 +197,138 @@ function Effects.new(options)
     assert(options.localPlayer, "RIVALS effects require LocalPlayer")
     assert(options.projectileAim, "RIVALS effects require projectile aim")
 
-    return setmetatable({
+    local self = setmetatable({
         clock = options.clock or os.clock,
         collectionService = options.collectionService,
         lighting = options.lighting,
         localPlayer = options.localPlayer,
-        nextThrowableRefreshAt = 0,
-        nextVisualRefreshAt = 0,
         playerGui = options.playerGui,
         suppressedVisuals = setmetatable({}, { __mode = "k" }),
         throwableCandidates = {},
+        throwableCandidateSet = setmetatable({}, { __mode = "k" }),
+        throwableTagCounts = setmetatable({}, { __mode = "k" }),
+        taggedCandidates = {},
+        smokeCandidates = setmetatable({}, { __mode = "k" }),
+        tagConnections = {},
+        visualConnections = {},
+        visualLifecycleConnections = {},
+        visualRoots = {},
+        smokeVisualConnections = setmetatable({}, { __mode = "k" }),
+        visualNoFlash = false,
+        visualNoSmoke = false,
         trajectoryRenderer = TrajectoryRenderer.new(options),
         workspace = options.workspace,
     }, Effects)
+    self:_startThrowableRegistry()
+    return self
 end
 
-function Effects:_collectThrowables()
-    local candidates = {}
-    local seen = {}
-    local function collect(values)
-        for _, value in ipairs(values or {}) do
-            if value and not seen[value] then
-                seen[value] = true
-                table.insert(candidates, value)
+function Effects:_addTaggedCandidate(tag, candidate)
+    if not candidate then
+        return
+    end
+    local tagged = self.taggedCandidates[tag]
+    if tagged[candidate] then
+        return
+    end
+    tagged[candidate] = true
+    local count = (self.throwableTagCounts[candidate] or 0) + 1
+    self.throwableTagCounts[candidate] = count
+    if count == 1 then
+        self.throwableCandidateSet[candidate] = true
+        table.insert(self.throwableCandidates, candidate)
+    end
+    if tag == "SmokeCloud" then
+        self.smokeCandidates[candidate] = true
+        if self.visualNoSmoke then
+            self:_attachSmokeVisual(candidate)
+        end
+    end
+end
+
+function Effects:_removeTaggedCandidate(tag, candidate)
+    local tagged = self.taggedCandidates[tag]
+    if not tagged or not tagged[candidate] then
+        return
+    end
+    tagged[candidate] = nil
+    if tag == "SmokeCloud" then
+        self.smokeCandidates[candidate] = nil
+        self:_detachSmokeVisual(candidate)
+    end
+    local count = (self.throwableTagCounts[candidate] or 1) - 1
+    if count > 0 then
+        self.throwableTagCounts[candidate] = count
+        return
+    end
+    self.throwableTagCounts[candidate] = nil
+    self.throwableCandidateSet[candidate] = nil
+    for index, value in ipairs(self.throwableCandidates) do
+        if value == candidate then
+            table.remove(self.throwableCandidates, index)
+            break
+        end
+    end
+end
+
+function Effects:_startThrowableRegistry()
+    local service = self.collectionService
+    if not service then
+        return
+    end
+    for _, tag in ipairs(UtilityPolicy.TAGS) do
+        self.taggedCandidates[tag] = setmetatable({}, { __mode = "k" })
+        if service.GetInstanceAddedSignal then
+            local succeeded, signal = pcall(service.GetInstanceAddedSignal, service, tag)
+            if succeeded then
+                local connection = connectSignal(signal, function(candidate)
+                    self:_addTaggedCandidate(tag, candidate)
+                end)
+                if connection then
+                    table.insert(self.tagConnections, connection)
+                end
+            end
+        end
+        if service.GetInstanceRemovedSignal then
+            local succeeded, signal = pcall(service.GetInstanceRemovedSignal, service, tag)
+            if succeeded then
+                local connection = connectSignal(signal, function(candidate)
+                    self:_removeTaggedCandidate(tag, candidate)
+                end)
+                if connection then
+                    table.insert(self.tagConnections, connection)
+                end
+            end
+        end
+        if service.GetTagged then
+            local succeeded, candidates = pcall(service.GetTagged, service, tag)
+            if succeeded then
+                for _, candidate in ipairs(candidates or {}) do
+                    self:_addTaggedCandidate(tag, candidate)
+                end
             end
         end
     end
+end
 
-    if self.collectionService and self.collectionService.GetTagged then
-        for _, tag in ipairs(UtilityPolicy.TAGS) do
-            local succeeded, tagged =
-                pcall(self.collectionService.GetTagged, self.collectionService, tag)
-            if succeeded then
-                collect(tagged)
-            end
-        end
+-- Kept for callers/tests that use the old helper. Discovery itself is now event-driven.
+function Effects:_collectThrowables()
+    local candidates = {}
+    for _, candidate in ipairs(self.throwableCandidates) do
+        table.insert(candidates, candidate)
     end
     return candidates
 end
 
 function Effects:smokeRaycastIgnore()
-    if not self.collectionService or not self.collectionService.GetTagged then
-        return {}
+    local smokeClouds = {}
+    for candidate in pairs(self.smokeCandidates) do
+        table.insert(smokeClouds, candidate)
     end
-    local succeeded, smokeClouds =
-        pcall(self.collectionService.GetTagged, self.collectionService, "SmokeCloud")
-    return succeeded and smokeClouds or {}
+    return smokeClouds
 end
 
 function Effects:observeThrowables(camera, environmentID)
-    local now = self.clock()
-    if now >= self.nextThrowableRefreshAt then
-        self.throwableCandidates = self:_collectThrowables()
-        self.nextThrowableRefreshAt = now + THROWABLE_REFRESH_INTERVAL
-    end
-
     local utilities = {}
     for _, candidate in ipairs(self.throwableCandidates) do
         local observation = Effects.throwableObservation(
@@ -254,39 +345,158 @@ function Effects:observeThrowables(camera, environmentID)
     return utilities
 end
 
-function Effects:update(settings)
-    if settings.noFlash ~= true and settings.noSmoke ~= true then
-        if next(self.suppressedVisuals) ~= nil then
-            Effects.updateVisualSuppressions({}, {}, self.suppressedVisuals)
-        end
-        return
+function Effects:_disconnectVisualRoots()
+    for _, connection in ipairs(self.visualConnections) do
+        disconnect(connection)
     end
-    local now = self.clock()
-    if now < self.nextVisualRefreshAt then
-        return
+    for _, connection in ipairs(self.visualLifecycleConnections) do
+        disconnect(connection)
     end
-    self.nextVisualRefreshAt = now + 0.1
+    self.visualConnections = {}
+    self.visualLifecycleConnections = {}
+    self.visualRoots = {}
+end
 
-    local roots = { self.lighting, self.workspace.CurrentCamera }
+function Effects:_globalVisualRoots()
     local playerGui = self.playerGui
     if not playerGui and self.localPlayer.FindFirstChildOfClass then
         playerGui = self.localPlayer:FindFirstChildOfClass("PlayerGui")
     end
+    local roots = {}
+    if self.lighting then
+        table.insert(roots, self.lighting)
+    end
+    if self.workspace.CurrentCamera then
+        table.insert(roots, self.workspace.CurrentCamera)
+    end
     if playerGui then
         table.insert(roots, playerGui)
     end
-    if settings.noSmoke then
-        for _, candidate in ipairs(self.throwableCandidates) do
-            local descriptor, root = UtilityPolicy.descriptor(candidate)
-            if descriptor and descriptor.tone == "smoke" then
-                table.insert(roots, {
-                    instance = root,
-                    kind = "smoke",
-                })
+    return roots
+end
+
+function Effects:_startFlashVisuals()
+    self:_disconnectVisualRoots()
+    self.visualRoots = self:_globalVisualRoots()
+    for _, root in ipairs(self.visualRoots) do
+        local added = connectSignal(root.DescendantAdded, function(instance)
+            VisualSuppression.apply({ noFlash = true }, { instance }, self.suppressedVisuals)
+        end)
+        local removing = connectSignal(root.DescendantRemoving, function(instance)
+            VisualSuppression.restoreRoots({ instance }, self.suppressedVisuals)
+        end)
+        if added then
+            table.insert(self.visualConnections, added)
+        end
+        if removing then
+            table.insert(self.visualConnections, removing)
+        end
+    end
+
+    -- Camera replacement is rare, but must also remain event-driven.
+    if self.workspace.GetPropertyChangedSignal then
+        local succeeded, signal = pcall(self.workspace.GetPropertyChangedSignal, self.workspace, "CurrentCamera")
+        if succeeded then
+            local connection = connectSignal(signal, function()
+                if self.visualNoFlash then
+                    for _, root in ipairs(self.visualRoots) do
+                        VisualSuppression.restoreRoots({ root }, self.suppressedVisuals)
+                    end
+                    self:_startFlashVisuals()
+                end
+            end)
+            if connection then
+                table.insert(self.visualLifecycleConnections, connection)
             end
         end
     end
-    Effects.updateVisualSuppressions(settings, roots, self.suppressedVisuals)
+    VisualSuppression.apply({ noFlash = true }, self.visualRoots, self.suppressedVisuals)
+end
+
+function Effects:_stopFlashVisuals()
+    for _, root in ipairs(self.visualRoots) do
+        VisualSuppression.restoreRoots({ root }, self.suppressedVisuals)
+    end
+    self:_disconnectVisualRoots()
+end
+
+function Effects:_attachSmokeVisual(candidate)
+    if not candidate or self.smokeVisualConnections[candidate] then
+        return
+    end
+    local descriptor, root = UtilityPolicy.descriptor(candidate)
+    if not descriptor or descriptor.tone ~= "smoke" or not root then
+        return
+    end
+
+    local connections = { root = root }
+    local added = connectSignal(root.DescendantAdded, function(instance)
+        VisualSuppression.apply({ noSmoke = true }, {
+            { instance = instance, kind = "smoke" },
+        }, self.suppressedVisuals)
+    end)
+    local removing = connectSignal(root.DescendantRemoving, function(instance)
+        VisualSuppression.restoreRoots({ instance }, self.suppressedVisuals)
+    end)
+    if added then
+        table.insert(connections, added)
+    end
+    if removing then
+        table.insert(connections, removing)
+    end
+    self.smokeVisualConnections[candidate] = connections
+    VisualSuppression.apply({ noSmoke = true }, {
+        { instance = root, kind = "smoke" },
+    }, self.suppressedVisuals)
+end
+
+function Effects:_detachSmokeVisual(candidate)
+    local connections = self.smokeVisualConnections[candidate]
+    if not connections then
+        return
+    end
+    for _, connection in ipairs(connections) do
+        disconnect(connection)
+    end
+    VisualSuppression.restoreRoots({ connections.root }, self.suppressedVisuals)
+    self.smokeVisualConnections[candidate] = nil
+end
+
+function Effects:_stopSmokeVisuals()
+    local candidates = {}
+    for candidate in pairs(self.smokeVisualConnections) do
+        table.insert(candidates, candidate)
+    end
+    for _, candidate in ipairs(candidates) do
+        self:_detachSmokeVisual(candidate)
+    end
+end
+
+function Effects:update(settings)
+    local noFlash = settings.noFlash == true
+    local noSmoke = settings.noSmoke == true
+    if noFlash == self.visualNoFlash and noSmoke == self.visualNoSmoke then
+        return
+    end
+
+    if noFlash ~= self.visualNoFlash then
+        self.visualNoFlash = noFlash
+        if noFlash then
+            self:_startFlashVisuals()
+        else
+            self:_stopFlashVisuals()
+        end
+    end
+    if noSmoke ~= self.visualNoSmoke then
+        self.visualNoSmoke = noSmoke
+        if noSmoke then
+            for candidate in pairs(self.smokeCandidates) do
+                self:_attachSmokeVisual(candidate)
+            end
+        else
+            self:_stopSmokeVisuals()
+        end
+    end
 end
 
 function Effects:renderTrajectory(path)
@@ -294,7 +504,13 @@ function Effects:renderTrajectory(path)
 end
 
 function Effects:stop()
+    self:_stopSmokeVisuals()
     Effects.updateVisualSuppressions({}, {}, self.suppressedVisuals)
+    self:_disconnectVisualRoots()
+    for _, connection in ipairs(self.tagConnections) do
+        disconnect(connection)
+    end
+    self.tagConnections = {}
     self.trajectoryRenderer:stop()
 end
 

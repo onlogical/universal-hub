@@ -6,6 +6,7 @@ local expectedCatalog = {
     "games/counterblox/Definition",
     "games/rivals/Definition",
     "games/town/Definition",
+    "games/bloxstrike/Definition",
 }
 local legacyIds = {
     counterblox = true,
@@ -20,9 +21,32 @@ local expectedDefaults = {
     boxes = true,
     bombTimer = true,
     chams = true,
+    chamsExcludeAccessories = false,
+    chamsPerPart = false,
     fov = 180,
     fovCircle = true,
     fullScreenAim = false,
+    espFillAlpha = -1,
+    espFillColor = "",
+    espHealthHighColor = "",
+    espHealthLowColor = "",
+    espNameColor = "",
+    espOutlineColor = "",
+    espWeaponColor = "",
+    espEnemyOutlineColor = "",
+    espEnemyFillColor = "",
+    espEnemyFillAlpha = -1,
+    espEnemyNameColor = "",
+    espEnemyWeaponColor = "",
+    espEnemyHealthLowColor = "",
+    espEnemyHealthHighColor = "",
+    espTeammateOutlineColor = "",
+    espTeammateFillColor = "",
+    espTeammateFillAlpha = -1,
+    espTeammateNameColor = "",
+    espTeammateWeaponColor = "",
+    espTeammateHealthLowColor = "",
+    espTeammateHealthHighColor = "",
     gloveColorOverride = false,
     gloveOverride = false,
     headshotRate = 0,
@@ -30,6 +54,7 @@ local expectedDefaults = {
     humanAim = false,
     knifeAura = false,
     maximumFov = 500,
+    menuKey = "RightShift",
     microStep = false,
     minimumFov = 40,
     missRate = 0,
@@ -42,6 +67,8 @@ local expectedDefaults = {
     rapidFire = false,
     alwaysScoped = false,
     shotAim = false,
+    showEnemies = true,
+    showTeammates = false,
     silentAim = false,
     skinOverrides = {},
     spinBot = false,
@@ -49,6 +76,7 @@ local expectedDefaults = {
     utilityEsp = true,
     wallbang = false,
     weapon = true,
+    worldRenderer = "limn",
 }
 
 local expectedInitialState = {
@@ -170,9 +198,25 @@ for _, path in ipairs(Catalog) do
     assert(type(definition.defaults) == "table", path .. " must compose defaults")
     assert(type(definition.initialState) == "table", path .. " must compose initial state")
     if legacyIds[definition.id] then
-        assert(deepEqual(definition.defaults, expectedDefaults), path .. " must preserve the existing config defaults")
+        local expected = expectedDefaults
+        local expectedState = expectedInitialState
+        if definition.id == "rivals" then
+            expected = Compatibility.Defaults()
+            expected.taskAutomationPaused = true
+            expected.taskAutomationEmergencyKey = "End"
+            expected.infiniteJump = false
+            expected.wallNoclip = false
+            expected.wallPhase = false
+            expectedState = Compatibility.InitialState()
+            expectedState.taskAutomation = {
+                state = "idle",
+                statusLabel = "Idle",
+                taskLabel = "No supported task",
+            }
+        end
+        assert(deepEqual(definition.defaults, expected), path .. " must preserve the existing config defaults")
         assert(
-            deepEqual(definition.initialState, expectedInitialState),
+            deepEqual(definition.initialState, expectedState),
             path .. " must preserve the selected-game initial state shape"
         )
     end
@@ -215,9 +259,22 @@ for _, path in ipairs(Catalog) do
 end
 
 for _, id in ipairs({ "counterblox", "rivals", "town" }) do
+    local defaultsAreSparse = next(rawDefinitions[id].defaults) == nil
+    local initialStateIsSparse = next(rawDefinitions[id].initialState) == nil
+    if id == "rivals" then
+        local count = 0
+        for _ in pairs(rawDefinitions[id].defaults) do count += 1 end
+        defaultsAreSparse = count == 5
+            and rawDefinitions[id].defaults.taskAutomationPaused == true
+            and rawDefinitions[id].defaults.taskAutomationEmergencyKey == "End"
+            and rawDefinitions[id].defaults.infiniteJump == false
+            and rawDefinitions[id].defaults.wallNoclip == false
+            and rawDefinitions[id].defaults.wallPhase == false
+        initialStateIsSparse = rawDefinitions[id].initialState.taskAutomation ~= nil
+            and next(rawDefinitions[id].initialState, "taskAutomation") == nil
+    end
     assert(
-        next(rawDefinitions[id].defaults) == nil
-            and next(rawDefinitions[id].initialState) == nil,
+        defaultsAreSparse and initialStateIsSparse,
         id .. " definition must contain only sparse compatibility additions"
     )
 end
@@ -227,6 +284,12 @@ assert(definitions.counterblox.composition == "games/counterblox/Composition")
 assert(deepEqual(definitions.counterblox.hydroxide, { "targeting" }))
 assert(definitions.counterblox.features.cosmetics == nil)
 assert(table.find(definitions.counterblox.features.capabilities, "wallbang"))
+
+assert(definitions.bloxstrike.label == "Bloxstrike")
+assert(definitions.bloxstrike.module == "games/Bloxstrike")
+assert(definitions.bloxstrike.composition == "games/bloxstrike/Composition")
+assert(deepEqual(definitions.bloxstrike.hydroxide, { "targeting" }))
+assert(table.find(definitions.bloxstrike.features.capabilities, "wallbang"))
 
 assert(definitions.rivals.label == "RIVALS")
 assert(definitions.rivals.module == "games/rivals/Adapter")
@@ -248,7 +311,8 @@ local registry = Registry.new()
 for _, path in ipairs(Catalog) do
     registry:Register(Compatibility.Compose(require("../" .. path)))
 end
-assert(registry:Resolve({ gameId = 7633926880, placeId = 114234929420007 }).id == "counterblox")
+assert(registry:Resolve({ gameId = 7633926880, placeId = 114234929420007 }).id == "bloxstrike")
+assert(registry:Resolve({ gameId = 115797356, placeId = 301549746 }).id == "counterblox")
 assert(registry:Resolve({ gameId = 6035872082, placeId = 17625359962 }).id == "rivals")
 assert(registry:Resolve({ gameId = 6035872082, placeId = 133215910299950 }).id == "rivals")
 assert(registry:Resolve({ gameId = 1718755273, placeId = 4991214437 }).id == "town")

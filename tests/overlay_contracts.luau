@@ -26,7 +26,7 @@ function FullPresentation.mount(host)
     host:rate("aimSmoothness", "Aim Smoothness")
     host:rate("headshotRate", "Headshot Rate")
     host:rate("missRate", "Miss Rate")
-    host:section("rage", "AIM", 64, true)
+    host:section("Combat", "rage", "Input", 64, true)
     host:option("rage", 1, "silentAim", "Camera Aim")
     host:option("rage", 1, "shotAim", "Silent Aim")
     host:option("rage", 1, "wallbang", "Wallbang", "silentAim")
@@ -37,15 +37,15 @@ function FullPresentation.mount(host)
     host:option("rage", 3, "noSpread", "No Spread")
     host:option("rage", 4, "noRecoil", "No Recoil")
     host:option("rage", 4, "noWeaponSlow", "No Weapon Slow")
-    host:section("melee", "MELEE", 70)
+    host:section("Combat", "melee", "MELEE", 70)
     host:option("melee", 1, "knifeAura", "Knife Aura")
     host:option("melee", 1, "microStep", "Micro Step", "knifeAura")
-    host:section("movement", "MOVEMENT", 70)
+    host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "spinBot", "Spin Bot")
     host:option("movement", 1, "bhop", "Bunny Hop")
-    host:section("world", "WORLD", 70)
+    host:section("Tools", "world", "WORLD", 70)
     host:option("world", 1, "autoPickup", "Auto Pickup")
-    host:section("visuals", "VISUALS", 70)
+    host:section("Visuals", "visuals", "VISUALS", 70)
     host:option("visuals", 1, "boxes", "Hitboxes")
     host:option("visuals", 1, "chams", "Chams")
     host:option("visuals", 2, "names", "Names")
@@ -244,6 +244,54 @@ local function createSignal()
     end
     return signal
 end
+local genericControls = {}
+local function createGenericControl(kind, options)
+    local control = {
+        Changed = createSignal(),
+        cornerRadius = options.CornerRadius,
+        kind = kind,
+        layout = {
+            Position = options.Position,
+            Size = options.Size,
+            Layout = options.Layout,
+        },
+        options = options.Options,
+        style = options.Style,
+        value = options.Value,
+        visible = true,
+    }
+    function control:getValue()
+        return self.value
+    end
+    function control:setDisabled(value)
+        self.disabled = value == true
+    end
+    function control:setLayout(layout)
+        self.layout = layout
+    end
+    function control:setValue(value)
+        local previous = self.value
+        self.value = value
+        if previous ~= value then
+            self.Changed:Fire(value, previous, "programmatic")
+            return true
+        end
+        return false
+    end
+    function control:setVisible(value)
+        self.visible = value == true
+    end
+    function control:select(value)
+        local previous = self.value
+        self.value = value
+        self.Changed:Fire(value, previous, "pointer")
+    end
+    function control:destroy()
+        self.destroyed = true
+    end
+    table.insert(genericControls, control)
+    return control
+end
 local function createInstance(className)
     local properties = {
         ClassName = className,
@@ -314,8 +362,14 @@ local overlay = Overlay.new({
     end,
     createInstance = createInstance,
     limn = {
+        createKeybindControl = function(_, _canvas, options)
+            return createGenericControl("keybind", options)
+        end,
         createCanvas = function()
             return surface
+        end,
+        createSegmentedControl = function(_, _canvas, options)
+            return createGenericControl("segmented", options)
         end,
         supportsPrimitive = function()
             return true
@@ -441,34 +495,73 @@ local activePainter = {
 }
 local smoothness = overlay.controls.rates.aimSmoothness
 smoothnessPaint.callback(activePainter, {
-    position = Vector2.new(smoothness.hit.Position.X + 128, smoothness.hit.Position.Y),
+    position = Vector2.new(smoothness.hit.Position.X + 73, smoothness.hit.Position.Y),
 })
+local activeRateAlpha = 73 / smoothness.track.Size.X
+local activeRateThumbX = smoothness.track.Position.X
+    + smoothness.knob.Radius
+    + (smoothness.track.Size.X - smoothness.knob.Radius * 2) * activeRateAlpha
 assert(
     activeRectangles[1].position == smoothness.track.Position
-        and activeRectangles[1].size == Vector2.new(128, 4)
+        and activeRectangles[1].size == Vector2.new(
+            activeRateThumbX - smoothness.track.Position.X,
+            5
+        )
         and activeCircles[1].position
-            == Vector2.new(smoothness.track.Position.X + 128, smoothness.track.Position.Y + 2),
+            == Vector2.new(activeRateThumbX, smoothness.track.Position.Y + 2.5),
     "Captured slider paint must draw its fill and thumb from the latest pointer position"
 )
 
 assert(captures[1] == true, "A visible Drawing menu must immediately release and own the cursor")
 assert(overlay.controls.title.Text == "Universal Hub · Test Game")
 assert(
-    overlay.controls.panelShadow.Position == overlay.controls.panel.Position + Vector2.new(5, 6)
+    overlay.controls.panel.Size.X == 390
+        and overlay.controls.panelShadow.Position == overlay.controls.panel.Position + Vector2.new(3, 4)
         and overlay.controls.panelBorder.Position == overlay.controls.panel.Position
-        and overlay.controls.weaponSurface.Size == Vector2.new(276, 32)
-        and overlay.controls.fovCard.Size == Vector2.new(276, 86),
-    "The shared Drawing shell must compose its own depth, frame, and full-width summary cards"
+        and overlay.controls.panel.Color == Color3.fromRGB(24, 26, 29)
+        and overlay.controls.fovCard.Size == Vector2.new(350, 58),
+    "The shared Drawing shell must use the approved modern-minimal material and FOV surface"
 )
 assert(
-    overlay.controls.weaponSurface.Position.X < overlay.controls.weaponValue.Position.X
-        and overlay.controls.fovAmount.Text == "180 px",
-    "Weapon and FOV values must use the approved summary-card hierarchy"
+    overlay.controls.weaponSurface == nil
+        and overlay.controls.weaponValue == nil
+        and overlay.controls.fovAmount.Text == "180 px"
+        and overlay.controls.sliderTrack.Position.X == overlay.controls.fovCard.Position.X + 58
+        and overlay.controls.sliderTrack.Size.X == 227
+        and overlay.controls.targetModeLabel.Position.Y
+            > overlay.controls.fovCard.Position.Y + overlay.controls.fovCard.Size.Y,
+    "Combat must omit irrelevant telemetry and separate the padded FOV and Target Mode controls"
 )
 assert(overlay.controls.options.silentAim.label.Text == "Camera Aim")
+assert(
+    overlay.controls.navigation.tabs
+        and overlay.controls.navigation.tabs.kind == "segmented"
+        and overlay.controls.navigation.tabs:getValue() == "Combat"
+        and overlay.controls.navigation.indicator.Size.Y == 1
+        and overlay.controls.navigation.activeLabel == nil
+        and overlay.controls.targetMode.kind == "segmented"
+        and overlay.controls.targetModeLabel.Text == "Target Mode"
+        and overlay.controls.targetModeActiveLabel == nil,
+    ("The Hub must use Limn segmented controls for top tabs and real Target Mode (%s, %s, %s)"):format(
+        tostring(overlay.controls.navigation.tabs.kind),
+        tostring(overlay.controls.navigation.tabs:getValue()),
+        tostring(overlay.controls.targetMode.kind)
+    )
+)
 overlay.controls.options.silentAim.row.callbacks.click()
 assert(optionChanges[1].name == "silentAim" and optionChanges[1].value == true)
-assert(overlay.controls.sections.rage.label.Text == "AIM")
+assert(overlay.controls.sections.rage.label.Text == "Input")
+assert(
+    overlay.controls.fovLabel.Font == Drawing.Fonts.Plex
+        and overlay.controls.fovLabel.Size == 16
+        and overlay.controls.targetModeLabel.Font == Drawing.Fonts.Plex
+        and overlay.controls.targetModeLabel.Size == 16
+        and overlay.controls.sections.rage.responseLabel.Font == Drawing.Fonts.Plex
+        and overlay.controls.sections.rage.responseLabel.Size == 16
+        and overlay.controls.sections.rage.label.Font == Drawing.Fonts.Plex
+        and overlay.controls.sections.rage.label.Size == 16,
+    "Primary control-group titles must use the heavier 16 px Plex heading token without duplicate text"
+)
 assert(overlay.controls.sections.melee.label.Text == "MELEE")
 assert(overlay.controls.sections.movement.label.Text == "MOVEMENT")
 assert(overlay.controls.sections.visuals.label.Text == "VISUALS")
@@ -479,11 +572,11 @@ assert(overlay.controls.options.microStep.marker ~= nil)
 assert(overlay.controls.options.noFlash.label.Text == "No Flash")
 assert(overlay.controls.options.noSmoke.label.Text == "No Smoke")
 assert(
-    overlay.controls.options.noFlash.switch.track.Size == Vector2.new(18, 22)
+    overlay.controls.options.noFlash.switch.track.Size == Vector2.new(20, 22)
         and overlay.controls.options.noFlash.switch.left.Radius == 11
-        and overlay.controls.options.noFlash.switch.knob.Radius == 8.5
+        and overlay.controls.options.noFlash.switch.knob.Radius == 9
         and overlay.controls.options.noFlash.switch.knobRim ~= nil,
-    "Visual toggles must use the layered 40 by 22 switch primitive"
+    "Visual toggles must use the approved layered 42 by 22 switch primitive"
 )
 assert(overlay.controls.options.noWeaponSlow.label.Text == "No Weapon Slow")
 assert(overlay.controls.options.rapidFire.label.Text == "Rapid Fire")
@@ -495,12 +588,54 @@ assert(overlay.controls.rates.missRate.label.Text == "Miss Rate")
 assert(overlay.controls.rates.headshotRate.value.Text == "50%")
 assert(overlay.controls.rates.missRate.value.Text == "10%")
 assert(overlay.controls.rates.aimSmoothness.value.Text == "35%")
+assert(
+    overlay.controls.targetMode.style.Label.Font == Drawing.Fonts.Plex
+        and overlay.controls.targetMode.style.Label.Size == 13
+        and overlay.controls.targetMode.style.Label.Color == Color3.fromRGB(243, 243, 244)
+        and overlay.controls.targetMode.style.SelectedLabel.Color == Color3.fromRGB(160, 225, 194),
+    "Target Mode must pass the mockup-aligned Plex label style through Limn's public segmented interface"
+)
+assert(
+    overlay.controls.targetMode.cornerRadius == 4
+        and overlay.controls.navigation.tabs.cornerRadius == 4,
+    "Tabs and Target Mode must consume Limn's public rounded segmented geometry token"
+)
+assert(
+    overlay.controls.targetMode.style.Selected.Color == Color3.fromRGB(160, 225, 194)
+        and overlay.controls.targetMode.style.Selected.Filled == false
+        and overlay.controls.targetModeSelection == nil,
+    "Limn must own the rounded selected segment without a compensating UH outline overlay"
+)
+assert(
+    overlay.controls.rates.aimSmoothness.value.Size == 15
+        and overlay.controls.rates.aimSmoothness.value.Color == Color3.fromRGB(160, 225, 194),
+    "Response percentages must use the larger mint value token"
+)
+store:Patch({ settings = { aimSmoothness = 0 } })
+assert(
+    overlay.controls.rates.aimSmoothness.value.Text == "0%"
+        and overlay.controls.rates.aimSmoothness.value.Color == Color3.fromRGB(160, 225, 194),
+    "A sanitized zero response value must remain mint instead of dropping out of the value hierarchy"
+)
+store:Patch({ settings = { aimSmoothness = 35 } })
 local aimRateControl = overlay.controls.rates.aimSmoothness
 assert(
-    aimRateControl.valueBorder ~= nil
-        and aimRateControl.valueBorder.Position == aimRateControl.valueSurface.Position
-        and aimRateControl.valueBorder.Size == aimRateControl.valueSurface.Size,
-    "Rate values must use one aligned framed surface instead of an unbounded number label"
+    aimRateControl.background == nil
+        and aimRateControl.border == nil
+        and aimRateControl.valueBorder == nil
+        and aimRateControl.valueSurface == nil
+        and aimRateControl.track.Size.X == 171
+        and overlay.controls.sections.rage.responseBackground ~= nil
+        and overlay.controls.sections.rage.responseBorder ~= nil,
+    "Response rates must share one padded modern-minimal surface without per-value boxes"
+)
+assert(
+    overlay.controls.sections.rage.rail == nil
+        and overlay.controls.sections.rage.line == nil
+        and overlay.controls.sections.rage.divider.Size.X == 350
+        and overlay.controls.options.silentAim.row.Size == Vector2.new(350, 38)
+        and overlay.controls.options.silentAim.separator ~= nil,
+    "Registered Input content must use a clean section divider and full-width separated rows"
 )
 store:Patch({ settings = { aimSmoothness = 0 } })
 assert(
@@ -542,21 +677,21 @@ assert(overlay.worldGui.billboard.Enabled and overlay.worldGui.billboard.Adornee
 assert(
     overlay.worldGui.title.Text == "BOMB"
         and overlay.worldGui.timer.Text == "37.4s"
-        and overlay.worldGui.accent.BackgroundColor3 == Color3.fromRGB(98, 214, 173),
+        and overlay.worldGui.accent.BackgroundColor3 == Color3.fromRGB(160, 225, 194),
     "Bomb telemetry must use the Hub's split-label panel and accent treatment instead of a raw debug badge"
 )
-local collapsedPanelHeight = overlay.controls.panel.Size.Y
+local combatPanelHeight = overlay.controls.panel.Size.Y
 assert(
-    overlay.controls.panel.Position.Y + collapsedPanelHeight
-        > overlay.controls.options.noSmoke.row.Position.Y + overlay.controls.options.noSmoke.row.Size.Y,
-    "Collapsed cosmetics must contain every available option"
+    overlay.controls.options.noSmoke.row.Visible == false
+        and overlay.controls.options.silentAim.row.Visible == true,
+    "Only the active Combat page controls may be visible or interactive"
 )
 assert(overlay.controls.fovLabel.Text == "FOV" and overlay.controls.fovAmount.Text == "180 px")
 assert(
-    overlay.controls.fovValue.Text == "Fullscreen",
-    "Fullscreen aim must remain an explicit card control"
+    overlay.controls.targetMode:getValue() == "radius",
+    "Target Mode must start from the existing fullScreenAim false state"
 )
-overlay.controls.fovModeButton.callbacks.click()
+overlay.controls.targetMode:select("fullscreen")
 assert(optionChanges[2].name == "fullScreenAim" and optionChanges[2].value == true)
 store:Patch({
     settings = {
@@ -564,10 +699,25 @@ store:Patch({
     },
 })
 assert(
-    overlay.controls.fovValue.Text == "Fullscreen"
-        and overlay.controls.fovModeButton.Color == Color3.fromRGB(23, 53, 45)
+    overlay.controls.targetMode:getValue() == "fullscreen"
+        and overlay.controls.targetModeActiveLabel == nil
+        and overlay.controls.fovCard.Visible == true
 )
 assert(overlay.controls.fovCircle.Visible == false, "Fullscreen aim must hide the radius circle")
+overlay.controls.navigation.tabs:select("Visuals")
+assert(
+    overlay.controls.options.noSmoke.row.Visible
+        and not overlay.controls.options.silentAim.row.Visible
+        and overlay.controls.panel.Size.Y < combatPanelHeight,
+    "Top tabs must deterministically show only their active page and collapse the shell"
+)
+overlay.controls.navigation.tabs:select("Movement")
+assert(
+    overlay.controls.options.spinBot.switch.knob.Position.Y
+        == overlay.controls.options.spinBot.switch.left.Position.Y,
+    "A page transition must repaint newly visible controls after their active-page layout"
+)
+overlay.controls.navigation.tabs:select("Combat")
 store:Patch({
     settings = {
         wallbang = true,
@@ -589,29 +739,32 @@ assert(
 )
 local silentAimControl = overlay.controls.options.silentAim
 assert(
-    silentAimControl.row.Color == Color3.fromRGB(21, 28, 35)
-        and silentAimControl.switch.track.Color == Color3.fromRGB(74, 166, 139)
-        and silentAimControl.switch.fillTrack.Color == Color3.fromRGB(74, 166, 139),
-    "Enabled toggles must use one muted pill color on a neutral card"
+    silentAimControl.row.Color == Color3.fromRGB(24, 26, 29)
+        and silentAimControl.switch.track.Color == Color3.fromRGB(160, 225, 194)
+        and silentAimControl.switch.fillTrack.Color == Color3.fromRGB(160, 225, 194)
+        and silentAimControl.switch.knob.Color == Color3.fromRGB(243, 243, 244),
+    "Enabled toggles must use a mint track and off-white thumb on a quiet row"
 )
 silentAimControl.row.callbacks.pointerenter(silentAimControl.row)
 assert(
-    silentAimControl.row.Color == Color3.fromRGB(28, 37, 45),
+    silentAimControl.row.Color == Color3.fromRGB(37, 39, 43),
     "Interactive Drawing controls must provide hover feedback without Roblox GUI widgets"
 )
 silentAimControl.row.callbacks.pointerleave(silentAimControl.row)
 assert(
-    silentAimControl.row.Color == Color3.fromRGB(21, 28, 35),
+    silentAimControl.row.Color == Color3.fromRGB(24, 26, 29),
     "Leaving a hovered toggle must restore its latest reactive state"
 )
 store:Patch({ error = true })
 assert(
-    overlay.controls.status.Color == Color3.fromRGB(230, 107, 110),
+    overlay.controls.status.Color == Color3.fromRGB(255, 118, 87),
     "The shared status copy must surface adapter errors semantically"
 )
 store:Patch({ error = false })
-overlay.controls.hideButton.callbacks.click()
-assert(menuVisibilityChanges[1] == false, "Hide control must request a hidden menu")
+assert(
+    overlay.controls.hideButton == nil and overlay.controls.hideLabel == nil,
+    "The compact header must not expose an ambiguous hide/close action; RightShift owns menu visibility"
+)
 
 assert(
     overlay.controls.panel.callbacks.pointerenter == nil and overlay.controls.panel.callbacks.pointerleave == nil,
@@ -635,11 +788,19 @@ overlay.controls.sliderHit.callbacks.pointerup(nil, Vector2.new(1280, 0))
 assert(fovPersistRequests[2] == true, "FOV slider release must persist once")
 overlay.controls.rates.headshotRate.hit.callbacks.pointerdown(
     nil,
-    Vector2.new(overlay.controls.rates.headshotRate.hit.Position.X + 192, 0)
+    Vector2.new(
+        overlay.controls.rates.headshotRate.hit.Position.X
+            + overlay.controls.rates.headshotRate.hit.Size.X * 0.75,
+        0
+    )
 )
 overlay.controls.rates.missRate.hit.callbacks.drag(
     nil,
-    Vector2.new(overlay.controls.rates.missRate.hit.Position.X + 64, 0)
+    Vector2.new(
+        overlay.controls.rates.missRate.hit.Position.X
+            + overlay.controls.rates.missRate.hit.Size.X * 0.25,
+        0
+    )
 )
 assert(
     rateChanges[1].name == "headshotRate"
@@ -663,7 +824,7 @@ assert(
 )
 overlay.controls.rates.headshotRate.hit.callbacks.pointerup(
     nil,
-    Vector2.new(overlay.controls.rates.headshotRate.hit.Position.X + 192, 0)
+    Vector2.new(overlay.controls.rates.headshotRate.hit.Position.X + 116.8, 0)
 )
 assert(
     overlay.controls.rates.headshotRate.fill.Visible == true
@@ -672,22 +833,54 @@ assert(
 )
 
 local panelStart = overlay.controls.panel.Position
+local switchKnobOffset = silentAimControl.switch.knob.Position
+    - silentAimControl.switch.track.Position
+local switchKnobRimOffset = silentAimControl.switch.knobRim.Position
+    - silentAimControl.switch.track.Position
+local fovKnobOffset = overlay.controls.sliderKnob.Position
+    - overlay.controls.sliderTrack.Position
+local rateKnobOffset = overlay.controls.rates.headshotRate.knob.Position
+    - overlay.controls.rates.headshotRate.track.Position
+local targetModeLayoutOffset = overlay.controls.targetMode.layout.Position
+    - overlay.controls.fovCard.Position
 overlay.controls.panel.callbacks.pointerdown(nil, panelStart + Vector2.new(10, 10))
 overlay.controls.panel.callbacks.drag(nil, Vector2.new(510, 40))
 assert(
     overlay.controls.panel.Position ~= panelStart
         and overlay.controls.title.Position
-            == overlay.controls.panel.Position + Vector2.new(16, 12)
+            == overlay.controls.panel.Position + Vector2.new(20, 13)
         and overlay.controls.panelShadow.Position
-            == overlay.controls.panel.Position + Vector2.new(5, 6),
+            == overlay.controls.panel.Position + Vector2.new(3, 4),
     "Dragging the panel must move the complete Hub window as one unit within the viewport"
 )
+assert(
+    silentAimControl.switch.knob.Position - silentAimControl.switch.track.Position
+            == switchKnobOffset
+        and silentAimControl.switch.knobRim.Position - silentAimControl.switch.track.Position
+            == switchKnobRimOffset,
+    "Dragging the panel must keep every retained toggle thumb attached to its switch track"
+)
+assert(
+    overlay.controls.sliderKnob.Position - overlay.controls.sliderTrack.Position
+            == fovKnobOffset
+        and overlay.controls.rates.headshotRate.knob.Position
+                - overlay.controls.rates.headshotRate.track.Position
+            == rateKnobOffset,
+    "Dragging the panel must keep FOV and response thumbs attached to their slider tracks"
+)
+assert(
+    overlay.controls.targetMode.layout.Position - overlay.controls.fovCard.Position
+            == targetModeLayoutOffset,
+    "Dragging the panel must keep the Limn-owned Target Mode control attached to the FOV surface"
+)
 
+overlay.controls.navigation.tabs:select("Tools")
+local toolsPanelHeight = overlay.controls.panel.Size.Y
 overlay.controls.cosmetics.header.callbacks.click()
 assert(cosmeticsVisibilityChanges[1] == true)
 store:Patch({ cosmeticsOpen = true })
 assert(
-    overlay.controls.panel.Size.Y > collapsedPanelHeight,
+    overlay.controls.panel.Size.Y > toolsPanelHeight,
     "Opening cosmetics must expand the panel below its option controls"
 )
 assert(
@@ -696,8 +889,8 @@ assert(
 )
 assert(overlay.controls.cosmetics.weaponModeLabel.Text == "AK-47")
 assert(overlay.controls.cosmetics.gloveModeLabel.Text == "Gloves")
-assert(overlay.controls.cosmetics.weaponMode.Color == Color3.fromRGB(23, 53, 45))
-assert(overlay.controls.cosmetics.gloveMode.Color == Color3.fromRGB(21, 28, 35))
+assert(overlay.controls.cosmetics.weaponMode.Color == Color3.fromRGB(30, 53, 44))
+assert(overlay.controls.cosmetics.gloveMode.Color == Color3.fromRGB(31, 33, 37))
 local weaponNext = overlay.controls.cosmetics.weaponNext
 local skinNext = overlay.controls.cosmetics.next
 assert(
@@ -724,8 +917,8 @@ assert(cosmeticActions[6].action == "mode" and cosmeticActions[6].value == "glov
 store:Patch({ cosmeticMode = "gloves" })
 assert(overlay.controls.cosmetics.weaponModeLabel.Text == "Weapons")
 assert(overlay.controls.cosmetics.gloveModeLabel.Text == "Driver Gloves")
-assert(overlay.controls.cosmetics.weaponMode.Color == Color3.fromRGB(21, 28, 35))
-assert(overlay.controls.cosmetics.gloveMode.Color == Color3.fromRGB(23, 53, 45))
+assert(overlay.controls.cosmetics.weaponMode.Color == Color3.fromRGB(31, 33, 37))
+assert(overlay.controls.cosmetics.gloveMode.Color == Color3.fromRGB(30, 53, 44))
 assert(overlay.controls.cosmetics.skinName.Text == "Crimson Weave")
 assert(overlay.controls.cosmetics.statTrakLabel.Text == "Solid Color")
 assert(overlay.controls.cosmetics.statTrakValue.Text == "Off")
@@ -749,7 +942,6 @@ assert(overlay.controls.cosmetics.statTrakValue.Text == "On")
 assert(overlay.controls.cosmetics.colorChannels.r.value.Text == "64")
 assert(overlay.controls.cosmetics.colorChannels.g.value.Text == "128")
 assert(overlay.controls.cosmetics.colorChannels.b.value.Text == "191")
-assert(overlay.controls.cosmetics.colorChannels.r.hit.Visible == true)
 overlay.controls.cosmetics.colorChannels.r.hit.callbacks.pointerdown(nil, Vector2.new(0, 0))
 assert(
     cosmeticActions[8].action == "gloveColor" and cosmeticActions[8].value.r == 0,
@@ -848,7 +1040,24 @@ assert(chamQuads[2].points[3] == Vector2.new(135, 120))
 assert(chamQuads[2].points[4] == Vector2.new(135, 104))
 assert(chamQuads[1].color == Color3.fromRGB(98, 214, 173))
 assert(chamQuads[1].opacity == 0.18)
-assert(chamQuads[7].color == Color3.fromRGB(230, 107, 110))
+assert(chamQuads[7].color == Color3.fromRGB(255, 118, 87))
+store:Patch({ settings = {
+    espOutlineColor = "#123456",
+    espFillColor = "#654321",
+    espNameColor = "#ABCDEF",
+    espWeaponColor = "#FEDCBA",
+    espHealthLowColor = "#110000",
+    espHealthHighColor = "#00EE00",
+    espFillAlpha = 0.73,
+} })
+overlay:render(overlay.observations, Vector2.new(640, 360))
+table.clear(chamQuads)
+chamPaintCallback(chamRenderer)
+assert(playerNodes.box.Color == Color3.fromRGB(18, 52, 86))
+assert(playerNodes.name.Color == Color3.fromRGB(171, 205, 239))
+assert(playerNodes.weapon.Color == Color3.fromRGB(254, 220, 186))
+assert(chamQuads[1].color == Color3.fromRGB(101, 67, 33) and chamQuads[1].opacity == 0.73)
+assert(playerNodes.healthFill.Color == Color3.fromRGB(17, 0, 0):Lerp(Color3.fromRGB(0, 238, 0), math.sqrt(0.72)))
 
 local quadCount = 0
 for _, node in ipairs(nodes) do
@@ -871,6 +1080,7 @@ table.clear(chamQuads)
 chamPaintCallback(chamRenderer)
 assert(#chamQuads == 0, "Chams must control only filled cuboid faces")
 overlay.optionSupport.chams = false
+overlay.controls.navigation.tabs:select("Visuals")
 overlay:_renderState(store:Get())
 assert(overlay.controls.options.chams.value.Text == "N/A")
 local optionChangeCount = #optionChanges
@@ -896,7 +1106,7 @@ assert(
 assert(playerNodes.healthValue.Center == false)
 assert(playerNodes.healthValue.Position == Vector2.new(100, 203))
 assert(playerNodes.healthValue.Color == playerNodes.healthFill.Color)
-assert(playerNodes.healthTip.Visible == true and playerNodes.healthTip.Color == Color3.fromRGB(243, 246, 247))
+assert(playerNodes.healthTip.Visible == true and playerNodes.healthTip.Color == Color3.fromRGB(243, 243, 244))
 assert(math.abs(playerNodes.healthTip.Position.Y - 127.44) < 1e-4)
 assert(playerNodes.weapon.Text == "AK-47")
 assert(playerNodes.weapon.Position.Y == 218)
@@ -1006,7 +1216,7 @@ utilityPaintCallback({
 assert(
     #paintedTriangles == 2
         and paintedTriangles[1].opacity == 0.14
-        and paintedTriangles[1].color == Color3.fromRGB(230, 107, 110),
+        and paintedTriangles[1].color == Color3.fromRGB(255, 118, 87),
     "Multi-polygon damage zones must paint as one immediate Drawing triangle mesh instead of retained square objects"
 )
 assert(
@@ -1138,8 +1348,14 @@ local rivalsOverlay = Overlay.new({
     },
     cosmetics = false,
     limn = {
+        createKeybindControl = function(_, _canvas, options)
+            return createGenericControl("keybind", options)
+        end,
         createCanvas = function()
             return surface
+        end,
+        createSegmentedControl = function(_, _canvas, options)
+            return createGenericControl("segmented", options)
         end,
         supportsPrimitive = function()
             return true
@@ -1199,7 +1415,7 @@ assert(
     "Adapters without cosmetics must omit the Counterblox cosmetics disclosure"
 )
 assert(
-    rivalsOverlay.controls.panel.Size.Y < overlay.controls.panel.Size.Y,
+    rivalsOverlay.controls.panel.Size.Y < combatPanelHeight,
     "Capability filtering must collapse the panel around the remaining controls"
 )
 rivalsOverlay:destroy()
@@ -1245,8 +1461,14 @@ local townOverlay = Overlay.new({
     end,
     createInstance = createInstance,
     limn = {
+        createKeybindControl = function(_, _canvas, options)
+            return createGenericControl("keybind", options)
+        end,
         createCanvas = function()
             return surface
+        end,
+        createSegmentedControl = function(_, _canvas, options)
+            return createGenericControl("segmented", options)
         end,
         supportsPrimitive = function()
             return true
@@ -1305,12 +1527,17 @@ assert(
     "Town must not construct hidden aim or cosmetics controls"
 )
 assert(
-    townOverlay.controls.sections.plotCopy.label.Position
-        == townOverlay.controls.panel.Position + Vector2.new(12, 60)
+    townOverlay.controls.navigation.tabs:getValue() == "Tools"
+        and townOverlay.controls.sections.plotCopy.label.Position
+            == townOverlay.controls.panel.Position + Vector2.new(20, 158)
         and plotCopy.ownerButton.Position
-            == townOverlay.controls.panel.Position + Vector2.new(12, 82)
-        and townOverlay.controls.panel.Size == Vector2.new(300, 286),
-    "Town panel ordering and geometry must remain unchanged"
+            == townOverlay.controls.panel.Position + Vector2.new(20, 190)
+        and townOverlay.controls.panel.Size == Vector2.new(390, 418),
+    ("Town must mount only its real Tools content beneath the top tabs (label=%s, owner=%s, size=%s)"):format(
+        tostring(townOverlay.controls.sections.plotCopy.label.Position),
+        tostring(plotCopy.ownerButton.Position),
+        tostring(townOverlay.controls.panel.Size)
+    )
 )
 plotCopy.ownerButton.callbacks.click()
 assert(
@@ -1347,7 +1574,7 @@ assert(
     plotCopy.progressPhase.Text == "Creating copied parts"
         and plotCopy.progressContext.Text == "Batch 3/8"
         and plotCopy.progressValue.Text == "38%"
-        and plotCopy.progressFill.Size == Vector2.new(276 * 0.375, 4)
+        and plotCopy.progressFill.Size == Vector2.new(350 * 0.375, 4)
         and plotCopy.actionLabel.Text == "Cancel",
     "Active Town plot copies must show confirmed progress, distinct context, and cancellation"
 )

@@ -74,6 +74,11 @@ The per-frame flow is:
   - Subspace Tripmine uses projected oriented bounds for its wireframe cube.
 - `Movement.lua`
   - Bunny hop and slide behavior behind active/combat/input-capture gates.
+- `TaskPolicy.lua`
+  - Pure normalization, classification, and deterministic selection for native task records.
+- `TaskFarmRuntime.lua`
+  - Signal-driven inherent task detection, bounded matchmaking, pause/cleanup, and active PvP state.
+  - Owns no frame loop; Adapter reuses its existing Camera Aim and Trigger Bot paths only during `RoundStarted`.
 
 ## Names that are easy to misread
 

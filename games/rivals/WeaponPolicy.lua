@@ -47,6 +47,16 @@ function WeaponPolicy.isScoped(item)
     return ItemPolicy.isScoped(item)
 end
 
+function WeaponPolicy.isAiming(item)
+    if not item then return false end
+    if type(item.Get) == "function" then
+        local succeeded, value = pcall(item.Get, item, "IsAiming")
+        if succeeded and type(value) == "boolean" then return value end
+    end
+    local data = item.Data
+    return type(data) == "table" and data.IsAiming == true
+end
+
 function WeaponPolicy.isDualModeBlade(item)
     return ItemPolicy.isDualModeBlade(item)
 end
@@ -61,6 +71,16 @@ end
 
 function WeaponPolicy.isBouncingProjectile(item)
     return ItemPolicy.isBouncingProjectile(item)
+end
+
+function WeaponPolicy.ammo(item)
+    if not item then return nil end
+    if type(item.Get) == "function" then
+        local succeeded, value = pcall(item.Get, item, "Ammo")
+        if succeeded and type(value) == "number" then return value end
+    end
+    local data = item.Data
+    return type(data) == "table" and type(data.Ammo) == "number" and data.Ammo or nil
 end
 
 function WeaponPolicy.itemLabel(item)
@@ -488,6 +508,18 @@ function WeaponPolicy.triggerDamageReady(item, observation, distance)
     end
 
     local info = item and item.Info
+    local sustainedRifle = type(info) == "table"
+        and info.Type == "Gun"
+        and info.IsRaycast == true
+        and type(info.ShootCooldown) == "number"
+        and info.ShootCooldown <= 0.15
+        and type(info.MaxAmmo) == "number"
+        and info.MaxAmmo >= 15
+    if sustainedRifle then
+        -- Automatic rifles gain more from sustained pressure than from waiting
+        -- for near-full per-shot damage at the edge of falloff.
+        return true
+    end
     local startDistance =
         info and (info.DamageFallOffStartDist or info.RaycastDamageDropoffStartDistance)
     local endDistance = info and (info.DamageFallOffEndDist or info.RaycastDamageDropoffEndDistance)

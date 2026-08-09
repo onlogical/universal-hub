@@ -1,6 +1,6 @@
 local environment = assert(getgenv, "<UH> ~ Your executor is not supported")()
 local configuration = environment.UniversalHubConfig or {}
-local officialSourceRoot = "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/main/"
+local officialSourceRoot = "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/beta/"
 local sourceRoot = configuration.SourceBaseUrl or officialSourceRoot
 local localRoot = configuration.LocalRoot
 local localLoaderPath = type(localRoot) == "string" and localRoot .. "/local.lua" or nil

@@ -57,9 +57,12 @@ local function deepEqual(left, right)
 end
 
 local CounterbloxDefinition = require("../games/counterblox/Definition")
+local BloxstrikeDefinition = require("../games/bloxstrike/Definition")
 local RivalsDefinition = require("../games/rivals/Definition")
 local TownDefinition = require("../games/town/Definition")
 assert(CounterbloxDefinition.composition == "games/counterblox/Composition")
+assert(BloxstrikeDefinition.composition == "games/bloxstrike/Composition")
+assert(table.find(BloxstrikeDefinition.sources, BloxstrikeDefinition.composition))
 assert(table.find(CounterbloxDefinition.sources, CounterbloxDefinition.composition))
 assert(RivalsDefinition.composition == nil)
 assert(TownDefinition.composition == "games/town/Composition")
@@ -114,6 +117,34 @@ for index, expected in ipairs({
     assert(cosmeticCalls[index].name == expected.name)
     assert(deepEqual(cosmeticCalls[index].arguments[1], expected.value))
 end
+
+local BloxstrikeComposition = require("../games/bloxstrike/Composition")
+local previewAdapter = {
+    previewKey = function(_, state)
+        return "key:" .. state.marker
+    end,
+    previewSubject = function(_, state)
+        return { marker = state.marker }
+    end,
+}
+assert(deepEqual(BloxstrikeComposition.dependencies, {
+    bloxstrikePreview = "games/bloxstrike/Preview",
+    tacticalAdapter = "games/Counterblox",
+}))
+local previewDependency = {}
+local tacticalDependency = {}
+local bloxstrike = BloxstrikeComposition.bind({
+    getAdapter = function()
+        return previewAdapter
+    end,
+}, {
+    bloxstrikePreview = previewDependency,
+    tacticalAdapter = tacticalDependency,
+})
+assert(bloxstrike.adapter.bloxstrikePreview == previewDependency)
+assert(bloxstrike.adapter.tacticalAdapter == tacticalDependency)
+assert(bloxstrike.overlay.getPreviewKey({ marker = "test" }) == "key:test")
+assert(bloxstrike.overlay.getPreviewSubject({ marker = "test" }).marker == "test")
 
 local TownComposition = require("../games/town/Composition")
 assert(deepEqual(TownComposition.dependencies, {
@@ -315,6 +346,7 @@ end
 
 for _, path in ipairs({
     "games/counterblox/Composition.lua",
+    "games/bloxstrike/Composition.lua",
     "games/town/Composition.lua",
 }) do
     local source = fs.readFile(path)
@@ -329,5 +361,10 @@ for _, path in ipairs({
         assert(not source:find(forbidden, 1, true), path .. " must receive a narrow context")
     end
 end
+
+local Compatibility = require("../games/Compatibility")
+local colorDefaults = Compatibility.Defaults()
+assert(colorDefaults.espEnemyOutlineColor == "" and colorDefaults.espTeammateHealthHighColor == "", "relationship color controls require registered string settings")
+assert(colorDefaults.espEnemyFillAlpha == -1 and colorDefaults.espTeammateFillAlpha == -1, "relationship alpha controls require registered fallback settings")
 
 print("game-composition-contracts-ok")

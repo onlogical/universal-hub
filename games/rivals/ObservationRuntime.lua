@@ -9,6 +9,7 @@ function ObservationRuntime.new(options)
         effects = options.effects,
         equippedWeapon = options.equippedWeapon,
         getFighter = options.getFighter,
+        getPlayerTone = options.getPlayerTone,
         isOpponent = options.isOpponent,
         maximumDistance = options.maximumDistance or 2000,
         targeting = options.targeting,
@@ -16,10 +17,16 @@ function ObservationRuntime.new(options)
     }, ObservationRuntime)
 end
 
-function ObservationRuntime:update(screenOrigin)
+function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemies)
     local raycastIgnore = self.effects and self.effects:smokeRaycastIgnore() or {}
+    local eligibility = self.isOpponent
+    if includeTeammates and self.getPlayerTone then
+        eligibility = function(player, character)
+            return self.getPlayerTone(player, character) ~= nil
+        end
+    end
     local observations = self.targeting.observePlayers({
-        isEligible = self.isOpponent,
+        isEligible = eligibility,
         raycastIgnore = raycastIgnore,
         screenOrigin = screenOrigin,
     })
@@ -75,9 +82,37 @@ function ObservationRuntime:update(screenOrigin)
             observation.health = humanoid and humanoid.Health or nil
             observation.maxHealth = humanoid and humanoid.MaxHealth or nil
             observation.weapon = self.equippedWeapon and self.equippedWeapon(observation.player) or nil
+            observation.tone = self.getPlayerTone
+                and self.getPlayerTone(observation.player, character)
+                or "enemy"
         end
     end
-    return nearby
+    local opponents = {}
+    local allies = {}
+    for _, observation in ipairs(nearby) do
+        if observation.player ~= observation.character and observation.tone == "team" then
+            table.insert(allies, observation)
+        else
+            table.insert(opponents, observation)
+        end
+    end
+    if includeTeammates and includeEnemies ~= false then
+        local visual = {}
+        for _, observation in ipairs(opponents) do
+            table.insert(visual, observation)
+        end
+        for _, observation in ipairs(allies) do
+            table.insert(visual, observation)
+        end
+        return opponents, visual
+    end
+    if includeTeammates then
+        return opponents, allies
+    end
+    if includeEnemies == false then
+        return opponents, {}
+    end
+    return opponents, opponents
 end
 
 return ObservationRuntime

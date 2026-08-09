@@ -9,6 +9,14 @@ type HttpGame = typeof(game) & {
 }
 local httpGame = game :: HttpGame
 
+local nativeMenuSource = httpGame:HttpGet(sourceBaseUrl .. "vendor/UniversalHubMenu.lua", true)
+local nativeMenuChunk, nativeMenuError = loadstring(nativeMenuSource, "vendor/UniversalHubMenu.lua")
+local NativeMenu = assert(nativeMenuChunk, nativeMenuError)()
+assert(
+    type(NativeMenu) == "table" and type(NativeMenu.mountUniversalHubMenu) == "function",
+    "Universal Hub requires the native Prism menu"
+)
+
 local limnSource = httpGame:HttpGet(sourceBaseUrl .. "vendor/Limn.lua", true)
 local limnChunk, limnError = loadstring(limnSource, "vendor/Limn.lua")
 local Limn = assert(limnChunk, limnError)()
@@ -132,6 +140,7 @@ configuration.HydroxideImport = function(path)
 end
 configuration.HydroxideHelpers = Helpers
 configuration.Limn = Limn
+configuration.NativeMenu = NativeMenu
 
 local initSource = httpGame:HttpGet(sourceBaseUrl .. "init.lua", true)
 local initChunk, initError = loadstring(initSource, "init.lua")

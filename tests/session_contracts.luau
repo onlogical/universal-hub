@@ -58,6 +58,7 @@ local store = Store.new({
         minimumFov = 40,
         maximumFov = 200,
         missRate = 0,
+        worldRenderer = "limn",
     },
 })
 local session = Session.new({
@@ -92,8 +93,10 @@ session:setFov(999)
 session:setRate("aimSmoothness", 42)
 session:setRate("headshotRate", 74.6)
 session:setRate("missRate", -10)
+session:setSetting("worldRenderer", "native")
 session:toggleMenu()
 assert(store:Get().settings.enabled == true)
+assert(store:Get().settings.worldRenderer == "native", "Typed settings must preserve non-boolean values")
 assert(store:Get().settings.fov == 200, "FOV must clamp to the configured maximum")
 assert(
     store:Get().settings.aimSmoothness == 42
@@ -106,14 +109,14 @@ session:setMenuVisible(true)
 assert(store:Get().menuVisible == true)
 session:setCosmeticsOpen(true)
 assert(store:Get().cosmeticsOpen == true, "Cosmetics disclosure must be reactive UI state")
-assert(#savedSettings == 5, "Only persistent settings changes should request a config save")
+assert(#savedSettings == 6, "Only persistent settings changes should request a config save")
 session:setRate("aimSmoothness", 55, false)
 assert(
-    store:Get().settings.aimSmoothness == 55 and #savedSettings == 5,
+    store:Get().settings.aimSmoothness == 55 and #savedSettings == 6,
     "Live slider updates must not write configuration before pointer release"
 )
 session:setRate("aimSmoothness", 55, true)
-assert(#savedSettings == 6, "Slider release must persist its final value exactly once")
+assert(#savedSettings == 7, "Slider release must persist its final value exactly once")
 
 session:Add(function()
     table.insert(cleanupOrder, "first")

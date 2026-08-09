@@ -304,6 +304,7 @@ function Counterblox.new(context)
     local stopped = false
     local hooks: { [string]: any } = {}
     local observations = {}
+    local visualObservations = observations
     local activeWeaponKind
     local currentTarget
     local meleeTarget
@@ -421,27 +422,44 @@ function Counterblox.new(context)
         return {}
     end
 
-    local function isOpponent(player, character)
-        if player == LocalPlayer or not character or character:GetAttribute("Dead") == true then
-            return false
+    local function attribute(instance, name)
+        if not instance or type(instance.GetAttribute) ~= "function" then
+            return nil
+        end
+        local succeeded, value = pcall(instance.GetAttribute, instance, name)
+        return succeeded and value or nil
+    end
+
+    local function playerTone(player, character)
+        if player == LocalPlayer or not character or attribute(character, "Dead") == true then
+            return nil
         end
         if isSpectatedCharacter(character) then
-            return false
-        end
-
-        local referencePlayer = spectatedPlayer() or LocalPlayer
-        local localTeam = referencePlayer:GetAttribute("Team")
-        local playerTeam = player:GetAttribute("Team")
-        local gameMode = Workspace:GetAttribute("Gamemode")
-        local serverGameMode = Workspace:GetAttribute("ServerGamemode")
-        local isDeathmatch = (type(gameMode) == "string" and gameMode:lower() == "deathmatch")
-            or (type(serverGameMode) == "string" and serverGameMode:lower() == "deathmatch")
-        if not isDeathmatch and localTeam ~= nil and playerTeam ~= nil and localTeam == playerTeam then
-            return false
+            return nil
         end
 
         local humanoid = character:FindFirstChildOfClass("Humanoid")
-        return humanoid == nil or humanoid.Health > 0
+        if humanoid and humanoid.Health <= 0 then
+            return nil
+        end
+
+        local referencePlayer = spectatedPlayer() or LocalPlayer
+        local localTeam = attribute(referencePlayer, "Team")
+        local playerTeam = attribute(player, "Team")
+        local gameMode = attribute(Workspace, "Gamemode")
+        local serverGameMode = attribute(Workspace, "ServerGamemode")
+        local isDeathmatch = (type(gameMode) == "string" and gameMode:lower() == "deathmatch")
+            or (type(serverGameMode) == "string" and serverGameMode:lower() == "deathmatch")
+        return not isDeathmatch
+            and localTeam ~= nil
+            and playerTeam ~= nil
+            and localTeam == playerTeam
+            and "team"
+            or "enemy"
+    end
+
+    local function isOpponent(player, character)
+        return playerTone(player, character) == "enemy"
     end
 
     local function selectTarget(includeBlocked)
@@ -1202,22 +1220,57 @@ function Counterblox.new(context)
         return nil, nil
     end
 
-    local function updateObservations()
-        observations = targeting.observePlayers({
-            isEligible = isOpponent,
+    local function updateObservations(settings)
+        local includeEnemies = settings.showEnemies ~= false
+        local includeTeammates = settings.showTeammates == true
+        local eligibility = isOpponent
+        if includeTeammates then
+            eligibility = function(player, character)
+                return playerTone(player, character) ~= nil
+            end
+        end
+        local observed = targeting.observePlayers({
+            isEligible = eligibility,
             raycastIgnore = spectatorRaycastIgnore(),
             screenOrigin = UserInputService:GetMouseLocation(),
         })
 
         local visibleCount = 0
-        for _, observation in ipairs(observations) do
+        local opponents = includeTeammates and {} or observed
+        local allies = {}
+        for _, observation in ipairs(observed) do
             local humanoid = observation.character and observation.character:FindFirstChildOfClass("Humanoid")
             observation.health = humanoid and humanoid.Health or 0
             observation.maxHealth = humanoid and humanoid.MaxHealth or 100
             observation.weapon = equippedWeapon(observation.player)
-            if observation.visible then
-                visibleCount = visibleCount + 1
+            observation.tone = playerTone(observation.player, observation.character)
+            if observation.tone == "team" then
+                table.insert(allies, observation)
+            elseif observation.tone == "enemy" then
+                if includeTeammates then
+                    table.insert(opponents, observation)
+                end
+                if observation.visible then
+                    visibleCount = visibleCount + 1
+                end
             end
+        end
+        observations = opponents
+        if includeTeammates and includeEnemies then
+            local combined = {}
+            for _, observation in ipairs(opponents) do
+                table.insert(combined, observation)
+            end
+            for _, observation in ipairs(allies) do
+                table.insert(combined, observation)
+            end
+            visualObservations = combined
+        elseif includeTeammates then
+            visualObservations = allies
+        elseif includeEnemies then
+            visualObservations = observed
+        else
+            visualObservations = {}
         end
         return visibleCount
     end
@@ -1698,7 +1751,23 @@ function Counterblox.new(context)
         local cosmeticWeapon = currentCosmeticWeapon()
         publishCosmetics(cosmeticWeapon)
         publishGloves()
-        local visibleCount = updateObservations()
+        local limnVisualsEnabled = settings.worldRenderer ~= "native"
+            and (settings.boxes == true
+                or settings.chams == true
+                or settings.names == true
+                or settings.health == true
+                or settings.weapon == true)
+        local observationsEnabled = settings.silentAim == true
+            or settings.triggerBot == true
+            or settings.knifeAura == true
+            or limnVisualsEnabled
+        local visibleCount = 0
+        if observationsEnabled then
+            visibleCount = updateObservations(settings)
+        elseif #observations > 0 or #visualObservations > 0 then
+            observations = {}
+            visualObservations = observations
+        end
         local bombObservation, utilityObservations = updateWorldObservations(settings)
         store:Patch({
             activeWeapon = activeWeapon,
@@ -1711,7 +1780,7 @@ function Counterblox.new(context)
             },
             status = ("%d enemies · %d visible"):format(#observations, visibleCount),
         })
-        context.render(observations, UserInputService:GetMouseLocation(), utilityObservations)
+        context.render(visualObservations, UserInputService:GetMouseLocation(), utilityObservations)
         runRapidFire()
         if not runKnifeAura() then
             runTriggerBot()
@@ -1747,10 +1816,95 @@ function Counterblox.new(context)
         restoreFunction(hooks.bulletTarget)
     end
 
+    function self:weaponPreviewKey(state)
+        local weaponName = currentCosmeticWeapon()
+        local override = weaponName and cosmeticOverride(weaponName)
+        return table.concat({
+            "weapon",
+            tostring(weaponName),
+            tostring(override and override.weapon),
+            tostring(override and override.skin),
+            tostring(override and override.wear),
+            tostring(override and override.statTrak),
+        }, "|")
+    end
+    function self:weaponPreviewSubject(state)
+        local weaponName = currentCosmeticWeapon()
+        if not weaponName then
+            return nil
+        end
+        local override = cosmeticOverride(weaponName) or {
+            weapon = weaponName,
+            skin = "Stock",
+            wear = 0,
+            statTrak = false,
+        }
+        local success, weapon = pcall(
+            Skins.GetCharacterModel,
+            override.weapon or weaponName,
+            override.skin or "Stock",
+            override.wear or 0,
+            override.statTrak == true
+        )
+        if not success or typeof(weapon) ~= "Instance" or not weapon:IsA("Model") then
+            return nil
+        end
+        weapon.Name = "UniversalHubWeaponPreview"
+        return weapon
+    end
+
     self.capabilities = context.capabilities or {}
     self.classify = Counterblox.classifyWeapon
     self.isOpponent = isOpponent
     self.selectTarget = selectTarget
+    self.worldPolicy = {
+        isPlayerEligible = isOpponent,
+        getPlayerTone = playerTone,
+        getWeapon = function(player)
+            return equippedWeapon(player)
+        end,
+        connectPlayerChanged = function(player, invalidate)
+            local connections = {
+                player:GetAttributeChangedSignal("CurrentEquipped"):Connect(invalidate),
+                player:GetAttributeChangedSignal("Team"):Connect(invalidate),
+            }
+            return function()
+                for _, connection in ipairs(connections) do
+                    connection:Disconnect()
+                end
+            end
+        end,
+        connectCharacterChanged = function(_player, character, invalidate)
+            return character:GetAttributeChangedSignal("Dead"):Connect(invalidate)
+        end,
+        subscribeChanged = function(invalidate)
+            local connections = {
+                Workspace:GetAttributeChangedSignal("Gamemode"):Connect(invalidate),
+                Workspace:GetAttributeChangedSignal("ServerGamemode"):Connect(invalidate),
+                LocalPlayer:GetAttributeChangedSignal("Team"):Connect(invalidate),
+            }
+            local cameraConnection
+            local function bindCamera()
+                if cameraConnection then
+                    cameraConnection:Disconnect()
+                end
+                local camera = Workspace.CurrentCamera
+                cameraConnection = camera and camera:GetPropertyChangedSignal("CameraSubject"):Connect(invalidate)
+                    or nil
+                invalidate()
+            end
+            table.insert(connections, Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(bindCamera))
+            bindCamera()
+            return function()
+                if cameraConnection then
+                    cameraConnection:Disconnect()
+                end
+                for _, connection in ipairs(connections) do
+                    connection:Disconnect()
+                end
+            end
+        end,
+    }
     function self:cycleCosmeticWeapon(direction)
         local weapons = cosmeticWeapons()
         if #weapons == 0 then

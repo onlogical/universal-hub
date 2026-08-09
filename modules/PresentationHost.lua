@@ -8,6 +8,9 @@ function PresentationHost.mount(facade, presentation)
     assert(type(facade.action) == "function", "PresentationHost requires actions")
     assert(type(presentation) == "table" and type(presentation.mount) == "function")
     presentation.mount(facade)
+    if type(facade.finalize) == "function" then
+        facade:finalize()
+    end
     return facade
 end
 

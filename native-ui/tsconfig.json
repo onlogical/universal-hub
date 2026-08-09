@@ -1,0 +1,10 @@
+{
+	"extends": "../native-ui/tsconfig.prism.json",
+	"compilerOptions": {
+		"strict": true,
+		"jsx": "react"
+	},
+	"include": [
+		"src"
+	]
+}

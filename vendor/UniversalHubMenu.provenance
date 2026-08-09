@@ -1,0 +1,9 @@
+artifact=vendor/UniversalHubMenu.lua
+sha256=94788907bcc87ea4f6ac75853c1a3c4bf7a06c5ecccae4ca9da170991e71b28f
+prism_repository=https://github.com/3xjn/prism
+prism_commit=baebebb089fa29bd2dae8af039be408af7e95ec1
+prism_base=67fb89aefaf9d877b3eeba53e625c9032dcd1545
+bundler=https://github.com/latte-soft/wax
+bundler_version=0.4.2
+mount_parent=gethui()
+source=native-ui/src

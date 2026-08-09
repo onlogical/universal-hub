@@ -207,7 +207,10 @@ local localPlayer = player("Blue", "MatchA")
 local enemyPlayer = player("Red", "MatchA")
 local teammate = player("Blue", "MatchA")
 assert(Rivals.isOpponent(localPlayer, enemyPlayer, character(150)) == true)
+assert(Rivals.playerTone(localPlayer, enemyPlayer, character(150)) == "enemy")
 assert(Rivals.isOpponent(localPlayer, teammate, character(150)) == false)
+assert(Rivals.playerTone(localPlayer, teammate, character(150)) == "team",
+    "Visual relationship must identify teammates without making them targetable")
 assert(Rivals.isOpponent(localPlayer, enemyPlayer, character(0)) == false)
 assert(Rivals.isOpponent(localPlayer, localPlayer, character(150)) == false)
 local protectedFfaCharacter = character(150, true)
@@ -978,6 +981,17 @@ assert(math.abs(RivalsWeaponPolicy.damageAtDistance(shorty, { part = { Name = "T
 assert(
     RivalsWeaponPolicy.triggerDamageReady(shorty, { health = 150, part = { Name = "Torso" } }, 20) == false,
     "Trigger Bot must wait instead of wasting a severe-falloff body shot"
+)
+assert(
+    RivalsWeaponPolicy.triggerDamageReady({
+        Name = "Assault Rifle",
+        Info = {
+            Type = "Gun", IsRaycast = true, ShootCooldown = 0.1, MaxAmmo = 20,
+            ShootDamage = 12, RaycastDamageDropoffStartDistance = 50,
+            RaycastDamageDropoffEndDistance = 200, RaycastDamageDropoffMultiplier = 0.25,
+        },
+    }, { health = 150, part = { Name = "Torso" } }, 150) == true,
+    "Assault Rifle Trigger Bot must sustain accurate fire through ranged falloff"
 )
 assert(
     RivalsWeaponPolicy.triggerDamageReady(shorty, {
@@ -1950,8 +1964,28 @@ cameraHarness.camera = {
         return Vector3.new(640, 360, 1), true
     end,
 }
+local function createWorkspaceSignal()
+    local listeners = {}
+    return {
+        Connect = function(_self, listener)
+            listeners[listener] = true
+            return {
+                Disconnect = function()
+                    listeners[listener] = nil
+                end,
+            }
+        end,
+        Fire = function(_self, value)
+            for listener in pairs(listeners) do
+                listener(value)
+            end
+        end,
+    }
+end
 local Workspace = {
     CurrentCamera = cameraHarness.camera,
+    ChildAdded = createWorkspaceSignal(),
+    ChildRemoved = createWorkspaceSignal(),
     GetChildren = function(self)
         return self.pickupChildren or {}
     end,
@@ -2451,8 +2485,23 @@ local inputCaptured = false
 local environmentCast = function()
     return nil
 end
+local taskCombatActive = false
+local taskActivityChanged
+local taskFarmStops = 0
+local taskFarmRuntime = {
+    isCombatActive = function()
+        return taskCombatActive
+    end,
+    setActivityChanged = function(_self, callback)
+        taskActivityChanged = callback
+    end,
+    stop = function()
+        taskFarmStops += 1
+    end,
+}
 local adapter = Rivals.new({
     capabilities = RivalsDefinition.features.capabilities,
+    taskFarmRuntime = taskFarmRuntime,
     aimPress = function()
         aimPresses += 1
     end,
@@ -2614,11 +2663,12 @@ local adapter = Rivals.new({
     wait = function() end,
 })
 
+state._adapterStartPatches = state._patches
 assert(renderCallback, "RIVALS adapter must attach a resilient per-frame loop")
 renderCallback()
 assert(rendered.position == mousePosition)
 assert(
-    state._patches == 0 and state.observations == nil and state.utilityObservations == nil,
+    state._patches == state._adapterStartPatches and state.observations == nil and state.utilityObservations == nil,
     "RIVALS frame rendering must not publish transient observation telemetry through Store"
 )
 assert(
@@ -2739,20 +2789,31 @@ localItem.Info = {
     MaxAmmoReserve = 91,
 }
 Workspace.pickupChildren = { healthPickup, ammoPickup }
+Workspace.ChildAdded:Fire(healthPickup)
+Workspace.ChildAdded:Fire(ammoPickup)
 settings.autoPickup = true
 currentTime += 1
 renderCallback()
+local firstPickup = cameraHarness.pickupTouches[1]
+local secondPickup = cameraHarness.pickupTouches[2]
+local thirdPickup = cameraHarness.pickupTouches[3]
+local fourthPickup = cameraHarness.pickupTouches[4]
+local touchedTargets = {
+    [firstPickup and firstPickup.target] = true,
+    [thirdPickup and thirdPickup.target] = true,
+}
 assert(
     #cameraHarness.pickupTouches == 4
-        and cameraHarness.pickupTouches[1].part == pickupRoot
-        and cameraHarness.pickupTouches[1].target == healthPickup
-        and cameraHarness.pickupTouches[1].toggle == 1
-        and cameraHarness.pickupTouches[2].target == healthPickup
-        and cameraHarness.pickupTouches[2].toggle == 0
-        and cameraHarness.pickupTouches[3].target == ammoPickup
-        and cameraHarness.pickupTouches[3].toggle == 1
-        and cameraHarness.pickupTouches[4].target == ammoPickup
-        and cameraHarness.pickupTouches[4].toggle == 0,
+        and firstPickup.part == pickupRoot
+        and firstPickup.toggle == 1
+        and secondPickup.target == firstPickup.target
+        and secondPickup.toggle == 0
+        and thirdPickup.part == pickupRoot
+        and thirdPickup.toggle == 1
+        and fourthPickup.target == thirdPickup.target
+        and fourthPickup.toggle == 0
+        and touchedTargets[healthPickup]
+        and touchedTargets[ammoPickup],
     "Gun Game Auto Pickup must follow Volt's Touched-then-TouchEnded sequence"
 )
 
@@ -2783,6 +2844,8 @@ assert(#cameraHarness.pickupTouches == 4, "Auto Pickup must not run outside Gun 
 activeDuel.Data.IsGunGame = true
 settings.autoPickup = false
 Workspace.pickupChildren = {}
+Workspace.ChildRemoved:Fire(healthPickup)
+Workspace.ChildRemoved:Fire(ammoPickup)
 fighter.Entity.RootPart = previousRoot
 fighter.Entity.Humanoid.Health = previousHealth
 fighter.Entity.Humanoid.MaxHealth = previousMaxHealth
@@ -4090,6 +4153,36 @@ end
 
 inputCaptured = false
 settings.silentAim = false
+settings.shotAim = false
+settings.triggerBot = false
+settings.humanAim = false
+settings.fullScreenAim = false
+settings.fov = 1
+fighterModule.LocalFighter.Data.IsInDuel = true
+fighterModule.LocalFighter.Data.IsInShootingRange = false
+fighterModule.LocalFighter.EquippedItem = targetItem
+observations[1].screenDistance = 40
+observations[1].visible = true
+cameraModule.Rotation = Vector2.zero
+currentTime += 5
+local taskClicks = clicks
+local taskPatches = state._patches
+taskCombatActive = true
+assert(type(taskActivityChanged) == "function")
+taskActivityChanged()
+renderCallback()
+assert(cameraModule.Rotation ~= Vector2.zero, "Active PvP tasks must reuse Camera Aim without changing user settings")
+assert(clicks > taskClicks, "Active PvP tasks must reuse Trigger Bot through normal weapon policy")
+assert(state._patches == taskPatches and settings.silentAim == false and settings.triggerBot == false,
+    "Task combat must not mutate persisted combat settings")
+assert(nearestOptions[#nearestOptions].maxScreenDistance == nil,
+    "Inherent PvP farming must acquire opponents outside the configured manual FOV")
+taskCombatActive = false
+taskActivityChanged()
+settings.fov = 180
+
+inputCaptured = false
+settings.silentAim = false
 settings.shotAim = true
 settings.humanAim = false
 observations[1].screenDistance = 40
@@ -4114,6 +4207,7 @@ assert(
         ) > 0.999999,
     "Stopping active RIVALS Silent Aim must restore the visible camera immediately"
 )
+assert(taskFarmStops == 1, "Stopping the adapter must stop task farming exactly once")
 assert(disconnected == true, "Stopping the adapter must disconnect its render loop")
 assert(trajectoryDestroyed == true, "Stopping the adapter must destroy bounce ESP drawings")
 assert(

@@ -8,6 +8,18 @@ local CounterbloxDefinition = require("../games/counterblox/Definition")
 
 assert(CounterbloxDefinition.module == "games/Counterblox")
 
+local fs = require("@lune/fs")
+local tacticalSource = fs.readFile("games/Counterblox.lua")
+assert(tacticalSource:find("local visualObservations = observations", 1, true),
+    "Shared tactical visuals must separate render observations from opponent targets")
+assert(tacticalSource:find("getPlayerTone = playerTone", 1, true),
+    "Shared tactical native visuals must expose the generic team-tone seam")
+assert(table.find(CounterbloxDefinition.features.capabilities, "showTeammates"),
+    "Counterblox must expose opt-in teammate ESP")
+for _, path in ipairs({ "games/counterblox/Presentation.lua", "games/bloxstrike/Presentation.lua" }) do
+    assert(fs.readFile(path):find('"showTeammates"', 1, true), path .. " must expose the Visuals toggle")
+end
+
 assert(Counterblox.classifyWeapon({
     Bullet = {},
     IsDestroyed = false,

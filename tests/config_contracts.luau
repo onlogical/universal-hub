@@ -6,6 +6,8 @@ local files = {
 local writes = {}
 local decoded = {
     fov = 320,
+    espOutlineColor = "#123456",
+    espFillAlpha = 0.73,
     fullScreenAim = true,
     silentAim = true,
     gloveOverride = {
@@ -41,6 +43,7 @@ local config = Config.new({
     end,
     encode = function(value)
         assert(value.fullScreenAim == true)
+        assert(value.espOutlineColor == "#123456" and value.espFillAlpha == 0.73)
         assert(value.skinOverrides["AK-47"].skin == "PinPoint")
         assert(value.skinOverrides["T Knife"].weapon == "Karambit")
         assert(value.gloveOverride.skin == "Crimson Weave")
@@ -63,6 +66,8 @@ local config = Config.new({
 
 local loaded = config:load({
     fov = 180,
+    espOutlineColor = "",
+    espFillAlpha = -1,
     fullScreenAim = false,
     gloveOverride = false,
     gloveColorOverride = false,
@@ -70,6 +75,7 @@ local loaded = config:load({
     skinOverrides = {},
 })
 assert(loaded.fov == 320 and loaded.fullScreenAim == true and loaded.silentAim == true)
+assert(loaded.espOutlineColor == "#123456" and loaded.espFillAlpha == 0.73)
 assert(loaded.skinOverrides["AK-47"].wear == 0.1)
 assert(loaded.skinOverrides["T Knife"].skin == "Fade")
 assert(loaded.skinOverrides["T Knife"].weapon == "Karambit")

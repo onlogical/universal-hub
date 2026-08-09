@@ -15,7 +15,7 @@ function TrajectoryRenderer.new(options)
 end
 
 function TrajectoryRenderer:render(path)
-    if not self.canvas then
+    if not self.canvas or path == nil and #self.lines == 0 then
         return
     end
     local camera = self.workspace.CurrentCamera

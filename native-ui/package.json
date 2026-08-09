@@ -1,0 +1,9 @@
+{
+	"name": "universal-hub-native-ui",
+	"private": true,
+	"version": "0.0.0",
+	"scripts": {
+		"build": "node ../scripts/build_native_menu.cjs",
+		"test": "node tests/contracts.test.cjs"
+	}
+}

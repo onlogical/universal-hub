@@ -47,8 +47,74 @@ local function effectStateProperty(instance)
     return nil
 end
 
-function VisualSuppression.update(settings, roots, suppressed)
-    local active = {}
+local function disconnect(connection)
+    if connection and type(connection.Disconnect) == "function" then
+        pcall(connection.Disconnect, connection)
+    end
+end
+
+local function restore(instance, state, suppressed)
+    disconnect(state.connection)
+    local succeeded, current = pcall(function()
+        return instance[state.property]
+    end)
+    if not succeeded or current ~= state.value then
+        pcall(function()
+            instance[state.property] = state.value
+        end)
+    end
+    suppressed[instance] = nil
+end
+
+local function suppress(instance, kind, suppressed)
+    local property, value = effectStateProperty(instance)
+    if not property then
+        return false
+    end
+
+    local state = suppressed[instance]
+    if not state then
+        state = {
+            kind = kind,
+            property = property,
+            value = value,
+        }
+        suppressed[instance] = state
+        local methodOk, getPropertyChangedSignal = pcall(function()
+            return instance.GetPropertyChangedSignal
+        end)
+        if methodOk and type(getPropertyChangedSignal) == "function" then
+            local signalOk, signal = pcall(getPropertyChangedSignal, instance, property)
+            if signalOk and signal and type(signal.Connect) == "function" then
+                local connectionOk, connection = pcall(signal.Connect, signal, function()
+                    local readOk, current = pcall(function()
+                        return instance[property]
+                    end)
+                    if readOk and current == true then
+                        pcall(function()
+                            instance[property] = false
+                        end)
+                    end
+                end)
+                if connectionOk then
+                    state.connection = connection
+                end
+            end
+        end
+    end
+
+    local readOk, current = pcall(function()
+        return instance[property]
+    end)
+    if readOk and current ~= false then
+        pcall(function()
+            instance[property] = false
+        end)
+    end
+    return true
+end
+
+local function visit(settings, roots, suppressed, active)
     for _, entry in ipairs(roots or {}) do
         local root = entry
         local inheritedKind
@@ -58,30 +124,64 @@ function VisualSuppression.update(settings, roots, suppressed)
         end
         local instances = { root }
         if root and root.GetDescendants then
-            for _, descendant in ipairs(root:GetDescendants()) do
-                table.insert(instances, descendant)
+            local succeeded, descendants = pcall(root.GetDescendants, root)
+            if succeeded then
+                for _, descendant in ipairs(descendants or {}) do
+                    table.insert(instances, descendant)
+                end
             end
         end
         for _, instance in ipairs(instances) do
             local kind = UtilityPolicy.effectKind(instance) or inheritedKind
             local shouldSuppress = kind == "flash" and settings.noFlash == true
                 or kind == "smoke" and settings.noSmoke == true
-            if shouldSuppress then
-                local property, value = effectStateProperty(instance)
-                if property then
-                    active[instance] = true
-                    if suppressed[instance] == nil then
-                        suppressed[instance] = { property = property, value = value }
-                    end
-                    pcall(function() instance[property] = false end)
-                end
+            if shouldSuppress and suppress(instance, kind, suppressed) and active then
+                active[instance] = true
             end
         end
     end
+end
+
+-- Applies only the supplied roots and retains all existing registrations. This is
+-- used by event callbacks so a single added effect never forces a broad rescan.
+function VisualSuppression.apply(settings, roots, suppressed)
+    visit(settings, roots, suppressed)
+end
+
+function VisualSuppression.restoreRoots(roots, suppressed)
+    local selected = {}
+    for _, entry in ipairs(roots or {}) do
+        local root = entry
+        if type(entry) == "table" and entry.instance then
+            root = entry.instance
+        end
+        selected[root] = true
+    end
+    for instance, state in pairs(suppressed) do
+        local current = instance
+        local matches = false
+        for _depth = 1, 64 do
+            if not current then
+                break
+            end
+            if selected[current] then
+                matches = true
+                break
+            end
+            current = current.Parent
+        end
+        if matches then
+            restore(instance, state, suppressed)
+        end
+    end
+end
+
+function VisualSuppression.update(settings, roots, suppressed)
+    local active = {}
+    visit(settings, roots, suppressed, active)
     for instance, state in pairs(suppressed) do
         if not active[instance] then
-            pcall(function() instance[state.property] = state.value end)
-            suppressed[instance] = nil
+            restore(instance, state, suppressed)
         end
     end
 end

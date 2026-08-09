@@ -2,7 +2,13 @@ local CosmeticsPanel = {}
 CosmeticsPanel.__index = CosmeticsPanel
 
 local ACTIVE_CONTROL_LAYER = 206
+local COLOR_TRACK_WIDTH = 310
+local CONTENT_INSET = 20
+local CONTENT_WIDTH = 350
 local HITBOX_TRANSPARENCY = 0.01
+local MODE_WIDTH = 171
+local SELECTOR_WIDTH = 282
+local WEAR_TRACK_WIDTH = 350
 local WEAPON_CONTROLS = {
     weaponBackground = true,
     weaponName = true,
@@ -14,7 +20,7 @@ local WEAPON_CONTROLS = {
 
 local function setVisible(nodes, visible)
     for _, node in pairs(nodes or {}) do
-        if type(node) == "table" and node.Visible ~= nil then
+        if type(node) == "table" and (type(node.set) == "function" or node.Visible ~= nil) then
             node.Visible = visible
         elseif type(node) == "table" then
             setVisible(node, visible)
@@ -84,7 +90,7 @@ function CosmeticsPanel:_build()
         header = interactive("Square", {
             Color = colors.elevated,
             Filled = true,
-            Size = Vector2.new(276, 30),
+            Size = Vector2.new(CONTENT_WIDTH, 30),
             Visible = true,
             ZIndex = 202,
         }),
@@ -104,7 +110,7 @@ function CosmeticsPanel:_build()
         weaponMode = interactive("Square", {
             Color = colors.elevated,
             Filled = true,
-            Size = Vector2.new(134, 24),
+            Size = Vector2.new(MODE_WIDTH, 24),
             Visible = false,
             ZIndex = 202,
         }),
@@ -119,7 +125,7 @@ function CosmeticsPanel:_build()
         gloveMode = interactive("Square", {
             Color = colors.elevated,
             Filled = true,
-            Size = Vector2.new(134, 24),
+            Size = Vector2.new(MODE_WIDTH, 24),
             Visible = false,
             ZIndex = 202,
         }),
@@ -134,7 +140,7 @@ function CosmeticsPanel:_build()
         weaponBackground = node("Square", {
             Color = colors.panel,
             Filled = true,
-            Size = Vector2.new(208, 30),
+            Size = Vector2.new(SELECTOR_WIDTH, 30),
             Visible = false,
             ZIndex = 202,
         }),
@@ -209,7 +215,7 @@ function CosmeticsPanel:_build()
         reset = interactive("Square", {
             Color = colors.elevated,
             Filled = true,
-            Size = Vector2.new(134, 30),
+            Size = Vector2.new(MODE_WIDTH, 30),
             Visible = false,
             ZIndex = 202,
         }),
@@ -223,7 +229,7 @@ function CosmeticsPanel:_build()
         skinBackground = node("Square", {
             Color = colors.panel,
             Filled = true,
-            Size = Vector2.new(208, 30),
+            Size = Vector2.new(SELECTOR_WIDTH, 30),
             Visible = false,
             ZIndex = 202,
         }),
@@ -238,7 +244,7 @@ function CosmeticsPanel:_build()
         statTrak = interactive("Square", {
             Color = colors.elevated,
             Filled = true,
-            Size = Vector2.new(134, 30),
+            Size = Vector2.new(MODE_WIDTH, 30),
             Visible = false,
             ZIndex = 202,
         }),
@@ -266,7 +272,7 @@ function CosmeticsPanel:_build()
         wearHit = interactive("Square", {
             Color = colors.panel,
             Filled = true,
-            Size = Vector2.new(276, 22),
+            Size = Vector2.new(WEAR_TRACK_WIDTH, 22),
             Transparency = HITBOX_TRANSPARENCY,
             Visible = false,
             ZIndex = 202,
@@ -289,7 +295,7 @@ function CosmeticsPanel:_build()
         wearTrack = node("Square", {
             Color = colors.border,
             Filled = true,
-            Size = Vector2.new(276, 4),
+            Size = Vector2.new(WEAR_TRACK_WIDTH, 4),
             Visible = false,
             ZIndex = 203,
         }),
@@ -318,7 +324,7 @@ function CosmeticsPanel:_build()
             hit = interactive("Square", {
                 Color = colors.panel,
                 Filled = true,
-                Size = Vector2.new(236, 20),
+                Size = Vector2.new(COLOR_TRACK_WIDTH, 20),
                 Transparency = HITBOX_TRANSPARENCY,
                 Visible = false,
                 ZIndex = 202,
@@ -341,7 +347,7 @@ function CosmeticsPanel:_build()
             track = node("Square", {
                 Color = colors.border,
                 Filled = true,
-                Size = Vector2.new(236, 4),
+                Size = Vector2.new(COLOR_TRACK_WIDTH, 4),
                 Visible = false,
                 ZIndex = 203,
             }),
@@ -407,7 +413,7 @@ function CosmeticsPanel:_build()
     end)
 
     local function setWear(point)
-        local alpha = math.clamp((point.X - state.wearStartX) / 276, 0, 1)
+        local alpha = math.clamp((point.X - state.wearStartX) / WEAR_TRACK_WIDTH, 0, 1)
         if state.bridge.context.store:Get().cosmeticMode == "gloves" then
             state.bridge.context.setGloveWear(alpha)
         else
@@ -415,12 +421,12 @@ function CosmeticsPanel:_build()
         end
     end
     local wearActivePaint = registerActiveSliderPaint(controls.cosmetics.wearHit, function(painter, point)
-        local alpha = math.clamp((point.X - state.wearStartX) / 276, 0, 1)
+        local alpha = math.clamp((point.X - state.wearStartX) / WEAR_TRACK_WIDTH, 0, 1)
         paintActiveSlider(
             painter,
             controls.cosmetics.wearTrack,
-            276 * alpha,
-            state.wearStartX + 276 * alpha,
+            WEAR_TRACK_WIDTH * alpha,
+            state.wearStartX + WEAR_TRACK_WIDTH * alpha,
             6,
             colors.accent,
             colors.text
@@ -446,16 +452,16 @@ function CosmeticsPanel:_build()
                 return
             end
             local color = { b = current.b, g = current.g, r = current.r }
-            color[channelName] = math.clamp((point.X - state.colorStartX) / 236, 0, 1)
+            color[channelName] = math.clamp((point.X - state.colorStartX) / COLOR_TRACK_WIDTH, 0, 1)
             state.bridge.context.setGloveColor(color)
         end
         local activePaint = registerActiveSliderPaint(channel.hit, function(painter, point)
-            local alpha = math.clamp((point.X - state.colorStartX) / 236, 0, 1)
+            local alpha = math.clamp((point.X - state.colorStartX) / COLOR_TRACK_WIDTH, 0, 1)
             paintActiveSlider(
                 painter,
                 channel.track,
-                236 * alpha,
-                state.colorStartX + 236 * alpha,
+                COLOR_TRACK_WIDTH * alpha,
+                state.colorStartX + COLOR_TRACK_WIDTH * alpha,
                 5,
                 channel.label.Color,
                 colors.text
@@ -479,46 +485,46 @@ end
 
 function CosmeticsPanel:layout(x, _y, cursor)
     local cosmetics = self.controls.cosmetics
-    cosmetics.header.Position = Vector2.new(x + 12, cursor)
-    cosmetics.headerLabel.Position = Vector2.new(x + 22, cursor + 9)
-    cosmetics.indicator.Position = Vector2.new(x + 270, cursor + 7)
-    cosmetics.weaponMode.Position = Vector2.new(x + 12, cursor + 30)
-    cosmetics.weaponModeLabel.Position = Vector2.new(x + 79, cursor + 37)
-    cosmetics.gloveMode.Position = Vector2.new(x + 154, cursor + 30)
-    cosmetics.gloveModeLabel.Position = Vector2.new(x + 221, cursor + 37)
-    cosmetics.weaponPrevious.Position = Vector2.new(x + 12, cursor + 58)
-    cosmetics.weaponPreviousLabel.Position = Vector2.new(x + 27, cursor + 65)
-    cosmetics.weaponBackground.Position = Vector2.new(x + 46, cursor + 58)
-    cosmetics.weaponName.Position = Vector2.new(x + 150, cursor + 66)
-    cosmetics.weaponNext.Position = Vector2.new(x + 258, cursor + 58)
-    cosmetics.weaponNextLabel.Position = Vector2.new(x + 273, cursor + 65)
+    cosmetics.header.Position = Vector2.new(x + CONTENT_INSET, cursor)
+    cosmetics.headerLabel.Position = Vector2.new(x + CONTENT_INSET + 12, cursor + 9)
+    cosmetics.indicator.Position = Vector2.new(x + CONTENT_INSET + CONTENT_WIDTH - 14, cursor + 7)
+    cosmetics.weaponMode.Position = Vector2.new(x + CONTENT_INSET, cursor + 30)
+    cosmetics.weaponModeLabel.Position = Vector2.new(x + CONTENT_INSET + MODE_WIDTH * 0.5, cursor + 37)
+    cosmetics.gloveMode.Position = Vector2.new(x + CONTENT_INSET + MODE_WIDTH + 8, cursor + 30)
+    cosmetics.gloveModeLabel.Position = Vector2.new(x + CONTENT_INSET + MODE_WIDTH + 8 + MODE_WIDTH * 0.5, cursor + 37)
+    cosmetics.weaponPrevious.Position = Vector2.new(x + CONTENT_INSET, cursor + 58)
+    cosmetics.weaponPreviousLabel.Position = Vector2.new(x + CONTENT_INSET + 15, cursor + 65)
+    cosmetics.weaponBackground.Position = Vector2.new(x + CONTENT_INSET + 34, cursor + 58)
+    cosmetics.weaponName.Position = Vector2.new(x + CONTENT_INSET + 34 + SELECTOR_WIDTH * 0.5, cursor + 66)
+    cosmetics.weaponNext.Position = Vector2.new(x + CONTENT_INSET + CONTENT_WIDTH - 30, cursor + 58)
+    cosmetics.weaponNextLabel.Position = Vector2.new(x + CONTENT_INSET + CONTENT_WIDTH - 15, cursor + 65)
     local weaponOffset = self.cosmeticMode == "weapon" and 34 or 0
-    cosmetics.previous.Position = Vector2.new(x + 12, cursor + 58 + weaponOffset)
-    cosmetics.previousLabel.Position = Vector2.new(x + 27, cursor + 65 + weaponOffset)
-    cosmetics.skinBackground.Position = Vector2.new(x + 46, cursor + 58 + weaponOffset)
-    cosmetics.skinName.Position = Vector2.new(x + 150, cursor + 66 + weaponOffset)
-    cosmetics.next.Position = Vector2.new(x + 258, cursor + 58 + weaponOffset)
-    cosmetics.nextLabel.Position = Vector2.new(x + 273, cursor + 65 + weaponOffset)
-    cosmetics.wearLabel.Position = Vector2.new(x + 12, cursor + 94 + weaponOffset)
-    cosmetics.wearValue.Position = Vector2.new(x + 264, cursor + 94 + weaponOffset)
-    self.wearStartX = x + 12
-    cosmetics.wearHit.Position = Vector2.new(x + 12, cursor + 106 + weaponOffset)
-    cosmetics.wearTrack.Position = Vector2.new(x + 12, cursor + 115 + weaponOffset)
+    cosmetics.previous.Position = Vector2.new(x + CONTENT_INSET, cursor + 58 + weaponOffset)
+    cosmetics.previousLabel.Position = Vector2.new(x + CONTENT_INSET + 15, cursor + 65 + weaponOffset)
+    cosmetics.skinBackground.Position = Vector2.new(x + CONTENT_INSET + 34, cursor + 58 + weaponOffset)
+    cosmetics.skinName.Position = Vector2.new(x + CONTENT_INSET + 34 + SELECTOR_WIDTH * 0.5, cursor + 66 + weaponOffset)
+    cosmetics.next.Position = Vector2.new(x + CONTENT_INSET + CONTENT_WIDTH - 30, cursor + 58 + weaponOffset)
+    cosmetics.nextLabel.Position = Vector2.new(x + CONTENT_INSET + CONTENT_WIDTH - 15, cursor + 65 + weaponOffset)
+    cosmetics.wearLabel.Position = Vector2.new(x + CONTENT_INSET, cursor + 94 + weaponOffset)
+    cosmetics.wearValue.Position = Vector2.new(x + CONTENT_INSET + CONTENT_WIDTH - 12, cursor + 94 + weaponOffset)
+    self.wearStartX = x + CONTENT_INSET
+    cosmetics.wearHit.Position = Vector2.new(x + CONTENT_INSET, cursor + 106 + weaponOffset)
+    cosmetics.wearTrack.Position = Vector2.new(x + CONTENT_INSET, cursor + 115 + weaponOffset)
     cosmetics.wearFill.Position = cosmetics.wearTrack.Position
-    cosmetics.statTrak.Position = Vector2.new(x + 12, cursor + 132 + weaponOffset)
-    cosmetics.statTrakLabel.Position = Vector2.new(x + 21, cursor + 140 + weaponOffset)
-    cosmetics.statTrakValue.Position = Vector2.new(x + 124, cursor + 140 + weaponOffset)
-    cosmetics.reset.Position = Vector2.new(x + 154, cursor + 132 + weaponOffset)
-    cosmetics.resetLabel.Position = Vector2.new(x + 163, cursor + 140 + weaponOffset)
-    self.colorStartX = x + 32
+    cosmetics.statTrak.Position = Vector2.new(x + CONTENT_INSET, cursor + 132 + weaponOffset)
+    cosmetics.statTrakLabel.Position = Vector2.new(x + CONTENT_INSET + 10, cursor + 140 + weaponOffset)
+    cosmetics.statTrakValue.Position = Vector2.new(x + CONTENT_INSET + MODE_WIDTH - 18, cursor + 140 + weaponOffset)
+    cosmetics.reset.Position = Vector2.new(x + CONTENT_INSET + MODE_WIDTH + 8, cursor + 132 + weaponOffset)
+    cosmetics.resetLabel.Position = Vector2.new(x + CONTENT_INSET + MODE_WIDTH + 18, cursor + 140 + weaponOffset)
+    self.colorStartX = x + CONTENT_INSET + 20
     for index, channelName in ipairs({ "r", "g", "b" }) do
         local channel = cosmetics.colorChannels[channelName]
         local channelY = cursor + 166 + weaponOffset + (index - 1) * 24
-        channel.label.Position = Vector2.new(x + 12, channelY + 4)
-        channel.hit.Position = Vector2.new(x + 32, channelY)
-        channel.track.Position = Vector2.new(x + 32, channelY + 8)
+        channel.label.Position = Vector2.new(x + CONTENT_INSET, channelY + 4)
+        channel.hit.Position = Vector2.new(x + CONTENT_INSET + 20, channelY)
+        channel.track.Position = Vector2.new(x + CONTENT_INSET + 20, channelY + 8)
         channel.fill.Position = channel.track.Position
-        channel.value.Position = Vector2.new(x + 280, channelY + 3)
+        channel.value.Position = Vector2.new(x + CONTENT_INSET + CONTENT_WIDTH - 8, channelY + 3)
     end
     return cursor
 end
@@ -586,11 +592,14 @@ function CosmeticsPanel:render(current)
     controls.weaponName.Text = current.cosmeticWeapon or current.activeWeapon or "Select weapon"
     controls.skinName.Text = cosmetics.skinLabel or cosmetics.skin or "Stock"
     controls.wearValue.Text = ("%.2f"):format(cosmetics.wear or 0)
-    controls.wearFill.Size = Vector2.new(276 * wearAlpha, 4)
+    controls.wearFill.Size = Vector2.new(WEAR_TRACK_WIDTH * wearAlpha, 4)
     controls.wearKnob.Position =
-        Vector2.new(self.wearStartX + 276 * wearAlpha, controls.wearTrack.Position.Y + 2)
+        Vector2.new(self.wearStartX + WEAR_TRACK_WIDTH * wearAlpha, controls.wearTrack.Position.Y + 2)
     local supportsStatTrak = cosmeticMode ~= "gloves" and cosmetics.supportsStatTrak == true
     local solidColor = cosmeticMode == "gloves" and type(gloveColor) == "table"
+    for _, channel in pairs(controls.colorChannels) do
+        setVisible(channel, self.cosmeticsOpen and solidColor)
+    end
     self.bridge.setControlColor(
         controls.statTrak,
         solidColor and colors.accentSurface
@@ -610,9 +619,9 @@ function CosmeticsPanel:render(current)
         for _, channelName in ipairs({ "r", "g", "b" }) do
             local channel = controls.colorChannels[channelName]
             local value = math.clamp(gloveColor[channelName] or 0, 0, 1)
-            channel.fill.Size = Vector2.new(236 * value, 4)
+            channel.fill.Size = Vector2.new(COLOR_TRACK_WIDTH * value, 4)
             channel.knob.Position =
-                Vector2.new(self.colorStartX + 236 * value, channel.track.Position.Y + 2)
+                Vector2.new(self.colorStartX + COLOR_TRACK_WIDTH * value, channel.track.Position.Y + 2)
             channel.value.Text = tostring(math.round(value * 255))
         end
     end

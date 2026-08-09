@@ -1,0 +1,5 @@
+source=https://github.com/3xjn/limn
+branch=codex/limn-generic-controls
+commit=a560e5823bddda0ece824ddcdad87173ccf02496
+path=dist/Limn.lua
+sha256=6f929b41c2c1a7727a461989bb7d1cf55151289693805b1014a80060f1c3d126

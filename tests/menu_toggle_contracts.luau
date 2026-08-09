@@ -29,6 +29,16 @@ assert(
     "Processed input should not toggle the menu"
 )
 
+
+assert(
+    MenuToggle.shouldToggle({ KeyCode = Enum.KeyCode.F }, false, userInputService, "F") == true,
+    "Configured keyboard shortcut should toggle the menu"
+)
+assert(
+    MenuToggle.shouldToggle(rightShift, false, userInputService, "F") == false,
+    "Default shortcut must stop toggling after rebinding"
+)
+
 focusedTextBox = {}
 assert(
     MenuToggle.shouldToggle(rightShift, false, userInputService) == false,

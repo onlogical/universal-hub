@@ -61,12 +61,18 @@ function Session:patchSettings(patch, persist)
     end
 end
 
-function Session:setOption(name, enabled)
+function Session:setSetting(name, value, persist)
     local state = self.store:Get()
-    assert(state.settings[name] ~= nil, "Unknown hub option: " .. tostring(name))
+    local current = state.settings[name]
+    assert(current ~= nil, "Unknown hub setting: " .. tostring(name))
+    assert(type(current) == type(value), "Invalid hub setting type: " .. tostring(name))
     self:patchSettings({
-        [name] = enabled == true,
-    })
+        [name] = value,
+    }, persist)
+end
+
+function Session:setOption(name, enabled)
+    self:setSetting(name, enabled == true)
 end
 
 function Session:setFov(value, persist)
@@ -97,6 +103,15 @@ function Session:setCosmeticMode(mode)
     self.store:Patch({
         cosmeticMode = mode == "gloves" and "gloves" or "weapon",
     })
+end
+
+function Session:setMenuKey(value)
+    if typeof(value) ~= "EnumItem" or value.EnumType ~= Enum.KeyCode or value == Enum.KeyCode.Unknown then
+        return false
+    end
+    self.menuKeyChangedAt = os.clock()
+    self:patchSettings({ menuKey = value.Name })
+    return true
 end
 
 function Session:setMenuVisible(visible)

@@ -2,7 +2,6 @@ local Runtime = {}
 Runtime.__index = Runtime
 
 local PRIVATE = setmetatable({}, { __mode = "k" })
-
 local function private(runtime)
     return assert(PRIVATE[runtime], "Presentation runtime is unavailable")
 end
@@ -65,6 +64,9 @@ function Runtime:register(panel)
     assert(type(panel.setVisible) == "function", "Registered presentation panel requires visibility")
     assert(type(panel.destroy) == "function", "Registered presentation panel requires cleanup")
     table.insert(private(self).panels, panel)
+    if panel.page then
+        self:_standard():includePage(panel.page)
+    end
     return panel
 end
 
@@ -131,12 +133,19 @@ function Runtime:rate(id, label)
     return self:_standard():rate(id, label)
 end
 
-function Runtime:section(id, label, lineOffset, includesRates)
-    return self:_standard():section(id, label, lineOffset, includesRates)
+function Runtime:segmented(page, spec)
+    -- The native catalog owns typed segmented controls. The legacy runtime
+    -- only keeps the page visible while the menu migration completes.
+    self:_standard():includePage(page)
+    return spec
 end
 
-function Runtime:option(sectionId, rowIndex, id, label, parent)
-    return self:_standard():option(sectionId, rowIndex, id, label, parent)
+function Runtime:section(page, id, label, lineOffset, includesRates, columns)
+    return self:_standard():section(page, id, label, lineOffset, includesRates, columns)
+end
+
+function Runtime:option(sectionId, rowIndex, id, label, parent, visibility)
+    return self:_standard():option(sectionId, rowIndex, id, label, parent, visibility)
 end
 
 function Runtime:cosmetics()
@@ -145,33 +154,69 @@ function Runtime:cosmetics()
         return
     end
     if not state.cosmetics then
+        self:_standard():includePage("Tools")
         state.cosmetics = state.parts.cosmetics.new(state.bridge)
+        state.cosmetics.page = "Tools"
         self:register(state.cosmetics)
     end
 end
 
+function Runtime:finalize()
+    local state = private(self)
+    if state.standard then
+        state.standard:finalize()
+    end
+    state.finalized = true
+end
+
+function Runtime:activePage()
+    local state = private(self)
+    return state.standard and state.standard:activePage() or nil
+end
+
 function Runtime:layout(x, y)
     local state = private(self)
-    local cursor = y + 60
+    local shell = assert(state.bridge.theme.tokens.layout, "Presentation theme requires shell layout tokens")
+    local activePage = self:activePage()
+    local cursor = y + (activePage and shell.contentTopWithTabs or shell.contentTopWithoutTabs)
     for _, panel in ipairs(state.panels) do
-        cursor = panel:layout(x, y, cursor) or cursor
+        if not panel.page or panel.page == activePage then
+            cursor = panel:layout(x, y, cursor) or cursor
+        end
     end
     state.contentHeight = cursor - y + 12
+    local panelHeight = state.contentHeight
+    local current = state.bridge.context.store:Get()
+    for _, panel in ipairs(state.panels) do
+        if (not panel.page or panel.page == activePage) and type(panel.panelHeight) == "function" then
+            panelHeight = panel:panelHeight(panelHeight, current) or panelHeight
+        end
+    end
+    state.panelHeight = panelHeight
+    local size = Vector2.new(shell.shellWidth, panelHeight)
+    state.bridge.controls.panel.Size = size
+    state.bridge.controls.panelShadow.Size = size
+    state.bridge.controls.panelBorder.Size = size
     return state.contentHeight
 end
 
 function Runtime:render(current)
     local state = private(self)
-    local panelHeight = state.contentHeight or 596
+    local shell = assert(state.bridge.theme.tokens.layout, "Presentation theme requires shell layout tokens")
+    local panelHeight = state.contentHeight or shell.initialHeight
+    local activePage = self:activePage()
     for _, panel in ipairs(state.panels) do
-        panel:render(current)
+        if not panel.page or panel.page == activePage then
+            panel:render(current)
+        end
     end
     for _, panel in ipairs(state.panels) do
-        if type(panel.panelHeight) == "function" then
+        if (not panel.page or panel.page == activePage) and type(panel.panelHeight) == "function" then
             panelHeight = panel:panelHeight(panelHeight, current) or panelHeight
         end
     end
-    local size = Vector2.new(300, panelHeight)
+    local size = Vector2.new(shell.shellWidth, panelHeight)
+    state.panelHeight = panelHeight
     state.bridge.controls.panel.Size = size
     state.bridge.controls.panelShadow.Size = size
     state.bridge.controls.panelBorder.Size = size
@@ -179,8 +224,9 @@ end
 
 function Runtime:setVisible(visible)
     local state = private(self)
+    local activePage = self:activePage()
     for _, panel in ipairs(state.panels) do
-        panel:setVisible(visible)
+        panel:setVisible(visible and (not panel.page or panel.page == activePage))
     end
     for node in pairs(state.activeSliderVisuals) do
         node.Visible = false

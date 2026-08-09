@@ -1,5 +1,11 @@
 return {
-    defaults = {},
+    defaults = {
+        taskAutomationPaused = true,
+        taskAutomationEmergencyKey = "End",
+        infiniteJump = false,
+        wallNoclip = false,
+        wallPhase = false,
+    },
     features = {
         capabilities = {
             "silentAim",
@@ -9,17 +15,26 @@ return {
             "alwaysScoped",
             "humanAim",
             "bhop",
+            "infiniteJump",
+            "wallNoclip",
             "aimSmoothness",
             "headshotRate",
             "missRate",
             "boxes",
             "chams",
+            "chamsExcludeAccessories",
+            "chamsPerPart",
+            "showEnemies",
+            "showTeammates",
+            "worldRenderer",
             "names",
             "health",
             "weapon",
             "utilityEsp",
             "noFlash",
             "noSmoke",
+            "taskAutomationPaused",
+            "taskAutomationEmergencyKey",
         },
         cosmetics = false,
         exclusiveOptions = {
@@ -31,13 +46,21 @@ return {
             alwaysScoped = "Always Scoped",
             silentAim = "Camera Aim",
             shotAim = "Silent Aim",
+            taskAutomationPaused = "Pause Task Farming",
+            taskAutomationEmergencyKey = "Emergency Stop",
         },
     },
     hydroxide = {
         "targeting",
     },
     id = "rivals",
-    initialState = {},
+    initialState = {
+        taskAutomation = {
+            state = "idle",
+            statusLabel = "Idle",
+            taskLabel = "No supported task",
+        },
+    },
     label = "RIVALS",
     manifest = {
         gameIds = { 6035872082 },
@@ -47,6 +70,9 @@ return {
     presentation = "games/rivals/Presentation",
     sources = {
         "games/rivals/Adapter",
+        "games/rivals/TaskPolicy",
+        "games/rivals/TaskFarmRuntime",
+        "games/rivals/PracticeTaskDriver",
         "games/rivals/GunGameRuntime",
         "games/rivals/HookRuntime",
         "games/rivals/ItemPolicy",
@@ -63,6 +89,7 @@ return {
         "games/rivals/CombatState",
         "games/rivals/ModePolicy",
         "games/rivals/ObservationRuntime",
+        "games/rivals/WorldPolicy",
         "games/rivals/Presentation",
     },
 }

@@ -25,6 +25,7 @@ local function recorder(capabilities)
         "plotCopy",
         "rate",
         "section",
+        "segmented",
     }) do
         host[method] = function(_, ...)
             local values = { method }
@@ -95,25 +96,26 @@ assertSequence(
         "rate:aimSmoothness:Aim Smoothness",
         "rate:headshotRate:Headshot Rate",
         "rate:missRate:Miss Rate",
-        "section:rage:AIM:64",
-        "option:rage:1:silentAim:Camera Aim",
-        "option:rage:1:shotAim:Silent Aim",
-        "option:rage:2:humanAim:Human Aim:silentAim",
-        "option:rage:3:triggerBot:Trigger Bot",
-        "option:rage:3:alwaysScoped:Always Scoped",
-        "section:movement:MOVEMENT:70",
+        "segmented:Visuals",
+        "segmented:Combat",
+        "section:Combat:trigger:Trigger Bot:64",
+        "option:trigger:1:triggerBot:Trigger Bot",
+        "option:trigger:2:alwaysScoped:Always Scoped",
+        "section:Movement:movement:MOVEMENT:70",
         "option:movement:1:bhop:Bunny Hop",
-        "section:world:WORLD:70",
+        "section:Tools:world:WORLD:70",
         "option:world:1:autoPickup:Auto Pickup",
-        "section:visuals:VISUALS:70",
+        "section:Visuals:visuals:VISUALS:70",
         "option:visuals:1:boxes:Hitboxes",
         "option:visuals:1:chams:Chams",
-        "option:visuals:2:names:Names",
-        "option:visuals:2:health:Health",
-        "option:visuals:3:weapon:Weapons",
-        "option:visuals:3:noFlash:No Flash",
-        "option:visuals:4:noSmoke:No Smoke",
-        "option:visuals:5:utilityEsp:Utility ESP",
+        "option:visuals:2:chamsExcludeAccessories:Ignore Accessories:chams",
+        "option:visuals:2:chamsPerPart:Part Highlights:chams",
+        "option:visuals:3:names:Names",
+        "option:visuals:3:health:Health",
+        "option:visuals:4:weapon:Weapons",
+        "option:visuals:4:noFlash:No Flash",
+        "option:visuals:5:noSmoke:No Smoke",
+        "option:visuals:6:utilityEsp:Utility ESP",
         "cosmetics",
     },
     "RIVALS presentation"
@@ -125,7 +127,7 @@ assertSequence(
         "aim",
         "rate:headshotRate:Headshot Rate",
         "rate:missRate:Miss Rate",
-        "section:rage:AIM:64",
+        "section:Combat:rage:AIM:64:2",
         "option:rage:1:silentAim:Silent Aim",
         "option:rage:1:wallbang:Wallbang:silentAim",
         "option:rage:2:rapidFire:Rapid Fire",
@@ -133,13 +135,13 @@ assertSequence(
         "option:rage:3:noSpread:No Spread",
         "option:rage:4:noRecoil:No Recoil",
         "option:rage:4:noWeaponSlow:No Weapon Slow",
-        "section:melee:MELEE:70",
+        "section:Combat:melee:MELEE:70:2",
         "option:melee:1:knifeAura:Knife Aura",
         "option:melee:1:microStep:Micro Step:knifeAura",
-        "section:movement:MOVEMENT:70",
+        "section:Movement:movement:MOVEMENT:70",
         "option:movement:1:spinBot:Spin Bot",
         "option:movement:1:bhop:Bunny Hop",
-        "section:visuals:VISUALS:70",
+        "section:Visuals:visuals:VISUALS:70",
         "option:visuals:1:boxes:Hitboxes",
         "option:visuals:1:chams:Chams",
         "option:visuals:2:names:Names",
@@ -194,6 +196,11 @@ for _, path in ipairs({
         )
     end
 end
+local standardPanelsSource = fs.readFile("modules/presentation/StandardPanels.lua")
+assert(
+    not standardPanelsSource:find("SECTION_PAGES", 1, true),
+    "StandardPanels must not assign a game section to a page"
+)
 local townPresentationSource = fs.readFile("games/town/Presentation.lua")
 assert(
     not townPresentationSource:find("host:aim()", 1, true),
@@ -336,14 +343,24 @@ for _ = 1, 2 do
         text = function()
             error("Minimal presentation must not construct hidden labels")
         end,
-        theme = {},
+        theme = {
+            tokens = {
+                layout = {
+                    contentTopWithTabs = 112,
+                    contentTopWithoutTabs = 72,
+                    initialHeight = 596,
+                    shellWidth = 390,
+                },
+            },
+        },
     }, {
         cosmetics = unavailablePart,
         standard = unavailablePart,
     })
     local mounted = PresentationHost.mount(runtime, MinimalPresentation)
     assert(mounted == runtime)
-    assert(runtime:layout(10, 20) == 92)
+    local minimalHeight = runtime:layout(10, 20)
+    assert(minimalHeight == 104, "Unexpected minimal shell height: " .. tostring(minimalHeight))
     runtime:render(state)
     runtime:setVisible(true)
     runtime:setMousePosition(Vector2.zero)

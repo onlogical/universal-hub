@@ -1,8 +1,50 @@
 local Presentation = {}
 
-local CONTENT_WIDTH = 276
 local OWNER_VALUE_LIMIT = 22
 local SAVE_VALUE_LIMIT = 24
+local LAYOUT = {
+    actionLabelX = 195,
+    actionLabelY = 99,
+    actionTop = 88,
+    contentInset = 20,
+    contentWidth = 350,
+    dropdownLabelInset = 36,
+    dropdownLabelTop = 43,
+    dropdownRowHeight = 32,
+    dropdownRowTop = 36,
+    ownerIndicatorX = 350,
+    ownerIndicatorY = 10,
+    ownerLabelX = 36,
+    ownerRowHeight = 36,
+    ownerTextY = 11,
+    ownerValueX = 120,
+    panelHeight = 216,
+    progressContextTop = 184,
+    progressLabelInset = 36,
+    progressPhaseTop = 168,
+    progressTrackTop = 204,
+    progressValueX = 350,
+    saveLabelX = 36,
+    saveRowTop = 44,
+    saveTextY = 55,
+    saveValueX = 98,
+    secondaryHeight = 32,
+    secondaryLabelX = 195,
+    secondaryLabelY = 142,
+    secondaryTop = 132,
+    sectionHeaderHeight = 32,
+    sectionLineX = 20,
+    sectionLineY = 24,
+    sectionWidth = 350,
+}
+
+local LAYER = {
+    background = 202,
+    control = 203,
+    foreground = 204,
+    popup = 212,
+    popupLabel = 213,
+}
 
 local function compactText(value, limit)
     value = tostring(value or "")
@@ -14,7 +56,7 @@ end
 
 local function setVisible(nodes, visible)
     for _, node in pairs(nodes or {}) do
-        if type(node) == "table" and node.Visible ~= nil then
+        if type(node) == "table" and (type(node.set) == "function" or node.Visible ~= nil) then
             node.Visible = visible
         elseif type(node) == "table" then
             setVisible(node, visible)
@@ -37,6 +79,7 @@ end
 
 local function createPanel(host)
     local colors = host:theme()
+    local tokens = assert(colors.tokens, "Presentation theme requires shared tokens")
     local controls = host:controls()
     local state = {
         connections = {},
@@ -44,6 +87,7 @@ local function createPanel(host)
         dropdownOpen = false,
         saveName = "",
         selectedOwner = nil,
+        page = "Tools",
     }
     local function node(kind, properties, pointerEvents)
         local result = host:node(kind, properties, pointerEvents)
@@ -55,109 +99,109 @@ local function createPanel(host)
 
     controls.sections.plotCopy = {
         label = text({
-            Color = colors.accent,
-            Size = 11,
+            Color = colors.text,
+            Size = tokens.type.section,
             Text = "PLOT COPY",
-            ZIndex = 203,
+            ZIndex = LAYER.control,
         }),
         line = node("Square", {
             Color = colors.border,
             Filled = true,
-            Size = Vector2.new(206, 1),
+            Size = Vector2.new(LAYOUT.sectionWidth, tokens.control.borderThickness),
             Visible = true,
-            ZIndex = 202,
+            ZIndex = LAYER.background,
         }),
     }
     local plotCopy = {
         ownerButton = node("Square", {
             Color = colors.elevated,
             Filled = true,
-            Size = Vector2.new(CONTENT_WIDTH, 30),
+            Size = Vector2.new(LAYOUT.contentWidth, LAYOUT.ownerRowHeight),
             Visible = true,
-            ZIndex = 202,
+            ZIndex = LAYER.background,
         }, true),
         ownerIndicator = text({
-            Center = true, Color = colors.secondary, Size = 12, Text = "v", ZIndex = 204,
+            Center = true, Color = colors.secondary, Size = tokens.type.label, Text = "v", ZIndex = LAYER.foreground,
         }),
         ownerLabel = text({
-            Color = colors.secondary, Size = 11, Text = "PLAYER", ZIndex = 203,
+            Color = colors.secondary, Size = tokens.type.row, Text = "PLAYER", ZIndex = LAYER.control,
         }),
         ownerOutline = node("Square", {
             Color = colors.border,
             Filled = false,
-            Size = Vector2.new(CONTENT_WIDTH, 30),
-            Thickness = 1,
-            Transparency = 0.72,
+            Size = Vector2.new(LAYOUT.contentWidth, LAYOUT.ownerRowHeight),
+            Thickness = tokens.control.borderThickness,
+            Transparency = tokens.opacity.edge,
             Visible = true,
-            ZIndex = 203,
+            ZIndex = LAYER.control,
         }),
         ownerValue = text({
-            Color = colors.secondary, Size = 12, Text = "Select a plot", ZIndex = 203,
+            Color = colors.secondary, Size = tokens.type.label, Text = "Select a plot", ZIndex = LAYER.control,
         }),
         saveButton = node("Square", {
             Color = colors.elevated,
             Filled = true,
-            Size = Vector2.new(CONTENT_WIDTH, 30),
+            Size = Vector2.new(LAYOUT.contentWidth, LAYOUT.ownerRowHeight),
             Visible = true,
-            ZIndex = 202,
+            ZIndex = LAYER.background,
         }, true),
         saveLabel = text({
-            Color = colors.secondary, Size = 11, Text = "SAVE", ZIndex = 203,
+            Color = colors.secondary, Size = tokens.type.row, Text = "SAVE", ZIndex = LAYER.control,
         }),
         saveOutline = node("Square", {
             Color = colors.border,
             Filled = false,
-            Size = Vector2.new(CONTENT_WIDTH, 30),
-            Thickness = 1,
-            Transparency = 0.72,
+            Size = Vector2.new(LAYOUT.contentWidth, LAYOUT.ownerRowHeight),
+            Thickness = tokens.control.borderThickness,
+            Transparency = tokens.opacity.edge,
             Visible = true,
-            ZIndex = 203,
+            ZIndex = LAYER.control,
         }),
         saveValue = text({
-            Color = colors.secondary, Size = 12, Text = "Enter save name", ZIndex = 203,
+            Color = colors.secondary, Size = tokens.type.label, Text = "Enter save name", ZIndex = LAYER.control,
         }),
         actionButton = node("Square", {
             Color = colors.accentSurface,
             Filled = true,
-            Size = Vector2.new(CONTENT_WIDTH, 30),
+            Size = Vector2.new(LAYOUT.contentWidth, LAYOUT.ownerRowHeight),
             Visible = true,
-            ZIndex = 202,
+            ZIndex = LAYER.background,
         }, true),
         actionLabel = text({
-            Center = true, Color = colors.accent, Size = 13, Text = "Copy & Save", ZIndex = 203,
+            Center = true, Color = colors.accent, Size = tokens.type.primary, Text = "Copy & Save", ZIndex = LAYER.control,
         }),
         secondaryButton = node("Square", {
             Color = colors.elevated,
             Filled = true,
-            Size = Vector2.new(CONTENT_WIDTH, 26),
+            Size = Vector2.new(LAYOUT.contentWidth, LAYOUT.secondaryHeight),
             Visible = false,
-            ZIndex = 202,
+            ZIndex = LAYER.background,
         }, true),
         secondaryLabel = text({
-            Center = true, Color = colors.secondary, Size = 12, Text = "", Visible = false, ZIndex = 203,
+            Center = true, Color = colors.secondary, Size = tokens.type.label, Text = "", Visible = false, ZIndex = LAYER.control,
         }),
         progressPhase = text({
-            Color = colors.secondary, Size = 11, Text = "Ready", ZIndex = 203,
+            Color = colors.secondary, Size = tokens.type.row, Text = "Ready", ZIndex = LAYER.control,
         }),
         progressContext = text({
-            Color = colors.secondary, Size = 10, Text = "", ZIndex = 203,
+            Color = colors.secondary, Size = tokens.type.meta, Text = "", ZIndex = LAYER.control,
         }),
         progressValue = text({
-            Center = true, Color = colors.secondary, Size = 11, Text = "0%", ZIndex = 203,
+            Center = true, Color = colors.secondary, Size = tokens.type.row, Text = "0%", ZIndex = LAYER.control,
         }),
         progressTrack = node("Square", {
             Color = colors.border,
             Filled = true,
-            Size = Vector2.new(CONTENT_WIDTH, 4),
+            Size = Vector2.new(LAYOUT.contentWidth, tokens.control.progressTrackHeight),
             Visible = true,
-            ZIndex = 202,
+            ZIndex = LAYER.background,
         }),
         progressFill = node("Square", {
             Color = colors.accent,
             Filled = true,
-            Size = Vector2.new(0, 4),
+            Size = Vector2.new(0, tokens.control.progressTrackHeight),
             Visible = true,
-            ZIndex = 203,
+            ZIndex = LAYER.control,
         }),
     }
     plotCopy.inputLayer = false
@@ -215,15 +259,15 @@ local function createPanel(host)
             local row = node("Square", {
                 Color = ownerName == state.selectedOwner and colors.accentSurface or colors.elevated,
                 Filled = true,
-                Size = Vector2.new(CONTENT_WIDTH, 26),
+                Size = Vector2.new(LAYOUT.contentWidth, LAYOUT.dropdownRowHeight),
                 Visible = true,
-                ZIndex = 212,
+                ZIndex = LAYER.popup,
             }, true)
             local label = text({
                 Color = ownerName == state.selectedOwner and colors.accent or colors.text,
-                Size = 12,
+                Size = tokens.type.label,
                 Text = compactText(ownerName, OWNER_VALUE_LIMIT),
-                ZIndex = 213,
+                ZIndex = LAYER.popupLabel,
             })
             row:on("click", function()
                 selectOwner(ownerName)
@@ -335,33 +379,58 @@ local function createPanel(host)
 
     function state:layout(x, _y, cursor)
         local section = controls.sections.plotCopy
-        section.label.Position = Vector2.new(x + 12, cursor)
-        section.line.Position = Vector2.new(x + 82, cursor + 7)
-        cursor = cursor + 22
+        section.label.Position = Vector2.new(x + LAYOUT.contentInset, cursor)
+        section.line.Position = Vector2.new(x + LAYOUT.sectionLineX, cursor + LAYOUT.sectionLineY)
+        cursor = cursor + LAYOUT.sectionHeaderHeight
 
-        plotCopy.ownerButton.Position = Vector2.new(x + 12, cursor)
+        plotCopy.ownerButton.Position = Vector2.new(x + LAYOUT.contentInset, cursor)
         plotCopy.ownerOutline.Position = plotCopy.ownerButton.Position
-        plotCopy.ownerLabel.Position = Vector2.new(x + 22, cursor + 9)
-        plotCopy.ownerValue.Position = Vector2.new(x + 106, cursor + 9)
-        plotCopy.ownerIndicator.Position = Vector2.new(x + 275, cursor + 8)
-        plotCopy.saveButton.Position = Vector2.new(x + 12, cursor + 36)
+        plotCopy.ownerLabel.Position = Vector2.new(x + LAYOUT.ownerLabelX, cursor + LAYOUT.ownerTextY)
+        plotCopy.ownerValue.Position = Vector2.new(x + LAYOUT.ownerValueX, cursor + LAYOUT.ownerTextY)
+        plotCopy.ownerIndicator.Position = Vector2.new(
+            x + LAYOUT.ownerIndicatorX,
+            cursor + LAYOUT.ownerIndicatorY
+        )
+        plotCopy.saveButton.Position = Vector2.new(x + LAYOUT.contentInset, cursor + LAYOUT.saveRowTop)
         plotCopy.saveOutline.Position = plotCopy.saveButton.Position
-        plotCopy.saveLabel.Position = Vector2.new(x + 22, cursor + 45)
-        plotCopy.saveValue.Position = Vector2.new(x + 82, cursor + 45)
-        plotCopy.actionButton.Position = Vector2.new(x + 12, cursor + 72)
-        plotCopy.actionLabel.Position = Vector2.new(x + 150, cursor + 80)
-        plotCopy.secondaryButton.Position = Vector2.new(x + 12, cursor + 108)
-        plotCopy.secondaryLabel.Position = Vector2.new(x + 150, cursor + 114)
-        plotCopy.progressPhase.Position = Vector2.new(x + 14, cursor + 143)
-        plotCopy.progressValue.Position = Vector2.new(x + 274, cursor + 143)
-        plotCopy.progressContext.Position = Vector2.new(x + 14, cursor + 161)
-        plotCopy.progressTrack.Position = Vector2.new(x + 12, cursor + 180)
+        plotCopy.saveLabel.Position = Vector2.new(x + LAYOUT.saveLabelX, cursor + LAYOUT.saveTextY)
+        plotCopy.saveValue.Position = Vector2.new(x + LAYOUT.saveValueX, cursor + LAYOUT.saveTextY)
+        plotCopy.actionButton.Position = Vector2.new(x + LAYOUT.contentInset, cursor + LAYOUT.actionTop)
+        plotCopy.actionLabel.Position = Vector2.new(x + LAYOUT.actionLabelX, cursor + LAYOUT.actionLabelY)
+        plotCopy.secondaryButton.Position = Vector2.new(x + LAYOUT.contentInset, cursor + LAYOUT.secondaryTop)
+        plotCopy.secondaryLabel.Position = Vector2.new(
+            x + LAYOUT.secondaryLabelX,
+            cursor + LAYOUT.secondaryLabelY
+        )
+        plotCopy.progressPhase.Position = Vector2.new(
+            x + LAYOUT.progressLabelInset,
+            cursor + LAYOUT.progressPhaseTop
+        )
+        plotCopy.progressValue.Position = Vector2.new(
+            x + LAYOUT.progressValueX,
+            cursor + LAYOUT.progressPhaseTop
+        )
+        plotCopy.progressContext.Position = Vector2.new(
+            x + LAYOUT.progressLabelInset,
+            cursor + LAYOUT.progressContextTop
+        )
+        plotCopy.progressTrack.Position = Vector2.new(
+            x + LAYOUT.contentInset,
+            cursor + LAYOUT.progressTrackTop
+        )
         plotCopy.progressFill.Position = plotCopy.progressTrack.Position
         for index, item in ipairs(self.dropdownItems) do
-            item.row.Position = Vector2.new(x + 12, cursor + 30 + (index - 1) * 26)
-            item.label.Position = Vector2.new(x + 22, cursor + 37 + (index - 1) * 26)
+            local itemOffset = (index - 1) * LAYOUT.dropdownRowHeight
+            item.row.Position = Vector2.new(
+                x + LAYOUT.contentInset,
+                cursor + LAYOUT.dropdownRowTop + itemOffset
+            )
+            item.label.Position = Vector2.new(
+                x + LAYOUT.dropdownLabelInset,
+                cursor + LAYOUT.dropdownLabelTop + itemOffset
+            )
         end
-        return cursor + 192
+        return cursor + LAYOUT.panelHeight
     end
 
     function state:setVisible(visible)
@@ -444,7 +513,10 @@ local function createPanel(host)
         plotCopy.progressContext.Color = hasError and colors.danger or colors.secondary
         plotCopy.progressValue.Text = ("%d%%"):format(math.round(progress * 100))
         plotCopy.progressValue.Color = active and colors.accent or colors.secondary
-        plotCopy.progressFill.Size = Vector2.new(CONTENT_WIDTH * progress, 4)
+        plotCopy.progressFill.Size = Vector2.new(
+            LAYOUT.contentWidth * progress,
+            tokens.control.progressTrackHeight
+        )
         plotCopy.progressFill.Color = hasError and colors.danger or colors.accent
         host:setControlColor(
             plotCopy.actionButton,

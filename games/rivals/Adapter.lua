@@ -15,10 +15,17 @@ local HookRuntime = importDependency("games/rivals/HookRuntime", "./HookRuntime"
 local WeaponPolicy = importDependency("games/rivals/WeaponPolicy", "./WeaponPolicy")
 local Effects = importDependency("games/rivals/Effects", "./Effects")
 local Movement = importDependency("games/rivals/Movement", "./Movement")
+local TaskCamera = importDependency("games/rivals/TaskCamera", "./TaskCamera")
+local TaskWeaponSwap = importDependency("games/rivals/TaskWeaponSwap", "./TaskWeaponSwap")
+local TaskSkillRuntime = importDependency("games/rivals/TaskSkillRuntime", "./TaskSkillRuntime")
+local TaskCounterPolicy = importDependency("games/rivals/TaskCounterPolicy", "./TaskCounterPolicy")
 local CombatState = importDependency("games/rivals/CombatState", "./CombatState")
 local ModePolicy = importDependency("games/rivals/ModePolicy", "./ModePolicy")
 local GunGameRuntime = importDependency("games/rivals/GunGameRuntime", "./GunGameRuntime")
 local ObservationRuntime = importDependency("games/rivals/ObservationRuntime", "./ObservationRuntime")
+local WorldPolicy = importDependency("games/rivals/WorldPolicy", "./WorldPolicy")
+local TaskFarmRuntime = importDependency("games/rivals/TaskFarmRuntime", "./TaskFarmRuntime")
+local PracticeTaskDriver = importDependency("games/rivals/PracticeTaskDriver", "./PracticeTaskDriver")
 
 local Rivals = {}
 
@@ -29,39 +36,47 @@ local SPLASH_CACHE_INTERVAL = 0.1
 local SLINGSHOT_CACHE_INTERVAL = 0.2
 local SLINGSHOT_HUMAN_AIM_MAX_SMOOTHNESS = 65
 
-function Rivals.isOpponent(localPlayer, player, character)
+function Rivals.playerTone(localPlayer, player, character)
     if player == localPlayer or not character then
-        return false
+        return nil
     end
 
     local humanoid = character:FindFirstChildOfClass("Humanoid")
     if humanoid and humanoid.Health <= 0 then
-        return false
+        return nil
     end
 
     if localPlayer:GetAttribute("EnvironmentID") ~= player:GetAttribute("EnvironmentID") then
-        return false
+        return nil
     end
 
     local localTeam = localPlayer:GetAttribute("TeamID")
     local playerTeam = player:GetAttribute("TeamID")
-    return localTeam == nil or playerTeam == nil or localTeam ~= playerTeam
+    return localTeam ~= nil and playerTeam ~= nil and localTeam == playerTeam and "team" or "enemy"
+end
+
+function Rivals.isOpponent(localPlayer, player, character)
+    return Rivals.playerTone(localPlayer, player, character) == "enemy"
 end
 
 function Rivals.capabilityContext(context)
     context = context or {}
     local duelController = context.duelController
     local player = context.player
-    if not duelController then
+    -- Capability discovery runs before Adapter.new and therefore before the
+    -- native loading-screen readiness gate. The live path must never require a
+    -- controller here; injected test/composition loaders are already isolated.
+    if not duelController and type(context.requireModule) == "function" then
         local gameObject = context.game or game
         local players = gameObject:GetService("Players")
         player = player or players.LocalPlayer
         local controllers = player.PlayerScripts:WaitForChild("Controllers")
-        local duelControllerModule = controllers:WaitForChild("DuelController")
-        duelController = (context.requireModule or require)(duelControllerModule)
+        duelController = context.requireModule(controllers:WaitForChild("DuelController"))
     end
     return {
-        isGunGame = ModePolicy.controllerIsGunGame(duelController, player),
+        isGunGame = duelController ~= nil
+            and ModePolicy.controllerIsGunGame(duelController, player)
+            or false,
     }
 end
 
@@ -158,11 +173,59 @@ function Rivals.new(context)
     local fighterControllerModule = controllers:WaitForChild("FighterController")
     local controlsControllerModule = controllers:WaitForChild("ControlsController")
     local mechanicsControllerModule = controllers:WaitForChild("MechanicsController")
+    local playerDataControllerModule
+    local matchmakingControllerModule
+    local shootingRangeControllerModule
+    if context.taskFarmRuntime == nil then
+        playerDataControllerModule = controllers:WaitForChild("PlayerDataController")
+        matchmakingControllerModule = controllers:WaitForChild("MatchmakingController")
+        shootingRangeControllerModule = controllers:WaitForChild("ShootingRangeController")
+    end
+    if context.requireModule == nil then
+        if not game:IsLoaded() then
+            game.Loaded:Wait()
+        end
+        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+        if character and not character:FindFirstChild("HumanoidRootPart") then
+            character:WaitForChild("HumanoidRootPart", 15)
+        end
+        -- game:IsLoaded() and character readiness both precede RIVALS' own
+        -- controller bootstrap. Requiring Camera/Fighter/Mechanics while its
+        -- native LoadingScreen is enabled permanently poisons those modules.
+        local playerGui = LocalPlayer:WaitForChild("PlayerGui")
+        local loadingScreen = playerGui:FindFirstChild("LoadingScreen")
+        local loadingDeadline = os.clock() + 3
+        while loadingScreen == nil and os.clock() < loadingDeadline do
+            RunService.Heartbeat:Wait()
+            loadingScreen = playerGui:FindFirstChild("LoadingScreen")
+        end
+        while loadingScreen
+            and loadingScreen.Parent ~= nil
+            and loadingScreen.Enabled == true
+        do
+            RunService.Heartbeat:Wait()
+        end
+        RunService.Heartbeat:Wait()
+    end
     local CameraController = loadModule(cameraControllerModule)
     local DuelController = loadModule(duelControllerModule)
     local FighterController = loadModule(fighterControllerModule)
     local ControlsController = loadModule(controlsControllerModule)
     local MechanicsController = loadModule(mechanicsControllerModule)
+    local PlayerDataController
+    local MatchmakingController
+    local ShootingRangeController
+    local TaskLibrary
+    local RivalsConstants
+    if context.taskFarmRuntime == nil then
+        local ReplicatedStorage = game:GetService("ReplicatedStorage")
+        local modules = ReplicatedStorage:WaitForChild("Modules")
+        PlayerDataController = context.playerDataController or loadModule(playerDataControllerModule)
+        MatchmakingController = context.matchmakingController or loadModule(matchmakingControllerModule)
+        ShootingRangeController = context.shootingRangeController or loadModule(shootingRangeControllerModule)
+        TaskLibrary = context.taskLibrary or loadModule(modules:WaitForChild("TaskLibrary"))
+        RivalsConstants = context.rivalsConstants or loadModule(modules:WaitForChild("CONSTANTS"))
+    end
     local function isGunGame()
         return ModePolicy.controllerIsGunGame(DuelController, LocalPlayer)
     end
@@ -178,6 +241,16 @@ function Rivals.new(context)
     local spawn = context.spawn or task.spawn
     local targeting = context.oh.targeting
     local store = context.store
+    if context.teleportBootstrap ~= true
+        and store:Get().settings.taskAutomationPaused ~= true
+    then
+        local state = store:Get()
+        local settings = table.clone(state.settings)
+        settings.taskAutomationPaused = true
+        store:Patch({ settings = settings })
+        if context.settingsChanged then context.settingsChanged(settings) end
+    end
+    local lastTaskPauseSetting = store:Get().settings.taskAutomationPaused == true
     local stopped = false
     local nextTriggerAt = 0
     local triggerHeld = false
@@ -186,6 +259,8 @@ function Rivals.new(context)
     local gunbladeComboState
     local fireHeld = false
     local fireHeldItem
+    local fireHeldAmmo
+    local fireHeldAmmoAt = 0
     local ricochetCache
     local splashCache
     local slingshotCache
@@ -196,7 +271,10 @@ function Rivals.new(context)
     local humanAimState
     local renderDelta = 1 / 60
     local observations = {}
-    local self = {}
+    local visualObservations = observations
+    local taskFarmRuntime
+    local taskEmergencyConnection
+    local self = { taskDebug = {} }
     local getNetworkPing = context.getNetworkPing or function()
         return LocalPlayer:GetNetworkPing()
     end
@@ -222,6 +300,61 @@ function Rivals.new(context)
         context.release()
         fireHeld = false
         fireHeldItem = nil
+        fireHeldAmmo = nil
+        fireHeldAmmoAt = 0
+    end
+
+    local taskWeaponSwap = TaskWeaponSwap.new({
+        clock = clock,
+        equip = function(fighter, item)
+            local info = item and item.Info
+            local keyCode = type(info) == "table"
+                and info.Class == "Secondary" and Enum.KeyCode.Two
+                or type(info) == "table" and info.Class == "Primary" and Enum.KeyCode.One
+                or nil
+            if keyCode and type(context.keyPress) == "function" and type(context.keyRelease) == "function" then
+                context.keyPress(keyCode.Value)
+                spawn(function()
+                    context.wait(0.05)
+                    context.keyRelease(keyCode.Value)
+                end)
+                return true
+            end
+            return fighter:EquipItem(item)
+        end,
+        weaponPolicy = WeaponPolicy,
+        release = function()
+            releaseFire()
+            if triggerHeld then
+                context.aimRelease()
+                triggerHeld = false
+                triggerHeldItem = nil
+            end
+        end,
+    })
+
+    local taskSkillRuntime = TaskSkillRuntime.new({ localPlayer = LocalPlayer })
+    local taskCounterPolicy = TaskCounterPolicy.new({ clock = clock })
+    local taskSkillWasActive = false
+    local nextCounterEquipAt = 0
+    local function publishAdaptiveRates(rates)
+        local stats = rates and rates.stats
+        local elo = stats and stats.elo
+        local level = stats and stats.level
+        local streak = stats and stats.streak
+        local label = rates and rates.ready and ("ELO %s · LVL %s · Streak %s · Head %d%% · Miss %d%%"):format(
+            type(elo) == "number" and tostring(math.floor(elo)) or "Unranked",
+            type(level) == "number" and tostring(math.floor(level)) or "?",
+            type(streak) == "number" and tostring(math.floor(streak)) or "?",
+            rates.headshotRate,
+            rates.missRate
+        ) or "Waiting for opponent"
+        local state = store:Get()
+        local current = state.taskAutomation or {}
+        if current.adaptiveLabel == label then return end
+        local updated = table.clone(current)
+        updated.adaptiveLabel = label
+        store:Patch({ taskAutomation = updated })
     end
 
     local function fighterFor(player)
@@ -256,6 +389,13 @@ function Rivals.new(context)
             and humanoid.Health > 0
     end
 
+    local function localFighterIsTaskActive()
+        local fighter = FighterController.LocalFighter
+        local entity = fighter and fighter.Entity
+        local humanoid = entity and entity.Humanoid
+        return humanoid ~= nil and humanoid.Health > 0 and not PickWeaponsPage:IsOpen()
+    end
+
     local function localFighterIsInCombat()
         local fighter = FighterController.LocalFighter
         return CombatState.isCombatEligible(
@@ -279,6 +419,7 @@ function Rivals.new(context)
 
     local suppressBhopJump = false
     local movement = Movement.new({
+        clock = clock,
         controlsController = ControlsController,
         getFighter = function()
             return FighterController.LocalFighter
@@ -287,10 +428,177 @@ function Rivals.new(context)
             return store:Get().settings
         end,
         isActive = localFighterIsActive,
+        isTaskActive = localFighterIsTaskActive,
         isInCombat = localFighterIsInCombat,
         isInputCaptured = context.isInputCaptured,
+        isTaskInputCaptured = function()
+            return context.isInputCaptured() and store:Get().menuVisible ~= true
+        end,
         mechanicsController = MechanicsController,
         movementDirection = context.movementDirection,
+        wallPhase = function(fighter, direction)
+            local entity = fighter and fighter.Entity
+            local model = entity and entity.Model
+            local root = entity and (entity.RootPart or entity.HumanoidRootPart)
+            if not model or typeof(model) ~= "Instance" or not root
+                or typeof(root.Position) ~= "Vector3" or not Workspace.Raycast
+            then
+                return false
+            end
+            local exclude = RaycastParams.new()
+            exclude.FilterType = Enum.RaycastFilterType.Exclude
+            exclude.FilterDescendantsInstances = { model }
+            exclude.IgnoreWater = true
+            local origin = root.Position + Vector3.new(0, 0.5, 0)
+            local front = Workspace:Raycast(origin, direction * 3.5, exclude)
+            if not front or not front.Instance:IsA("BasePart") or front.Instance.CanCollide ~= true
+                or math.abs(front.Normal.Y) > 0.45
+            then
+                return false
+            end
+            local include = RaycastParams.new()
+            include.FilterType = Enum.RaycastFilterType.Include
+            include.FilterDescendantsInstances = { front.Instance }
+            include.IgnoreWater = true
+            local back = Workspace:Raycast(front.Position + direction * 12, -direction * 12.2, include)
+            if not back then return false end
+            local thickness = (back.Position - front.Position):Dot(direction)
+            if thickness < 0.05 or thickness > 10 then return false end
+            local delta = direction * (thickness + 2.25)
+            model:PivotTo(model:GetPivot() + delta)
+            return true
+        end,
+        taskObstacleProbe = function(origin, direction)
+            if not Workspace.Raycast or typeof(origin) ~= "Vector3" or typeof(direction) ~= "Vector3" then
+                return false
+            end
+            local params
+            if RaycastParams and type(RaycastParams.new) == "function" then
+                params = RaycastParams.new()
+                params.FilterType = Enum.RaycastFilterType.Exclude
+                params.FilterDescendantsInstances = LocalPlayer.Character and { LocalPlayer.Character } or {}
+                params.IgnoreWater = true
+            end
+            local result = Workspace:Raycast(origin + Vector3.new(0, 2, 0), direction.Unit * 6, params)
+            return result ~= nil
+        end,
+        taskParkourProbe = function(origin, direction)
+            if not Workspace.Raycast or typeof(origin) ~= "Vector3" or typeof(direction) ~= "Vector3" then
+                return nil
+            end
+            local params
+            if RaycastParams and type(RaycastParams.new) == "function" then
+                params = RaycastParams.new()
+                params.FilterType = Enum.RaycastFilterType.Exclude
+                params.FilterDescendantsInstances = LocalPlayer.Character and { LocalPlayer.Character } or {}
+                params.IgnoreWater = true
+            end
+            local unit = direction.Magnitude > 0.01 and direction.Unit or Vector3.zero
+            local function blocked(height, length)
+                return Workspace:Raycast(origin + Vector3.new(0, height, 0), unit * length, params) ~= nil
+            end
+            local function groundAt(distance)
+                local castOrigin = origin + unit * distance + Vector3.new(0, 5, 0)
+                local result = Workspace:Raycast(castOrigin, Vector3.new(0, -13, 0), params)
+                return result and result.Normal.Y >= 0.55 and result or nil
+            end
+            local currentGround = groundAt(0)
+            local nearGround = groundAt(3)
+            local landing = groundAt(7)
+            local result = {
+                low = blocked(0.75, 4.5),
+                middle = blocked(2.5, 4.5),
+                high = blocked(4.5, 4.5),
+                landing = landing ~= nil,
+            }
+            -- Baritone's MovementParkour evaluates bounded jump distances from
+            -- shortest to longest, requiring body clearance, a walkable landing,
+            -- and overshoot safety before it creates a movement.
+            if currentGround and not nearGround then
+                local rootHeight = math.clamp(origin.Y - currentGround.Position.Y, 2, 4)
+                local fighter = FighterController.LocalFighter
+                local humanoid = fighter and fighter.Entity and fighter.Entity.Humanoid
+                local walkSpeed = humanoid and humanoid.WalkSpeed or 20
+                local jumpPower = humanoid and humanoid.JumpPower or 50
+                local gravity = Workspace.Gravity > 0 and Workspace.Gravity or 196.2
+                local maxReach = math.clamp(walkSpeed * (2 * jumpPower / gravity) * 0.82, 6, 11)
+                local lateral = Vector3.new(-unit.Z, 0, unit.X)
+                local function landingPatch(distance, center)
+                    if not center then return false end
+                    for _, offset in ipairs({
+                        lateral * 1.1,
+                        lateral * -1.1,
+                        unit * 0.9,
+                        unit * -0.9,
+                    }) do
+                        local castOrigin = origin + unit * distance + offset + Vector3.new(0, 5, 0)
+                        local patch = Workspace:Raycast(castOrigin, Vector3.new(0, -13, 0), params)
+                        if not patch or patch.Normal.Y < 0.55
+                            or math.abs(patch.Position.Y - center.Position.Y) > 0.75
+                        then
+                            return false
+                        end
+                    end
+                    return true
+                end
+                for _, distance in ipairs({ 6, 8, 10 }) do
+                    if distance > maxReach then break end
+                    local candidate = groundAt(distance)
+                    local overshoot = groundAt(distance + 2)
+                    local verticalDelta = candidate and candidate.Position.Y - currentGround.Position.Y
+                    local clearTrajectory = not blocked(2.5, distance - 1)
+                        and not blocked(4.5, distance - 1)
+                    if Workspace.Blockcast and clearTrajectory then
+                        local castFrame = CFrame.new(origin + Vector3.new(0, 1.2, 0))
+                        clearTrajectory = Workspace:Blockcast(
+                            castFrame,
+                            Vector3.new(2.4, 4.6, 2.4),
+                            unit * math.max(0, distance - 2),
+                            params
+                        ) == nil
+                    end
+                    local headClear = candidate and Workspace:Raycast(
+                        candidate.Position + Vector3.new(0, 0.35, 0),
+                        Vector3.new(0, 5.5, 0),
+                        params
+                    ) == nil
+                    if candidate and overshoot and clearTrajectory and headClear
+                        and landingPatch(distance, candidate)
+                        and verticalDelta >= -2.5 and verticalDelta <= 2
+                    then
+                        result.jumpLanding = candidate.Position + Vector3.new(0, rootHeight, 0)
+                        result.jumpDistance = distance
+                        result.jumpConfidence = 1
+                        result.landing = true
+                        break
+                    end
+                end
+            end
+            return result
+        end,
+
+        taskLineOfSightBlocked = function(origin, targetPosition)
+            if not Workspace.Raycast
+                or typeof(origin) ~= "Vector3"
+                or typeof(targetPosition) ~= "Vector3"
+            then
+                return false
+            end
+            local displacement = targetPosition - (origin + Vector3.new(0, 2, 0))
+            if displacement.Magnitude <= 4 then return false end
+            local params
+            if RaycastParams and type(RaycastParams.new) == "function" then
+                params = RaycastParams.new()
+                params.FilterType = Enum.RaycastFilterType.Exclude
+                params.FilterDescendantsInstances = LocalPlayer.Character and { LocalPlayer.Character } or {}
+                params.IgnoreWater = true
+            end
+            return Workspace:Raycast(
+                origin + Vector3.new(0, 2, 0),
+                displacement.Unit * (displacement.Magnitude - 3),
+                params
+            ) ~= nil
+        end,
         shouldSuppressJump = function()
             return suppressBhopJump
         end,
@@ -298,8 +606,12 @@ function Rivals.new(context)
         userInputService = UserInputService,
     })
 
+    local function playerTone(player, character)
+        return Rivals.playerTone(LocalPlayer, player, character)
+    end
+
     local function isOpponent(player, character)
-        return Rivals.isOpponent(LocalPlayer, player, character)
+        return playerTone(player, character) == "enemy"
     end
 
     local function isTargetable(player, character)
@@ -310,6 +622,29 @@ function Rivals.new(context)
             fighterFor(player),
             isGunGame()
         )
+    end
+
+    local function taskOpponentFighter()
+        local localEnvironment = LocalPlayer:GetAttribute("EnvironmentID")
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer
+                and player:GetAttribute("EnvironmentID") == localEnvironment
+            then
+                local fighter = fighterFor(player)
+                if fighter then return fighter, player end
+            end
+        end
+        return nil, nil
+    end
+
+    local function counterLoadoutReady(fighter)
+        local items = fighter and fighter.Items
+        if type(items) ~= "table" or next(items) == nil then return false end
+        if type(fighter.Get) == "function" then
+            local succeeded, canPick = pcall(fighter.Get, fighter, "CanPickWeapons")
+            if succeeded and canPick == true then return false end
+        end
+        return true
     end
 
     local gunGameRuntime = GunGameRuntime.new({
@@ -327,7 +662,36 @@ function Rivals.new(context)
         workspace = Workspace,
     })
 
-    local function selectTarget(maxScreenDistance, includeBlocked)
+    local function taskNavigationObservation()
+        local fighter = FighterController.LocalFighter
+        local entity = fighter and fighter.Entity
+        local localRoot = entity and (entity.RootPart or entity.HumanoidRootPart)
+        if not localRoot then return nil end
+        local nearest
+        local nearestDistance = math.huge
+        for _, player in ipairs(Players:GetPlayers()) do
+            local character = player.Character
+            local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+            local root = character and character:FindFirstChild("HumanoidRootPart")
+            if humanoid and humanoid.Health > 0 and root and isTargetable(player, character) then
+                local distance = (root.Position - localRoot.Position).Magnitude
+                if distance < nearestDistance then
+                    nearestDistance = distance
+                    nearest = {
+                        character = character,
+                        player = player,
+                        part = root,
+                        position = root.Position,
+                        screenDistance = math.huge,
+                        visible = false,
+                    }
+                end
+            end
+        end
+        return nearest
+    end
+
+    local function selectTarget(maxScreenDistance, includeBlocked, ignoreAimFov)
         local settings = store:Get().settings
         local options = {
             includeBlocked = includeBlocked,
@@ -336,7 +700,7 @@ function Rivals.new(context)
         }
         if maxScreenDistance then
             options.maxScreenDistance = maxScreenDistance
-        elseif not settings.fullScreenAim then
+        elseif not ignoreAimFov and not settings.fullScreenAim then
             options.maxScreenDistance = settings.fov
         end
         local function nearest(values)
@@ -550,16 +914,18 @@ function Rivals.new(context)
         return result
     end
 
-    local function plannedAimTarget(target, item)
+    local function plannedAimTarget(target, item, rateOverrides)
         local now = clock()
         local settings = store:Get().settings
+        local headshotRate = rateOverrides and rateOverrides.headshotRate or settings.headshotRate
+        local missRate = rateOverrides and rateOverrides.missRate or settings.missRate
         local options = headAimOptions()
         if aimPlan
             and aimPlan.character == target.character
-            and aimPlan.headshotRate == settings.headshotRate
+            and aimPlan.headshotRate == headshotRate
             and aimPlan.humanAim == settings.humanAim
             and aimPlan.item == item
-            and aimPlan.missRate == settings.missRate
+            and aimPlan.missRate == missRate
             and now < aimPlan.expiresAt
         then
             local refreshed = table.clone(target)
@@ -599,14 +965,20 @@ function Rivals.new(context)
         local cooldown = type(info) == "table"
                 and (info.ShootCooldown or info.AttackCooldown or info.ChargeReleaseCooldown)
             or TRIGGER_INTERVAL
-        local planned = Targeting.applyAimRates(target, settings, random, options)
+        local aimSettings = settings
+        if rateOverrides then
+            aimSettings = table.clone(settings)
+            aimSettings.headshotRate = headshotRate
+            aimSettings.missRate = missRate
+        end
+        local planned = Targeting.applyAimRates(target, aimSettings, random, options)
         aimPlan = {
             character = target.character,
             expiresAt = now + math.max(TRIGGER_INTERVAL, cooldown or TRIGGER_INTERVAL),
-            headshotRate = settings.headshotRate,
+            headshotRate = headshotRate,
             humanAim = settings.humanAim,
             item = item,
-            missRate = settings.missRate,
+            missRate = missRate,
             target = planned,
         }
         return planned
@@ -643,6 +1015,7 @@ function Rivals.new(context)
         getFighter = function()
             return FighterController.LocalFighter
         end,
+        getPlayerTone = playerTone,
         isOpponent = isOpponent,
         targeting = targeting,
         workspace = Workspace,
@@ -650,8 +1023,19 @@ function Rivals.new(context)
 
     local function setAimRotation(rotation, instant, character, maximumHumanSmoothness)
         local applied = rotation
+        local function commitCameraFrame(committedRotation)
+            local camera = Workspace.CurrentCamera
+            if not camera then return end
+
+            -- SetRotation can be ignored while the native subject is frozen (for
+            -- example while a modal menu is open).  This adapter owns the final
+            -- task-combat render step, so also commit the requested orientation
+            -- directly while preserving the native camera position.
+            TaskCamera.commit(camera, committedRotation)
+        end
         if instant then
             CameraController:SetRotation(rotation)
+            commitCameraFrame(rotation)
             return true
         end
         local settings = store:Get().settings
@@ -685,24 +1069,29 @@ function Rivals.new(context)
             )
         end
         CameraController:SetRotation(applied)
+        commitCameraFrame(applied)
         local pitchError = math.abs(rotation.X - applied.X)
         local yawError = math.abs((rotation.Y - applied.Y + math.pi) % (math.pi * 2) - math.pi)
         return math.max(pitchError, yawError) <= math.rad(0.5)
     end
 
-    local function alignCamera(shotOnly)
+    local function alignCamera(shotOnly, taskCombatActive)
         local settings = store:Get().settings
-        local enabled = shotOnly and settings.shotAim
-            or (settings.silentAim and not settings.shotAim)
+        local cameraAimEnabled = settings.silentAim == true or taskCombatActive == true
+        local enabled = shotOnly and settings.shotAim == true
+            or (cameraAimEnabled and settings.shotAim ~= true)
+        local fighterActive = taskCombatActive == true
+            and localFighterIsTaskActive()
+            or localFighterIsActive()
         if not enabled
-            or context.isInputCaptured()
-            or not localFighterIsActive()
+            or (context.isInputCaptured() and taskCombatActive ~= true)
+            or not fighterActive
             or not localFighterIsInCombat()
         then
-            if not settings.silentAim
-                and not settings.shotAim
-                or context.isInputCaptured()
-                or not localFighterIsActive()
+            if not cameraAimEnabled
+                and settings.shotAim ~= true
+                or (context.isInputCaptured() and taskCombatActive ~= true)
+                or not fighterActive
                 or not localFighterIsInCombat()
             then
                 aimTargetKey = nil
@@ -748,15 +1137,27 @@ function Rivals.new(context)
                 aimTargetKey = nil
                 aimTargetWeapon = item
             end
-            target = selectTarget(nil, energyRifle or slingshot or splashProjectile)
+            target = selectTarget(
+                nil,
+                energyRifle or slingshot or splashProjectile,
+                taskCombatActive == true
+            )
+            if not target and taskCombatActive == true then
+                target = taskNavigationObservation()
+            end
         end
         local camera = Workspace.CurrentCamera
         if not target or not camera then
+            self.taskDebug.aimStage = not camera and "no-camera" or "no-target"
             if not target then
                 aimTargetKey = nil
             end
             return nil
         end
+        self.taskDebug.aimStage = "target-selected"
+        self.taskDebug.targetVisible = target.visible == true
+        self.taskDebug.targetHealth = target.health
+        self.taskDebug.targetDistance = target.distance
         if not knife then
             aimTargetKey = target.character or target.player or target.part
         end
@@ -764,6 +1165,22 @@ function Rivals.new(context)
         local cameraFrame = camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame
         local origin = cameraFrame.Position
         local now = clock()
+        if taskCombatActive == true
+            and not knife
+            and target.visible ~= true
+            and typeof(target.position) == "Vector3"
+        then
+            local aligned = table.clone(target)
+            aligned.aimSettled = settleAim(
+                Targeting.rotationToward(origin, target.position),
+                false,
+                target.character
+            )
+            aligned.navigationOnly = true
+            self.taskDebug.aimStage = "navigation-only"
+            self.taskDebug.aimSettled = aligned.aimSettled
+            return aligned
+        end
         if knife then
             local plan = target.backstabPlan
             local aimSettled = settleAim(
@@ -781,7 +1198,20 @@ function Rivals.new(context)
             aligned.knifePath = plan.path
             return aligned
         end
-        target = plannedAimTarget(target, item)
+        local taskRates
+        if taskCombatActive == true then
+            local observedRates = taskSkillRuntime:update(
+                entity and entity.Humanoid,
+                target,
+                renderDelta
+            )
+            self.taskDebug.adaptiveRates = observedRates
+            publishAdaptiveRates(observedRates)
+            if observedRates.ready == true then taskRates = observedRates end
+        end
+        target = plannedAimTarget(target, item, taskRates)
+        self.taskDebug.aimStage = "planned"
+        self.taskDebug.intentionalMiss = target.intentionalMiss == true
 
         if slingshot and target.position then
             local cacheValid = slingshotCache
@@ -1020,13 +1450,16 @@ function Rivals.new(context)
         hookRuntime:refresh()
     end
 
-    local function runTriggerBot(alignedTarget)
+    local function runTriggerBot(alignedTarget, taskCombatActive)
         local settings = store:Get().settings
-        if not settings.triggerBot
-            or context.isInputCaptured()
-            or not localFighterIsActive()
+        self.taskDebug.triggerStage = "entered"
+        self.taskDebug.triggerAt = clock()
+        if settings.triggerBot ~= true and taskCombatActive ~= true
+            or (context.isInputCaptured() and taskCombatActive ~= true)
+            or not (taskCombatActive == true and localFighterIsTaskActive() or localFighterIsActive())
             or not localFighterIsInCombat()
         then
+            self.taskDebug.triggerStage = "inactive"
             gunbladeComboState = nil
             releaseFire()
             if triggerHeld then
@@ -1039,6 +1472,7 @@ function Rivals.new(context)
         local fighter = FighterController.LocalFighter
         local item = fighter and fighter.EquippedItem
         if WeaponPolicy.automationPolicy(item).triggerBot ~= true then
+            self.taskDebug.triggerStage = "unsupported-weapon"
             gunbladeComboState = nil
             aimPlan = nil
             releaseFire()
@@ -1058,6 +1492,7 @@ function Rivals.new(context)
                 and not alignedTarget.splashImpact
                 and not alignedTarget.projectileAim
             if not humanReticleReady then
+                self.taskDebug.triggerStage = "aim-settling"
                 releaseFire()
                 return
             end
@@ -1077,6 +1512,7 @@ function Rivals.new(context)
             end
         end
         if not target or not target.visible then
+            self.taskDebug.triggerStage = not target and "no-target" or "target-not-visible"
             gunbladeComboState = nil
             releaseFire()
             if triggerHeld then
@@ -1095,7 +1531,11 @@ function Rivals.new(context)
             releaseFire()
             return
         end
-        if isDeflecting(target.player) then
+        local targetFighter = target.player and fighterFor(target.player)
+        local sprayCounter = targetFighter
+            and TaskCounterPolicy.shouldForceSpray(item, targetFighter.Items)
+        if isDeflecting(target.player) and not sprayCounter then
+            self.taskDebug.triggerStage = "target-deflecting"
             gunbladeComboState = nil
             releaseFire()
             if triggerHeld then
@@ -1197,7 +1637,10 @@ function Rivals.new(context)
         local targetDistance = cameraFrame
             and target.position
             and (target.position - cameraFrame.Position).Magnitude
-        if targetDistance and not WeaponPolicy.triggerDamageReady(item, target, targetDistance) then
+        if targetDistance and not sprayCounter
+            and not WeaponPolicy.triggerDamageReady(item, target, targetDistance)
+        then
+            self.taskDebug.triggerStage = "damage-gate"
             releaseFire()
             return
         end
@@ -1211,9 +1654,12 @@ function Rivals.new(context)
             sniperCrouching,
             settings.alwaysScoped == true
         ) then
+            self.taskDebug.triggerStage = "precision-gate"
             releaseFire()
             return
         end
+        self.taskDebug.triggerStage = "ready"
+        self.taskDebug.triggerDistance = targetDistance
         if item and item.Name == "Revolver" then
             releaseFire()
             local action =
@@ -1279,10 +1725,30 @@ function Rivals.new(context)
         end
         if WeaponPolicy.holdToFire(item) then
             if not WeaponPolicy.adsSettled(CameraController, item) then
+                self.taskDebug.triggerStage = "ads-gate"
                 releaseFire()
                 return
             end
             if fireHeld and fireHeldItem == item then
+                local currentAmmo = WeaponPolicy.ammo(item)
+                if currentAmmo ~= fireHeldAmmo then
+                    fireHeldAmmo = currentAmmo
+                    fireHeldAmmoAt = clock()
+                    return
+                end
+                local restartAfter = math.max(
+                    0.35,
+                    (type(item.Info) == "table" and item.Info.ShootCooldown or TRIGGER_INTERVAL) * 3
+                )
+                if clock() - fireHeldAmmoAt < restartAfter then
+                    self.taskDebug.triggerStage = "holding-fire"
+                    return
+                end
+                -- Freeze Ray and similar native interruptions can cancel the
+                -- weapon while the synthetic mouse state remains held. Pulse
+                -- the normal input boundary to resume once control returns.
+                releaseFire()
+                nextTriggerAt = clock() + 0.03
                 return
             end
             releaseFire()
@@ -1291,7 +1757,10 @@ function Rivals.new(context)
             end
             fireHeld = true
             fireHeldItem = item
+            fireHeldAmmo = WeaponPolicy.ammo(item)
+            fireHeldAmmoAt = clock()
             context.press()
+            self.taskDebug.triggerStage = "pressed-fire"
             aimPlan = nil
             return
         end
@@ -1301,80 +1770,592 @@ function Rivals.new(context)
             return
         end
 
-        nextTriggerAt = clock() + TRIGGER_INTERVAL
+        nextTriggerAt = clock() + (sprayCounter
+            and math.max(TRIGGER_INTERVAL, item.Info.ShootCooldown or TRIGGER_INTERVAL)
+            or TRIGGER_INTERVAL)
         context.click()
+        self.taskDebug.triggerStage = "clicked-fire"
         aimPlan = nil
     end
 
-    local renderConnection = RunService.RenderStepped:Connect(function(deltaTime)
+    local function taskMovementPosition(alignedTarget)
+        local position = targetRootPosition(alignedTarget)
+        if typeof(position) == "Vector3" then return position end
+        local fighter = FighterController.LocalFighter
+        local entity = fighter and fighter.Entity
+        local localRoot = entity and (entity.RootPart or entity.HumanoidRootPart)
+        if not localRoot then return nil end
+        local nearestPosition
+        local nearestDistance = math.huge
+        for _, player in ipairs(Players:GetPlayers()) do
+            local character = player.Character
+            local root = character and character:FindFirstChild("HumanoidRootPart")
+            if root and isTargetable(player, character) then
+                local distance = (root.Position - localRoot.Position).Magnitude
+                if distance < nearestDistance then
+                    nearestDistance = distance
+                    nearestPosition = root.Position
+                end
+            end
+        end
+        return nearestPosition
+    end
+
+    local renderConnection
+    local renderBindingName = "UniversalHubRivalsFrame"
+    local settingsSubscription
+    local ensureTaskLoadoutPoll
+    local function updateFrame(deltaTime)
         if stopped then
             return
         end
-        refreshHooks()
+        local settings = store:Get().settings
+        if ensureTaskLoadoutPoll then ensureTaskLoadoutPoll() end
+        local taskCombatActive = taskFarmRuntime
+            and taskFarmRuntime:isCombatActive() == true
+        if taskCombatActive ~= taskSkillWasActive then
+            taskSkillRuntime:reset()
+            taskSkillWasActive = taskCombatActive
+        end
+        if settings.shotAim == true or settings.alwaysScoped == true then
+            refreshHooks()
+        end
         if type(deltaTime) == "number" and deltaTime > 0 then
             renderDelta = deltaTime
         end
 
-        gunGameRuntime:update()
-        local settings = store:Get().settings
+        if settings.autoPickup == true then
+            gunGameRuntime:update()
+        end
+        local limnVisualsEnabled = settings.worldRenderer ~= "native"
+            and (settings.boxes == true
+                or settings.chams == true
+                or settings.names == true
+                or settings.health == true
+                or settings.weapon == true)
         local observationsEnabled = settings.silentAim == true
             or settings.shotAim == true
             or settings.triggerBot == true
-            or settings.boxes == true
+            or taskCombatActive
+            or limnVisualsEnabled
+        if observationsEnabled then
+            observations, visualObservations = observationRuntime:update(
+                UserInputService:GetMouseLocation(),
+                settings.showTeammates == true,
+                settings.showEnemies ~= false
+            )
+        elseif #observations > 0 or #visualObservations > 0 then
+            observations = {}
+            visualObservations = observations
+        end
+        local utilityObservations = {}
+        local taskHazards = utilityObservations
+        local fighter = FighterController.LocalFighter
+        if (settings.utilityEsp == true or taskCombatActive)
+            and localFighterIsInCombat()
+            and Workspace.CurrentCamera
+        then
+            local data = fighter and fighter.Data
+            local environmentID = type(data) == "table" and data.EnvironmentID
+                or LocalPlayer:GetAttribute("EnvironmentID")
+            taskHazards = observeThrowables(Workspace.CurrentCamera, environmentID)
+            if settings.utilityEsp == true then utilityObservations = taskHazards end
+        end
+        if not settingsSubscription then
+            effects:update(settings)
+        end
+        local renderObservations = settings.worldRenderer == "native"
+            and {}
+            or visualObservations
+        context.render(renderObservations, UserInputService:GetMouseLocation(), utilityObservations)
+
+        local alignedTarget
+        local aimEnabled = settings.silentAim == true
+            or settings.shotAim == true
+            or taskCombatActive
+        if aimEnabled then
+            alignedTarget = alignCamera(false, taskCombatActive)
+            if not alignedTarget and settings.shotAim then
+                alignedTarget = alignCamera(true, taskCombatActive)
+            end
+        end
+        local taskWeaponDistance
+        local taskRoot = fighter and fighter.Entity
+            and (fighter.Entity.RootPart or fighter.Entity.HumanoidRootPart)
+        local taskTargetPosition = alignedTarget and targetRootPosition(alignedTarget)
+        if taskRoot and taskTargetPosition then
+            taskWeaponDistance = (taskTargetPosition - taskRoot.Position).Magnitude
+        end
+        movement:updateInfiniteJump(settings)
+        movement:updateWallNoclip(settings)
+        movement:updateWallPhase(settings)
+        local taskTactical
+        if taskCombatActive and alignedTarget and alignedTarget.player then
+            local opponentFighter = fighterFor(alignedTarget.player)
+            local opponentItem = opponentFighter and opponentFighter.EquippedItem
+            taskTactical = {
+                pushSniper = WeaponPolicy.isScoped(opponentItem),
+                avoidSniperPeek = WeaponPolicy.isScoped(opponentItem)
+                    and WeaponPolicy.isAiming(opponentItem),
+            }
+        end
+        local counterSwitching = false
+        if taskCombatActive and alignedTarget and alignedTarget.player then
+            local opponentFighter = fighterFor(alignedTarget.player)
+            local counterActive = counterLoadoutReady(opponentFighter)
+                and taskCounterPolicy:update(opponentFighter.Items)
+                or false
+            if counterActive and fighter and fighter.EquippedItem
+                and fighter.EquippedItem.Name ~= "Spray"
+                and clock() >= nextCounterEquipAt
+            then
+                local spray
+                for key, value in pairs(fighter.Items or {}) do
+                    local item = type(value) == "table" and value or type(key) == "table" and key or nil
+                    if item and item.Name == "Spray" and (WeaponPolicy.ammo(item) or 0) > 0 then spray = item; break end
+                end
+                if spray and type(context.keyPress) == "function" and type(context.keyRelease) == "function" then
+                    releaseFire()
+                    context.keyPress(Enum.KeyCode.Two.Value)
+                    spawn(function()
+                        context.wait(0.05)
+                        context.keyRelease(Enum.KeyCode.Two.Value)
+                    end)
+                    nextCounterEquipAt = clock() + 0.75
+                    counterSwitching = true
+                    self.taskDebug.counterWeapon = "Spray"
+                end
+            end
+        end
+        local taskWeaponSwapping = counterSwitching or taskWeaponSwap:update(
+            taskCombatActive,
+            fighter,
+            alignedTarget,
+            taskWeaponDistance
+        )
+        if taskWeaponSwapping then alignedTarget = nil end
+        local triggerTarget = alignedTarget
+        if settings.shotAim then
+            triggerTarget = updateShotAimPresentation(alignedTarget)
+        elseif not settingsSubscription then
+            shotPresentation:clear()
+        end
+        if taskCombatActive then
+            movement:updateTaskCombat(
+                taskMovementPosition(alignedTarget),
+                taskHazards,
+                taskTactical
+            )
+            self.taskDebug.parkour = movement.taskParkourCommit and "committed" or "grounded-route"
+        else
+            movement:stopTaskCombat()
+        end
+        if settings.bhop == true then
+            suppressBhopJump = WeaponPolicy.isBackstabKnife(
+                fighter and fighter.EquippedItem
+            )
+                and alignedTarget ~= nil
+                and alignedTarget.knifePath ~= nil
+            movement:update(settings)
+        elseif not settingsSubscription then
+            suppressBhopJump = false
+            movement:stop()
+        end
+        if aimEnabled then
+            local trajectory = alignedTarget
+                and ((alignedTarget.ricochet and alignedTarget.ricochet.path)
+                    or (alignedTarget.slingshot and alignedTarget.slingshot.path)
+                    or alignedTarget.knifePath)
+            effects:renderTrajectory(trajectory)
+        elseif not settingsSubscription then
+            effects:renderTrajectory(nil)
+        end
+        if settings.triggerBot == true
+            or taskCombatActive
+            or triggerHeld
+            or fireHeld
+            or not settingsSubscription
+        then
+            runTriggerBot(triggerTarget, taskCombatActive)
+        end
+    end
+
+    local reconcileFrameLifecycle
+    local reconcileTaskEmergency
+    local TASK_STATE_LABELS = {
+        idle = "Idle",
+        paused = "Paused",
+        queueing = "Joining matchmaking",
+        queued = "Queued",
+        combat = "Active round",
+        ["duel-waiting"] = "Waiting for round",
+        ["target-combat"] = "Breaking targets",
+        ["waiting-native"] = "Waiting for progress",
+        ["retry-exhausted"] = "Needs attention",
+        ["unsupported-boundary"] = "Action unavailable",
+        ["action-rejected"] = "Retrying action",
+    }
+    local function taskStatusChanged(status)
+        status = status or {}
+        local taskRecord = status.task
+        local taskLabel = "No supported task"
+        if taskRecord then
+            taskLabel = tostring(taskRecord.title or taskRecord.name or "Task")
+            if type(taskRecord.progress) == "number" and type(taskRecord.goal) == "number" then
+                taskLabel ..= (" · %d/%d"):format(taskRecord.progress, taskRecord.goal)
+            end
+        end
+        local current = store:Get().taskAutomation or {}
+        local nextState = {
+            adaptiveLabel = current.adaptiveLabel or "Waiting for opponent",
+            state = status.state or "idle",
+            statusLabel = TASK_STATE_LABELS[status.state] or tostring(status.state or "Idle"),
+            taskLabel = taskLabel,
+        }
+        if current.state ~= nextState.state
+            or current.statusLabel ~= nextState.statusLabel
+            or current.taskLabel ~= nextState.taskLabel
+            or current.adaptiveLabel ~= nextState.adaptiveLabel
+        then
+            store:Patch({ taskAutomation = nextState })
+        end
+        if reconcileTaskEmergency then reconcileTaskEmergency(status) end
+    end
+    local function taskActivityChanged(_, status)
+        taskStatusChanged(status)
+        if reconcileFrameLifecycle then
+            reconcileFrameLifecycle(store:Get())
+        end
+    end
+    local practiceTaskDriver = context.practiceTaskDriver
+    if practiceTaskDriver == nil and context.taskFarmRuntime == nil then
+        practiceTaskDriver = PracticeTaskDriver.new({
+            getFighter = function() return FighterController.LocalFighter end,
+            actions = {
+                enterRange = function()
+                    local result = ShootingRangeController:Enter()
+                    return result ~= false
+                end,
+                slide = function()
+                    local fighter = FighterController.LocalFighter
+                    if not fighter or type(fighter.CanSlide) ~= "function" or fighter:CanSlide() ~= true then
+                        return false
+                    end
+                    MechanicsController:Slide()
+                    return true
+                end,
+                equip = function(name)
+                    local fighter = FighterController.LocalFighter
+                    if not fighter or type(fighter.GetItem) ~= "function" or type(fighter.EquipItem) ~= "function" then
+                        return false
+                    end
+                    local item = fighter:GetItem(name)
+                    if not item then return false end
+                    local result = fighter:EquipItem(item)
+                    return result ~= false
+                end,
+                secondary = function() context.aimClick(); return true end,
+                primary = function() context.click(); return true end,
+                releaseAll = function()
+                    if triggerHeld then context.aimRelease(); triggerHeld = false end
+                    releaseFire()
+                end,
+            },
+        })
+    end
+    taskFarmRuntime = context.taskFarmRuntime or TaskFarmRuntime.new({
+        constants = RivalsConstants,
+        duelController = DuelController,
+        fighterController = FighterController,
+        localPlayer = LocalPlayer,
+        matchmakingController = MatchmakingController,
+        playerDataController = PlayerDataController,
+        practiceDriver = practiceTaskDriver,
+        taskLibrary = TaskLibrary,
+        paused = store:Get().settings.taskAutomationPaused == true,
+        onActivityChanged = taskActivityChanged,
+        onStatusChanged = taskStatusChanged,
+    })
+    if type(taskFarmRuntime.setActivityChanged) == "function" then
+        taskFarmRuntime:setActivityChanged(taskActivityChanged)
+    end
+    if type(taskFarmRuntime.setStatusChanged) == "function" then
+        taskFarmRuntime:setStatusChanged(taskStatusChanged)
+    end
+    local function currentTaskStatus()
+        if type(taskFarmRuntime.status) == "function" then return taskFarmRuntime:status() end
+        return { state = "idle", paused = false, task = nil }
+    end
+    taskStatusChanged(currentTaskStatus())
+    self.taskFarmRuntime = taskFarmRuntime
+
+    local loadoutPollConnection
+    local loadoutOpenConnection
+    local loadoutVisibleConnection
+    local loadoutPlan
+    local loadoutIndex = 1
+    local loadoutNextAt = 0
+    local loadoutWasOpen = false
+    local loadoutClickAttempts = 0
+    local function stopLoadoutPoll()
+        loadoutPlan = nil
+        loadoutIndex = 1
+        loadoutNextAt = 0
+        loadoutWasOpen = false
+        loadoutClickAttempts = 0
+    end
+    local function normalizedWeaponLabel(value)
+        return string.lower((tostring(value or ""):gsub("^%s+", ""):gsub("%s+$", ""):gsub("%s+", " ")))
+    end
+    local function findWeaponButton(name)
+        local expected = normalizedWeaponLabel(name)
+        local fallback
+        for _, descendant in ipairs(PickWeaponsPage.List:GetDescendants()) do
+            if (descendant:IsA("TextLabel") or descendant:IsA("TextButton"))
+                and normalizedWeaponLabel(descendant.Text) == expected
+            then
+                local current = descendant
+                while current and current ~= PickWeaponsPage.List do
+                    if current:IsA("GuiButton") then
+                        fallback = fallback or current
+                        if current.Visible and current.AbsoluteSize.X > 0 and current.AbsoluteSize.Y > 0 then
+                            return current
+                        end
+                        break
+                    end
+                    current = current.Parent
+                end
+            end
+        end
+        return fallback
+    end
+    ensureTaskLoadoutPoll = function()
+        if not PickWeaponsPage:IsOpen() then
+            if loadoutWasOpen then stopLoadoutPoll() end
+            return
+        end
+        if not loadoutWasOpen then
+            loadoutWasOpen = true
+            loadoutPlan = nil
+            loadoutIndex = 1
+            loadoutNextAt = 0
+            loadoutClickAttempts = 0
+            self.taskDebug.loadoutStage = "reading-opponent"
+            self.taskDebug.loadoutError = nil
+        end
+        self.taskDebug.loadoutHeartbeat = clock()
+        local status = taskFarmRuntime:status()
+        if status.paused or not TaskPolicy.requiresCombat(status.task) then return end
+        if not loadoutPlan then
+            local opponentFighter = taskOpponentFighter()
+            local opponentItems = opponentFighter and opponentFighter.Items or {}
+            local rawCounter = TaskCounterPolicy.hasShieldOrKatana(opponentItems)
+            local counterActive = taskCounterPolicy:update(opponentItems)
+            local useCounter = rawCounter or counterActive
+            local secondary = useCounter and "Spray" or "Handgun"
+            loadoutPlan = { "Assault Rifle", secondary, "Fists", "Grenade" }
+            self.taskDebug.loadoutStage = useCounter and "selecting-counter" or "selecting-default"
+        end
+        local desired = loadoutPlan[loadoutIndex]
+        if not desired then
+            self.taskDebug.counterLoadout = "Assault Rifle + " .. loadoutPlan[2]
+            self.taskDebug.loadoutStage = "submitted"
+            return
+        end
+        if PickWeaponsPage._chosen_weapons[loadoutIndex] == desired then
+            loadoutIndex += 1
+            loadoutNextAt = 0
+            loadoutClickAttempts = 0
+            if loadoutPlan[loadoutIndex] == nil then
+                self.taskDebug.counterLoadout = "Assault Rifle + " .. loadoutPlan[2]
+                self.taskDebug.loadoutStage = "submitted"
+            end
+            return
+        end
+        if clock() < loadoutNextAt then return end
+        if type(context.fireSignal) ~= "function" then
+            self.taskDebug.loadoutStage = "error"
+            self.taskDebug.loadoutError = "firesignal unavailable"
+            return
+        end
+        local button = findWeaponButton(desired)
+        if not button then
+            self.taskDebug.loadoutStage = "waiting-button"
+            self.taskDebug.loadoutError = desired
+            loadoutNextAt = clock() + 0.1
+            return
+        end
+        loadoutClickAttempts += 1
+        self.taskDebug.loadoutStage = "clicking-" .. desired
+        self.taskDebug.loadoutClickAttempts = loadoutClickAttempts
+        self.taskDebug.loadoutButton = button:GetFullName()
+        local succeeded, loadoutError = pcall(context.fireSignal, button.MouseButton1Click)
+        if not succeeded then
+            self.taskDebug.loadoutStage = "error"
+            self.taskDebug.loadoutError = tostring(loadoutError)
+        elseif loadoutClickAttempts >= 8 then
+            self.taskDebug.loadoutStage = "retrying-" .. desired
+            self.taskDebug.loadoutError = "selection not acknowledged"
+            loadoutClickAttempts = 0
+        end
+        loadoutNextAt = clock() + 0.12
+    end
+
+    reconcileTaskEmergency = function(status)
+        status = status or currentTaskStatus()
+        local armed = status.task ~= nil
+            and status.paused ~= true
+            and status.state ~= "idle"
+            and status.state ~= "stopped"
+        if not armed then
+            if taskEmergencyConnection then taskEmergencyConnection:Disconnect(); taskEmergencyConnection = nil end
+            return
+        end
+        if taskEmergencyConnection then return end
+        taskEmergencyConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if gameProcessed then return end
+            local keyCode = input and input.KeyCode
+            local pressedName = keyCode and keyCode.Name
+            local currentState = store:Get()
+            local settings = currentState.settings or {}
+            if pressedName ~= (settings.taskAutomationEmergencyKey or "End") then return end
+            local updated = table.clone(settings)
+            updated.taskAutomationPaused = true
+            store:Patch({ settings = updated })
+            if type(context.settingsChanged) == "function" then context.settingsChanged(updated) end
+        end)
+    end
+    reconcileTaskEmergency(currentTaskStatus())
+
+    local function frameWorkEnabled(state)
+        local settings = state.settings or {}
+        local playerVisuals = settings.boxes == true
             or settings.chams == true
             or settings.names == true
             or settings.health == true
             or settings.weapon == true
-        if observationsEnabled then
-            observations = observationRuntime:update(UserInputService:GetMouseLocation())
-        elseif #observations > 0 then
-            observations = {}
-        end
-        local utilityObservations = {}
-        local fighter = FighterController.LocalFighter
-        local data = fighter and fighter.Data
-        if (settings.utilityEsp or settings.noSmoke)
-            and localFighterIsInCombat()
-            and Workspace.CurrentCamera
+        local playerFrame = playerVisuals
+            and (settings.worldRenderer ~= "native" or state.menuVisible ~= false)
+        return taskFarmRuntime:isCombatActive() == true
+            or PickWeaponsPage:IsOpen()
+            or settings.silentAim == true
+            or settings.shotAim == true
+            or settings.triggerBot == true
+            or settings.alwaysScoped == true
+            or settings.bhop == true
+            or settings.infiniteJump == true
+            or settings.wallNoclip == true
+            or settings.wallPhase == true
+            or settings.autoPickup == true
+            or settings.utilityEsp == true
+            or settings.fovCircle == true
+            or playerFrame
+    end
+
+    local function connectFrame()
+        if renderConnection then return end
+        if context.requireModule == nil
+            and type(RunService.BindToRenderStep) == "function"
+            and type(RunService.UnbindFromRenderStep) == "function"
         then
-            local environmentID = type(data) == "table" and data.EnvironmentID
-                or LocalPlayer:GetAttribute("EnvironmentID")
-            local observedUtilities = observeThrowables(Workspace.CurrentCamera, environmentID)
-            if settings.utilityEsp then
-                utilityObservations = observedUtilities
+            local priority = Enum.RenderPriority.Last.Value
+            RunService:BindToRenderStep(renderBindingName, priority, updateFrame)
+            renderConnection = {
+                Disconnect = function()
+                    RunService:UnbindFromRenderStep(renderBindingName)
+                end,
+            }
+        else
+            renderConnection = RunService.RenderStepped:Connect(updateFrame)
+        end
+    end
+
+    local function disconnectFrame()
+        if renderConnection then
+            renderConnection:Disconnect()
+            renderConnection = nil
+        end
+    end
+
+    reconcileFrameLifecycle = function(state)
+        if stopped then
+            return
+        end
+        local settings = state.settings or {}
+        local pausedSetting = settings.taskAutomationPaused == true
+        if pausedSetting ~= lastTaskPauseSetting then
+            local wasPaused = lastTaskPauseSetting
+            lastTaskPauseSetting = pausedSetting
+            if type(context.settingsChanged) == "function" then
+                context.settingsChanged(settings)
+            end
+            -- Starting the farm closes the hub once. Subsequent manual menu
+            -- opens are respected while farming remains active.
+            if wasPaused and not pausedSetting and state.menuVisible ~= false then
+                store:Patch({ menuVisible = false })
+                return
+            end
+        end
+        if type(taskFarmRuntime.status) == "function" then
+            local taskStatus = taskFarmRuntime:status()
+            if settings.taskAutomationPaused == true and not taskStatus.paused then
+                taskFarmRuntime:pause("user")
+            elseif settings.taskAutomationPaused ~= true
+                and taskStatus.paused
+                and taskStatus.reason == "user"
+            then
+                taskFarmRuntime:resume()
             end
         end
         effects:update(settings)
-        context.render(observations, UserInputService:GetMouseLocation(), utilityObservations)
-        local alignedTarget = alignCamera()
-        if not alignedTarget and settings.shotAim then
-            alignedTarget = alignCamera(true)
+        refreshHooks()
+        if frameWorkEnabled(state) then
+            connectFrame()
+            return
         end
-        local triggerTarget = alignedTarget
-        if settings.shotAim then
-            triggerTarget = updateShotAimPresentation(alignedTarget)
-        else
-            shotPresentation:clear()
+        disconnectFrame()
+        context.render({}, UserInputService:GetMouseLocation(), {})
+        movement:stop()
+        movement:stopWallNoclip()
+        effects:renderTrajectory(nil)
+        shotPresentation:clear()
+        runTriggerBot(nil, false)
+    end
+
+    local function loadoutVisibilityChanged()
+        if stopped then return end
+        if PickWeaponsPage:IsOpen() then
+            if ensureTaskLoadoutPoll then ensureTaskLoadoutPoll() end
+        elseif loadoutWasOpen then
+            stopLoadoutPoll()
+            self.taskDebug.loadoutStage = "closed"
         end
-        suppressBhopJump = WeaponPolicy.isBackstabKnife(
-            fighter and fighter.EquippedItem
-        )
-            and alignedTarget ~= nil
-            and alignedTarget.knifePath ~= nil
-        movement:update()
-        local trajectory = alignedTarget
-            and ((alignedTarget.ricochet and alignedTarget.ricochet.path)
-                or (alignedTarget.slingshot and alignedTarget.slingshot.path)
-                or alignedTarget.knifePath)
-        effects:renderTrajectory(trajectory)
-        runTriggerBot(triggerTarget)
-    end)
+        reconcileFrameLifecycle(store:Get())
+    end
+    if PickWeaponsPage.OpenChanged and type(PickWeaponsPage.OpenChanged.Connect) == "function" then
+        loadoutOpenConnection = PickWeaponsPage.OpenChanged:Connect(loadoutVisibilityChanged)
+    end
+    if PickWeaponsPage.PageFrame and type(PickWeaponsPage.PageFrame.GetPropertyChangedSignal) == "function" then
+        loadoutVisibleConnection = PickWeaponsPage.PageFrame:GetPropertyChangedSignal("Visible"):Connect(loadoutVisibilityChanged)
+    end
+
+    if type(store.Subscribe) == "function" then
+        settingsSubscription = store:Subscribe(reconcileFrameLifecycle)
+        reconcileFrameLifecycle(store:Get())
+    else
+        connectFrame()
+    end
 
     function self.stop()
         if stopped then
             return
         end
         stopped = true
+        if taskEmergencyConnection then taskEmergencyConnection:Disconnect(); taskEmergencyConnection = nil end
+        stopLoadoutPoll()
+        if loadoutOpenConnection then loadoutOpenConnection:Disconnect(); loadoutOpenConnection = nil end
+        if loadoutVisibleConnection then loadoutVisibleConnection:Disconnect(); loadoutVisibleConnection = nil end
+        taskFarmRuntime:stop()
         gunGameRuntime:stop()
         hookRuntime:stop()
         if triggerHeld then
@@ -1383,13 +2364,29 @@ function Rivals.new(context)
         end
         releaseFire()
         movement:stop()
+        movement:stopWallNoclip()
         effects:stop()
-        renderConnection:Disconnect()
+        if settingsSubscription then
+            settingsSubscription()
+            settingsSubscription = nil
+        end
+        disconnectFrame()
     end
 
     self.capabilities = context.capabilities or {}
     self.isOpponent = isOpponent
     self.selectTarget = selectTarget
+    self.worldPolicy = WorldPolicy.new({
+        getLocalFighter = function()
+            return FighterController.LocalFighter
+        end,
+        getWeapon = equippedWeapon,
+        getFighter = fighterFor,
+        isOpponent = isOpponent,
+        getPlayerTone = playerTone,
+        localPlayer = LocalPlayer,
+        workspace = Workspace,
+    })
 
     function self:cycleSkin() end
     function self:setWear() end

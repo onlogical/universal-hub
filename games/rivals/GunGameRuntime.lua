@@ -62,9 +62,12 @@ function GunGameRuntime.new(options)
     assert(options.workspace, "Gun Game runtime requires Workspace")
     assert(options.getFighter, "Gun Game runtime requires a fighter getter")
     assert(options.isGunGame, "Gun Game runtime requires native mode state")
-    return setmetatable({
+
+    local self = setmetatable({
         attemptedAt = setmetatable({}, { __mode = "k" }),
+        candidates = {},
         clock = options.clock or os.clock,
+        connections = {},
         fireTouchInterest = options.fireTouchInterest,
         getFighter = options.getFighter,
         isActive = options.isActive,
@@ -77,12 +80,42 @@ function GunGameRuntime.new(options)
         wait = options.wait or task.wait,
         workspace = options.workspace,
     }, GunGameRuntime)
+
+    local function addCandidate(candidate)
+        if self.stopped then
+            return
+        end
+        local kind = GunGameRuntime.pickupType(candidate)
+        if kind then
+            self.candidates[candidate] = kind
+        end
+    end
+    local function removeCandidate(candidate)
+        self.candidates[candidate] = nil
+        self.attemptedAt[candidate] = nil
+    end
+
+    if type(options.workspace.GetChildren) == "function" then
+        for _, candidate in ipairs(options.workspace:GetChildren()) do
+            addCandidate(candidate)
+        end
+    end
+    if options.workspace.ChildAdded and type(options.workspace.ChildAdded.Connect) == "function" then
+        table.insert(self.connections, options.workspace.ChildAdded:Connect(addCandidate))
+    end
+    if options.workspace.ChildRemoved and type(options.workspace.ChildRemoved.Connect) == "function" then
+        table.insert(self.connections, options.workspace.ChildRemoved:Connect(removeCandidate))
+    end
+
+    return self
 end
 
 function GunGameRuntime:update()
+    if self.stopped then
+        return
+    end
     local settings = self.store:Get().settings
-    if self.stopped
-        or settings.autoPickup ~= true
+    if settings.autoPickup ~= true
         or not self.isGunGame()
         or type(self.fireTouchInterest) ~= "function"
         or self.isActive and not self.isActive()
@@ -98,11 +131,10 @@ function GunGameRuntime:update()
     local fighter = self.getFighter()
     local entity = fighter and fighter.Entity
     local touchPart = entity and entity.RootPart
-    if not touchPart or type(self.workspace.GetChildren) ~= "function" then
+    if not touchPart then
         return
     end
-    for _, candidate in ipairs(self.workspace:GetChildren()) do
-        local kind = GunGameRuntime.pickupType(candidate)
+    for candidate, kind in pairs(self.candidates) do
         local lastAttemptAt = self.attemptedAt[candidate]
         if kind
             and candidate.Parent == self.workspace
@@ -125,7 +157,17 @@ function GunGameRuntime:update()
 end
 
 function GunGameRuntime:stop()
+    if self.stopped then
+        return
+    end
     self.stopped = true
+    for _, connection in ipairs(self.connections) do
+        if connection and type(connection.Disconnect) == "function" then
+            connection:Disconnect()
+        end
+    end
+    table.clear(self.connections)
+    table.clear(self.candidates)
     table.clear(self.attemptedAt)
 end
 

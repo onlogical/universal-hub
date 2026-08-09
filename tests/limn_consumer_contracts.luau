@@ -10,8 +10,26 @@ Drawing = {
 }
 
 local limnPath = "vendor/Limn.lua"
+local limnProvenance = fs.readFile("vendor/Limn.provenance")
+assert(
+    limnProvenance:find("commit=a560e5823bddda0ece824ddcdad87173ccf02496", 1, true)
+        and limnProvenance:find(
+            "sha256=6f929b41c2c1a7727a461989bb7d1cf55151289693805b1014a80060f1c3d126",
+            1,
+            true
+        ),
+    "Limn's vendored artifact must retain its immutable published provenance"
+)
+assert(
+    not limnProvenance:find("d5d9369", 1, true),
+    "Universal Hub must never pin the visually rejected overlapping-alpha Limn head"
+)
 local limnChunk, limnError = loadstring(fs.readFile(limnPath), limnPath)
 local Limn = assert(limnChunk, limnError)()
+assert(
+    type(Limn.new) == "function",
+    "Universal Hub must load Limn through its public runtime constructor"
+)
 local PresentationRuntime = require("../modules/presentation/Runtime")
 local StandardPanels = require("../modules/presentation/StandardPanels")
 local CosmeticsPanel = require("../modules/presentation/CosmeticsPanel")
@@ -138,6 +156,111 @@ local runtime = Limn.new({
         Processed = "allow",
     },
 })
+assert(
+    type(runtime.createSegmentedControl) == "function"
+        and type(runtime.createKeybindControl) == "function",
+    "Universal Hub page controls must consume Limn's published segmented and keybind interfaces"
+)
+local contractCanvas = runtime:createCanvas()
+local labelColor = Color3.fromRGB(170, 178, 184)
+local selectedLabelColor = Color3.fromRGB(160, 225, 194)
+local segmented = runtime:createSegmentedControl(contractCanvas, {
+    CornerRadius = 4,
+    Options = {
+        { Label = "Combat", Value = "combat" },
+        { Label = "Visuals", Value = "visuals" },
+    },
+    Position = Vector2.new(12, 12),
+    Size = Vector2.new(160, 24),
+    Style = {
+        Label = { Color = labelColor },
+        SelectedLabel = { Color = selectedLabelColor },
+    },
+    Value = "combat",
+})
+local function liveText(label)
+    local matches = {}
+    for _, object in ipairs(objects) do
+        if object.Kind == "Text" and object.Text == label and object.Removed ~= true then
+            table.insert(matches, object)
+        end
+    end
+    return matches
+end
+local function visibleText(label)
+    local matches = {}
+    for _, object in ipairs(liveText(label)) do
+        if object.Visible ~= false then
+            table.insert(matches, object)
+        end
+    end
+    return matches
+end
+assert(
+    #liveText("Combat") == 1 and #liveText("Visuals") == 1,
+    "Limn segmented controls must own exactly one Text primitive per labeled option"
+)
+local roundedTriangles = 0
+for _, object in ipairs(objects) do
+    if object.Kind == "Triangle" and object.Removed ~= true then
+        roundedTriangles = roundedTriangles + 1
+    end
+end
+assert(roundedTriangles > 0, "Positive CornerRadius must use Limn-owned retained rounded geometry")
+assert(
+    liveText("Combat")[1].Color == selectedLabelColor
+        and liveText("Visuals")[1].Color == labelColor,
+    "Limn SelectedLabel must style only the selected option's owned label"
+)
+local segmentedChanges = 0
+segmented.Changed:Connect(function()
+    segmentedChanges = segmentedChanges + 1
+end)
+segmented:setLayout({
+    Position = Vector2.new(24, 24),
+    Size = Vector2.new(180, 24),
+})
+assert(
+    segmented:getValue() == "combat" and segmentedChanges == 0,
+    "Limn segmented layout must preserve the selected state without emitting Changed"
+)
+segmented:setVisible(false)
+assert(segmented:getValue() == "combat", "Hiding a segmented control must preserve its value")
+segmented:setVisible(true)
+
+local keybind = runtime:createKeybindControl(contractCanvas, {
+    Label = "Menu key",
+    Position = Vector2.new(12, 48),
+    Size = Vector2.new(180, 24),
+    Value = "RightShift",
+})
+local keybindChanges = 0
+keybind.Changed:Connect(function()
+    keybindChanges = keybindChanges + 1
+end)
+assert(keybind:begin() and keybind:getState() == "listening")
+keybind:setVisible(false)
+assert(
+    keybind:getValue() == "RightShift"
+        and keybind:getState() == "idle"
+        and not keybind:begin()
+        and keybindChanges == 0,
+    "Hiding a keybind must cancel capture, reject new capture, and preserve its binding"
+)
+keybind:setVisible(true)
+keybind:setLayout({
+    Position = Vector2.new(24, 60),
+    Size = Vector2.new(180, 24),
+})
+assert(
+    keybind:getValue() == "RightShift" and keybindChanges == 0,
+    "Limn keybind layout must preserve its binding without emitting Changed"
+)
+segmented:destroy()
+segmented:destroy()
+keybind:destroy()
+keybind:destroy()
+contractCanvas:destroy()
 local store = Store.new({
     activeWeapon = "Test Rifle",
     cosmeticsOpen = false,
@@ -209,6 +332,21 @@ local overlay = Overlay.new({
 
 assert(overlay.available == true)
 assert(captures[1] == true)
+assert(
+    #liveText("Combat") == 1 and #liveText("Radius") == 1,
+    "Universal Hub must not overlay duplicate active tab or segmented labels"
+)
+assert(
+    #visibleText("Radius") == 1
+        and #visibleText("Fullscreen") == 1
+        and visibleText("Radius")[1].Font == Drawing.Fonts.Plex
+        and visibleText("Radius")[1].Size == 13
+        and visibleText("Radius")[1].Color == Color3.fromRGB(160, 225, 194)
+        and visibleText("Fullscreen")[1].Font == Drawing.Fonts.Plex
+        and visibleText("Fullscreen")[1].Size == 13
+        and visibleText("Fullscreen")[1].Color == Color3.fromRGB(243, 243, 244),
+    "The real Limn-owned Target Mode labels must receive Universal Hub's Plex text hierarchy"
+)
 local triggerRow = overlay.controls.options.triggerBot.row
 local triggerScreenPosition = triggerRow.Position + triggerRow.Size / 2
 local triggerInputPosition = triggerScreenPosition - guiInset
@@ -233,7 +371,7 @@ assert(
 )
 local smoothness = overlay.controls.rates.aimSmoothness
 local smoothnessStart = smoothness.hit.Position + Vector2.new(24, smoothness.hit.Size.Y / 2)
-local smoothnessEnd = smoothness.hit.Position + Vector2.new(232, smoothness.hit.Size.Y / 2)
+local smoothnessEnd = smoothness.hit.Position + Vector2.new(132, smoothness.hit.Size.Y / 2)
 local smoothnessMouse = {
     Position = smoothnessStart - guiInset,
     UserInputType = "MouseButton1",
@@ -256,7 +394,7 @@ paintSignals[206]:Fire()
 assert(
     immediateDraws[#immediateDraws - 1].kind == "rectangle"
         and immediateDraws[#immediateDraws].kind == "circle"
-        and immediateDraws[#immediateDraws].position.X > smoothness.track.Position.X + 200,
+        and immediateDraws[#immediateDraws].position.X > smoothness.track.Position.X + 120,
     "Bundled Limn must paint the active slider from the latest mapped pointer event"
 )
 local activeDrawCount = #immediateDraws
@@ -271,17 +409,20 @@ assert(
         and smoothness.knob.Visible == true,
     "Slider release must stop immediate paint and restore the current retained fill/thumb"
 )
-local hideButton = overlay.controls.hideButton
-local clickPosition = hideButton.Position + Vector2.new(4, 4) - guiInset
+local panel = overlay.controls.panel
+local clickPosition = panel.Position + Vector2.new(4, 4) - guiInset
 local mouse = {
     Position = clickPosition,
     UserInputType = "MouseButton1",
 }
 input.InputBegan:Fire(mouse, true)
 input.InputEnded:Fire(mouse, true)
-assert(menuChanges[1] == false, "Processed menu input must reach Limn after Universal Hub sinks it")
 assert(
-    hideButton.Position.X > 1000,
+    overlay.panelDragOffset == Vector2.new(4, 4),
+    "Processed menu input must reach the Limn-owned panel after Universal Hub sinks it"
+)
+assert(
+    panel.Position == Vector2.new(846, 20),
     "Universal Hub must retain physical-screen Drawing coordinates while mapping input"
 )
 
@@ -319,6 +460,35 @@ local unavailableOverlay = Overlay.new({
 })
 assert(unavailableOverlay.available == false)
 assert(table.find(unavailableOverlay.missingPrimitives, "Circle") ~= nil)
+
+local triangleUnavailableRuntime = Limn.new({
+    Drawing = {
+        new = function(kind)
+            if kind == "Triangle" then
+                error("unsupported Triangle")
+            end
+            local object = {}
+            function object:Remove() end
+            return object
+        end,
+    },
+    Vector2 = Vector2,
+})
+local triangleUnavailableOverlay = Overlay.new({
+    capabilities = {},
+    cosmetics = false,
+    gameLabel = "Unavailable rounded controls",
+    getCamera = function()
+        return { ViewportSize = Vector2.new(1280, 720) }
+    end,
+    limn = triangleUnavailableRuntime,
+    store = store,
+})
+assert(
+    triangleUnavailableOverlay.available == false
+        and table.find(triangleUnavailableOverlay.missingPrimitives, "Triangle") ~= nil,
+    "The rounded segmented design must fail at the UH capability gate when retained Triangle is unavailable"
+)
 unavailableOverlay:render({}, Vector2.new(0, 0), {})
 unavailableOverlay:destroy()
 
