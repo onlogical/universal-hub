@@ -45,19 +45,20 @@ local alwaysScoped = ScopedAccuracy.new({
 })
 
 alwaysScoped:refreshHook()
-local replacement = replacements[nativeIsFullyAiming]
-assert(type(replacement) == "function", "eligible equipped items must install the native scoped-state hook")
 assert(
-    replacement(eligibleItem) == false and nativeCalls == 1,
-    "disabled Always Scoped must preserve the native result"
+    replacements[nativeIsFullyAiming] == nil and nativeCalls == 0,
+    "disabled Always Scoped must not install or invoke a native hook"
 )
 
 enabled = true
+alwaysScoped:refreshHook()
+local replacement = replacements[nativeIsFullyAiming]
+assert(type(replacement) == "function", "enabling Always Scoped must install the native scoped-state hook")
 assert(replacement(eligibleItem) == true, "enabled Always Scoped must report an eligible shot as scoped")
 assert(
     eligibleItem.Data.IsAiming == false
         and eligibleItem.ViewModel.CurrentAimValue == 0
-        and nativeCalls == 1,
+        and nativeCalls == 0,
     "Always Scoped must not mutate aim state or evaluate the native result when overriding it"
 )
 
@@ -68,7 +69,7 @@ local differentItem = {
     nativeFullyAiming = false,
 }
 assert(
-    replacement(differentItem) == false and nativeCalls == 2,
+    replacement(differentItem) == false and nativeCalls == 1,
     "the hook must preserve native behavior for a different self"
 )
 

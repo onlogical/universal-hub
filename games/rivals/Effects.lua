@@ -1,51 +1,22 @@
+local function importDependency(path, relativePath)
+    if type(getgenv) == "function" then
+        local environment = getgenv()
+        local configuration = environment and environment.UniversalHubConfig
+        if configuration and type(configuration.Import) == "function" then
+            return configuration.Import(path)
+        end
+    end
+    return require(relativePath)
+end
+
+local UtilityPolicy = importDependency("games/rivals/UtilityPolicy", "./UtilityPolicy")
+local VisualSuppression = importDependency("games/rivals/VisualSuppression", "./VisualSuppression")
+local TrajectoryRenderer = importDependency("games/rivals/TrajectoryRenderer", "./TrajectoryRenderer")
 local Effects = {}
 Effects.__index = Effects
 
 local THROWABLE_MAX_DISTANCE = 2000
 local THROWABLE_REFRESH_INTERVAL = 0.2
-local THROWABLE_TAGS = {
-    "Grenade",
-    "Throwable",
-    "Projectile",
-    "SubspaceTripmine",
-    "JumpPadHitbox",
-}
-local THROWABLE_CONTAINERS = { "Projectiles", "Throwables", "Debris", "Effects" }
-
-local THROWABLE_ATTRIBUTES = {
-    "DisplayName",
-    "GrenadeName",
-    "ItemName",
-    "ProjectileName",
-    "ThrowableName",
-    "ViewModelName",
-    "WeaponName",
-}
-local THROWABLE_DESCRIPTORS = {
-    {
-        tokens = { "subspace tripmine", "tripmine" },
-        label = "TRIPMINE",
-        markerStyle = "wireframeCube",
-        tone = "danger",
-    },
-    { tokens = { "jump pad", "jumppad" }, label = "JUMP PAD", tone = "accent" },
-    { tokens = { "smoke" }, label = "SMOKE", tone = "smoke" },
-    { tokens = { "flash" }, label = "FLASH", tone = "accent" },
-    { tokens = { "molotov", "incendiary", "fire bomb" }, label = "MOLOTOV", tone = "danger" },
-    { tokens = { "satchel" }, label = "SATCHEL", tone = "danger" },
-    { tokens = { "warpstone" }, label = "WARPSTONE", tone = "accent" },
-    { tokens = { "elixir" }, label = "ELIXIR", tone = "accent" },
-    { tokens = { "grenade", "frag" }, label = "GRENADE", tone = "danger" },
-    { tokens = { "dynamite" }, label = "DYNAMITE", tone = "danger" },
-}
-local THROWABLE_TAG_DESCRIPTORS = {
-    JumpPadHitbox = { label = "JUMP PAD", tone = "accent" },
-    SubspaceTripmine = {
-        label = "TRIPMINE",
-        markerStyle = "wireframeCube",
-        tone = "danger",
-    },
-}
 local WIREFRAME_CUBE_OFFSETS = {
     Vector3.new(-0.5, -0.5, -0.5),
     Vector3.new(0.5, -0.5, -0.5),
@@ -56,68 +27,6 @@ local WIREFRAME_CUBE_OFFSETS = {
     Vector3.new(0.5, 0.5, 0.5),
     Vector3.new(-0.5, 0.5, 0.5),
 }
-local VISUAL_EFFECT_CLASSES = {
-    Beam = true,
-    BlurEffect = true,
-    ColorCorrectionEffect = true,
-    DepthOfFieldEffect = true,
-    Frame = true,
-    ImageLabel = true,
-    ParticleEmitter = true,
-    Smoke = true,
-}
-
-local function taggedThrowableDescriptor(instance)
-    for tag, descriptor in pairs(THROWABLE_TAG_DESCRIPTORS) do
-        local hasTag = false
-        if instance.HasTag then
-            local succeeded, tagged = pcall(instance.HasTag, instance, tag)
-            hasTag = succeeded and tagged == true
-        elseif instance.GetTags then
-            local succeeded, tags = pcall(instance.GetTags, instance)
-            hasTag = succeeded and table.find(tags, tag) ~= nil
-        end
-        if hasTag then
-            return descriptor
-        end
-    end
-    return nil
-end
-
-local function throwableDescriptor(instance)
-    local current = instance
-    for _depth = 1, 3 do
-        if not current then
-            break
-        end
-
-        local taggedDescriptor = taggedThrowableDescriptor(current)
-        if taggedDescriptor then
-            return taggedDescriptor, current
-        end
-        local values = { current.Name }
-        if current.GetAttribute then
-            for _, attribute in ipairs(THROWABLE_ATTRIBUTES) do
-                table.insert(values, current:GetAttribute(attribute))
-            end
-        end
-        for _, value in ipairs(values) do
-            if type(value) == "string" then
-                local normalized = string.lower(value)
-                for _, descriptor in ipairs(THROWABLE_DESCRIPTORS) do
-                    for _, token in ipairs(descriptor.tokens) do
-                        if string.find(normalized, token, 1, true) then
-                            return descriptor, current
-                        end
-                    end
-                end
-            end
-        end
-        current = current.Parent
-    end
-    return nil
-end
-
 local function hierarchyAttribute(instance, name)
     local current = instance
     for _depth = 1, 32 do
@@ -147,13 +56,6 @@ local function isWorldUtility(root, camera, worldRoot, localPlayer)
             reachedWorld = true
         end
         if current == camera or current == localCharacter then
-            return false
-        end
-        local normalizedName = string.lower(current.Name or "")
-        if normalizedName == "viewmodel"
-            or normalizedName == "viewmodels"
-            or normalizedName == "firstperson"
-        then
             return false
         end
         if current.IsA then
@@ -197,98 +99,10 @@ local function projectWireframeCube(camera, boundsFrame, boundsSize)
     return corners, Vector2.new((minimumX + maximumX) * 0.5, minimumY - 16), anyOnScreen
 end
 
-local function effectKind(instance)
-    local name = string.lower(instance.Name or "")
-    if string.find(name, "flash", 1, true)
-        or string.find(name, "blind", 1, true)
-        or string.find(name, "stun", 1, true)
-    then
-        return "flash"
-    end
-    if string.find(name, "smoke", 1, true) then
-        return "smoke"
-    end
-    return nil
-end
-
-local function effectStateProperty(instance)
-    local supported = false
-    if instance.IsA then
-        for className in pairs(VISUAL_EFFECT_CLASSES) do
-            if instance:IsA(className) then
-                supported = true
-                break
-            end
-        end
-    end
-    if not supported then
-        return nil
-    end
-
-    local enabledOk, enabled = pcall(function()
-        return instance.Enabled
-    end)
-    if enabledOk and type(enabled) == "boolean" then
-        return "Enabled", enabled
-    end
-    local visibleOk, visible = pcall(function()
-        return instance.Visible
-    end)
-    if visibleOk and type(visible) == "boolean" then
-        return "Visible", visible
-    end
-    return nil
-end
-
-function Effects.updateVisualSuppressions(settings, roots, suppressed)
-    local active = {}
-    for _, entry in ipairs(roots or {}) do
-        local root = entry
-        local inheritedKind
-        if type(entry) == "table" then
-            root = entry.instance or entry
-            inheritedKind = entry.kind
-        end
-        local instances = { root }
-        if root and root.GetDescendants then
-            for _, descendant in ipairs(root:GetDescendants()) do
-                table.insert(instances, descendant)
-            end
-        end
-        for _, instance in ipairs(instances) do
-            local kind = effectKind(instance) or inheritedKind
-            local shouldSuppress = kind == "flash" and settings.noFlash == true
-                or kind == "smoke" and settings.noSmoke == true
-            if shouldSuppress then
-                local property, value = effectStateProperty(instance)
-                if property then
-                    active[instance] = true
-                    if suppressed[instance] == nil then
-                        suppressed[instance] = {
-                            property = property,
-                            value = value,
-                        }
-                    end
-                    pcall(function()
-                        instance[property] = false
-                    end)
-                end
-            end
-        end
-    end
-
-    for instance, state in pairs(suppressed) do
-        if not active[instance] then
-            pcall(function()
-                instance[state.property] = state.value
-            end)
-            suppressed[instance] = nil
-        end
-    end
-end
+Effects.updateVisualSuppressions = VisualSuppression.update
 
 function Effects.throwableObservation(camera, candidate, environmentID, worldRoot, localPlayer)
-    local descriptor, root = throwableDescriptor(candidate)
+    local descriptor, root = UtilityPolicy.descriptor(candidate)
     if not descriptor or not camera or not root then
         return nil
     end
@@ -369,12 +183,6 @@ function Effects.new(options)
     assert(options.localPlayer, "RIVALS effects require LocalPlayer")
     assert(options.projectileAim, "RIVALS effects require projectile aim")
 
-    local trajectoryCanvas
-    local limn = options.limn
-    if limn and limn:supportsPrimitive("Line") then
-        trajectoryCanvas = limn:createCanvas()
-    end
-
     return setmetatable({
         clock = options.clock or os.clock,
         collectionService = options.collectionService,
@@ -383,11 +191,9 @@ function Effects.new(options)
         nextThrowableRefreshAt = 0,
         nextVisualRefreshAt = 0,
         playerGui = options.playerGui,
-        projectileAim = options.projectileAim,
         suppressedVisuals = setmetatable({}, { __mode = "k" }),
         throwableCandidates = {},
-        trajectoryLines = {},
-        trajectoryCanvas = trajectoryCanvas,
+        trajectoryRenderer = TrajectoryRenderer.new(options),
         workspace = options.workspace,
     }, Effects)
 end
@@ -405,18 +211,12 @@ function Effects:_collectThrowables()
     end
 
     if self.collectionService and self.collectionService.GetTagged then
-        for _, tag in ipairs(THROWABLE_TAGS) do
+        for _, tag in ipairs(UtilityPolicy.TAGS) do
             local succeeded, tagged =
                 pcall(self.collectionService.GetTagged, self.collectionService, tag)
             if succeeded then
                 collect(tagged)
             end
-        end
-    end
-    for _, name in ipairs(THROWABLE_CONTAINERS) do
-        local container = self.workspace:FindFirstChild(name)
-        if container and container.GetChildren then
-            collect(container:GetChildren())
         end
     end
     return candidates
@@ -455,6 +255,12 @@ function Effects:observeThrowables(camera, environmentID)
 end
 
 function Effects:update(settings)
+    if settings.noFlash ~= true and settings.noSmoke ~= true then
+        if next(self.suppressedVisuals) ~= nil then
+            Effects.updateVisualSuppressions({}, {}, self.suppressedVisuals)
+        end
+        return
+    end
     local now = self.clock()
     if now < self.nextVisualRefreshAt then
         return
@@ -471,7 +277,7 @@ function Effects:update(settings)
     end
     if settings.noSmoke then
         for _, candidate in ipairs(self.throwableCandidates) do
-            local descriptor, root = throwableDescriptor(candidate)
+            local descriptor, root = UtilityPolicy.descriptor(candidate)
             if descriptor and descriptor.tone == "smoke" then
                 table.insert(roots, {
                     instance = root,
@@ -484,41 +290,12 @@ function Effects:update(settings)
 end
 
 function Effects:renderTrajectory(path)
-    if not self.trajectoryCanvas then
-        return
-    end
-
-    local camera = self.workspace.CurrentCamera
-    local segments = camera and path
-            and self.projectileAim.projectTrajectory(camera, path)
-        or {}
-    for index, segment in ipairs(segments) do
-        local line = self.trajectoryLines[index]
-        if not line then
-            line = self.trajectoryCanvas:create("Line")
-            self.trajectoryLines[index] = line
-        end
-        line:patch({
-            Color = Color3.fromRGB(92, 214, 255),
-            From = segment.from,
-            Thickness = 2,
-            To = segment.to,
-            Transparency = 0.9,
-            Visible = true,
-            ZIndex = 20,
-        })
-    end
-    for index = #segments + 1, #self.trajectoryLines do
-        self.trajectoryLines[index]:patch({ Visible = false })
-    end
+    self.trajectoryRenderer:render(path)
 end
 
 function Effects:stop()
     Effects.updateVisualSuppressions({}, {}, self.suppressedVisuals)
-    if self.trajectoryCanvas then
-        self.trajectoryCanvas:destroy()
-        self.trajectoryCanvas = nil
-    end
+    self.trajectoryRenderer:stop()
 end
 
 return Effects

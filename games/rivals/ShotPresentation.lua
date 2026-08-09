@@ -45,21 +45,41 @@ function ShotPresentation.new(options)
     self.postBinding = "UniversalHubShotPresentationPost" .. bindingSuffix
     self.preBinding = "UniversalHubShotPresentationPre" .. bindingSuffix
 
+    self.cameraPriority = options.cameraPriority or Enum.RenderPriority.Camera.Value
+    return self
+end
+
+function ShotPresentation:_startRuntime()
+    if self.runtimeActive or self.stopped then
+        return
+    end
+    self.runtimeActive = true
     local rotationDeltaSignal = self.cameraController.RotationDeltaApplied
     if rotationDeltaSignal and type(rotationDeltaSignal.Connect) == "function" then
         self.rotationDeltaConnection = rotationDeltaSignal:Connect(function(delta)
             self:_applyVisibleRotationDelta(delta)
         end)
     end
-
-    local cameraPriority = options.cameraPriority or Enum.RenderPriority.Camera.Value
-    self.runService:BindToRenderStep(self.preBinding, cameraPriority - 1, function()
+    self.runService:BindToRenderStep(self.preBinding, self.cameraPriority - 1, function()
         self:_prepareFrame()
     end)
-    self.runService:BindToRenderStep(self.postBinding, cameraPriority + 1, function()
+    self.runService:BindToRenderStep(self.postBinding, self.cameraPriority + 1, function()
         self:_maskFrame()
     end)
-    return self
+end
+
+function ShotPresentation:_stopRuntime()
+    if not self.runtimeActive then
+        return
+    end
+    self.runtimeActive = false
+    if self.rotationDeltaConnection then
+        self.rotationDeltaConnection:Disconnect()
+        self.rotationDeltaConnection = nil
+    end
+    self.runService:UnbindFromRenderStep(self.preBinding)
+    self.runService:UnbindFromRenderStep(self.postBinding)
+    self:clear()
 end
 
 function ShotPresentation:_reset()
@@ -175,6 +195,19 @@ function ShotPresentation:_applyVisibleRotationDelta(delta)
 end
 
 function ShotPresentation:refreshHook()
+    if self.stopped then
+        return
+    end
+    if not self.isEnabled() then
+        if self.cameraDataTarget then
+            self.restoreFunction(self.cameraDataTarget)
+            self.cameraDataOriginal = nil
+            self.cameraDataTarget = nil
+        end
+        self:_stopRuntime()
+        return
+    end
+    self:_startRuntime()
     local fighter = self.getFighter()
     local target = fighter and fighter.GetCameraData
     if target == self.cameraDataTarget then
@@ -225,13 +258,8 @@ function ShotPresentation:stop()
         return
     end
     self.stopped = true
+    self:_stopRuntime()
     self:clear()
-    if self.rotationDeltaConnection then
-        self.rotationDeltaConnection:Disconnect()
-        self.rotationDeltaConnection = nil
-    end
-    self.runService:UnbindFromRenderStep(self.preBinding)
-    self.runService:UnbindFromRenderStep(self.postBinding)
     if self.cameraDataTarget then
         self.restoreFunction(self.cameraDataTarget)
         self.cameraDataTarget = nil

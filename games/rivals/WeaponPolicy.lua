@@ -1,3 +1,15 @@
+local function importDependency(path, relativePath)
+    if type(getgenv) == "function" then
+        local environment = getgenv()
+        local configuration = environment and environment.UniversalHubConfig
+        if configuration and type(configuration.Import) == "function" then
+            return configuration.Import(path)
+        end
+    end
+    return require(relativePath)
+end
+
+local ItemPolicy = importDependency("games/rivals/ItemPolicy", "./ItemPolicy")
 local WeaponPolicy = {}
 
 local AUTOMATIC_SHOOT_COOLDOWN = 0.15
@@ -11,30 +23,6 @@ local NATIVE_HEAD_PROXY_NAMES = {
     HitboxHeadSmall = true,
     PhysicalHitboxHead = true,
 }
-local DEFAULT_AUTOMATION_POLICY = {
-    cameraAim = true,
-    silentAim = true,
-    triggerBot = true,
-}
-local DISABLED_AUTOMATION_POLICY = {
-    cameraAim = false,
-    silentAim = false,
-    triggerBot = false,
-}
-local UTILITY_AUTOMATION_POLICIES = {
-    ["Medkit"] = DISABLED_AUTOMATION_POLICY,
-    ["Subspace Tripmine"] = DISABLED_AUTOMATION_POLICY,
-    ["Warpstone"] = DISABLED_AUTOMATION_POLICY,
-    ["Jump Pad"] = DISABLED_AUTOMATION_POLICY,
-    ["War Horn"] = DISABLED_AUTOMATION_POLICY,
-    ["Grappler"] = DISABLED_AUTOMATION_POLICY,
-    ["Flashbang"] = DISABLED_AUTOMATION_POLICY,
-    ["Grenade"] = DISABLED_AUTOMATION_POLICY,
-    ["Molotov"] = DISABLED_AUTOMATION_POLICY,
-    ["Satchel"] = DISABLED_AUTOMATION_POLICY,
-    ["Smoke Grenade"] = DISABLED_AUTOMATION_POLICY,
-}
-
 function WeaponPolicy.itemName(item)
     if not item then
         return nil
@@ -47,29 +35,32 @@ function WeaponPolicy.itemName(item)
     return item.Name
 end
 
-function WeaponPolicy.isBackstabKnife(item, allowBackstabShape)
-    local name = WeaponPolicy.itemName(item)
-    if name == "Knife" then
-        return true
-    end
-    if allowBackstabShape ~= true
-        or name ~= "Glast Shard"
-        or type(item) ~= "table"
-    then
-        return false
-    end
-
-    local info = item.Info
-    return type(info) == "table"
-        and type(item._backstab_hash) == "number"
-        and type(info.CriticalDamage) == "number"
-        and type(info.HeavyAttackReach) == "number"
-        and type(info.HeavyAttackCooldown) == "number"
+function WeaponPolicy.isBackstabKnife(item)
+    return ItemPolicy.isBackstab(item)
 end
 
 function WeaponPolicy.automationPolicy(item)
-    return UTILITY_AUTOMATION_POLICIES[WeaponPolicy.itemName(item)]
-        or DEFAULT_AUTOMATION_POLICY
+    return ItemPolicy.automationPolicy(item)
+end
+
+function WeaponPolicy.isScoped(item)
+    return ItemPolicy.isScoped(item)
+end
+
+function WeaponPolicy.isDualModeBlade(item)
+    return ItemPolicy.isDualModeBlade(item)
+end
+
+function WeaponPolicy.isDeflector(item)
+    return ItemPolicy.isDeflector(item)
+end
+
+function WeaponPolicy.isRicochetWeapon(item)
+    return ItemPolicy.isRicochetWeapon(item)
+end
+
+function WeaponPolicy.isBouncingProjectile(item)
+    return ItemPolicy.isBouncingProjectile(item)
 end
 
 function WeaponPolicy.itemLabel(item)
@@ -226,7 +217,7 @@ function WeaponPolicy.sniperTriggerReady(
     crouching,
     forceScoped
 )
-    if WeaponPolicy.itemName(item) ~= "Sniper" then
+    if not ItemPolicy.isScoped(item) then
         return true
     end
 
@@ -281,7 +272,7 @@ function WeaponPolicy.holdToFire(item)
 end
 
 function WeaponPolicy.gunbladeMode(item)
-    if WeaponPolicy.itemName(item) ~= "Gunblade" then
+    if not ItemPolicy.isDualModeBlade(item) then
         return nil
     end
 
@@ -319,7 +310,7 @@ function WeaponPolicy.gunbladeMode(item)
 end
 
 function WeaponPolicy.gunbladeDashRange(item)
-    if WeaponPolicy.itemName(item) ~= "Gunblade" then
+    if not ItemPolicy.isDualModeBlade(item) then
         return nil
     end
 
@@ -474,7 +465,7 @@ function WeaponPolicy.finishingDamage(item, observation, distance)
         return nil
     end
 
-    if WeaponPolicy.itemName(item) == "Burst Rifle" and type(info.BurstCount) == "number" then
+    if ItemPolicy.isBurst(item) and type(info.BurstCount) == "number" then
         damage *= math.max(1, info.BurstCount)
     end
 
@@ -492,7 +483,7 @@ function WeaponPolicy.finishingDamage(item, observation, distance)
 end
 
 function WeaponPolicy.triggerDamageReady(item, observation, distance)
-    if WeaponPolicy.itemName(item) == "Burst Rifle" then
+    if ItemPolicy.isBurst(item) then
         return true
     end
 

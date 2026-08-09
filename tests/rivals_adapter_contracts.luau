@@ -15,6 +15,10 @@ local RivalsEffects = require("../games/rivals/Effects")
 local RivalsMovement = require("../games/rivals/Movement")
 local RivalsCombatState = require("../games/rivals/CombatState")
 
+assert(
+    not require("@lune/fs").readFile("games/rivals/Adapter.lua"):find("getLoadedModules", 1, true),
+    "RIVALS startup must use the game controller hierarchy instead of enumerating loaded modules"
+)
 assert(RivalsDefinition.module == "games/rivals/Adapter")
 assert(RivalsDefinition.features.cosmetics == false)
 assert(
@@ -31,8 +35,6 @@ assert(
     not table.find(RivalsDefinition.features.capabilities, "wallbang"),
     "RIVALS must not advertise unverified hit forgery"
 )
-assert(Rivals.isGunGamePlace(133215910299950) == true)
-assert(Rivals.isGunGamePlace(17625359962) == false)
 assert(
     Rivals.entityIsInvincible({
         Get = function(_self, key)
@@ -153,48 +155,25 @@ assert(Rivals.shouldCollectPickup("Unknown", pickupFighter) == false)
 assert(
     table.find(Rivals.capabilitiesFor({
         fireTouchInterestAvailable = true,
-        placeId = 133215910299950,
+        isGunGame = true,
     }, RivalsDefinition.features.capabilities), "autoPickup") ~= nil,
     "Supported Gun Game sessions must show Auto Pickup"
 )
 assert(
     table.find(Rivals.capabilitiesFor({
         fireTouchInterestAvailable = true,
-        placeId = 17625359962,
+        isGunGame = false,
     }, RivalsDefinition.features.capabilities), "autoPickup") == nil,
     "Other RIVALS modes must hide Auto Pickup"
 )
 assert(
     table.find(Rivals.capabilitiesFor({
         fireTouchInterestAvailable = false,
-        placeId = 133215910299950,
+        isGunGame = true,
     }, RivalsDefinition.features.capabilities), "autoPickup") == nil,
     "Gun Game must hide Auto Pickup when the executor cannot synthesize touch"
 )
 end
-
-local readinessCamera = {}
-local readinessDuel = {}
-local readinessFighter = {}
-local readinessMechanics = {}
-assert(
-    Rivals.controllersReady(readinessCamera, readinessFighter, {}) == false,
-    "RIVALS must not require game controllers before the game has loaded either module"
-)
-assert(
-    Rivals.controllersReady(readinessCamera, readinessFighter, { readinessCamera }) == false,
-    "RIVALS must wait for both controller modules instead of racing partial game startup"
-)
-assert(
-    Rivals.controllersReady(
-        readinessCamera,
-        readinessFighter,
-        { readinessCamera, readinessDuel, readinessFighter, readinessMechanics },
-        readinessMechanics,
-        readinessDuel
-    ) == true,
-    "RIVALS may require controllers only after the game's own bootstrap loaded all required modules"
-)
 
 local function player(teamId, environmentId)
     return {
@@ -246,7 +225,7 @@ assert(
         player(nil),
         character(150),
         { Entity = { Data = { IsInvincible = true } } },
-        133215910299950
+        true
     ) == false,
     "Gun Game automation must exclude the replicated spawn-invincibility state"
 )
@@ -256,7 +235,7 @@ assert(
         player(nil),
         character(150),
         { Entity = { Data = { IsInvincible = true } } },
-        17625359962
+        false
     ) == true,
     "The replicated Gun Game immunity check must not change other RIVALS modes"
 )
@@ -616,7 +595,7 @@ for _, utilityName in ipairs({
 end
 assert(
     RivalsWeaponPolicy.automationPolicy({
-        Info = { DisplayName = "Burst Rifle" },
+        Info = { BurstCount = 3, DisplayName = "Burst Rifle", ShootDamage = 25 },
     }).cameraAim == true,
     "Ordinary weapons must preserve existing automation behavior"
 )
@@ -696,6 +675,7 @@ local sniper = {
     Info = {
         AimScopePercent = 0.5,
         DisplayName = "Sniper",
+        ShootDamage = 75,
         ShootSpread = 15,
     },
     Data = {
@@ -750,7 +730,7 @@ assert(
 assert(
     RivalsWeaponPolicy.sniperTriggerReady(
         scopeCamera,
-        { Data = { IsAiming = false }, Info = { DisplayName = "Sniper", ShootSpread = 15 } },
+        { Data = { IsAiming = false }, Info = { AimScopePercent = 0.5, DisplayName = "Sniper", ShootSpread = 15 } },
         { part = {} },
         6,
         false
@@ -1010,7 +990,7 @@ assert(
     RivalsWeaponPolicy.triggerDamageReady(
         {
             Name = "Burst Rifle",
-            Info = table.clone(shorty.Info),
+            Info = setmetatable({ BurstCount = 3 }, { __index = shorty.Info }),
         },
         { health = 150, part = { Name = "Torso" } },
         20
@@ -1710,7 +1690,7 @@ assert(
     "Knife Trigger Bot must permit current grounded lethal rear geometry"
 )
 
-local slingshotAim = RivalsProjectileAim.solveSlingshot(
+local slingshotAim = RivalsProjectileAim.solveBouncingProjectile(
     Vector3.new(0, 5, 0),
     {
         part = {
@@ -1775,7 +1755,7 @@ local cameraModule = {
         self.Rotation = value
     end,
 }
-local targetItem = { Info = { Name = "Rifle" } }
+local targetItem = { Info = { Name = "Rifle", ShootDamage = 25 } }
 local targetShield = {
     Info = {
         Name = "Riot Shield",
@@ -1785,7 +1765,10 @@ local targetShield = {
         return field == "Ammo" and 52 or nil
     end,
 }
-local localItem = { Name = "Burst Rifle", Info = { DisplayName = "Burst Rifle" } }
+local localItem = {
+    Name = "Burst Rifle",
+    Info = { BurstCount = 3, DisplayName = "Burst Rifle", ShootDamage = 25 },
+}
 local crouching = false
 local sliding = false
 local grounded = true
@@ -1858,6 +1841,7 @@ local controlsScript = {}
 local mechanicsScript = {}
 local activeDuel = {
     Data = {
+        IsGunGame = true,
         Status = "RoundStarted",
     },
 }
@@ -2000,8 +1984,8 @@ function cameraHarness.runCameraRenderFrame()
     end
 end
 local throwableAttributes = {
-    DisplayName = "Smoke Grenade",
     EnvironmentID = "PracticeA",
+    ThrowableOrientation = CFrame.identity,
 }
 local throwableModel = {
     Name = "Projectile",
@@ -2023,10 +2007,10 @@ local smokeObservation = RivalsEffects.throwableObservation(
 )
 assert(
     smokeObservation
-        and smokeObservation.label == "SMOKE"
-        and smokeObservation.tone == "smoke"
+        and smokeObservation.label == "THROWABLE"
+        and smokeObservation.tone == "accent"
         and smokeObservation.onScreen == true,
-    "RIVALS throwable discovery must classify replicated item metadata into a compact ESP marker"
+    "RIVALS throwable discovery must use the native ThrowableOrientation marker"
 )
 assert(
     RivalsEffects.throwableObservation(Workspace.CurrentCamera, throwableModel, "OtherMatch") == nil,
@@ -2136,23 +2120,16 @@ assert(
     "Utility ESP must identify comparable persistent utility hitboxes from their live tag"
 )
 
-for displayName, expectedLabel in pairs({
-    Elixir = "ELIXIR",
-    Satchel = "SATCHEL",
-    Warpstone = "WARPSTONE",
-}) do
-    throwableAttributes.DisplayName = displayName
-    local observation = RivalsEffects.throwableObservation(
+throwableAttributes.DisplayName = "Warpstone"
+assert(
+    RivalsEffects.throwableObservation(
         Workspace.CurrentCamera,
         throwableModel,
         "PracticeA"
-    )
-    assert(
-        observation and observation.label == expectedLabel,
-        ("Utility ESP must classify the live %s throwable metadata"):format(displayName)
-    )
-end
-throwableAttributes.DisplayName = "Smoke Grenade"
+    ).label == "THROWABLE",
+    "display names must not override native throwable classification"
+)
+throwableAttributes.DisplayName = nil
 
 local viewModels = {
     Name = "ViewModels",
@@ -2206,7 +2183,7 @@ end
 
 local flashEffect = {
     Enabled = true,
-    Name = "FlashbangColor",
+    Name = "Flashbang",
     IsA = function(_self, className)
         return className == "ColorCorrectionEffect"
     end,
@@ -2429,6 +2406,7 @@ local settings = {
     utilityEsp = true,
 }
 local state = {
+    _patches = 0,
     settings = settings,
 }
 local store = {
@@ -2436,6 +2414,7 @@ local store = {
         return state
     end,
     Patch = function(_self, patch)
+        state._patches += 1
         for key, value in pairs(patch) do
             state[key] = value
         end
@@ -2462,7 +2441,6 @@ local throwableObservation = {
     tone = "danger",
 }
 local throwableObserveCalls = 0
-local loadedModuleChecks = 0
 local hookImplementations = {}
 local restoredHooks = {}
 local triggerCameraCaptureEnabled = false
@@ -2495,13 +2473,6 @@ local adapter = Rivals.new({
     end,
     movementDirection = function()
         return movementDirection
-    end,
-    getLoadedModules = function()
-        loadedModuleChecks += 1
-        if loadedModuleChecks == 1 then
-            return { cameraScript }
-        end
-        return { cameraScript, duelScript, fighterScript, mechanicsScript }
     end,
     hookFunction = function(targetFunction, replacement)
         hookImplementations[targetFunction] = replacement
@@ -2584,10 +2555,6 @@ local adapter = Rivals.new({
         }
     end,
     requireModule = function(module)
-        assert(
-            loadedModuleChecks >= 2,
-            "RIVALS must never require a controller while the game's bootstrap is incomplete"
-        )
         if module == cameraScript then
             return cameraModule
         end
@@ -2618,7 +2585,7 @@ local adapter = Rivals.new({
             },
         }
     end,
-    solveSlingshot = function(solutionOrigin, solutionTarget)
+    solveBouncingProjectile = function(solutionOrigin, solutionTarget)
         slingshotSolves += 1
         return {
             bounces = 1,
@@ -2647,16 +2614,18 @@ local adapter = Rivals.new({
     wait = function() end,
 })
 
-assert(loadedModuleChecks == 2, "RIVALS startup must yield until both game controllers are loaded")
 assert(renderCallback, "RIVALS adapter must attach a resilient per-frame loop")
 renderCallback()
-assert(rendered.observations == state.observations and rendered.position == mousePosition)
+assert(rendered.position == mousePosition)
+assert(
+    state._patches == 0 and state.observations == nil and state.utilityObservations == nil,
+    "RIVALS frame rendering must not publish transient observation telemetry through Store"
+)
 assert(
     throwableObserveCalls == 1
         and #rendered.utilities == 1
-        and rendered.utilities[1] == throwableObservation
-        and state.utilityObservations.count == 1,
-    "RIVALS must publish active-match throwable observations through Utility ESP"
+        and rendered.utilities[1] == throwableObservation,
+    "RIVALS must render active-match throwable observations through Utility ESP"
 )
 assert(table.find(RivalsDefinition.features.capabilities, "utilityEsp") ~= nil)
 assert(
@@ -2667,8 +2636,7 @@ assert(
     table.find(rendered.observations, farObservation) == nil,
     "RIVALS ESP and aim must exclude observations beyond 2,000 studs"
 )
-assert(state.activeWeapon == "Burst Rifle")
-assert(state.status == "Shooting range · 2 dummies · 2 visible")
+assert(state.activeWeapon == nil and state.status == nil)
 assert(observations[1].health == 150 and observations[1].maxHealth == 150)
 assert(
     observations[1].weapon == "Riot Shield (52/100)",
@@ -2676,7 +2644,7 @@ assert(
 )
 fighterModule._player_to_fighter[enemyPlayer].EquippedItem = targetItem
 assert(rangeObservation.player == rangeTarget)
-assert(rangeObservation.health == 150 and rangeObservation.maxHealth == 150)
+assert(rangeObservation.health == math.huge and rangeObservation.maxHealth == math.huge)
 assert(
     rotationCalls == 1
         and cameraModule.Rotation == RivalsTargeting.rotationToward(origin, targetPosition)
@@ -2807,12 +2775,12 @@ assert(
 
 fighter.Entity.Humanoid.Health = 60
 localItem.Data.Ammo = 2
-game.PlaceId = 17625359962
+activeDuel.Data.IsGunGame = false
 currentTime += 1
 renderCallback()
 assert(#cameraHarness.pickupTouches == 4, "Auto Pickup must not run outside Gun Game")
 
-game.PlaceId = 133215910299950
+activeDuel.Data.IsGunGame = true
 settings.autoPickup = false
 Workspace.pickupChildren = {}
 fighter.Entity.RootPart = previousRoot
@@ -2830,7 +2798,8 @@ local challenger = {
     screenDistance = 10,
     visible = true,
 }
-game.PlaceId = 17625359962
+activeDuel.Data.IsGunGame = false
+renderCallback()
 table.insert(observations, 1, challenger)
 renderCallback()
 assert(
@@ -2846,7 +2815,7 @@ assert(
 table.remove(observations, 1)
 observations[1].screenDistance = 40
 renderCallback()
-game.PlaceId = 133215910299950
+activeDuel.Data.IsGunGame = true
 
 do
 local lowHealthPosition = targetPosition + Vector3.new(-4, 0, 0)
@@ -3280,15 +3249,16 @@ for _, utilityName in ipairs({
     )
 end
 localItem.Name = "Burst Rifle"
-localItem.Info = { DisplayName = "Burst Rifle" }
+localItem.Info = { BurstCount = 3, DisplayName = "Burst Rifle", ShootDamage = 25 }
 localItem.Data = {}
 settings.silentAim = false
 settings.shotAim = false
 
 fighterModule._player_to_fighter[enemyPlayer].EquippedItem = {
     Name = "Katana",
+    _deflect_hash = 1,
     Data = { FOVOffset = 5 },
-    Info = { DisplayName = "Katana" },
+    Info = { DeflectCooldown = 1, DeflectDuration = 1, DisplayName = "Katana" },
 }
 currentTime += 1
 local deflectClicks = clicks
@@ -3315,6 +3285,7 @@ localItem.Info = {
     ProjectileGravity = 0,
     ProjectileLifetime = 5,
     ProjectileSpeed = 100,
+    ShootDamage = 100,
     ShootExplosionRadius = 16,
 }
 settings.silentAim = true
@@ -3366,7 +3337,7 @@ environmentCast = function()
     return nil
 end
 localItem.Name = "Burst Rifle"
-localItem.Info = { DisplayName = "Burst Rifle" }
+localItem.Info = { BurstCount = 3, DisplayName = "Burst Rifle", ShootDamage = 25 }
 settings.silentAim = false
 localItem.Info.AimScopePercent = 0.5
 localItem.Data = { IsAiming = true }
@@ -3384,6 +3355,7 @@ localItem.Name = "Sniper"
 localItem.Info = {
     AimScopePercent = 0.5,
     DisplayName = "Sniper",
+    ShootDamage = 75,
     ShootSpread = 15,
 }
 localItem.Data = { IsAiming = false }
@@ -3669,7 +3641,7 @@ do
     currentTime += 1
     renderCallback()
     assert(
-        rangeObservation.health == 150 and rangeObservation.maxHealth == 150,
+        rangeObservation.health == math.huge and rangeObservation.maxHealth == math.huge,
         "Infinite-health practice dummies must expose representative full player health"
     )
     assert(
@@ -3757,6 +3729,7 @@ localItem.Info = {
     InputSpammingEnabled = { StartShooting = 0 },
     InternalUseCooldown = 0.25,
     MaxAmmo = 100,
+    ShootDamage = 10,
 }
 localItem.Data = {}
 currentTime += 1
@@ -3789,12 +3762,14 @@ rangeObservation.screenDistance = 4
 localItem.Name = "Slingshot"
 localItem.Info = {
     DisplayName = "Slingshot",
+    IsProjectile = true,
     ProjectileGravity = 1,
     ProjectileLifetime = 5,
     ProjectileMaxHits = 3,
     ProjectileRaycastRadius = 0.375,
     ProjectileSpeed = 300,
     ShootCooldown = 0.1,
+    ShootDamage = 30,
 }
 settings.silentAim = true
 settings.triggerBot = false
@@ -3825,6 +3800,8 @@ settings.aimSmoothness = 0
 localItem.Name = "Energy Rifle"
 localItem.Info = {
     DisplayName = "Energy Rifle",
+    RaycastBounceCount = 2,
+    ShootDamage = 25,
 }
 observations[1].visible = false
 rangeObservation.visible = false
@@ -3871,13 +3848,12 @@ localItem.Info = {
     DisplayName = "Glast Shard",
 }
 assert(
-    RivalsWeaponPolicy.isBackstabKnife(localItem, true) == true
-        and RivalsWeaponPolicy.isBackstabKnife(localItem, false) == false,
-    "Gun Game must recognize the final Knife by its verified backstab-capable item shape"
+    RivalsWeaponPolicy.isBackstabKnife(localItem) == true,
+    "the native backstab-capable item shape must be recognized without a display-name or mode gate"
 )
 assert(
-    game.PlaceId == 133215910299950,
-    "Final-weapon Knife contracts must run under the Gun Game place gate"
+    activeDuel.Data.IsGunGame == true,
+    "Final-weapon Knife contracts must run under the replicated Gun Game state"
 )
 grounded = true
 observations[1].visible = true
@@ -3986,7 +3962,7 @@ assert(
 
 do
 localItem.Name = "Burst Rifle"
-localItem.Info = { DisplayName = "Burst Rifle" }
+localItem.Info = { BurstCount = 3, DisplayName = "Burst Rifle", ShootDamage = 25 }
 settings.bhop = true
 wHeld = false
 movementDirection = Vector3.xAxis

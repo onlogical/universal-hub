@@ -1,3 +1,15 @@
+local function importDependency(path, relativePath)
+    if type(getgenv) == "function" then
+        local environment = getgenv()
+        local configuration = environment and environment.UniversalHubConfig
+        if configuration and type(configuration.Import) == "function" then
+            return configuration.Import(path)
+        end
+    end
+    return require(relativePath)
+end
+
+local ItemPolicy = importDependency("games/rivals/ItemPolicy", "./ItemPolicy")
 local ProjectileAim = {}
 
 local RICOCHET_BOUNCES = 2
@@ -8,18 +20,6 @@ local RICOCHET_SURFACE_OFFSET = 0.05
 local SPLASH_TRACE_STEPS = 12
 local SLINGSHOT_STEP = 1 / 20
 local SLINGSHOT_TARGET_RADIUS = 2.5
-
-local function itemName(item)
-    if not item then
-        return nil
-    end
-
-    local info = item.Info
-    if type(info) == "table" then
-        return info.DisplayName or info.Name or info.ItemName or item.Name
-    end
-    return item.Name
-end
 
 function ProjectileAim.reflectDirection(direction, normal)
     return (direction - normal * (2 * direction:Dot(normal))).Unit
@@ -171,7 +171,7 @@ function ProjectileAim.isDirectProjectile(item)
         and info.DamageType ~= "Splash"
         and (info.ProjectileMaxHits or 1) <= 1
         and (info.RaycastBounceCount or 0) == 0
-        and itemName(item) ~= "Slingshot"
+        and not ItemPolicy.isBouncingProjectile(item)
 end
 
 local function ballisticDirection(origin, target, speed, gravity)
@@ -475,7 +475,7 @@ local function distanceToSegment(point, segmentStart, segmentEnd)
     return (point - (segmentStart + segment * alpha)).Magnitude
 end
 
-function ProjectileAim.simulateSlingshot(origin, direction, target, info, raycast, worldGravity)
+function ProjectileAim.simulateBouncingProjectile(origin, direction, target, info, raycast, worldGravity)
     local speed = info.ProjectileSpeed
     local gravity = (worldGravity or 196.2) * (info.ProjectileGravity or 0)
     local lifetime = info.ProjectileLifetime or 5
@@ -528,7 +528,7 @@ function ProjectileAim.simulateSlingshot(origin, direction, target, info, raycas
     return nil
 end
 
-function ProjectileAim.solveSlingshot(origin, observation, info, raycast, worldGravity)
+function ProjectileAim.solveBouncingProjectile(origin, observation, info, raycast, worldGravity)
     local targetPosition = observation and observation.position
     local speed = info and info.ProjectileSpeed
     if not targetPosition or type(speed) ~= "number" or speed <= 0 then
@@ -566,7 +566,7 @@ function ProjectileAim.solveSlingshot(origin, observation, info, raycast, worldG
     end
 
     for _, candidate in ipairs(candidates) do
-        local solution = ProjectileAim.simulateSlingshot(
+        local solution = ProjectileAim.simulateBouncingProjectile(
             origin,
             candidate,
             predictedTarget,

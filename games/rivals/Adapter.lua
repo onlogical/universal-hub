@@ -11,46 +11,23 @@ end
 
 local Targeting = importDependency("games/rivals/Targeting", "./Targeting")
 local ProjectileAim = importDependency("games/rivals/ProjectileAim", "./ProjectileAim")
-local ShotPresentation = importDependency("games/rivals/ShotPresentation", "./ShotPresentation")
-local ScopedAccuracy = importDependency("games/rivals/ScopedAccuracy", "./ScopedAccuracy")
+local HookRuntime = importDependency("games/rivals/HookRuntime", "./HookRuntime")
 local WeaponPolicy = importDependency("games/rivals/WeaponPolicy", "./WeaponPolicy")
 local Effects = importDependency("games/rivals/Effects", "./Effects")
 local Movement = importDependency("games/rivals/Movement", "./Movement")
 local CombatState = importDependency("games/rivals/CombatState", "./CombatState")
+local ModePolicy = importDependency("games/rivals/ModePolicy", "./ModePolicy")
+local GunGameRuntime = importDependency("games/rivals/GunGameRuntime", "./GunGameRuntime")
+local ObservationRuntime = importDependency("games/rivals/ObservationRuntime", "./ObservationRuntime")
 
 local Rivals = {}
 
 local TRIGGER_INTERVAL = 0.1
 local TRIGGER_RADIUS = 8
-local GUN_GAME_PLACE_ID = 133215910299950
-local PICKUP_SCAN_INTERVAL = 0.1
-local PICKUP_RETRY_INTERVAL = 0.5
-local MAX_OBSERVATION_DISTANCE = 2000
-local PRACTICE_DUMMY_HEALTH = 150
 local RICOCHET_CACHE_INTERVAL = 0.15
 local SPLASH_CACHE_INTERVAL = 0.1
 local SLINGSHOT_CACHE_INTERVAL = 0.2
 local SLINGSHOT_HUMAN_AIM_MAX_SMOOTHNESS = 65
-
-function Rivals.controllersReady(
-    cameraController,
-    fighterController,
-    loadedModules,
-    mechanicsController,
-    duelController
-)
-    local cameraReady = false
-    local duelReady = duelController == nil
-    local fighterReady = false
-    local mechanicsReady = mechanicsController == nil
-    for _, module in ipairs(loadedModules or {}) do
-        cameraReady = cameraReady or module == cameraController
-        duelReady = duelReady or module == duelController
-        fighterReady = fighterReady or module == fighterController
-        mechanicsReady = mechanicsReady or module == mechanicsController
-    end
-    return cameraReady and duelReady and fighterReady and mechanicsReady
-end
 
 function Rivals.isOpponent(localPlayer, player, character)
     if player == localPlayer or not character then
@@ -71,17 +48,36 @@ function Rivals.isOpponent(localPlayer, player, character)
     return localTeam == nil or playerTeam == nil or localTeam ~= playerTeam
 end
 
-function Rivals.isGunGamePlace(placeId)
-    return placeId == GUN_GAME_PLACE_ID
+function Rivals.capabilityContext(context)
+    context = context or {}
+    local duelController = context.duelController
+    local player = context.player
+    if not duelController then
+        local gameObject = context.game or game
+        local players = gameObject:GetService("Players")
+        player = player or players.LocalPlayer
+        local controllers = player.PlayerScripts:WaitForChild("Controllers")
+        local duelControllerModule = controllers:WaitForChild("DuelController")
+        duelController = (context.requireModule or require)(duelControllerModule)
+    end
+    return {
+        isGunGame = ModePolicy.controllerIsGunGame(duelController, player),
+    }
 end
 
 function Rivals.capabilitiesFor(context, declaredCapabilities)
     context = context or {}
-    local autoPickupAvailable = Rivals.isGunGamePlace(context.placeId)
+    local autoPickupAvailable = context.isGunGame == true
         and context.fireTouchInterestAvailable == true
+    local hookFeaturesAvailable = context.hookFunctionAvailable == true
+        and context.restoreFunctionAvailable == true
     local capabilities = {}
     for _, capability in ipairs(declaredCapabilities or {}) do
-        if capability ~= "autoPickup" or autoPickupAvailable then
+        local available = capability ~= "autoPickup" or autoPickupAvailable
+        if capability == "shotAim" or capability == "alwaysScoped" then
+            available = available and hookFeaturesAvailable
+        end
+        if available then
             table.insert(capabilities, capability)
         end
     end
@@ -125,73 +121,17 @@ function Rivals.lowestHealthObservation(observations, validate, nearest)
     return nearest(lowest)
 end
 
-function Rivals.pickupType(instance)
-    if not instance
-        or instance.Name ~= "_drop"
-        or type(instance.IsA) ~= "function"
-        or not instance:IsA("BasePart")
-        or type(instance.FindFirstChild) ~= "function"
-    then
-        return nil
-    end
+Rivals.pickupType = GunGameRuntime.pickupType
+Rivals.shouldCollectPickup = GunGameRuntime.shouldCollect
 
-    if instance:FindFirstChild("Health") then
-        return "Health"
-    end
-    if instance:FindFirstChild("AmmoBalanced") then
-        return "AmmoBalanced"
-    end
-    return nil
-end
-
-function Rivals.shouldCollectPickup(kind, fighter)
-    if kind == "Health" then
-        local entity = fighter and fighter.Entity
-        local humanoid = entity and entity.Humanoid
-        return humanoid ~= nil
-            and type(humanoid.Health) == "number"
-            and type(humanoid.MaxHealth) == "number"
-            and humanoid.Health > 0
-            and humanoid.Health < humanoid.MaxHealth
-    end
-
-    if kind ~= "AmmoBalanced" then
-        return false
-    end
-
-    local item = fighter and fighter.EquippedItem
-    local data = item and item.Data
-    local info = item and item.Info
-    if type(data) ~= "table" or type(info) ~= "table" then
-        return item ~= nil
-    end
-
-    local knownCapacity = false
-    if type(data.Ammo) == "number" and type(info.MaxAmmo) == "number" then
-        knownCapacity = true
-        if data.Ammo < info.MaxAmmo then
-            return true
-        end
-    end
-    if type(data.AmmoReserve) == "number"
-        and type(info.MaxAmmoReserve) == "number"
-    then
-        knownCapacity = true
-        if data.AmmoReserve < info.MaxAmmoReserve then
-            return true
-        end
-    end
-    return not knownCapacity
-end
-
-function Rivals.isTargetable(localPlayer, player, character, fighter, placeId)
+function Rivals.isTargetable(localPlayer, player, character, fighter, isGunGame)
     if not Rivals.isOpponent(localPlayer, player, character)
         or character:FindFirstChildOfClass("ForceField") ~= nil
     then
         return false
     end
 
-    return not Rivals.isGunGamePlace(placeId)
+    return isGunGame ~= true
         or not Rivals.entityIsInvincible(fighter and fighter.Entity)
 end
 
@@ -201,8 +141,6 @@ function Rivals.new(context)
     assert(context.press and context.release, "RIVALS adapter requires held input support")
     assert(context.aimClick, "RIVALS adapter requires secondary click support")
     assert(context.aimPress and context.aimRelease, "RIVALS adapter requires held aiming support")
-    assert(context.hookFunction, "RIVALS adapter requires hookfunction")
-    assert(context.restoreFunction, "RIVALS adapter requires restorefunction")
 
     local clock = context.clock or os.clock
     local itemClock = context.itemClock or tick
@@ -220,32 +158,14 @@ function Rivals.new(context)
     local fighterControllerModule = controllers:WaitForChild("FighterController")
     local controlsControllerModule = controllers:WaitForChild("ControlsController")
     local mechanicsControllerModule = controllers:WaitForChild("MechanicsController")
-    if context.getLoadedModules then
-        local deadline = clock() + 30
-        repeat
-            local succeeded, loadedModules = pcall(context.getLoadedModules)
-            if succeeded
-                and Rivals.controllersReady(
-                    cameraControllerModule,
-                    fighterControllerModule,
-                    loadedModules,
-                    mechanicsControllerModule,
-                    duelControllerModule
-                )
-            then
-                break
-            end
-            if clock() >= deadline then
-                error("RIVALS did not initialize its client controllers within 30 seconds")
-            end
-            (context.wait or task.wait)(0.1)
-        until false
-    end
     local CameraController = loadModule(cameraControllerModule)
     local DuelController = loadModule(duelControllerModule)
     local FighterController = loadModule(fighterControllerModule)
     local ControlsController = loadModule(controlsControllerModule)
     local MechanicsController = loadModule(mechanicsControllerModule)
+    local function isGunGame()
+        return ModePolicy.controllerIsGunGame(DuelController, LocalPlayer)
+    end
     local PickWeaponsPage = context.pickWeaponsPage or loadModule(
         LocalPlayer.PlayerScripts:WaitForChild("Modules")
             :WaitForChild("Pages")
@@ -275,10 +195,6 @@ function Rivals.new(context)
     local humanAimCharacter
     local humanAimState
     local renderDelta = 1 / 60
-    local pickupState = {
-        attemptedAt = setmetatable({}, { __mode = "k" }),
-        nextScanAt = 0,
-    }
     local observations = {}
     local self = {}
     local getNetworkPing = context.getNetworkPing or function()
@@ -321,11 +237,11 @@ function Rivals.new(context)
         return fighter and WeaponPolicy.itemLabel(fighter.EquippedItem) or nil
     end
 
-    local function isKatanaDeflecting(player)
+    local function isDeflecting(player)
         local fighter = fighterFor(player)
         local item = fighter and fighter.EquippedItem
         local data = item and item.Data
-        return WeaponPolicy.itemName(item) == "Katana"
+        return WeaponPolicy.isDeflector(item)
             and type(data) == "table"
             and data.FOVOffset == 5
     end
@@ -392,57 +308,24 @@ function Rivals.new(context)
             player,
             character,
             fighterFor(player),
-            game.PlaceId
+            isGunGame()
         )
     end
 
-    local function updateAutoPickup()
-        local settings = store:Get().settings
-        if settings.autoPickup ~= true
-            or not Rivals.isGunGamePlace(game.PlaceId)
-            or type(context.fireTouchInterest) ~= "function"
-            or not localFighterIsActive()
-            or not localFighterIsInCombat()
-        then
-            return
-        end
-
-        local now = clock()
-        if now < pickupState.nextScanAt then
-            return
-        end
-        pickupState.nextScanAt = now + PICKUP_SCAN_INTERVAL
-
-        local fighter = FighterController.LocalFighter
-        local entity = fighter and fighter.Entity
-        local touchPart = entity and entity.RootPart
-        if not touchPart or type(Workspace.GetChildren) ~= "function" then
-            return
-        end
-
-        for _, candidate in ipairs(Workspace:GetChildren()) do
-            local kind = Rivals.pickupType(candidate)
-            local lastAttemptAt = pickupState.attemptedAt[candidate]
-            if kind
-                and candidate.Parent == Workspace
-                and Rivals.shouldCollectPickup(kind, fighter)
-                and (lastAttemptAt == nil or now - lastAttemptAt >= PICKUP_RETRY_INTERVAL)
-            then
-                pickupState.attemptedAt[candidate] = now
-                spawn(function()
-                    if stopped or candidate.Parent ~= Workspace then
-                        return
-                    end
-                    local touched = pcall(context.fireTouchInterest, touchPart, candidate, 1)
-                    if not touched then
-                        return
-                    end
-                    (context.wait or task.wait)()
-                    pcall(context.fireTouchInterest, touchPart, candidate, 0)
-                end)
-            end
-        end
-    end
+    local gunGameRuntime = GunGameRuntime.new({
+        clock = clock,
+        fireTouchInterest = context.fireTouchInterest,
+        getFighter = function()
+            return FighterController.LocalFighter
+        end,
+        isActive = localFighterIsActive,
+        isGunGame = isGunGame,
+        isInCombat = localFighterIsInCombat,
+        spawn = spawn,
+        store = store,
+        wait = context.wait,
+        workspace = Workspace,
+    })
 
     local function selectTarget(maxScreenDistance, includeBlocked)
         local settings = store:Get().settings
@@ -478,7 +361,7 @@ function Rivals.new(context)
             return targeting.nearestObservation(eligible, options)
         end
         local selected
-        if Rivals.isGunGamePlace(game.PlaceId) then
+        if isGunGame() then
             local fighter = FighterController.LocalFighter
             local item = fighter and fighter.EquippedItem
             local camera = Workspace.CurrentCamera
@@ -543,10 +426,10 @@ function Rivals.new(context)
                 local health = type(observation.health) == "number"
                         and observation.health
                     or math.huge
-                local preferred = Rivals.isGunGamePlace(game.PlaceId)
+                local preferred = isGunGame()
                         and (health < lowestHealth
                             or health == lowestHealth and distance < nearestDistance)
-                    or not Rivals.isGunGamePlace(game.PlaceId) and distance < nearestDistance
+                    or not isGunGame() and distance < nearestDistance
                 if preferred then
                     nearest = table.clone(observation)
                     nearest.backstabPlan = plan
@@ -566,7 +449,7 @@ function Rivals.new(context)
         return root and root.Position or target and target.position
     end
 
-    local function selectGunbladeTarget(fighter, item)
+    local function selectDualModeBladeTarget(fighter, item)
         local entity = fighter and fighter.Entity
         local localRoot = entity and entity.RootPart
         local comboRange = WeaponPolicy.gunbladeDashRange(item)
@@ -752,101 +635,18 @@ function Rivals.new(context)
     local environmentRaycast = context.environmentRaycast or ricochetRaycast
     local solveRicochet = context.solveRicochet or ProjectileAim.solveRicochet
     local solveSplashAim = context.solveSplashAim or ProjectileAim.solveSplashAim
-    local solveSlingshot = context.solveSlingshot or ProjectileAim.solveSlingshot
+    local solveBouncingProjectile = context.solveBouncingProjectile or ProjectileAim.solveBouncingProjectile
 
-    local function updateObservations()
-        local screenOrigin = UserInputService:GetMouseLocation()
-        observations = targeting.observePlayers({
-            isEligible = isOpponent,
-            raycastIgnore = effects:smokeRaycastIgnore(),
-            screenOrigin = screenOrigin,
-        })
-
-        local fighter = FighterController.LocalFighter
-        local data = fighter and fighter.Data
-        local camera = Workspace.CurrentCamera
-        local rangeEntities = Workspace:FindFirstChild("ShootingRangeEntities")
-        if type(data) == "table" and data.IsInShootingRange and camera and rangeEntities then
-            for _, entity in ipairs(rangeEntities:GetChildren()) do
-                local humanoid = entity:FindFirstChildOfClass("Humanoid")
-                local environmentID = entity:GetAttribute("EnvironmentID")
-                local root = entity:FindFirstChild("HumanoidRootPart")
-                local onScreen = false
-                if root then
-                    local _viewportPoint
-                    _viewportPoint, onScreen = camera:WorldToViewportPoint(root.Position)
-                end
-                if entity:IsA("Model")
-                    and humanoid
-                    and humanoid.Health > 0
-                    and (data.EnvironmentID == nil or environmentID == data.EnvironmentID)
-                    and onScreen
-                then
-                    local observation = targeting.observeCharacter(entity, {
-                        screenOrigin = screenOrigin,
-                    })
-                    if observation then
-                        local health = humanoid.Health
-                        local maxHealth = humanoid.MaxHealth
-                        if health == math.huge or maxHealth == math.huge then
-                            health = PRACTICE_DUMMY_HEALTH
-                            maxHealth = PRACTICE_DUMMY_HEALTH
-                        end
-                        observation.player = entity
-                        observation.health = health
-                        observation.maxHealth = maxHealth
-                        table.insert(observations, observation)
-                    end
-                end
-            end
-        end
-
-        local cameraFrame = camera
-            and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
-        local cameraPosition = cameraFrame and cameraFrame.Position
-        local nearby = {}
-        if cameraPosition then
-            for _, observation in ipairs(observations) do
-                if observation.position
-                    and (observation.position - cameraPosition).Magnitude <= MAX_OBSERVATION_DISTANCE
-                then
-                    table.insert(nearby, observation)
-                end
-            end
-        end
-        observations = nearby
-
-        local visibleCount = 0
-        for _, observation in ipairs(observations) do
-            if observation.player ~= observation.character then
-                local character = observation.character
-                local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-                observation.health = humanoid and humanoid.Health or 0
-                observation.maxHealth = humanoid and humanoid.MaxHealth or 100
-                observation.weapon = equippedWeapon(observation.player)
-            end
-            if observation.visible then
-                visibleCount += 1
-            end
-        end
-        return visibleCount
-    end
-
-    local function statusText(enemyCount, visibleCount)
-        local fighter = FighterController.LocalFighter
-        local data = fighter and fighter.Data
-        local phase = "Lobby"
-        if type(data) == "table" then
-            if data.IsInShootingRange then
-                return ("Shooting range · %d dummies · %d visible"):format(enemyCount, visibleCount)
-            elseif data.IsInDuel then
-                phase = "Duel"
-            elseif data.IsSpectating ~= true then
-                phase = "Active"
-            end
-        end
-        return ("%s · %d enemies · %d visible"):format(phase, enemyCount, visibleCount)
-    end
+    local observationRuntime = ObservationRuntime.new({
+        effects = effects,
+        equippedWeapon = equippedWeapon,
+        getFighter = function()
+            return FighterController.LocalFighter
+        end,
+        isOpponent = isOpponent,
+        targeting = targeting,
+        workspace = Workspace,
+    })
 
     local function setAimRotation(rotation, instant, character, maximumHumanSmoothness)
         local applied = rotation
@@ -932,13 +732,9 @@ function Rivals.new(context)
             aimPlan = nil
             return nil
         end
-        local weaponName = WeaponPolicy.itemName(item)
-        local energyRifle = weaponName == "Energy Rifle"
-        local knife = WeaponPolicy.isBackstabKnife(
-            item,
-            Rivals.isGunGamePlace(game.PlaceId)
-        )
-        local slingshot = weaponName == "Slingshot"
+        local energyRifle = WeaponPolicy.isRicochetWeapon(item)
+        local knife = WeaponPolicy.isBackstabKnife(item)
+        local slingshot = WeaponPolicy.isBouncingProjectile(item)
         local splashProjectile = ProjectileAim.isSplashProjectile(item)
         local entity = fighter and fighter.Entity
         local localRoot = entity and entity.RootPart
@@ -997,7 +793,7 @@ function Rivals.new(context)
                 slingshotCache = {
                     expiresAt = now + SLINGSHOT_CACHE_INTERVAL,
                     origin = origin,
-                    solution = solveSlingshot(
+                    solution = solveBouncingProjectile(
                         origin,
                         target,
                         item.Info,
@@ -1174,31 +970,36 @@ function Rivals.new(context)
         return aligned and aligned.position
     end
 
-    local shotPresentation = ShotPresentation.new({
-        cameraController = CameraController,
-        getFighter = function()
-            return FighterController.LocalFighter
-        end,
+    local hookRuntime = HookRuntime.new({
+        capabilities = context.capabilities,
         hookFunction = context.hookFunction,
-        isEnabled = function()
-            return not stopped and store:Get().settings.shotAim == true
-        end,
-        isInputCaptured = context.isInputCaptured,
         restoreFunction = context.restoreFunction,
-        runService = RunService,
-        workspace = Workspace,
+        scopedAccuracy = {
+            getFighter = function()
+                return FighterController.LocalFighter
+            end,
+            hookFunction = context.hookFunction,
+            isEnabled = function()
+                return not stopped and store:Get().settings.alwaysScoped == true
+            end,
+            restoreFunction = context.restoreFunction,
+        },
+        shotPresentation = {
+            cameraController = CameraController,
+            getFighter = function()
+                return FighterController.LocalFighter
+            end,
+            hookFunction = context.hookFunction,
+            isEnabled = function()
+                return not stopped and store:Get().settings.shotAim == true
+            end,
+            isInputCaptured = context.isInputCaptured,
+            restoreFunction = context.restoreFunction,
+            runService = RunService,
+            workspace = Workspace,
+        },
     })
-    local alwaysScoped = ScopedAccuracy.new({
-        getFighter = function()
-            return FighterController.LocalFighter
-        end,
-        hookFunction = context.hookFunction,
-        isEnabled = function()
-            return not stopped and store:Get().settings.alwaysScoped == true
-        end,
-        restoreFunction = context.restoreFunction,
-    })
-    alwaysScoped:refreshHook()
+    local shotPresentation = hookRuntime.presentation
 
     local function updateShotAimPresentation(aligned)
         local camera = Workspace.CurrentCamera
@@ -1215,8 +1016,8 @@ function Rivals.new(context)
         return shotPresentation:getPresentedTarget()
     end
 
-    local function installCameraDataHook()
-        shotPresentation:refreshHook()
+    local function refreshHooks()
+        hookRuntime:refresh()
     end
 
     local function runTriggerBot(alignedTarget)
@@ -1248,7 +1049,7 @@ function Rivals.new(context)
             end
             return
         end
-        local gunblade = WeaponPolicy.itemName(item) == "Gunblade"
+        local gunblade = WeaponPolicy.isDualModeBlade(item)
         if not gunblade and alignedTarget and alignedTarget.aimSettled == false then
             local humanReticleReady = settings.humanAim
                 and (alignedTarget.screenDistance or math.huge) <= TRIGGER_RADIUS
@@ -1267,7 +1068,7 @@ function Rivals.new(context)
             if settings.shotAim then
                 target = alignedTarget
             else
-                target = selectGunbladeTarget(fighter, item)
+                target = selectDualModeBladeTarget(fighter, item)
             end
         else
             target = alignedTarget
@@ -1294,7 +1095,7 @@ function Rivals.new(context)
             releaseFire()
             return
         end
-        if isKatanaDeflecting(target.player) then
+        if isDeflecting(target.player) then
             gunbladeComboState = nil
             releaseFire()
             if triggerHeld then
@@ -1368,13 +1169,13 @@ function Rivals.new(context)
             releaseFire()
             return
         end
-        if WeaponPolicy.isBackstabKnife(item, Rivals.isGunGamePlace(game.PlaceId)) then
+        if WeaponPolicy.isBackstabKnife(item) then
             releaseFire()
             if not WeaponPolicy.backstabTriggerReady(
                 fighter,
                 item,
                 alignedTarget,
-                Rivals.isGunGamePlace(game.PlaceId)
+                isGunGame()
             ) then
                 return
             end
@@ -1400,7 +1201,7 @@ function Rivals.new(context)
             releaseFire()
             return
         end
-        local sniperCrouching = WeaponPolicy.itemName(item) == "Sniper"
+        local sniperCrouching = WeaponPolicy.isScoped(item)
             and localFighterIsCrouching(fighter)
         if not WeaponPolicy.sniperTriggerReady(
             CameraController,
@@ -1509,16 +1310,26 @@ function Rivals.new(context)
         if stopped then
             return
         end
-        installCameraDataHook()
-        alwaysScoped:refreshHook()
+        refreshHooks()
         if type(deltaTime) == "number" and deltaTime > 0 then
             renderDelta = deltaTime
         end
 
-        updateAutoPickup()
-        local visibleCount = updateObservations()
-        local activeWeapon = equippedWeapon(LocalPlayer)
+        gunGameRuntime:update()
         local settings = store:Get().settings
+        local observationsEnabled = settings.silentAim == true
+            or settings.shotAim == true
+            or settings.triggerBot == true
+            or settings.boxes == true
+            or settings.chams == true
+            or settings.names == true
+            or settings.health == true
+            or settings.weapon == true
+        if observationsEnabled then
+            observations = observationRuntime:update(UserInputService:GetMouseLocation())
+        elseif #observations > 0 then
+            observations = {}
+        end
         local utilityObservations = {}
         local fighter = FighterController.LocalFighter
         local data = fighter and fighter.Data
@@ -1534,15 +1345,6 @@ function Rivals.new(context)
             end
         end
         effects:update(settings)
-        store:Patch({
-            activeWeapon = activeWeapon,
-            activeWeaponKind = activeWeapon and "Item" or nil,
-            observations = observations,
-            utilityObservations = {
-                count = #utilityObservations,
-            },
-            status = statusText(#observations, visibleCount),
-        })
         context.render(observations, UserInputService:GetMouseLocation(), utilityObservations)
         local alignedTarget = alignCamera()
         if not alignedTarget and settings.shotAim then
@@ -1555,8 +1357,7 @@ function Rivals.new(context)
             shotPresentation:clear()
         end
         suppressBhopJump = WeaponPolicy.isBackstabKnife(
-            fighter and fighter.EquippedItem,
-            Rivals.isGunGamePlace(game.PlaceId)
+            fighter and fighter.EquippedItem
         )
             and alignedTarget ~= nil
             and alignedTarget.knifePath ~= nil
@@ -1574,8 +1375,8 @@ function Rivals.new(context)
             return
         end
         stopped = true
-        alwaysScoped:stop()
-        shotPresentation:stop()
+        gunGameRuntime:stop()
+        hookRuntime:stop()
         if triggerHeld then
             context.aimRelease()
             triggerHeld = false

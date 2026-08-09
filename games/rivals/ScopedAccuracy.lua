@@ -37,6 +37,10 @@ function ScopedAccuracy:refreshHook()
     if self.stopped then
         return
     end
+    if not self.isEnabled() then
+        self:_restoreHook()
+        return
+    end
 
     local fighter = self.getFighter()
     local item = fighter and fighter.EquippedItem

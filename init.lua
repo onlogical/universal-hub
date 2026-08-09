@@ -284,12 +284,21 @@ local function setThirdPerson(enabled)
     end
 end
 
+local adapterCapabilityContext = {
+    fireTouchInterestAvailable = type(environment.firetouchinterest) == "function",
+    hookFunctionAvailable = type(hookfunction) == "function",
+    restoreFunctionAvailable = type(restorefunction) == "function",
+    gameId = game.GameId,
+    placeId = game.PlaceId,
+}
+if type(adapterModule.capabilityContext) == "function" then
+    local succeeded, nativeContext = pcall(adapterModule.capabilityContext)
+    if succeeded and type(nativeContext) == "table" then
+        extend(adapterCapabilityContext, nativeContext)
+    end
+end
 local adapterCapabilities = type(adapterModule.capabilitiesFor) == "function"
-        and adapterModule.capabilitiesFor({
-            fireTouchInterestAvailable = type(environment.firetouchinterest) == "function",
-            gameId = game.GameId,
-            placeId = game.PlaceId,
-        }, features.capabilities)
+        and adapterModule.capabilitiesFor(adapterCapabilityContext, features.capabilities)
     or features.capabilities
 local overlayContext = {
     capabilities = adapterCapabilities,
@@ -368,9 +377,6 @@ local adapterContext = {
     gcObjects = function()
         return getgc(true)
     end,
-    getLoadedModules = type(environment.getloadedmodules) == "function"
-            and environment.getloadedmodules
-        or nil,
     hookFunction = hookfunction,
     isInputCaptured = function()
         return inputCapture:IsEnabled()

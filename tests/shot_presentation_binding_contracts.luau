@@ -50,11 +50,20 @@ local function options()
     }, controller
 end
 
+local firstOptions = options()
+firstOptions.isEnabled = function()
+    return true
+end
 local first = loadCopy("ShotPresentation.copy1")
-    .new(options())
+    .new(firstOptions)
+first:refreshHook()
 local secondOptions, secondController = options()
+secondOptions.isEnabled = function()
+    return true
+end
 local second = loadCopy("ShotPresentation.copy2")
     .new(secondOptions)
+second:refreshHook()
 
 assert(
     first.preBinding ~= second.preBinding
@@ -88,5 +97,35 @@ assert(secondController.Rotation == rotation)
 
 second:stop()
 assert(not bindings[second.preBinding] and not bindings[second.postBinding])
+
+local hookTarget = function() end
+local hookEnabled = false
+local hookCalls = 0
+local restoreCalls = 0
+local lazyOptions = options()
+lazyOptions.getFighter = function()
+    return { GetCameraData = hookTarget }
+end
+lazyOptions.isEnabled = function()
+    return hookEnabled
+end
+lazyOptions.hookFunction = function(target)
+    hookCalls += 1
+    return target
+end
+lazyOptions.restoreFunction = function(target)
+    assert(target == hookTarget)
+    restoreCalls += 1
+end
+local lazy = loadCopy("ShotPresentation.lazy").new(lazyOptions)
+lazy:refreshHook()
+assert(hookCalls == 0, "disabled Shot Aim must not install a camera-data hook")
+hookEnabled = true
+lazy:refreshHook()
+assert(hookCalls == 1, "enabling Shot Aim must install its camera-data hook")
+hookEnabled = false
+lazy:refreshHook()
+assert(restoreCalls == 1, "disabling Shot Aim must restore its camera-data hook")
+lazy:stop()
 
 print("shot-presentation-binding-contracts-ok")
