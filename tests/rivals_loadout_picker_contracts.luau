@@ -1,6 +1,7 @@
 local fs = require("@lune/fs")
 local source = fs.readFile("games/rivals/Adapter.lua")
 
+assert(source:find('local TaskPolicy = importDependency("games/rivals/TaskPolicy", "./TaskPolicy")', 1, true), "loadout picker must import the combat-task policy it calls")
 assert(source:find('PickWeaponsPage.OpenChanged:Connect', 1, true), "loadout picker must wake from the native open signal")
 assert(source:find('PageFrame:GetPropertyChangedSignal("Visible")', 1, true), "loadout picker must wake from native page visibility")
 assert(source:find('local useCounter = rawCounter or counterActive', 1, true), "pre-round loadout selection must not wait through counter hysteresis")
