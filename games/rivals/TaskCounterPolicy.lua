@@ -20,11 +20,7 @@ function TaskCounterPolicy.hasShieldOrKatana(items)
 end
 
 function TaskCounterPolicy.shouldSelectSpray(items)
-    for key, value in pairs(items or {}) do
-        local item = type(value) == "table" and value or type(key) == "table" and key or nil
-        if itemName(item) == "Riot Shield" then return true end
-    end
-    return false
+    return TaskCounterPolicy.hasShieldOrKatana(items)
 end
 
 function TaskCounterPolicy.shouldForceSpray(item, opponentEquippedItem)

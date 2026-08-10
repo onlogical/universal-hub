@@ -8,10 +8,8 @@ local spray={Name="Spray"}
 
 assert(Counter.hasShieldOrKatana({rifle,shield}) and Counter.hasShieldOrKatana({katana})
     and Counter.hasShieldOrKatana({[shield]=true}))
-assert(Counter.shouldSelectSpray({shield}) == true,
-    "Riot Shield in the opponent loadout may justify Spray as our secondary")
-assert(Counter.shouldSelectSpray({katana}) == false,
-    "Katana inventory presence alone must keep the stronger Handgun secondary")
+assert(Counter.shouldSelectSpray({shield}) == true and Counter.shouldSelectSpray({katana}) == true,
+    "Riot Shield or Katana in the opponent loadout must make Spray available as our secondary")
 assert(Counter.shouldForceSpray(spray, katana) == true
     and Counter.shouldForceSpray(spray, rifle) == false
     and Counter.shouldForceSpray({Name="Handgun"}, katana) == false,
