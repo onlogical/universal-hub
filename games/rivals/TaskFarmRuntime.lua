@@ -210,7 +210,22 @@ function TaskFarmRuntime:_scheduleRetry(generation)
     if token.active and handle ~= nil then self.retryHandles[handle] = true end
 end
 
+function TaskFarmRuntime:_tryLeaveQueue()
+    local leaveQueue = self.context.leaveQueue or self.matchmakingController.TryLeaveQueue
+    if type(leaveQueue) == "function" then
+        pcall(leaveQueue, self.matchmakingController)
+    end
+end
+
+function TaskFarmRuntime:_cancelOwnedQueue()
+    if not self.queueAccepted then return end
+    self.queueAccepted = false
+    self.queuedTaskName = nil
+    self:_tryLeaveQueue()
+end
+
 function TaskFarmRuntime:_requestQueue(generation)
+    if self.stopped or self.paused or generation ~= self.generation then return end
     if self.attempts >= self.maxQueueAttempts then self.state = "retry-exhausted"; return end
     self.attempts += 1
     self.state = "queueing"
@@ -220,7 +235,12 @@ function TaskFarmRuntime:_requestQueue(generation)
         self.matchmakingController,
         self:_queueName()
     )
-    if ok and (result == true or result == "Success") then
+    local accepted = ok and (result == true or result == "Success")
+    if self.stopped or self.paused or generation ~= self.generation then
+        if accepted then self:_tryLeaveQueue() end
+        return
+    end
+    if accepted then
         self.queueAccepted = true
         self.queuedTaskName = self.currentTask and self.currentTask.name or nil
         self.state = "queued"
@@ -355,6 +375,7 @@ function TaskFarmRuntime:pause(reason)
     self.paused = true
     self.pauseReason = reason or "paused"
     self.state = "paused"
+    self:_cancelOwnedQueue()
     if self.practiceDriver and type(self.practiceDriver.pause) == "function" then self.practiceDriver:pause() end
     self:_notifyActivity()
 end

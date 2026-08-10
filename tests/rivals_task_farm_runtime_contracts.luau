@@ -12,21 +12,48 @@ local fighterSignal, duelSignal = signal(), signal()
 local fighter = { Data={ IsInDuel=false, IsInShootingRange=false }, Get=function(self,k)return self.Data[k]end, GetDataChangedSignal=function()return fighterSignal end }
 local duel = { Data={Status="Waiting"}, Get=function(self,k)return self.Data[k]end, GetDataChangedSignal=function()return duelSignal end }
 local queued, timers, activity = {}, {}, {}
+local leaveCalls = 0
 local queueResults = { "Retry", "Success", "Success" }
 local runtime = Runtime.new({ taskLibrary={TASKS_DATA_NAMES={"Tasks"},Info={Beginner7={Title="Play a duel",Goal=1}}}, playerDataController=data,
- matchmakingController={QueueInto=function(_,q)table.insert(queued,q); return table.remove(queueResults, 1) end}, fighterController={LocalFighter=fighter}, duelController={GetDuel=function()return duel end},
+ matchmakingController={
+  QueueInto=function(_,q)table.insert(queued,q); return table.remove(queueResults, 1) end,
+  TryLeaveQueue=function() leaveCalls += 1 end,
+ }, fighterController={LocalFighter=fighter}, duelController={GetDuel=function()return duel end},
  constants={BEGINNER_QUEUE_NAME="beginner",BEGINNER_QUEUE_WINS=5}, delay=function(_,fn)table.insert(timers,fn)end, maxQueueAttempts=2,
  onActivityChanged=function(active)table.insert(activity,active)end })
 assert(#queued==1 and queued[1]=="beginner" and #timers==1)
 timers[1](); assert(#queued==2, "one failed request retries through the public controller boundary")
 assert(#timers==1 and runtime:status().state == "queued", "a successful queue response must stop retrying")
-runtime:pause("test"); local stale=timers[1]; stale(); assert(#queued==2)
-runtime:resume(); assert(#queued==2, "resume must not duplicate an accepted queue request")
+runtime:pause("test"); local stale=timers[1]; stale()
+assert(#queued==2 and leaveCalls==1, "pausing must cancel only the queue accepted by task farming")
+runtime:resume(); assert(#queued==3, "resuming after cancellation must request a fresh queue")
 fighter.Data.IsInDuel=true; duel.Data.Status="RoundStarted"; fighterSignal:Fire(); assert(runtime:isCombatActive())
 assert(activity[#activity] == true, "RoundStarted must wake Adapter frame ownership")
 runtime:stop(); assert(not runtime:isCombatActive() and runtime:status().state=="stopped")
 assert(activity[#activity] == false, "stop must publish combat deactivation")
 assert(signals.Tasks:count()==0 and signals.BeginnerTasksCompleted:count()==0)
+
+local raceRuntime
+local raceLeaves = 0
+local raceSignals = {}
+local raceData = {
+ Get=function(_, key) if key=="Tasks" then return records end end,
+ GetDataChangedSignal=function(_, key) raceSignals[key]=raceSignals[key] or signal(); return raceSignals[key] end,
+}
+fighter.Data.IsInDuel=false; duel.Data.Status="Waiting"
+raceRuntime = Runtime.new({
+ taskLibrary={TASKS_DATA_NAMES={"Tasks"},Info={Beginner7={Title="Play a duel",Goal=1}}},
+ playerDataController=raceData,
+ matchmakingController={
+  QueueInto=function() raceRuntime:pause("user"); return "Success" end,
+  TryLeaveQueue=function() raceLeaves += 1 end,
+ },
+ fighterController={LocalFighter=fighter}, duelController={GetDuel=function()return duel end}, paused=true,
+})
+raceRuntime:resume()
+assert(raceRuntime:status().paused and raceRuntime:status().state=="paused" and raceLeaves==1,
+ "a pause racing a successful QueueInto must leave that newly accepted queue")
+raceRuntime:stop()
 
 local veteranQueue
 fighter.Data.IsInDuel=false
