@@ -64,6 +64,7 @@ function TaskFarmRuntime.new(options)
         maxQueueAttempts = options.maxQueueAttempts or options.maxQueueRetries or 3,
         onActivityChanged = options.onActivityChanged,
         onStatusChanged = options.onStatusChanged,
+        onManualDuel = options.onManualDuel,
         practiceDriver = options.practiceDriver,
         lastCombatActive = false,
         queueAccepted = false,
@@ -139,6 +140,27 @@ end
 function TaskFarmRuntime:_inRange()
     if type(self.context.isInRange) == "function" then return self.context.isInRange() == true end
     return read(self:_fighter(), "IsInShootingRange") == true
+end
+
+function TaskFarmRuntime:_isMatchmadeDuel()
+    if type(self.context.isMatchmadeDuel) == "function" then
+        return self.context.isMatchmadeDuel(self:_duel()) == true
+    end
+    if self.queueAccepted or self:_isQueued() then return true end
+    local controller = self.matchmakingController
+    if type(controller.Get) == "function" then
+        for _, key in ipairs({ "MatchmadeStatus", "MatchmadeGameOver", "MatchmadeConnectedPlayers" }) do
+            local ok, value = pcall(controller.Get, controller, key)
+            if ok and value ~= nil then return true end
+        end
+    end
+    if type(controller.IsMatchmadeDuelOver) == "function" then
+        local ok, value = pcall(controller.IsMatchmadeDuelOver, controller)
+        if ok and value == true then return true end
+    end
+    return read(controller, "MatchmadeStatus") ~= nil
+        or read(controller, "MatchmadeGameOver") ~= nil
+        or read(controller, "MatchmadeConnectedPlayers") ~= nil
 end
 
 function TaskFarmRuntime:_isQueued()
@@ -289,6 +311,11 @@ function TaskFarmRuntime:_reconcile(isRetry)
         end
     end
     local inDuel = self:_inDuel()
+    if inDuel and not self:_isMatchmadeDuel() then
+        self:pause("manual-duel")
+        if type(self.onManualDuel) == "function" then pcall(self.onManualDuel) end
+        return
+    end
     if self.wasInDuel and not inDuel then
         self.queueAccepted = false
         self.queuedTaskName = nil

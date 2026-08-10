@@ -2076,6 +2076,14 @@ function Rivals.new(context)
         paused = store:Get().settings.taskAutomationPaused == true,
         onActivityChanged = taskActivityChanged,
         onStatusChanged = taskStatusChanged,
+        onManualDuel = function()
+            local state = store:Get()
+            if state.settings.taskAutomationPaused == true then return end
+            local settings = table.clone(state.settings)
+            settings.taskAutomationPaused = true
+            store:Patch({ settings = settings })
+            if type(context.settingsChanged) == "function" then context.settingsChanged(settings) end
+        end,
     })
     if type(taskFarmRuntime.setActivityChanged) == "function" then
         taskFarmRuntime:setActivityChanged(taskActivityChanged)
@@ -2301,10 +2309,7 @@ function Rivals.new(context)
             local taskStatus = taskFarmRuntime:status()
             if settings.taskAutomationPaused == true and not taskStatus.paused then
                 taskFarmRuntime:pause("user")
-            elseif settings.taskAutomationPaused ~= true
-                and taskStatus.paused
-                and taskStatus.reason == "user"
-            then
+            elseif settings.taskAutomationPaused ~= true and taskStatus.paused then
                 taskFarmRuntime:resume()
             end
         end

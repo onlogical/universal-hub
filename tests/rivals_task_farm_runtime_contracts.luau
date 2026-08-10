@@ -81,9 +81,33 @@ local requeueData={
 local gameOverRuntime=Runtime.new({ taskLibrary={TASKS_DATA_NAMES={"Tasks"},Info={Beginner7={Title="Play a duel",Goal=1}}},
  playerDataController=requeueData, matchmakingController={QueueInto=function(_,name) requeueName=name; return "Success" end},
  fighterController={LocalFighter=fighter}, duelController={GetDuel=function() return duel end},
+ context={isMatchmadeDuel=function() return true end},
  constants={BEGINNER_QUEUE_NAME="beginner",BEGINNER_QUEUE_WINS=5} })
 assert(requeueName=="beginner" and gameOverRuntime:status().state=="queued", "GameOver must requeue incomplete PvP work through MatchmakingController")
 gameOverRuntime:stop()
+
+local manualPauseRequests = 0
+local manualQueueCalls = 0
+fighter.Data.IsInDuel=true; duel.Data.Status="RoundStarted"
+local manualSignals = {}
+local manualData = {
+ Get=function(_, key) if key=="Tasks" then return records end end,
+ GetDataChangedSignal=function(_, key) manualSignals[key]=manualSignals[key] or signal(); return manualSignals[key] end,
+}
+local manualRuntime = Runtime.new({
+ taskLibrary={TASKS_DATA_NAMES={"Tasks"},Info={Beginner7={Title="Play a duel",Goal=1}}},
+ playerDataController=manualData,
+ matchmakingController={QueueInto=function() manualQueueCalls += 1; return "Success" end},
+ fighterController={LocalFighter=fighter}, duelController={GetDuel=function() return duel end},
+ context={isMatchmadeDuel=function() return false end},
+ onManualDuel=function() manualPauseRequests += 1 end,
+})
+assert(manualRuntime:status().paused and manualRuntime:status().reason=="manual-duel",
+ "duel-pad and other lobby duels must pause task ownership")
+assert(not manualRuntime:isCombatActive() and manualQueueCalls==0 and manualPauseRequests==1,
+ "manual lobby duels must neither run combat automation nor enter matchmaking")
+manualRuntime:stop()
+fighter.Data.IsInDuel=false
 
 local practiceCalls = {}
 local practice = {
