@@ -86,7 +86,6 @@ local gameOverRuntime=Runtime.new({ taskLibrary={TASKS_DATA_NAMES={"Tasks"},Info
 assert(requeueName=="beginner" and gameOverRuntime:status().state=="queued", "GameOver must requeue incomplete PvP work through MatchmakingController")
 gameOverRuntime:stop()
 
-local manualPauseRequests = 0
 local manualQueueCalls = 0
 fighter.Data.IsInDuel=true; duel.Data.Status="RoundStarted"
 local manualSignals = {}
@@ -100,12 +99,11 @@ local manualRuntime = Runtime.new({
  matchmakingController={QueueInto=function() manualQueueCalls += 1; return "Success" end},
  fighterController={LocalFighter=fighter}, duelController={GetDuel=function() return duel end},
  context={isMatchmadeDuel=function() return false end},
- onManualDuel=function() manualPauseRequests += 1 end,
 })
-assert(manualRuntime:status().paused and manualRuntime:status().reason=="manual-duel",
- "duel-pad and other lobby duels must pause task ownership")
-assert(not manualRuntime:isCombatActive() and manualQueueCalls==0 and manualPauseRequests==1,
- "manual lobby duels must neither run combat automation nor enter matchmaking")
+assert(not manualRuntime:status().paused and manualRuntime:status().state=="combat",
+ "manual duels must remain eligible for task combat")
+assert(manualRuntime:isCombatActive() and manualQueueCalls==0,
+ "manual duels must run combat automation without entering matchmaking")
 manualRuntime:stop()
 fighter.Data.IsInDuel=false
 

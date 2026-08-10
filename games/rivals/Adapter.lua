@@ -918,8 +918,8 @@ function Rivals.new(context)
     local function plannedAimTarget(target, item, rateOverrides)
         local now = clock()
         local settings = store:Get().settings
-        local headshotRate = rateOverrides and rateOverrides.headshotRate or settings.headshotRate
-        local missRate = rateOverrides and rateOverrides.missRate or settings.missRate
+        local headshotRate = settings.headshotRate
+        local missRate = settings.missRate
         local options = headAimOptions()
         if aimPlan
             and aimPlan.character == target.character
@@ -1895,6 +1895,7 @@ function Rivals.new(context)
             local opponentFighter = fighterFor(alignedTarget.player)
             local opponentItem = opponentFighter and opponentFighter.EquippedItem
             taskTactical = {
+                rushUnarmed = opponentFighter ~= nil and opponentItem == nil,
                 pushSniper = WeaponPolicy.isScoped(opponentItem),
                 avoidSniperPeek = WeaponPolicy.isScoped(opponentItem)
                     and WeaponPolicy.isAiming(opponentItem),
@@ -1983,6 +1984,7 @@ function Rivals.new(context)
 
     local reconcileFrameLifecycle
     local reconcileTaskEmergency
+    local ensureTaskLoadoutOpen
     local TASK_STATE_LABELS = {
         idle = "Idle",
         paused = "Paused",
@@ -2021,6 +2023,7 @@ function Rivals.new(context)
             store:Patch({ taskAutomation = nextState })
         end
         if reconcileTaskEmergency then reconcileTaskEmergency(status) end
+        if ensureTaskLoadoutOpen then ensureTaskLoadoutOpen(status) end
     end
     local function taskActivityChanged(_, status)
         taskStatusChanged(status)
@@ -2076,14 +2079,6 @@ function Rivals.new(context)
         paused = store:Get().settings.taskAutomationPaused == true,
         onActivityChanged = taskActivityChanged,
         onStatusChanged = taskStatusChanged,
-        onManualDuel = function()
-            local state = store:Get()
-            if state.settings.taskAutomationPaused == true then return end
-            local settings = table.clone(state.settings)
-            settings.taskAutomationPaused = true
-            store:Patch({ settings = settings })
-            if type(context.settingsChanged) == "function" then context.settingsChanged(settings) end
-        end,
     })
     if type(taskFarmRuntime.setActivityChanged) == "function" then
         taskFarmRuntime:setActivityChanged(taskActivityChanged)
@@ -2101,10 +2096,13 @@ function Rivals.new(context)
     local loadoutPollConnection
     local loadoutOpenConnection
     local loadoutVisibleConnection
+    local loadoutButtonsConnection
+    local loadoutButtons
     local loadoutPlan
     local loadoutIndex = 1
     local loadoutNextAt = 0
     local loadoutWasOpen = false
+    local loadoutOpenRequested = false
     local loadoutClickAttempts = 0
     local function stopLoadoutPoll()
         loadoutPlan = nil
@@ -2138,11 +2136,48 @@ function Rivals.new(context)
         end
         return fallback
     end
-    ensureTaskLoadoutPoll = function()
-        if not PickWeaponsPage:IsOpen() then
-            if loadoutWasOpen then stopLoadoutPoll() end
+    ensureTaskLoadoutOpen = function(status)
+        status = status or currentTaskStatus()
+        local duel = DuelController:GetDuel(LocalPlayer)
+        local buttons = duel and duel.DuelInterface and duel.DuelInterface.Buttons
+        if buttons ~= loadoutButtons then
+            if loadoutButtonsConnection then loadoutButtonsConnection:Disconnect() end
+            loadoutButtons = buttons
+            loadoutButtonsConnection = nil
+            if buttons and buttons.Updated and type(buttons.Updated.Connect) == "function" then
+                loadoutButtonsConnection = buttons.Updated:Connect(function()
+                    ensureTaskLoadoutOpen(currentTaskStatus())
+                end)
+            end
+        end
+        if not buttons then return end
+        if not buttons.SwitchItemsFrame.Visible or not buttons.SwitchItemsBackgroundOn.Visible then
+            loadoutOpenRequested = false
             return
         end
+        if status.paused == true
+            or not TaskPolicy.requiresCombat(status.task)
+            or loadoutOpenRequested == true
+            or type(buttons.SwitchItemsRequest) ~= "function"
+        then
+            return
+        end
+        loadoutOpenRequested = true
+        self.taskDebug.loadoutStage = "opening-picker"
+        local succeeded, loadoutError = pcall(buttons.SwitchItemsRequest, buttons)
+        if not succeeded then
+            self.taskDebug.loadoutStage = "error"
+            self.taskDebug.loadoutError = tostring(loadoutError)
+        end
+    end
+    ensureTaskLoadoutPoll = function()
+        local status = currentTaskStatus()
+        if not PickWeaponsPage:IsOpen() then
+            if loadoutWasOpen then stopLoadoutPoll() end
+            ensureTaskLoadoutOpen(status)
+            return
+        end
+        loadoutOpenRequested = true
         if not loadoutWasOpen then
             loadoutWasOpen = true
             loadoutPlan = nil
@@ -2153,11 +2188,14 @@ function Rivals.new(context)
             self.taskDebug.loadoutError = nil
         end
         self.taskDebug.loadoutHeartbeat = clock()
-        local status = taskFarmRuntime:status()
         if status.paused or not TaskPolicy.requiresCombat(status.task) then return end
         if not loadoutPlan then
             local opponentFighter = taskOpponentFighter()
-            local opponentItems = opponentFighter and opponentFighter.Items or {}
+            if not counterLoadoutReady(opponentFighter) then
+                self.taskDebug.loadoutStage = "waiting-opponent-loadout"
+                return
+            end
+            local opponentItems = opponentFighter.Items
             local useCounter = TaskCounterPolicy.shouldSelectSpray(opponentItems)
             local secondary = useCounter and "Spray" or "Handgun"
             loadoutPlan = { "Assault Rifle", secondary, "Fists", "Grenade" }
@@ -2291,16 +2329,9 @@ function Rivals.new(context)
         local settings = state.settings or {}
         local pausedSetting = settings.taskAutomationPaused == true
         if pausedSetting ~= lastTaskPauseSetting then
-            local wasPaused = lastTaskPauseSetting
             lastTaskPauseSetting = pausedSetting
             if type(context.settingsChanged) == "function" then
                 context.settingsChanged(settings)
-            end
-            -- Starting the farm closes the hub once. Subsequent manual menu
-            -- opens are respected while farming remains active.
-            if wasPaused and not pausedSetting and state.menuVisible ~= false then
-                store:Patch({ menuVisible = false })
-                return
             end
         end
         if type(taskFarmRuntime.status) == "function" then
@@ -2342,6 +2373,7 @@ function Rivals.new(context)
     if PickWeaponsPage.PageFrame and type(PickWeaponsPage.PageFrame.GetPropertyChangedSignal) == "function" then
         loadoutVisibleConnection = PickWeaponsPage.PageFrame:GetPropertyChangedSignal("Visible"):Connect(loadoutVisibilityChanged)
     end
+    ensureTaskLoadoutOpen(currentTaskStatus())
 
     if type(store.Subscribe) == "function" then
         settingsSubscription = store:Subscribe(reconcileFrameLifecycle)
@@ -2359,6 +2391,7 @@ function Rivals.new(context)
         stopLoadoutPoll()
         if loadoutOpenConnection then loadoutOpenConnection:Disconnect(); loadoutOpenConnection = nil end
         if loadoutVisibleConnection then loadoutVisibleConnection:Disconnect(); loadoutVisibleConnection = nil end
+        if loadoutButtonsConnection then loadoutButtonsConnection:Disconnect(); loadoutButtonsConnection = nil end
         taskFarmRuntime:stop()
         gunGameRuntime:stop()
         hookRuntime:stop()

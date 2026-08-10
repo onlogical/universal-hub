@@ -1,7 +1,9 @@
 local roblox = require("@lune/roblox")
+local fs = require("@lune/fs")
 Enum = roblox.Enum
 Vector3 = roblox.Vector3
 local Movement = require("../games/rivals/Movement")
+local adapterSource = fs.readFile("games/rivals/Adapter.lua")
 
 local moves = {}
 local humanoid = { Move=function(_, direction, relative) table.insert(moves,{direction=direction,relative=relative}) end }
@@ -63,7 +65,14 @@ rifleMovement:updateTaskCombat(Vector3.new(40,0,0))
 assert(rifleMoves[2].X > 0 and math.abs(rifleMoves[2].Z) > rifleMoves[2].X, "assault rifles must slice around blocked corners with lateral commitment")
 rifleMovement.taskLineOfSightBlocked=function() return false end
 rifleMovement:updateTaskCombat(Vector3.new(40,0,0), nil, {avoidSniperPeek=true,pushSniper=true})
-assert(rifleMoves[3].X > 0 and math.abs(rifleMoves[3].Z) > 0.5, "task combat must close through a lateral angle against an aimed-down sniper")
+assert(rifleMoves[3].X < 0 and math.abs(rifleMoves[3].Z) > 0.5, "task combat must retreat-strafe instead of walking into an aimed-down sniper's sightline")
+rifleMovement.taskLineOfSightBlocked=function() return true end
+rifleMovement:updateTaskCombat(Vector3.new(40,0,0), nil, {avoidSniperPeek=true,pushSniper=true})
+assert(rifleMoves[4].X < 0, "task combat must deepen cover instead of peeking while a sniper remains scoped")
+rifleMovement.taskLineOfSightBlocked=function() return false end
+rifleMovement:updateTaskCombat(Vector3.new(40,0,0), nil, {rushUnarmed=true})
+assert(rifleMoves[5].X > 0.9, "task combat must rush an opponent who has not equipped a starting weapon")
+assert(adapterSource:find("rushUnarmed = opponentFighter ~= nil and opponentItem == nil", 1, true), "task tactics must rush only a known opponent who has not equipped a starting weapon")
 
 local crouchStates = {}
 local crouchNow = 0
@@ -89,9 +98,9 @@ local mobilityMovement = Movement.new({
  isInCombat=function()return true end,isInputCaptured=function()return false end,userInputService={},spawn=function(fn)fn()end,clock=function()return mobilityNow end,
  taskLineOfSightBlocked=function()return false end,
 })
-mobilityMovement:updateTaskCombat(Vector3.new(40,0,0))
-mobilityNow=0.2 mobilityMovement:updateTaskCombat(Vector3.new(40,0,0))
-assert(slides==1 and highJumps==1,"task combat must chain normal MechanicsController slide and high-jump actions while traversing")
+mobilityMovement:updateTaskCombat(Vector3.new(40,0,0), nil, {avoidSniperPeek=true,pushSniper=true})
+mobilityNow=0.2 mobilityMovement:updateTaskCombat(Vector3.new(40,0,0), nil, {avoidSniperPeek=true,pushSniper=true})
+assert(slides==1 and highJumps==1,"exposed task combat must use fast slide/high-jump evasion against an aimed-down sniper")
 
 local parkourActions={}
 local parkourNow=0

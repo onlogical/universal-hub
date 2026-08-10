@@ -64,7 +64,6 @@ function TaskFarmRuntime.new(options)
         maxQueueAttempts = options.maxQueueAttempts or options.maxQueueRetries or 3,
         onActivityChanged = options.onActivityChanged,
         onStatusChanged = options.onStatusChanged,
-        onManualDuel = options.onManualDuel,
         practiceDriver = options.practiceDriver,
         lastCombatActive = false,
         queueAccepted = false,
@@ -311,11 +310,6 @@ function TaskFarmRuntime:_reconcile(isRetry)
         end
     end
     local inDuel = self:_inDuel()
-    if inDuel and not self:_isMatchmadeDuel() then
-        self:pause("manual-duel")
-        if type(self.onManualDuel) == "function" then pcall(self.onManualDuel) end
-        return
-    end
     if self.wasInDuel and not inDuel then
         self.queueAccepted = false
         self.queuedTaskName = nil

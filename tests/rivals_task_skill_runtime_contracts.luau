@@ -1,4 +1,12 @@
 local Skill=require("../games/rivals/TaskSkillRuntime")
+local fs=require("@lune/fs")
+local adapterSource=fs.readFile("games/rivals/Adapter.lua")
+assert(adapterSource:find("local headshotRate = settings.headshotRate",1,true)
+    and adapterSource:find("local missRate = settings.missRate",1,true),
+    "configured aim rates must remain authoritative during task combat")
+assert(not adapterSource:find("rateOverrides and rateOverrides.headshotRate",1,true)
+    and not adapterSource:find("rateOverrides and rateOverrides.missRate",1,true),
+    "adaptive opponent telemetry must not silently replace explicit aim rates")
 local localHum={Health=150,MaxHealth=150} local enemyHum={Health=150,MaxHealth=150}
 local char={FindFirstChildOfClass=function()return enemyHum end}
 local target={character=char,health=150,maxHealth=150}

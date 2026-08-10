@@ -271,16 +271,17 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
         and info.MaxAmmo >= 15
     local lineBlocked = type(self.taskLineOfSightBlocked) == "function"
         and self.taskLineOfSightBlocked(root.Position, targetPosition, fighter) == true
+    local rushUnarmed = type(tactical) == "table" and tactical.rushUnarmed == true
     local avoidSniperPeek = type(tactical) == "table" and tactical.avoidSniperPeek == true
     local direction
-    if pushSniper and distance < 7 then
+    if rushUnarmed then
+        direction = (toward * 0.95 + strafe * 0.2).Unit
+    elseif pushSniper and distance < 7 then
         direction = (-toward * 0.75 + strafe * 0.65).Unit
     elseif avoidSniperPeek and not lineBlocked then
-        -- Close through a hard lateral angle while the sniper is holding scope.
-        direction = (toward * 0.12 + strafe).Unit
+        direction = (-toward * 0.45 + strafe).Unit
     elseif pushSniper and lineBlocked then
-        -- Geometry is safety: use it to collapse distance rather than staying tucked.
-        direction = (toward * 0.9 + strafe * 0.3).Unit
+        direction = (-toward * 0.9 + strafe * 0.2).Unit
     elseif pushSniper then
         direction = (toward * 0.88 + strafe * 0.48).Unit
     elseif lineBlocked then
@@ -431,7 +432,7 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
     end
     local shouldUseMobility = not performedParkour
         and not (type(parkour) == "table" and not parkour.landing)
-        and not avoidSniperPeek
+        and (not avoidSniperPeek or not lineBlocked)
         and not lineBlocked
         and not hazardNearby
         and distance > 24
