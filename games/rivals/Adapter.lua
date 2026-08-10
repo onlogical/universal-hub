@@ -1534,7 +1534,7 @@ function Rivals.new(context)
         end
         local targetFighter = target.player and fighterFor(target.player)
         local sprayCounter = targetFighter
-            and TaskCounterPolicy.shouldForceSpray(item, targetFighter.Items)
+            and TaskCounterPolicy.shouldForceSpray(item, targetFighter.EquippedItem)
         if isDeflecting(target.player) and not sprayCounter then
             self.taskDebug.triggerStage = "target-deflecting"
             gunbladeComboState = nil
@@ -1904,7 +1904,7 @@ function Rivals.new(context)
         if taskCombatActive and alignedTarget and alignedTarget.player then
             local opponentFighter = fighterFor(alignedTarget.player)
             local counterActive = counterLoadoutReady(opponentFighter)
-                and taskCounterPolicy:update(opponentFighter.Items)
+                and taskCounterPolicy:update(opponentFighter.EquippedItem)
                 or false
             if counterActive and fighter and fighter.EquippedItem
                 and fighter.EquippedItem.Name ~= "Spray"
@@ -2158,9 +2158,7 @@ function Rivals.new(context)
         if not loadoutPlan then
             local opponentFighter = taskOpponentFighter()
             local opponentItems = opponentFighter and opponentFighter.Items or {}
-            local rawCounter = TaskCounterPolicy.hasShieldOrKatana(opponentItems)
-            local counterActive = taskCounterPolicy:update(opponentItems)
-            local useCounter = rawCounter or counterActive
+            local useCounter = TaskCounterPolicy.shouldSelectSpray(opponentItems)
             local secondary = useCounter and "Spray" or "Handgun"
             loadoutPlan = { "Assault Rifle", secondary, "Fists", "Grenade" }
             self.taskDebug.loadoutStage = useCounter and "selecting-counter" or "selecting-default"
