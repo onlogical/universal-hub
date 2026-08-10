@@ -190,7 +190,7 @@ end
 function NativeWorldRenderer:_configureHighlights(subject)
     local settings = self:_settings()
     local perPart = (settings.boxes == true or settings.chams == true)
-        and (settings.chamsPerPart == true or settings.chamsExcludeAccessories == true)
+        and settings.chamsPerPart == true
     local excludeAccessories = settings.chamsExcludeAccessories == true
     if subject.highlightConfigured and subject.perPart == perPart
         and subject.excludeAccessories == excludeAccessories
@@ -279,7 +279,7 @@ end
 function NativeWorldRenderer:_perPartRelevant(settings)
     return self.active
         and (settings.boxes == true or settings.chams == true)
-        and (settings.chamsPerPart == true or settings.chamsExcludeAccessories == true)
+        and settings.chamsPerPart == true
 end
 
 function NativeWorldRenderer:_localRootPart()

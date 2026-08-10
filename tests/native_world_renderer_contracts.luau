@@ -200,6 +200,12 @@ assert(#subject.highlights == 1 and subject.highlights[1].Adornee == character,
     "Default chams must use one model Highlight")
 assert(heartbeat:count() == 0,
     "Model Highlight mode must not connect the per-part distance refresh")
+store:Patch({ settings = { chamsExcludeAccessories = true, chamsPerPart = false } })
+assert(#subject.highlights == 1 and subject.highlights[1].Adornee == character,
+    "Ignoring accessories must not silently force Part Highlights on")
+assert(heartbeat:count() == 0,
+    "Ignoring accessories alone must not start the per-part distance refresh")
+store:Patch({ settings = { chamsExcludeAccessories = false } })
 assert(subject.billboard.Size == UDim2.fromScale(5, 7))
 assert(subject.name.TextSize == 13 and subject.healthValue.TextSize == 12 and subject.weapon.TextSize == 12)
 assert(subject.name.TextTruncate == Enum.TextTruncate.None
