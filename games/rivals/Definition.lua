@@ -1,5 +1,6 @@
 return {
     defaults = {
+        autoCounter = false,
         taskAutomationPaused = true,
         taskAutomationEmergencyKey = "End",
         infiniteJump = false,
@@ -11,6 +12,7 @@ return {
             "silentAim",
             "shotAim",
             "triggerBot",
+            "autoCounter",
             "autoPickup",
             "alwaysScoped",
             "humanAim",
@@ -44,6 +46,7 @@ return {
         optionLabels = {
             humanAim = "Human Aim",
             alwaysScoped = "Always Scoped",
+            autoCounter = "Auto Counter",
             silentAim = "Camera Aim",
             shotAim = "Silent Aim",
             taskAutomationPaused = "Pause Task Farming",
@@ -70,6 +73,8 @@ return {
     presentation = "games/rivals/Presentation",
     sources = {
         "games/rivals/Adapter",
+        "games/rivals/AutoCounterRuntime",
+        "games/rivals/AutoCounterTestSimulator",
         "games/rivals/TaskPolicy",
         "games/rivals/TaskFarmRuntime",
         "games/rivals/PracticeTaskDriver",

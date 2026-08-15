@@ -1,0 +1,47 @@
+local fs = require("@lune/fs")
+
+local adapter = fs.readFile("games/rivals/Adapter.lua")
+local definition = fs.readFile("games/rivals/Definition.lua")
+local init = fs.readFile("init.lua")
+local presentation = fs.readFile("games/rivals/Presentation.lua")
+local simulator = fs.readFile("games/rivals/AutoCounterTestSimulator.lua")
+
+local function contains(source, needle, message)
+    assert(string.find(source, needle, 1, true), message or ("missing: " .. needle))
+end
+
+contains(definition, '"autoCounter"', "RIVALS must declare the Auto Counter capability")
+contains(definition, "autoCounter = false", "RIVALS must keep Auto Counter default off")
+contains(definition, '"games/rivals/AutoCounterRuntime"')
+contains(definition, '"games/rivals/AutoCounterTestSimulator"')
+contains(presentation, 'host:option("trigger", 3, "autoCounter", "Auto Counter")')
+assert(not string.find(presentation, "Teleport", 1, true), "The private simulator must have no UI")
+contains(init, "rivalsAutoCounterTest = configuration.RivalsAutoCounterTest")
+
+contains(adapter, 'importDependency("games/rivals/AutoCounterRuntime"')
+contains(adapter, '"games/rivals/AutoCounterTestSimulator"')
+contains(adapter, "CombatState.isRoundEligible")
+contains(adapter, "settings.autoCounter == true")
+contains(adapter, "or settings.autoCounter == true")
+contains(adapter, "Targeting.visibleBodyPoint")
+contains(adapter, "autoCounterRuntime:consume(clock(), cooldown)")
+contains(adapter, "local succeeded, actionError = pcall(context.click)")
+contains(adapter, "autoCounterTestSimulator:update(false, false)")
+
+local actionStart = assert(string.find(adapter, "local function runAutoCounter(settings)", 1, true))
+local actionEnd = assert(string.find(adapter, "local function stopAutoCounter(reason)", actionStart, true))
+local action = string.sub(adapter, actionStart, actionEnd - 1)
+assert(not string.find(action, "FireServer", 1, true))
+assert(not string.find(action, "InvokeServer", 1, true))
+assert(not string.find(action, "PivotTo", 1, true))
+assert(not string.find(action, ".CFrame =", 1, true), "Production Auto Counter must never move either fighter")
+
+contains(simulator, "configuration.enabled == true")
+contains(simulator, "root.CFrame = root.CFrame + self.offset")
+contains(simulator, "self:_restore()")
+assert(not string.find(simulator, "JobId", 1, true), "The local simulator must not carry stale job gates")
+assert(not string.find(simulator, "UserId", 1, true), "The local simulator must not carry stale account gates")
+assert(not string.find(simulator, "FireServer", 1, true))
+assert(not string.find(simulator, "InvokeServer", 1, true))
+
+print("rivals-auto-counter-integration-contracts-ok")

@@ -24,6 +24,11 @@ local CombatState = importDependency("games/rivals/CombatState", "./CombatState"
 local ModePolicy = importDependency("games/rivals/ModePolicy", "./ModePolicy")
 local GunGameRuntime = importDependency("games/rivals/GunGameRuntime", "./GunGameRuntime")
 local ObservationRuntime = importDependency("games/rivals/ObservationRuntime", "./ObservationRuntime")
+local AutoCounterRuntime = importDependency("games/rivals/AutoCounterRuntime", "./AutoCounterRuntime")
+local AutoCounterTestSimulator = importDependency(
+    "games/rivals/AutoCounterTestSimulator",
+    "./AutoCounterTestSimulator"
+)
 local WorldPolicy = importDependency("games/rivals/WorldPolicy", "./WorldPolicy")
 local TaskFarmRuntime = importDependency("games/rivals/TaskFarmRuntime", "./TaskFarmRuntime")
 local PracticeTaskDriver = importDependency("games/rivals/PracticeTaskDriver", "./PracticeTaskDriver")
@@ -275,7 +280,8 @@ function Rivals.new(context)
     local visualObservations = observations
     local taskFarmRuntime
     local taskEmergencyConnection
-    local self = { taskDebug = {} }
+    local autoCounterInFlight = false
+    local self = { autoCounterDebug = {}, taskDebug = {} }
     local getNetworkPing = context.getNetworkPing or function()
         return LocalPlayer:GetNetworkPing()
     end
@@ -405,6 +411,28 @@ function Rivals.new(context)
             PickWeaponsPage:IsOpen()
         )
     end
+
+    local function localFighterIsInRound()
+        local fighter = FighterController.LocalFighter
+        return CombatState.isRoundEligible(
+            fighter,
+            DuelController:GetDuel(LocalPlayer),
+            PickWeaponsPage:IsOpen()
+        )
+    end
+
+    local function localFighterRoot()
+        local fighter = FighterController.LocalFighter
+        local entity = fighter and fighter.Entity
+        return entity and (entity.RootPart or entity.HumanoidRootPart)
+    end
+
+    local autoCounterRuntime = AutoCounterRuntime.new({ clock = clock })
+    local autoCounterTestSimulator = AutoCounterTestSimulator.new({
+        clock = clock,
+        configuration = context.rivalsAutoCounterTest,
+        getRoot = localFighterRoot,
+    })
 
     local function localFighterIsCrouching(fighter)
         local isCrouching = fighter and fighter.IsCrouching
@@ -1074,6 +1102,155 @@ function Rivals.new(context)
         local pitchError = math.abs(rotation.X - applied.X)
         local yawError = math.abs((rotation.Y - applied.Y + math.pi) % (math.pi * 2) - math.pi)
         return math.max(pitchError, yawError) <= math.rad(0.5)
+    end
+
+    local function publishAutoCounterDebug(extra)
+        local status = autoCounterRuntime:status()
+        status.test = autoCounterTestSimulator:status()
+        for key, value in pairs(extra or {}) do
+            status[key] = value
+        end
+        self.autoCounterDebug = status
+    end
+
+    local function humanoidStateName(humanoid)
+        if not humanoid or type(humanoid.GetState) ~= "function" then
+            return nil
+        end
+        local succeeded, state = pcall(humanoid.GetState, humanoid)
+        if not succeeded or state == nil then
+            return nil
+        end
+        local nameSucceeded, name = pcall(function()
+            return state.Name
+        end)
+        if nameSucceeded and type(name) == "string" then
+            return name
+        end
+        return tostring(state):match("([^%.]+)$")
+    end
+
+    local function updateAutoCounterDetector(settings)
+        local roundEligible = localFighterIsInRound()
+        autoCounterTestSimulator:update(settings.autoCounter == true, roundEligible)
+        local fighter = FighterController.LocalFighter
+        local entity = fighter and fighter.Entity
+        local root = entity and (entity.RootPart or entity.HumanoidRootPart)
+        local humanoid = entity and entity.Humanoid
+        autoCounterRuntime:update({
+            alive = humanoid ~= nil and humanoid.Health > 0,
+            enabled = settings.autoCounter == true,
+            epoch = entity,
+            humanoidState = humanoidStateName(humanoid),
+            now = clock(),
+            position = root and root.Position,
+            roundEligible = roundEligible,
+        })
+        publishAutoCounterDebug()
+    end
+
+    local function autoCounterWeaponReady(item, target, distance)
+        local info = item and item.Info
+        local data = item and item.Data
+        local now = itemClock()
+        return type(item) == "table"
+            and type(info) == "table"
+            and type(info.ShootDamage) == "number"
+            and WeaponPolicy.automationPolicy(item).triggerBot == true
+            and (WeaponPolicy.ammo(item) or 0) > 0
+            and item.IsEquipping ~= true
+            and not (type(data) == "table"
+                and (data.IsReloading == true or data.Reloading == true))
+            and not (type(item._shoot_cooldown) == "number" and now < item._shoot_cooldown)
+            and not isDeflecting(target.player)
+            and WeaponPolicy.triggerDamageReady(item, target, distance)
+            and WeaponPolicy.sniperTriggerReady(
+                CameraController,
+                item,
+                target,
+                distance,
+                localFighterIsCrouching(FighterController.LocalFighter),
+                false
+            )
+    end
+
+    local function runAutoCounter(settings)
+        if settings.autoCounter ~= true
+            or not autoCounterRuntime:isReady()
+            or autoCounterInFlight
+            or context.isInputCaptured()
+            or not localFighterIsActive()
+            or not localFighterIsInRound()
+        then
+            return false
+        end
+
+        local fighter = FighterController.LocalFighter
+        local item = fighter and fighter.EquippedItem
+        local target = selectTarget(nil, false, true)
+        local camera = Workspace.CurrentCamera
+        local aimOptions = camera and headAimOptions() or nil
+        if not target
+            or target.visible ~= true
+            or not isTargetable(target.player, target.character)
+            or not camera
+            or not aimOptions
+        then
+            return false
+        end
+
+        local bodyPosition, bodyPart = Targeting.visibleBodyPoint(
+            target,
+            aimOptions.origin,
+            aimOptions.raycast
+        )
+        if not bodyPosition or not bodyPart then
+            return false
+        end
+        local bodyTarget = table.clone(target)
+        bodyTarget.part = bodyPart
+        bodyTarget.position = bodyPosition
+        local distance = (bodyPosition - aimOptions.origin).Magnitude
+        if not autoCounterWeaponReady(item, bodyTarget, distance) then
+            return false
+        end
+
+        releaseFire()
+        if triggerHeld then
+            context.aimRelease()
+            triggerHeld = false
+            triggerHeldItem = nil
+        end
+        aimPlan = nil
+        autoCounterInFlight = true
+        local originalRotation = CameraController.Rotation
+        local rotation = Targeting.rotationToward(aimOptions.origin, bodyPosition)
+        setAimRotation(rotation, true, target.character)
+        local info = item.Info
+        local cooldown = math.max(
+            TRIGGER_INTERVAL,
+            info.ShootCooldown or info.AttackCooldown or TRIGGER_INTERVAL
+        )
+        autoCounterRuntime:consume(clock(), cooldown)
+        local succeeded, actionError = pcall(context.click)
+        if typeof(originalRotation) == "Vector2" then
+            CameraController:SetRotation(originalRotation)
+            TaskCamera.commit(camera, originalRotation)
+        end
+        autoCounterInFlight = false
+        publishAutoCounterDebug({
+            actionAt = clock(),
+            actionError = succeeded and nil or tostring(actionError),
+            targetUserId = target.player and target.player.UserId or nil,
+        })
+        return true
+    end
+
+    local function stopAutoCounter(reason)
+        autoCounterRuntime:disable(reason or "disabled")
+        autoCounterTestSimulator:update(false, false)
+        autoCounterInFlight = false
+        publishAutoCounterDebug()
     end
 
     local function alignCamera(shotOnly, taskCombatActive)
@@ -1825,6 +2002,8 @@ function Rivals.new(context)
             renderDelta = deltaTime
         end
 
+        updateAutoCounterDetector(settings)
+
         if settings.autoPickup == true then
             gunGameRuntime:update()
         end
@@ -1837,6 +2016,7 @@ function Rivals.new(context)
         local observationsEnabled = settings.silentAim == true
             or settings.shotAim == true
             or settings.triggerBot == true
+            or settings.autoCounter == true
             or taskCombatActive
             or limnVisualsEnabled
         if observationsEnabled then
@@ -1870,10 +2050,12 @@ function Rivals.new(context)
             or visualObservations
         context.render(renderObservations, UserInputService:GetMouseLocation(), utilityObservations)
 
+        local autoCounterActed = runAutoCounter(settings)
         local alignedTarget
-        local aimEnabled = settings.silentAim == true
-            or settings.shotAim == true
-            or taskCombatActive
+        local aimEnabled = not autoCounterActed
+            and (settings.silentAim == true
+                or settings.shotAim == true
+                or taskCombatActive)
         if aimEnabled then
             alignedTarget = alignCamera(false, taskCombatActive)
             if not alignedTarget and settings.shotAim then
@@ -1971,11 +2153,12 @@ function Rivals.new(context)
         elseif not settingsSubscription then
             effects:renderTrajectory(nil)
         end
-        if settings.triggerBot == true
-            or taskCombatActive
-            or triggerHeld
-            or fireHeld
-            or not settingsSubscription
+        if not autoCounterActed
+            and (settings.triggerBot == true
+                or taskCombatActive
+                or triggerHeld
+                or fireHeld
+                or not settingsSubscription)
         then
             runTriggerBot(triggerTarget, taskCombatActive)
         end
@@ -2248,6 +2431,7 @@ function Rivals.new(context)
             or settings.silentAim == true
             or settings.shotAim == true
             or settings.triggerBot == true
+            or settings.autoCounter == true
             or settings.alwaysScoped == true
             or settings.bhop == true
             or settings.infiniteJump == true
@@ -2313,6 +2497,9 @@ function Rivals.new(context)
         end
         effects:update(settings)
         refreshHooks()
+        if settings.autoCounter ~= true then
+            stopAutoCounter("disabled")
+        end
         if frameWorkEnabled(state) then
             connectFrame()
             return
@@ -2362,6 +2549,8 @@ function Rivals.new(context)
         taskFarmRuntime:stop()
         gunGameRuntime:stop()
         hookRuntime:stop()
+        autoCounterRuntime:stop()
+        autoCounterTestSimulator:stop()
         if triggerHeld then
             context.aimRelease()
             triggerHeld = false
@@ -2378,6 +2567,8 @@ function Rivals.new(context)
     end
 
     self.capabilities = context.capabilities or {}
+    self.autoCounterRuntime = autoCounterRuntime
+    self.autoCounterTestSimulator = autoCounterTestSimulator
     self.isOpponent = isOpponent
     self.selectTarget = selectTarget
     self.worldPolicy = WorldPolicy.new({

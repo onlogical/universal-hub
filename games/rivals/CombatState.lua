@@ -13,6 +13,15 @@ local function value(replica, key)
     return type(data) == "table" and data[key] or nil
 end
 
+function CombatState.isRoundEligible(fighter, duel, loadoutOpen)
+    if loadoutOpen == true then
+        return false
+    end
+
+    return value(fighter, "IsInDuel") == true
+        and value(duel, "Status") == "RoundStarted"
+end
+
 function CombatState.isCombatEligible(fighter, duel, loadoutOpen)
     if loadoutOpen == true then
         return false
@@ -22,8 +31,7 @@ function CombatState.isCombatEligible(fighter, duel, loadoutOpen)
         return true
     end
 
-    return value(fighter, "IsInDuel") == true
-        and value(duel, "Status") == "RoundStarted"
+    return CombatState.isRoundEligible(fighter, duel, false)
 end
 
 return CombatState

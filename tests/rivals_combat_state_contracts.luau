@@ -69,5 +69,21 @@ assert(
     ) == true,
     "Practice-range weapon-pick permission must not suspend combat after the page closes"
 )
+assert(
+    CombatState.isRoundEligible(
+        replica({ IsInDuel = true }),
+        replica({ Status = "RoundStarted" }),
+        false
+    ) == true,
+    "Auto Counter must accept only a started duel round"
+)
+assert(
+    CombatState.isRoundEligible(
+        replica({ IsInShootingRange = true }),
+        nil,
+        false
+    ) == false,
+    "Auto Counter must not arm in the shooting range"
+)
 
 print("rivals-combat-state-contracts-ok")

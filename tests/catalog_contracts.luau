@@ -202,6 +202,7 @@ for _, path in ipairs(Catalog) do
         local expectedState = expectedInitialState
         if definition.id == "rivals" then
             expected = Compatibility.Defaults()
+            expected.autoCounter = false
             expected.taskAutomationPaused = true
             expected.taskAutomationEmergencyKey = "End"
             expected.infiniteJump = false
@@ -264,7 +265,8 @@ for _, id in ipairs({ "counterblox", "rivals", "town" }) do
     if id == "rivals" then
         local count = 0
         for _ in pairs(rawDefinitions[id].defaults) do count += 1 end
-        defaultsAreSparse = count == 5
+        defaultsAreSparse = count == 6
+            and rawDefinitions[id].defaults.autoCounter == false
             and rawDefinitions[id].defaults.taskAutomationPaused == true
             and rawDefinitions[id].defaults.taskAutomationEmergencyKey == "End"
             and rawDefinitions[id].defaults.infiniteJump == false

@@ -65,6 +65,7 @@ function Presentation.mount(host)
     host:section("Combat", "trigger", "Trigger Bot", 64)
     host:option("trigger", 1, "triggerBot", "Trigger Bot")
     host:option("trigger", 2, "alwaysScoped", "Always Scoped")
+    host:option("trigger", 3, "autoCounter", "Auto Counter")
 
     host:section("Movement", "movement", "MOVEMENT", 122)
     host:option("movement", 1, "bhop", "Bunny Hop")

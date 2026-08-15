@@ -476,6 +476,7 @@ local adapterContext = {
     end,
     limn = drawingRuntime,
     capabilities = adapterCapabilities,
+    rivalsAutoCounterTest = configuration.RivalsAutoCounterTest,
     oh = helpers,
     render = function(observations, mousePosition, utilityObservations)
         overlay:render(observations, mousePosition, utilityObservations)
