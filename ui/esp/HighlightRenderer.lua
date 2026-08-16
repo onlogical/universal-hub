@@ -490,7 +490,6 @@ function HighlightRenderer:_makeSubject(key, descriptor, player)
     billboard.Name = "SubjectBillboard"
     billboard.Adornee = rootPart
     billboard.AlwaysOnTop = true
-    billboard.AnchorPoint = Vector2.new(0.5, 1)
     billboard.LightInfluence = 0
     billboard.MaxDistance = HighlightRenderer.HIGHLIGHT_DISTANCE
     billboard.ResetOnSpawn = false

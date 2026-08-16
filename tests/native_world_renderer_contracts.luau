@@ -218,7 +218,6 @@ assert(heartbeat:count() == 0,
 store:Patch({ settings = { chamsExcludeAccessories = false } })
 assert(subject.billboard.Parent == guiParent, "Name, health, and weapon billboards must parent to gethui, not the Highlight folder")
 assert(subject.billboard.Size == UDim2.fromOffset(220, 86))
-assert(subject.billboard.AnchorPoint == Vector2.new(0.5, 1))
 assert(subject.billboard.StudsOffsetWorldSpace == Vector3.new(0, 3.25, 0),
     "Native labels must sit above AlwaysOnTop Highlights")
 assert(subject.billboard.MaxDistance == HighlightRenderer.HIGHLIGHT_DISTANCE)
