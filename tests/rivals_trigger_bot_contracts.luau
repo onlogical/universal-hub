@@ -12,6 +12,15 @@ assert(TriggerBot.INTERVAL == 0)
 assert(TriggerBot.weaponReady({ _shoot_cooldown = 2 }, 1) == false)
 assert(TriggerBot.weaponReady({ _shoot_cooldown = 1 }, 1) == true)
 assert(TriggerBot.fireDelay({ Info = { ShootCooldown = 0.05 } }, 0.1) == 0.05)
+assert(TriggerBot.fireDelay({ Info = { InternalUseCooldown = 0.25 } }, 0) == 0.25)
+local assault = { Info = { ShootCooldown = 0.1 }, _shoot_cooldown = 1 }
+assert(TriggerBot.holdDropped(assault, 1.05, 0) == false,
+    "A working AR hold must not restart while the native cooldown is still producing shots")
+assault._shoot_cooldown = 1
+assert(TriggerBot.holdDropped(assault, 1.2, 0) == true,
+    "A dropped AR hold may repress only after the native cooldown has stayed expired")
+assert(TriggerBot.holdDropped({ Info = { ShootCooldown = 0.1 } }, 2, 0) == false,
+    "Hold recovery must not treat a missing native cooldown as a dropped press")
 
 local session = Session.new()
 session.settings = { shotAim = true, triggerBot = true }
@@ -213,9 +222,12 @@ assert(adapter:find("raycast = type(environmentRaycast)", 1, true))
 local source = fs.readFile("games/rivals/features/TriggerBot.lua")
 assert(source:find("TriggerBot.pathReady", 1, true))
 assert(source:find("TriggerBot.weaponReady", 1, true))
+assert(source:find("TriggerBot.holdDropped", 1, true))
 assert(source:find("ctx.selectTarget(nil, true, true)", 1, true))
 assert(not source:find("not target.visible", 1, true))
 assert(not source:find("0.35", 1, true), "Hold-to-fire must not restart after an ammo-replica stall")
+assert(not source:find("WeaponPolicy.ammo(item)", 1, true),
+    "Hold-to-fire must not treat stale ammo replicas as a dropped press")
 assert(not source:find("target.screenDistance or math.huge) > radius", 1, true), "Trigger Bot must not require an 8px reticle")
 
 session.settings.shotAim = false
@@ -233,5 +245,50 @@ TriggerBot.update(session, ctx)
 assert(clicked == 1, "A ready semi must fire on the first ready frame")
 TriggerBot.update(session, ctx)
 assert(clicked == 2, "A ready semi must not wait on a 0.1s hub interval")
+
+local now = 10
+local presses = 0
+local fireReleases = 0
+local rifle = { Info = { ShootCooldown = 0.1 }, _shoot_cooldown = now + 0.1 }
+ctx.weaponPolicy.holdToFire = function()
+    return true
+end
+ctx.weaponPolicy.ammo = function()
+    return 20
+end
+ctx.getFighter = function()
+    return { EquippedItem = rifle }
+end
+ctx.clock = function()
+    return now
+end
+ctx.itemClock = function()
+    return now
+end
+ctx.press = function()
+    presses += 1
+    state.fireHeld = true
+end
+ctx.releaseFire = function()
+    if state.fireHeld then
+        fireReleases += 1
+        state.fireHeld = false
+    end
+end
+state.fireHeld = false
+state.fireItem = nil
+state.nextAt = 0
+TriggerBot.update(session, ctx)
+assert(presses == 1 and fireReleases == 0, "An AR must press once and hold")
+now = 10.25
+rifle._shoot_cooldown = 10.3
+TriggerBot.update(session, ctx)
+assert(presses == 1 and fireReleases == 0,
+    "A working AR hold must keep spraying through stale ammo replicas")
+rifle._shoot_cooldown = 10
+now = 10.35
+TriggerBot.update(session, ctx)
+assert(presses == 2 and fireReleases == 1,
+    "A dropped AR hold may repress after the native cooldown stays expired")
 
 print("rivals-trigger-bot-contracts-ok")

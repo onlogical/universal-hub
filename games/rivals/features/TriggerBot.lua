@@ -16,13 +16,33 @@ end
 
 function TriggerBot.fireDelay(item, fallback)
     local info = item and item.Info
-    if type(info) == "table" and type(info.ShootCooldown) == "number" then
-        return info.ShootCooldown
+    if type(info) == "table" then
+        if type(info.ShootCooldown) == "number" then
+            return info.ShootCooldown
+        end
+        if type(info.InternalUseCooldown) == "number" then
+            return info.InternalUseCooldown
+        end
     end
     if type(fallback) == "number" then
         return fallback
     end
     return TriggerBot.INTERVAL
+end
+
+function TriggerBot.holdDropped(item, now, fallback)
+    if type(now) ~= "number" or not TriggerBot.weaponReady(item, now) then
+        return false
+    end
+    local delay = TriggerBot.fireDelay(item, fallback)
+    if type(delay) ~= "number" or delay <= 0 then
+        return false
+    end
+    local readyAt = item and item._shoot_cooldown
+    if type(readyAt) ~= "number" then
+        return false
+    end
+    return now - readyAt > delay
 end
 
 function TriggerBot.target(session, alignedTarget)
@@ -424,19 +444,8 @@ function TriggerBot.update(session, ctx)
             return
         end
         if state.fireHeld and state.fireItem == item then
-            local currentAmmo = WeaponPolicy.ammo(item)
-            if currentAmmo ~= state.fireAmmo then
-                state.fireAmmo = currentAmmo
-                state.fireAmmoAt = ctx.clock()
-                if taskDebug then
-                    taskDebug.triggerStage = "holding-fire"
-                end
-                return
-            end
             local fireClock = type(ctx.itemClock) == "function" and ctx.itemClock() or ctx.clock()
-            local stalled = ctx.clock() - (state.fireAmmoAt or 0)
-                >= TriggerBot.fireDelay(item, 0)
-            if not stalled or not TriggerBot.weaponReady(item, fireClock) then
+            if not TriggerBot.holdDropped(item, fireClock, 0) then
                 if taskDebug then
                     taskDebug.triggerStage = "holding-fire"
                 end
@@ -445,8 +454,6 @@ function TriggerBot.update(session, ctx)
             ctx.releaseFire()
             state.fireHeld = true
             state.fireItem = item
-            state.fireAmmo = currentAmmo
-            state.fireAmmoAt = ctx.clock()
             ctx.press()
             if taskDebug then
                 taskDebug.triggerStage = "repressed-fire"
@@ -458,8 +465,6 @@ function TriggerBot.update(session, ctx)
         end
         state.fireHeld = true
         state.fireItem = item
-        state.fireAmmo = WeaponPolicy.ammo(item)
-        state.fireAmmoAt = ctx.clock()
         ctx.press()
         if taskDebug then
             taskDebug.triggerStage = "pressed-fire"
