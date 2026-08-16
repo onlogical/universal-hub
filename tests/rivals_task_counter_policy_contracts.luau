@@ -1,19 +1,19 @@
-local Counter=require("../games/rivals/TaskCounterPolicy")
+local Counter=require("../games/rivals/tasks/TaskCounterPolicy")
 local now=0
 local c=Counter.new({clock=function()return now end})
-local shield={Info={Name="Riot Shield"}}
-local katana={Info={Name="Katana"}}
-local rifle={Info={Name="Assault Rifle"}}
-local spray={Name="Spray"}
+local shield={Info={MaxAbsorption=500}}
+local katana={_deflect_hash=1,Info={DeflectDuration=1,DeflectCooldown=4}}
+local rifle={Info={ShootDamage=12}}
+local spray={Info={DealsTrueDamage=true,BurstCount=5,Type="Gun"}}
 
 assert(Counter.hasShieldOrKatana({rifle,shield}) and Counter.hasShieldOrKatana({katana})
     and Counter.hasShieldOrKatana({[shield]=true}))
 assert(Counter.shouldSelectSpray({shield}) == true and Counter.shouldSelectSpray({katana}) == true,
-    "Riot Shield or Katana in the opponent loadout must make Spray available as our secondary")
+    "an absorber or deflector in the opponent loadout must make Spray available as our secondary")
 assert(Counter.shouldForceSpray(spray, katana) == true
     and Counter.shouldForceSpray(spray, rifle) == false
-    and Counter.shouldForceSpray({Name="Handgun"}, katana) == false,
-    "Spray may bypass deflection only while the opponent actually holds a defensive item")
+    and Counter.shouldForceSpray({Info={ShootDamage=12}}, katana) == false,
+    "true-damage spray may bypass deflection only while the opponent actually holds a defensive item")
 
 assert(c:update(katana)==false)
 now=1.0

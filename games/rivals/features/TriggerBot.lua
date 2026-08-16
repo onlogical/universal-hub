@@ -1,0 +1,490 @@
+local TriggerBot = {}
+
+-- Fallback only. Live fire uses the equipped weapon's native cooldown.
+TriggerBot.INTERVAL = 0
+TriggerBot.RADIUS = 8
+
+function TriggerBot.weaponReady(item, now)
+    if type(now) ~= "number" then
+        return true
+    end
+    if type(item) == "table" and type(item._shoot_cooldown) == "number" then
+        return now >= item._shoot_cooldown
+    end
+    return true
+end
+
+function TriggerBot.fireDelay(item, fallback)
+    local info = item and item.Info
+    if type(info) == "table" and type(info.ShootCooldown) == "number" then
+        return info.ShootCooldown
+    end
+    if type(fallback) == "number" then
+        return fallback
+    end
+    return TriggerBot.INTERVAL
+end
+
+function TriggerBot.target(session, alignedTarget)
+    local settings = session and session.settings or {}
+    if settings.shotAim == true then
+        return session and session.presented or nil
+    end
+    return alignedTarget
+end
+
+function TriggerBot.solvedPath(target)
+    return target ~= nil
+        and (
+            target.projectileAim ~= nil
+            or target.ricochet ~= nil
+            or target.slingshot ~= nil
+            or target.splashImpact ~= nil
+        )
+end
+
+local function policyFlag(weaponPolicy, name, item)
+    local query = weaponPolicy and weaponPolicy[name]
+    return type(query) == "function" and query(item) == true
+end
+
+local function cameraOrigin(ctx)
+    local camera = ctx and ctx.camera
+    local frame = camera
+        and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
+    return frame and frame.Position or nil
+end
+
+function TriggerBot.hitscanReady(target, origin, raycast, targeting)
+    if typeof(origin) ~= "Vector3" or type(raycast) ~= "function" then
+        return target and target.visible == true
+    end
+    targeting = targeting or {}
+    if type(targeting.visibleHeadPoint) == "function" then
+        local point = targeting.visibleHeadPoint(target, origin, raycast)
+        if point then
+            return true
+        end
+    end
+    if type(targeting.visibleBodyPoint) == "function" then
+        local point = targeting.visibleBodyPoint(target, origin, raycast)
+        if point then
+            return true
+        end
+    end
+    return false
+end
+
+function TriggerBot.pathReady(target, item, ctx)
+    ctx = ctx or {}
+    if not target then
+        return false
+    end
+    local WeaponPolicy = ctx.weaponPolicy or {}
+    local ProjectileAim = ctx.projectileAim or {}
+    if policyFlag(WeaponPolicy, "isBackstabKnife", item)
+        or policyFlag(WeaponPolicy, "isDualModeBlade", item)
+    then
+        return true
+    end
+    if TriggerBot.solvedPath(target) then
+        return true
+    end
+    local usesArc = (type(ProjectileAim.isSplashProjectile) == "function"
+            and ProjectileAim.isSplashProjectile(item))
+        or (type(ProjectileAim.isDirectProjectile) == "function"
+            and ProjectileAim.isDirectProjectile(item))
+        or policyFlag(WeaponPolicy, "isRicochetWeapon", item)
+        or policyFlag(WeaponPolicy, "isBouncingProjectile", item)
+    if usesArc then
+        if type(ProjectileAim.isDirectProjectile) == "function"
+            and ProjectileAim.isDirectProjectile(item)
+            and type(ProjectileAim.solveProjectileAim) == "function"
+        then
+            local origin = cameraOrigin(ctx)
+            local solution = origin and ProjectileAim.solveProjectileAim(
+                origin,
+                target,
+                item and item.Info,
+                ctx.gravity
+            )
+            if solution then
+                target.projectileAim = solution
+                return true
+            end
+        end
+        return false
+    end
+    return TriggerBot.hitscanReady(target, cameraOrigin(ctx), ctx.raycast, ctx.targeting)
+end
+
+function TriggerBot.update(session, ctx)
+    local settings = session and session.settings or {}
+    local alignedTarget = TriggerBot.target(session, ctx.alignedTarget)
+    local taskCombatActive = ctx.taskCombatActive
+    local taskDebug = ctx.taskDebug
+    local state = ctx.state
+    local WeaponPolicy = ctx.weaponPolicy
+    local ProjectileAim = ctx.projectileAim
+    local interval = ctx.interval or TriggerBot.INTERVAL
+    local radius = ctx.radius or TriggerBot.RADIUS
+    if taskDebug then
+        taskDebug.triggerStage = "entered"
+        taskDebug.triggerAt = ctx.clock()
+    end
+    if settings.triggerBot ~= true and taskCombatActive ~= true
+        or (ctx.inputCaptured and taskCombatActive ~= true)
+        or not ctx.fighterActive
+        or not ctx.inCombat
+    then
+        if taskDebug then
+            taskDebug.triggerStage = "inactive"
+        end
+        state.gunblade = nil
+        ctx.releaseFire()
+        if state.held then
+            ctx.aimRelease()
+            state.held = false
+            state.heldItem = nil
+        end
+        return
+    end
+    local fighter = ctx.getFighter()
+    local item = fighter and fighter.EquippedItem
+    if WeaponPolicy.automationPolicy(item).triggerBot ~= true then
+        if taskDebug then
+            taskDebug.triggerStage = "unsupported-weapon"
+        end
+        state.gunblade = nil
+        ctx.clearAimPlan()
+        ctx.releaseFire()
+        if state.held then
+            ctx.aimRelease()
+            state.held = false
+            state.heldItem = nil
+        end
+        return
+    end
+    local gunblade = WeaponPolicy.isDualModeBlade(item)
+    if not gunblade and alignedTarget and alignedTarget.aimSettled == false then
+        local humanReticleReady = settings.humanAim
+            and (alignedTarget.screenDistance or math.huge) <= radius
+            and not alignedTarget.ricochet
+            and not alignedTarget.slingshot
+            and not alignedTarget.splashImpact
+            and not alignedTarget.projectileAim
+        if not humanReticleReady then
+            if taskDebug then
+                taskDebug.triggerStage = "aim-settling"
+            end
+            if state.fireHeld then
+                return
+            end
+            ctx.releaseFire()
+            return
+        end
+    end
+
+    local target
+    if gunblade then
+        if settings.shotAim then
+            target = alignedTarget
+        else
+            target = ctx.selectDualModeBladeTarget(fighter, item)
+        end
+    else
+        target = alignedTarget
+        if not target and not settings.shotAim then
+            target = ctx.selectTarget(nil, true, true)
+        end
+    end
+    if not target or not TriggerBot.pathReady(target, item, ctx) then
+        if taskDebug then
+            taskDebug.triggerStage = not target and "no-target" or "path-blocked"
+        end
+        if state.fireHeld and target then
+            return
+        end
+        state.gunblade = nil
+        ctx.releaseFire()
+        if state.held then
+            ctx.aimRelease()
+            state.held = false
+            state.heldItem = nil
+            state.nextAt = ctx.clock() + TriggerBot.fireDelay(item, interval)
+        end
+        return
+    end
+    local targetFighter = target.player and ctx.fighterFor(target.player)
+    local sprayCounter = targetFighter
+        and ctx.taskCounterPolicy.shouldForceSpray(item, targetFighter.EquippedItem)
+    if ctx.isDeflecting(target.player) and not sprayCounter then
+        if taskDebug then
+            taskDebug.triggerStage = "target-deflecting"
+        end
+        state.gunblade = nil
+        ctx.releaseFire()
+        if state.held then
+            ctx.aimRelease()
+            state.held = false
+            state.heldItem = nil
+        end
+        return
+    end
+
+    if gunblade then
+        ctx.releaseFire()
+        if state.held then
+            ctx.aimRelease()
+            state.held = false
+            state.heldItem = nil
+        end
+
+        local entity = fighter and fighter.Entity
+        local localRoot = entity and entity.RootPart
+        local localPosition = localRoot and localRoot.Position
+        local targetPosition = ctx.targetRootPosition(target)
+        local targetDistance = localPosition
+            and targetPosition
+            and (targetPosition - localPosition).Magnitude
+        local action
+        state.gunblade, action = WeaponPolicy.gunbladeTriggerAction(
+            state.gunblade,
+            item,
+            target.character or target.player or target,
+            targetDistance,
+            ctx.clock()
+        )
+        if not action then
+            return
+        end
+
+        local camera = ctx.camera
+        local cameraFrame = camera
+            and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
+        local cameraPosition = cameraFrame and cameraFrame.Position
+        local cameraOffset = cameraPosition
+            and targetPosition
+            and targetPosition - cameraPosition
+        local visibleFrame = camera and camera.CFrame
+        local visibleRotation = ctx.cameraController.Rotation
+        if cameraOffset and cameraOffset.Magnitude > 1e-3 then
+            ctx.cameraController:SetRotation(
+                ctx.targeting.rotationToward(cameraPosition, targetPosition)
+            )
+            camera.CFrame = CFrame.lookAt(cameraPosition, targetPosition)
+        end
+        if action.kind == "dash" then
+            ctx.aimClick()
+        else
+            ctx.click()
+        end
+        if visibleFrame then
+            camera.CFrame = visibleFrame
+        end
+        if visibleRotation then
+            ctx.cameraController:SetRotation(visibleRotation)
+        end
+        ctx.clearAimPlan()
+        return
+    end
+    state.gunblade = nil
+    if ProjectileAim.isSplashProjectile(item)
+        and not (alignedTarget and alignedTarget.splashImpact)
+    then
+        ctx.releaseFire()
+        return
+    end
+    if WeaponPolicy.isBackstabKnife(item) then
+        ctx.releaseFire()
+        if not WeaponPolicy.backstabTriggerReady(
+            fighter,
+            item,
+            alignedTarget,
+            ctx.isGunGame()
+        ) then
+            return
+        end
+        if state.held then
+            ctx.aimRelease()
+            state.held = false
+            state.heldItem = nil
+        end
+        if ctx.clock() < state.nextAt then
+            return
+        end
+        state.nextAt = ctx.clock() + (item.Info.HeavyAttackCooldown or interval)
+        ctx.aimClick()
+        return
+    end
+    local camera = ctx.camera
+    local cameraFrame = camera
+        and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
+    local targetDistance = cameraFrame
+        and target.position
+        and (target.position - cameraFrame.Position).Magnitude
+    if targetDistance and not sprayCounter
+        and not WeaponPolicy.triggerDamageReady(item, target, targetDistance)
+    then
+        if taskDebug then
+            taskDebug.triggerStage = "damage-gate"
+        end
+        ctx.releaseFire()
+        return
+    end
+    local sniperCrouching = WeaponPolicy.isScoped(item)
+        and ctx.localFighterIsCrouching(fighter)
+    if not WeaponPolicy.sniperTriggerReady(
+        ctx.cameraController,
+        item,
+        target,
+        targetDistance,
+        sniperCrouching,
+        settings.alwaysScoped == true
+    ) then
+        if taskDebug then
+            taskDebug.triggerStage = "precision-gate"
+        end
+        ctx.releaseFire()
+        return
+    end
+    if taskDebug then
+        taskDebug.triggerStage = "ready"
+        taskDebug.triggerDistance = targetDistance
+    end
+    if WeaponPolicy.isFanFirearm(item) then
+        ctx.releaseFire()
+        local action =
+            WeaponPolicy.revolverTriggerAction(item, target, targetDistance, ctx.itemClock())
+        if state.held then
+            ctx.aimRelease()
+            state.held = false
+            state.heldItem = nil
+        end
+        if not action or ctx.clock() < state.nextAt then
+            return
+        end
+        state.nextAt = ctx.clock() + action.cooldown
+        if action.kind == "fan" then
+            ctx.aimClick()
+        else
+            ctx.click()
+        end
+        ctx.clearAimPlan()
+        return
+    end
+    if WeaponPolicy.isChargedBow(item) then
+        ctx.releaseFire()
+        if not state.held then
+            if ctx.clock() < state.nextAt then
+                return
+            end
+            if WeaponPolicy.bowQuickShotLethal(item, target) then
+                state.nextAt = ctx.clock() + (item.Info.ShootCooldown or interval)
+                ctx.click()
+                ctx.clearAimPlan()
+                return
+            end
+            state.held = true
+            state.heldAt = ctx.clock()
+            state.heldItem = item
+            ctx.aimPress()
+            return
+        end
+        if state.heldItem ~= item then
+            ctx.aimRelease()
+            state.held = false
+            state.heldItem = nil
+            state.nextAt = ctx.clock() + interval
+            return
+        end
+        if ctx.clock() - state.heldAt + 1e-3 < WeaponPolicy.bowChargeTime(item, target) then
+            return
+        end
+
+        ctx.aimRelease()
+        state.held = false
+        state.heldItem = nil
+        state.nextAt = ctx.clock() + (item.Info.ChargeReleaseCooldown or interval)
+        ctx.clearAimPlan()
+        return
+    end
+
+    if state.held then
+        ctx.aimRelease()
+        state.held = false
+        state.heldItem = nil
+    end
+    if WeaponPolicy.holdToFire(item) then
+        if not WeaponPolicy.adsSettled(ctx.cameraController, item) then
+            if taskDebug then
+                taskDebug.triggerStage = "ads-gate"
+            end
+            ctx.releaseFire()
+            return
+        end
+        if state.fireHeld and state.fireItem == item then
+            local currentAmmo = WeaponPolicy.ammo(item)
+            if currentAmmo ~= state.fireAmmo then
+                state.fireAmmo = currentAmmo
+                state.fireAmmoAt = ctx.clock()
+                if taskDebug then
+                    taskDebug.triggerStage = "holding-fire"
+                end
+                return
+            end
+            local fireClock = type(ctx.itemClock) == "function" and ctx.itemClock() or ctx.clock()
+            local stalled = ctx.clock() - (state.fireAmmoAt or 0)
+                >= TriggerBot.fireDelay(item, 0)
+            if not stalled or not TriggerBot.weaponReady(item, fireClock) then
+                if taskDebug then
+                    taskDebug.triggerStage = "holding-fire"
+                end
+                return
+            end
+            ctx.releaseFire()
+            state.fireHeld = true
+            state.fireItem = item
+            state.fireAmmo = currentAmmo
+            state.fireAmmoAt = ctx.clock()
+            ctx.press()
+            if taskDebug then
+                taskDebug.triggerStage = "repressed-fire"
+            end
+            return
+        end
+        if ctx.clock() < state.nextAt then
+            return
+        end
+        state.fireHeld = true
+        state.fireItem = item
+        state.fireAmmo = WeaponPolicy.ammo(item)
+        state.fireAmmoAt = ctx.clock()
+        ctx.press()
+        if taskDebug then
+            taskDebug.triggerStage = "pressed-fire"
+        end
+        ctx.clearAimPlan()
+        return
+    end
+
+    ctx.releaseFire()
+    local fireClock = type(ctx.itemClock) == "function" and ctx.itemClock() or ctx.clock()
+    if not TriggerBot.weaponReady(item, fireClock) or ctx.clock() < state.nextAt then
+        return
+    end
+    if not WeaponPolicy.adsSettled(ctx.cameraController, item) then
+        return
+    end
+
+    ctx.click()
+    local nativeReadyAt = item and item._shoot_cooldown
+    state.nextAt = type(nativeReadyAt) == "number" and nativeReadyAt
+        or ctx.clock() + (sprayCounter and TriggerBot.fireDelay(item, interval) or 0)
+    if taskDebug then
+        taskDebug.triggerStage = "clicked-fire"
+    end
+    ctx.clearAimPlan()
+end
+
+return TriggerBot

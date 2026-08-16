@@ -30,14 +30,14 @@ assert(
     type(Limn.new) == "function",
     "Universal Hub must load Limn through its public runtime constructor"
 )
-local PresentationRuntime = require("../modules/presentation/Runtime")
-local StandardPanels = require("../modules/presentation/StandardPanels")
-local CosmeticsPanel = require("../modules/presentation/CosmeticsPanel")
+local PresentationRuntime = require("../ui/presentation/Runtime")
+local StandardPanels = require("../ui/presentation/StandardPanels")
+local CosmeticsPanel = require("../ui/presentation/CosmeticsPanel")
 local initSource = fs.readFile("init.lua")
 local helpersLoadAt = assert(initSource:find("Helpers.load", 1, true))
 local previousStopAt = assert(initSource:find("Session.stopPrevious", 1, true))
 local runtimeCreateAt = assert(initSource:find("local drawingRuntime = Limn.new", 1, true))
-local overlayCreateAt = assert(initSource:find("pcall(Overlay.new", 1, true))
+local overlayCreateAt = assert(initSource:find("DrawingRenderer.new", 1, true))
 assert(
     helpersLoadAt < previousStopAt
         and previousStopAt < runtimeCreateAt
@@ -67,8 +67,8 @@ for _, path in ipairs({
     )
 end
 local Store = require("../modules/Store")
-local Overlay = require("../modules/Overlay")
-local PresentationHost = require("../modules/PresentationHost")
+local Overlay = require("../ui/esp/DrawingRenderer")
+local PresentationHost = require("../ui/PresentationHost")
 local RivalsPresentation = require("../games/rivals/Presentation")
 
 local function newSignal()

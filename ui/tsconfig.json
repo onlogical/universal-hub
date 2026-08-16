@@ -1,0 +1,23 @@
+{
+	"extends": "./tsconfig.prism.json",
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"baseUrl": "src",
+		"experimentalDecorators": true,
+		"jsx": "react",
+		"jsxFactory": "React.createElement",
+		"jsxFragmentFactory": "React.Fragment",
+		"module": "commonjs",
+		"moduleDetection": "force",
+		"moduleResolution": "Node",
+		"noLib": true,
+		"outDir": "out",
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "ESNext",
+		"typeRoots": ["node_modules/@rbxts"]
+	},
+	"include": [
+		"src"
+	]
+}

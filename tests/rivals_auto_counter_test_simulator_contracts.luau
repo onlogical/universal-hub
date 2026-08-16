@@ -2,7 +2,7 @@ local roblox = require("@lune/roblox")
 CFrame = roblox.CFrame
 Vector3 = roblox.Vector3
 
-local AutoCounterTestSimulator = require("../games/rivals/AutoCounterTestSimulator")
+local AutoCounterTestSimulator = require("../games/rivals/features/AutoCounterTestSimulator")
 
 local now = 0
 local root = { CFrame = CFrame.new(0, 10, 0) }

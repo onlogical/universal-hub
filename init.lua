@@ -48,21 +48,23 @@ local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 local Store = import("modules/Store")
 local Config = import("modules/Config")
+local Changelog = import("modules/Changelog")
+local WhatsNew = import("ui/WhatsNew")
 local InputCapture = import("modules/InputCapture")
 local MenuToggle = import("modules/MenuToggle")
 local Registry = import("modules/Registry")
 local Session = import("modules/Session")
-local Overlay = import("modules/Overlay")
-local NativeVisualPolicy = import("modules/NativeVisualPolicy")
-local NativeWorldRenderer = import("modules/NativeWorldRenderer")
-local WorldRenderer = import("modules/WorldRenderer")
-local NativeMenu = import("modules/NativeMenu")
+local DrawingRenderer = import("ui/esp/DrawingRenderer")
+local VisualPolicy = import("ui/esp/VisualPolicy")
+local HighlightRenderer = import("ui/esp/HighlightRenderer")
+local WorldRenderer = import("ui/esp/WorldRenderer")
+local HubMenu = import("ui/Menu")
 local HubView = import("modules/HubView")
-local PresentationCatalog = import("modules/presentation/Catalog")
-local PresentationHost = import("modules/PresentationHost")
-local PresentationRuntime = import("modules/presentation/Runtime")
-local StandardPanels = import("modules/presentation/StandardPanels")
-local CosmeticsPanel = import("modules/presentation/CosmeticsPanel")
+local PresentationCatalog = import("ui/presentation/Catalog")
+local PresentationHost = import("ui/PresentationHost")
+local PresentationRuntime = import("ui/presentation/Runtime")
+local StandardPanels = import("ui/presentation/StandardPanels")
+local CosmeticsPanel = import("ui/presentation/CosmeticsPanel")
 local Compatibility = import("games/Compatibility")
 local Catalog = import("games/Catalog")
 
@@ -323,7 +325,7 @@ local enemyAudienceIcon = customAsset(root .. "/assets/icons/enemies.png")
 local allyAudienceIcon = customAsset(root .. "/assets/icons/allies.png")
 local alphaCheckerboard = customAsset(root .. "/assets/ui/alpha-checkerboard.png")
 local pageIcons = {}
-for page, file in pairs({ Combat = "combat.png", Movement = "movement.png", Visuals = "visuals.png", Tools = "tools.png", Settings = "settings.png" }) do
+for page, file in pairs({ Combat = "combat.png", Rage = "rage.png", Movement = "movement.png", Visuals = "visuals.png", Tools = "tools.png", Settings = "settings.png" }) do
     pageIcons[page] = customAsset(root .. "/assets/icons/" .. file)
 end
 
@@ -339,11 +341,11 @@ end)()
 
 local overlayContext = {
     capabilities = adapterCapabilities,
-    nativeWorldSupported = table.find(adapterCapabilities, "worldRenderer") ~= nil,
-    nativeVisualPolicy = NativeVisualPolicy,
+    highlightsSupported = table.find(adapterCapabilities, "worldRenderer") ~= nil,
+    visualPolicy = VisualPolicy,
     catalog = PresentationCatalog,
     cosmetics = features.cosmetics,
-    nativeMenu = assert(configuration.NativeMenu, "Universal Hub loader must stage the native Prism menu"),
+    prismMenu = assert(configuration.Menu, "Universal Hub loader must stage the compiled Prism menu"),
     worldOnly = true,
     gameLabel = adapterDefinition.label,
     getCamera = function()
@@ -371,55 +373,88 @@ local overlayContext = {
     inputService = UserInputService,
     limn = drawingRuntime,
     setFov = function(value, persist)
-        session:setFov(value, persist)
+        local current = session
+        if not current then
+            return
+        end
+        current:setFov(value, persist)
     end,
     setCosmeticsOpen = function(open)
-        session:setCosmeticsOpen(open)
+        local current = session
+        if not current then
+            return
+        end
+        current:setCosmeticsOpen(open)
     end,
     setCosmeticMode = function(mode)
-        session:setCosmeticMode(mode)
+        local current = session
+        if not current then
+            return
+        end
+        current:setCosmeticMode(mode)
     end,
     setInputCaptured = setInputCaptured,
+    menuEnabled = false,
     setMenuKey = function(value)
-        session:setMenuKey(value)
+        local current = session
+        if not current then
+            return
+        end
+        current:setMenuKey(value)
     end,
     setMenuVisible = function(visible)
-        session:setMenuVisible(visible)
+        local current = session
+        if not current then
+            return
+        end
+        current:setMenuVisible(visible)
     end,
     setSetting = function(name, value, persist)
-        session:setSetting(name, value, persist)
+        local current = session
+        if not current then
+            return
+        end
+        current:setSetting(name, value, persist)
     end,
     setOption = function(name, enabled)
-        session:setOption(name, enabled)
+        local current = session
+        if not current then
+            return
+        end
+        current:setOption(name, enabled)
         if enabled and features.exclusiveOptions then
             for _, excluded in ipairs(
                 features.exclusiveOptions[name] or {}
             ) do
-                session:setOption(excluded, false)
+                current:setOption(excluded, false)
             end
         end
     end,
     setRate = function(name, value, persist)
-        session:setRate(name, value, persist)
+        local current = session
+        if not current then
+            return
+        end
+        current:setRate(name, value, persist)
     end,
     store = store,
 }
 extend(overlayContext, composition.overlay)
 local worldCreated, worldResult = pcall(function()
-    local limnWorld = Overlay.new(overlayContext)
-    local nativeCreated, nativeWorld = pcall(NativeWorldRenderer.new, overlayContext)
-    if not nativeCreated then
-        limnWorld:destroy()
-        error(nativeWorld, 0)
+    local drawingWorld = DrawingRenderer.new(overlayContext)
+    local highlightsCreated, highlightWorld = pcall(HighlightRenderer.new, overlayContext)
+    if not highlightsCreated then
+        drawingWorld:destroy()
+        error(highlightWorld, 0)
     end
-    return WorldRenderer.new(overlayContext, limnWorld, nativeWorld)
+    return WorldRenderer.new(overlayContext, drawingWorld, highlightWorld)
 end)
 if not worldCreated then
     failStartup(worldResult)
 end
 local worldOverlay = worldResult
 overlayContext.optionSupport = worldOverlay.optionSupport
-local menuCreated, menuResult = pcall(NativeMenu.new, overlayContext)
+local menuCreated, menuResult = pcall(HubMenu.new, overlayContext)
 if not menuCreated then
     worldOverlay:destroy()
     failStartup(menuResult)
@@ -534,6 +569,9 @@ if not sessionCreated then
     failStartup(sessionResult)
 end
 session = sessionResult
+if overlay and overlay.menu and overlay.menu.gui then
+    overlay.menu.gui.Enabled = true
+end
 table.clear(startupCleanups)
 local finalized, finalError = pcall(function()
     session.adapterId = adapterDefinition.id
@@ -559,6 +597,207 @@ local finalized, finalError = pcall(function()
     local readyStatus = ("%s ready"):format(adapterDefinition.label)
     store:Patch({ status = readyStatus })
     print("[Universal Hub]", readyStatus)
+
+    local lastUsedStore = Config.new({
+        decode = function(source)
+            return HttpService:JSONDecode(source)
+        end,
+        encode = function(value)
+            return HttpService:JSONEncode(value)
+        end,
+        isFile = type(isfile) == "function" and isfile or nil,
+        path = configuration.LastUsedVersionPath or WhatsNew.DEFAULT_PATH,
+        readFile = type(readfile) == "function" and readfile or nil,
+        writeFile = type(writefile) == "function" and writefile or nil,
+    })
+    local remoteUrls = {}
+    if type(configuration.SourceBaseUrl) == "string" and configuration.SourceBaseUrl ~= "" then
+        table.insert(remoteUrls, configuration.SourceBaseUrl .. "changelog.json")
+    end
+    table.insert(remoteUrls, WhatsNew.PAGES_CHANGELOG_URL)
+    local changelogCatalog = Changelog.load({
+        decode = function(source)
+            return HttpService:JSONDecode(source)
+        end,
+        source = configuration.ChangelogSource,
+        localPath = root .. "/changelog.json",
+        isFile = type(isfile) == "function" and isfile or nil,
+        readFile = type(readfile) == "function" and readfile or nil,
+        remoteUrls = remoteUrls,
+        httpGet = type(game.HttpGet) == "function" and function(url)
+            return game:HttpGet(url, true)
+        end or nil,
+    })
+    local notice = WhatsNew.evaluate({
+        catalog = changelogCatalog,
+        lastUsed = lastUsedStore:load(WhatsNew.defaults()),
+    })
+    local function hideNotice()
+        store:Patch({
+            whatsNew = {
+                visible = false,
+            },
+        })
+    end
+    overlayContext.whatsNewDismiss = hideNotice
+    overlayContext.whatsNewDontShowAgain = function()
+        if notice.current then
+            lastUsedStore:save(WhatsNew.acknowledge(notice.current, true))
+        end
+        hideNotice()
+    end
+    overlayContext.whatsNewAcknowledge = function()
+        if notice.current then
+            lastUsedStore:save(WhatsNew.acknowledge(notice.current))
+        end
+        hideNotice()
+    end
+    overlayContext.whatsNewViewAll = function()
+        store:Patch({
+            whatsNew = {
+                showingAll = true,
+            },
+        })
+    end
+    local function replaceWhatsNew(snapshot)
+        store:Patch({
+            whatsNew = false,
+        })
+        store:Patch({
+            whatsNew = snapshot,
+        })
+    end
+    replaceWhatsNew(WhatsNew.snapshot(notice))
+    session:Add(hideNotice)
+
+    local function fingerprint(path)
+        if type(readfile) ~= "function" then
+            return ""
+        end
+        local ok, source = pcall(readfile, path)
+        if not ok or type(source) ~= "string" then
+            return ""
+        end
+        return tostring(#source) .. ":" .. string.sub(source, 1, 48) .. ":" .. string.sub(source, -48)
+    end
+
+    local function forget(path)
+        cache[path] = nil
+        if type(configuration.Forget) == "function" then
+            configuration.Forget(path)
+        end
+    end
+
+    local function reloadChangelog()
+        changelogCatalog = Changelog.load({
+            decode = function(source)
+                return HttpService:JSONDecode(source)
+            end,
+            source = configuration.HotReload == true and nil or configuration.ChangelogSource,
+            localPath = root .. "/changelog.json",
+            isFile = type(isfile) == "function" and isfile or nil,
+            readFile = type(readfile) == "function" and readfile or nil,
+            remoteUrls = remoteUrls,
+            httpGet = type(game.HttpGet) == "function" and function(url)
+                return game:HttpGet(url, true)
+            end or nil,
+        })
+        notice = WhatsNew.evaluate({
+            catalog = changelogCatalog,
+            lastUsed = lastUsedStore:load(WhatsNew.defaults()),
+        })
+        replaceWhatsNew(WhatsNew.snapshot(notice))
+    end
+
+    local function restageCompiledMenu()
+        if type(configuration.ReloadMenu) ~= "function" then
+            return true
+        end
+        local ok, nextMenu = pcall(configuration.ReloadMenu)
+        if not ok then
+            warn("[Universal Hub] Compiled menu reload failed:", nextMenu)
+            return false
+        end
+        if type(nextMenu) ~= "table" or type(nextMenu.mountUniversalHubMenu) ~= "function" then
+            warn("[Universal Hub] Compiled menu reload returned an invalid artifact")
+            return false
+        end
+        configuration.Menu = nextMenu
+        overlayContext.prismMenu = nextMenu
+        return true
+    end
+
+    local function reloadUi(options)
+        local restageMenu = options == nil or (type(options) == "table" and options.restageMenu == true)
+        if restageMenu then
+            restageCompiledMenu()
+        end
+        forget("modules/Changelog")
+        forget("ui/Menu")
+        forget("ui/WhatsNew")
+        forget("ui/presentation/Catalog")
+        Changelog = import("modules/Changelog")
+        WhatsNew = import("ui/WhatsNew")
+        PresentationCatalog = import("ui/presentation/Catalog")
+        HubMenu = import("ui/Menu")
+        overlayContext.catalog = PresentationCatalog
+        local remounted, nextMenu = pcall(HubMenu.new, overlayContext)
+        if not remounted then
+            warn("[Universal Hub] UI reload failed:", nextMenu)
+            return false
+        end
+        overlay:setMenu(nextMenu)
+        if nextMenu.gui then
+            nextMenu.gui.Enabled = true
+        end
+        reloadChangelog()
+        print("[Universal Hub] UI reloaded")
+        return true
+    end
+
+    session.reloadUi = reloadUi
+    if configuration.HotReload == true and type(readfile) == "function" then
+        local watched = {
+            root .. "/ui/Menu.lua",
+            root .. "/ui/WhatsNew.lua",
+            root .. "/ui/presentation/Catalog.lua",
+            root .. "/changelog.json",
+        }
+        local menuStampPath = configuration.MenuStampPath
+        if type(menuStampPath) == "string" and menuStampPath ~= "" then
+            table.insert(watched, menuStampPath)
+        end
+        local last = {}
+        for _, path in ipairs(watched) do
+            last[path] = fingerprint(path)
+        end
+        local elapsed = 0
+        local connection = RunService.Heartbeat:Connect(function(dt)
+            elapsed += dt
+            if elapsed < 0.4 then
+                return
+            end
+            elapsed = 0
+            local dirty = false
+            local restageMenu = false
+            for _, path in ipairs(watched) do
+                local nextHash = fingerprint(path)
+                if nextHash ~= last[path] then
+                    last[path] = nextHash
+                    dirty = true
+                    if path == menuStampPath then
+                        restageMenu = true
+                    end
+                end
+            end
+            if dirty then
+                pcall(reloadUi, { restageMenu = restageMenu })
+            end
+        end)
+        session:Add(function()
+            connection:Disconnect()
+        end)
+    end
 end)
 if not finalized then
     session:stop()

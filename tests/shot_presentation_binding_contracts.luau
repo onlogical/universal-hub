@@ -5,7 +5,7 @@ Enum = roblox.Enum
 CFrame = roblox.CFrame
 Vector2 = roblox.Vector2
 
-local source = fs.readFile("games/rivals/ShotPresentation.lua")
+local source = fs.readFile("games/rivals/features/ShotPresentation.lua")
 
 local function loadCopy(name)
     local chunk, compileError = loadstring(source, name)

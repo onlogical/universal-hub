@@ -1,4 +1,4 @@
-local Policy = require("../games/rivals/TaskPolicy")
+local Policy = require("../games/rivals/tasks/TaskPolicy")
 local groups = { Tasks = {
     { Name = "Done", Progress = 1, Completed = true },
     { Name = "Beginner2", Progress = 1, Completed = false },

@@ -8,12 +8,12 @@ Vector2 = roblox.Vector2
 Vector3 = roblox.Vector3
 
 local Store = require("../modules/Store")
-local NativeWorldRenderer = require("../modules/NativeWorldRenderer")
-local rendererSource = fs.readFile("modules/NativeWorldRenderer.lua")
+local HighlightRenderer = require("../ui/esp/HighlightRenderer")
+local rendererSource = fs.readFile("ui/esp/HighlightRenderer.lua")
 local initSource = fs.readFile("init.lua")
 assert(initSource:find('local RunService = game:GetService("RunService")', 1, true)
     and initSource:find("runService = RunService", 1, true),
-    "Production context must provide RunService to NativeWorldRenderer")
+    "Production context must provide RunService to HighlightRenderer")
 assert(rendererSource:find("context.runService.Heartbeat:Connect", 1, true),
     "Distance refresh must use one low-frequency Heartbeat accumulator")
 assert(rendererSource:find("DISTANCE_REFRESH_INTERVAL = 0.25", 1, true),
@@ -22,9 +22,9 @@ assert(rendererSource:find("HIGHLIGHT_DISTANCE = 1000", 1, true)
     and rendererSource:find("HIGHLIGHT_DISTANCE_HYSTERESIS", 1, true),
     "Per-part Highlights must use a distance boundary with hysteresis")
 assert(rendererSource:find("table.sort(candidates", 1, true)
-    and rendererSource:find("math.min(#candidates, NativeWorldRenderer.HIGHLIGHT_BUDGET)", 1, true),
+    and rendererSource:find("math.min(#candidates, HighlightRenderer.HIGHLIGHT_BUDGET)", 1, true),
     "Nearest in-range subjects must receive the global Highlight budget first")
-assert(rendererSource:find("math.floor(NativeWorldRenderer.HIGHLIGHT_BUDGET / poolCount)", 1, true)
+assert(rendererSource:find("math.floor(HighlightRenderer.HIGHLIGHT_BUDGET / poolCount)", 1, true)
     and rendererSource:find("baseBudget * poolCount", 1, true),
     "The distance pool must split the global budget fairly per subject")
 assert(rendererSource:find("self:_rebalanceHighlights()", 1, true),
@@ -36,6 +36,16 @@ assert(rendererSource:find("subject.character:GetDescendants()", 1, true)
 assert(not rendererSource:find("RenderStepped", 1, true)
     and not rendererSource:find('GetPropertyChangedSignal("CFrame")', 1, true),
     "Native distance budgeting must not poll every frame or subscribe per part")
+assert(rendererSource:find("setthreadidentity", 1, true)
+    and rendererSource:find("restoreExecutorThread", 1, true)
+    and rendererSource:find("onExecutorThread", 1, true),
+    "Signal-driven Highlight work must restore executor identity before Instance access")
+assert(rendererSource:find("billboard.Parent = self.context.guiParent", 1, true)
+    and rendererSource:find("StudsOffsetWorldSpace", 1, true),
+    "Highlight ESP must draw name, health, and weapon billboards above the character")
+assert(rendererSource:find("function HighlightRenderer:_styleHighlights", 1, true)
+    and rendererSource:find("restoreExecutorThread()", 1, true),
+    "_styleHighlights must restore Plugin capability on game Signal free threads")
 
 local function signal()
     local callbacks = {}
@@ -148,7 +158,7 @@ local store = Store.new({ settings = {
     health = true,
     weapon = true,
 } })
-local renderer = NativeWorldRenderer.new({
+local renderer = HighlightRenderer.new({
     createInstance = createInstance,
     guiParent = guiParent,
     localPlayer = localPlayer,
@@ -206,7 +216,12 @@ assert(#subject.highlights == 1 and subject.highlights[1].Adornee == character,
 assert(heartbeat:count() == 0,
     "Ignoring accessories alone must not start the per-part distance refresh")
 store:Patch({ settings = { chamsExcludeAccessories = false } })
-assert(subject.billboard.Size == UDim2.fromScale(5, 7))
+assert(subject.billboard.Parent == guiParent, "Name, health, and weapon billboards must parent to gethui, not the Highlight folder")
+assert(subject.billboard.Size == UDim2.fromOffset(220, 86))
+assert(subject.billboard.AnchorPoint == Vector2.new(0.5, 1))
+assert(subject.billboard.StudsOffsetWorldSpace == Vector3.new(0, 3.25, 0),
+    "Native labels must sit above AlwaysOnTop Highlights")
+assert(subject.billboard.MaxDistance == HighlightRenderer.HIGHLIGHT_DISTANCE)
 assert(subject.name.TextSize == 13 and subject.healthValue.TextSize == 12 and subject.weapon.TextSize == 12)
 assert(subject.name.TextTruncate == Enum.TextTruncate.None
     and subject.healthValue.TextTruncate == Enum.TextTruncate.None
@@ -322,8 +337,8 @@ character:add(replacementPart)
 assert(#subject.highlights == 4, "Hierarchy changes must rebuild bounded per-part highlights")
 store:Patch({ settings = { chamsExcludeAccessories = true } })
 assert(#subject.highlights == 3, "Accessory-excluding chams must omit accessory handles")
-assert(#subject.highlights <= NativeWorldRenderer.SUBJECT_HIGHLIGHT_BUDGET
-    and renderer.highlightCount <= NativeWorldRenderer.HIGHLIGHT_BUDGET)
+assert(#subject.highlights <= HighlightRenderer.SUBJECT_HIGHLIGHT_BUDGET
+    and renderer.highlightCount <= HighlightRenderer.HIGHLIGHT_BUDGET)
 store:Patch({ settings = { boxes = false, chams = false } })
 assert(heartbeat:count() == 0,
     "Disabling both boxes and chams must synchronously disconnect distance refresh")

@@ -1,4 +1,4 @@
-local HookRuntime = require("../games/rivals/HookRuntime")
+local HookRuntime = require("../games/rivals/libraries/HookRuntime")
 
 local runtime = HookRuntime.new({ capabilities = {} })
 runtime:refresh()

@@ -1,0 +1,9 @@
+artifact=ui/dist/Menu.lua
+sha256=5220ac7a073fa400377d643f116f5dddbd0a3b7073bba8306573d90acad412a1
+prism_repository=https://github.com/3xjn/prism
+prism_commit=baebebb089fa29bd2dae8af039be408af7e95ec1
+prism_base=67fb89aefaf9d877b3eeba53e625c9032dcd1545
+bundler=https://github.com/latte-soft/wax
+bundler_version=0.4.2
+mount_parent=gethui()
+source=ui/src

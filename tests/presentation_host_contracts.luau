@@ -101,8 +101,14 @@ assertSequence(
         "section:Combat:trigger:Trigger Bot:64",
         "option:trigger:1:triggerBot:Trigger Bot",
         "option:trigger:2:alwaysScoped:Always Scoped",
+        "section:Rage:rage:RAGE:70",
+        "option:rage:1:teleportBehind:Warp",
         "section:Movement:movement:MOVEMENT:70",
         "option:movement:1:bhop:Bunny Hop",
+        "option:movement:2:infiniteJump:Infinite Jump",
+        "option:movement:3:wallNoclip:Wall Noclip",
+        "section:Settings:taskFarming:TASK FARMING:70",
+        "option:taskFarming:1:taskAutomationPaused:Pause Task Farming",
         "section:Tools:world:WORLD:70",
         "option:world:1:autoPickup:Auto Pickup",
         "section:Visuals:visuals:VISUALS:70",
@@ -113,6 +119,8 @@ assertSequence(
         "option:visuals:3:names:Names",
         "option:visuals:3:health:Health",
         "option:visuals:4:weapon:Weapons",
+        "option:visuals:20:showEnemies:Enemies:audience",
+        "option:visuals:21:showTeammates:Allies:audience",
         "option:visuals:4:noFlash:No Flash",
         "option:visuals:5:noSmoke:No Smoke",
         "option:visuals:6:utilityEsp:Utility ESP",
@@ -147,6 +155,8 @@ assertSequence(
         "option:visuals:2:names:Names",
         "option:visuals:2:health:Health",
         "option:visuals:3:weapon:Weapons",
+        "option:visuals:20:showEnemies:Enemies:audience",
+        "option:visuals:21:showTeammates:Allies:audience",
         "option:visuals:4:bombTimer:Bomb Timer",
         "option:visuals:5:utilityEsp:Utility ESP",
         "cosmetics",
@@ -154,7 +164,7 @@ assertSequence(
     "Counterblox presentation"
 )
 
-local hostSource = fs.readFile("modules/PresentationHost.lua")
+local hostSource = fs.readFile("ui/PresentationHost.lua")
 for _, forbidden in ipairs({
     "Drawing",
     "Limn",
@@ -177,9 +187,9 @@ end
 local _, hostLineCount = hostSource:gsub("\n", "\n")
 assert(hostLineCount < 80, "PresentationHost must not hide presentation construction")
 for _, path in ipairs({
-    "modules/presentation/Runtime.lua",
-    "modules/presentation/StandardPanels.lua",
-    "modules/presentation/CosmeticsPanel.lua",
+    "ui/presentation/Runtime.lua",
+    "ui/presentation/StandardPanels.lua",
+    "ui/presentation/CosmeticsPanel.lua",
 }) do
     local source = fs.readFile(path)
     for _, forbidden in ipairs({
@@ -196,7 +206,7 @@ for _, path in ipairs({
         )
     end
 end
-local standardPanelsSource = fs.readFile("modules/presentation/StandardPanels.lua")
+local standardPanelsSource = fs.readFile("ui/presentation/StandardPanels.lua")
 assert(
     not standardPanelsSource:find("SECTION_PAGES", 1, true),
     "StandardPanels must not assign a game section to a page"
@@ -240,7 +250,7 @@ for _, action in ipairs({
     )
 end
 
-local overlaySource = fs.readFile("modules/Overlay.lua")
+local overlaySource = fs.readFile("ui/esp/DrawingRenderer.lua")
 for _, forbidden in ipairs({
     "OPTION_GROUPS",
     "OPTION_LABELS",
@@ -280,8 +290,8 @@ for _, path in pairs(expectedPresentations) do
     )
 end
 
-local PresentationHost = require("../modules/PresentationHost")
-local PresentationRuntime = require("../modules/presentation/Runtime")
+local PresentationHost = require("../ui/PresentationHost")
+local PresentationRuntime = require("../ui/presentation/Runtime")
 local lifecycle = {}
 local MinimalPresentation = {}
 function MinimalPresentation.mount(host)

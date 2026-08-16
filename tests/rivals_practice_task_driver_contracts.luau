@@ -1,4 +1,4 @@
-local Driver = require("../games/rivals/PracticeTaskDriver")
+local Driver = require("../games/rivals/tasks/PracticeTaskDriver")
 
 local fighter = { Data = { IsInShootingRange = false }, EquippedItem = nil }
 local calls, pending, releases = {}, {}, 0

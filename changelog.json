@@ -1,0 +1,66 @@
+{
+  "current": "0.3.0",
+  "releases": [
+    {
+      "version": "0.3.0",
+      "channel": "beta",
+      "date": "2026-08-15",
+      "title": "Warp",
+      "added": [
+        {
+          "tab": "Rage",
+          "name": "Warp",
+          "note": "hops around your opponent"
+        }
+      ],
+      "changed": [],
+      "fixed": [
+        {
+          "tab": "Combat",
+          "name": "Trigger Bot",
+          "note": "uses line of sight, not just who's on screen"
+        },
+        {
+          "tab": "Movement",
+          "name": "Wall Noclip",
+          "note": "stays put when the menu opens"
+        }
+      ]
+    },
+    {
+      "version": "0.2.0",
+      "channel": "beta",
+      "date": "2026-08-15",
+      "title": "New menu",
+      "added": [
+        {
+          "tab": "Hub",
+          "name": "New menu",
+          "note": "the live hub menu"
+        },
+        {
+          "tab": "Settings",
+          "name": "Task farming",
+          "note": "can run matches and pause"
+        },
+        {
+          "tab": "Movement",
+          "name": "Infinite Jump",
+          "note": "keeps you in the air"
+        },
+        {
+          "tab": "Movement",
+          "name": "Wall Noclip",
+          "note": "walks through map walls"
+        },
+        {
+          "tab": "Visuals",
+          "name": "Highlight ESP",
+          "note": "draws players with native highlights"
+        }
+      ],
+      "changed": [],
+      "fixed": []
+    }
+  ]
+}

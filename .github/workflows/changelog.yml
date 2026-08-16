@@ -1,0 +1,108 @@
+name: Changelog
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - beta
+    tags:
+      - "v*"
+    paths:
+      - "changelog.json"
+      - "CHANGELOG.md"
+      - "scripts/changelog.luau"
+      - ".github/workflows/changelog.yml"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to publish (e.g. v0.1.0)"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate changelog.json
+        run: |
+          set -euo pipefail
+          jq -e '
+            (.current | test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))
+            and (.releases | type == "array" and length > 0)
+            and (.releases | map(.version) | unique | length == (.releases | length))
+            and (
+              .releases
+              | max_by(.version | split(".") | map(tonumber))
+              | .version == $.current
+            )
+            and all(.releases[];
+              (.version | test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))
+              and (.date | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}$"))
+              and (.title | type == "string" and length > 0)
+            )
+          ' changelog.json > /dev/null
+          test -f CHANGELOG.md
+          grep -F "## [$(jq -r .current changelog.json)]" CHANGELOG.md
+
+  release:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Resolve release version
+        id: version
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ] && [ -n "${{ inputs.tag }}" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+          VERSION="${TAG#v}"
+          CURRENT="$(jq -r .current changelog.json)"
+          if [ "${VERSION}" != "${CURRENT}" ]; then
+            echo "Tag ${TAG} does not match changelog current version ${CURRENT}" >&2
+            exit 1
+          fi
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Build release notes
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          jq -r --arg version "${VERSION}" '
+            .releases[]
+            | select(.version == $version)
+            | "## \(.title)\n",
+              (if (.added | length) > 0 then "### Added\n", (.added[] | "- \(.)"), "" else empty end),
+              (if (.changed | length) > 0 then "### Changed\n", (.changed[] | "- \(.)"), "" else empty end),
+              (if (.fixed | length) > 0 then "### Fixed\n", (.fixed[] | "- \(.)"), "" else empty end),
+              (if (.removed | length) > 0 then "### Removed\n", (.removed[] | "- \(.)"), "" else empty end),
+              (if (.security | length) > 0 then "### Security\n", (.security[] | "- \(.)"), "" else empty end)
+          ' changelog.json > release-notes.md
+          test -s release-notes.md
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.version.outputs.tag }}"
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            gh release upload "${TAG}" changelog.json CHANGELOG.md --clobber
+            gh release edit "${TAG}" --notes-file release-notes.md
+          else
+            gh release create "${TAG}" changelog.json CHANGELOG.md \
+              --title "Universal Hub ${TAG}" \
+              --notes-file release-notes.md
+          fi

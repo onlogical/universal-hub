@@ -32,37 +32,45 @@ if teleportBootstrap and type(gethui) == "function" then
     if staleMenu then staleMenu:Destroy() end
 end
 
-local function loadHub()
-    local nativeMenuSource = readfile(configuration.NativeMenuPath)
-    local nativeMenuChunk, nativeMenuError = loadstring(nativeMenuSource, "vendor/UniversalHubMenu.lua")
-    local NativeMenu = assert(nativeMenuChunk, nativeMenuError)()
-    assert(
-        type(NativeMenu) == "table" and type(NativeMenu.mountUniversalHubMenu) == "function",
-        "Universal Hub requires the native Prism menu"
-    )
+local function loadWorkspaceModule(path, chunkName)
+    if type(loadfile) == "function" then
+        local chunk, compileError = loadfile(path)
+        return assert(chunk, compileError)()
+    end
+    local chunk, compileError = loadstring(readfile(path), chunkName or path)
+    return assert(chunk, compileError)()
+end
 
-    local limnSource = readfile(configuration.LimnPath)
-    local limnChunk, limnError = loadstring(limnSource, "vendor/Limn.lua")
-    local Limn = assert(limnChunk, limnError)()
+local function loadCompiledMenu()
+    local Menu = loadWorkspaceModule(configuration.MenuPath, "ui/dist/Menu.lua")
+    assert(
+        type(Menu) == "table" and type(Menu.mountUniversalHubMenu) == "function",
+        "Universal Hub requires the compiled Prism menu"
+    )
+    configuration.Menu = Menu
+    return Menu
+end
+
+local function loadHub()
+    loadCompiledMenu()
+
+    local Limn = loadWorkspaceModule(configuration.LimnPath, "limn/dist/Limn.lua")
     assert(type(Limn) == "table" and type(Limn.new) == "function", "Universal Hub requires Limn")
 
     local helpersPath = configuration.HydroxideRoot .. "/modules/Helpers.lua"
-    local helpersChunk, helpersError = loadstring(readfile(helpersPath), "hydroxide/modules/Helpers.lua")
-    local Helpers = assert(helpersChunk, helpersError)()
+    local Helpers = loadWorkspaceModule(helpersPath, "hydroxide/modules/Helpers.lua")
     assert(
         type(Helpers) == "table" and type(Helpers.load) == "function",
         "Universal Hub requires Hydroxide Helpers.load"
     )
 
     configuration.Limn = Limn
-    configuration.NativeMenu = NativeMenu
     configuration.HydroxideHelpers = Helpers
     if not ownsFlight() then
         return
     end
 
-    local hubChunk, hubError = loadstring(readfile(configuration.LocalRoot .. "/init.lua"), "universal-hub/init.lua")
-    return assert(hubChunk, hubError)()
+    return loadWorkspaceModule(configuration.LocalRoot .. "/init.lua", "universal-hub/init.lua")
 end
 
 local function waitForNativeGameReady()
@@ -116,9 +124,27 @@ local function startBootstrap()
     configuration.LocalRoot = configuration.LocalRoot or "universal-hub/local"
     configuration.HydroxideRoot = configuration.HydroxideRoot or "hydroxide/local"
     configuration.LimnPath = configuration.LimnPath or "limn/dist/Limn.lua"
-    configuration.NativeMenuPath = configuration.NativeMenuPath
-        or (configuration.LocalRoot .. "/vendor/UniversalHubMenu.lua")
+    configuration.MenuPath = configuration.MenuPath
+        or (configuration.LocalRoot .. "/ui/dist/Menu.lua")
+    local menuStampPath = configuration.MenuPath:gsub("%.lua$", ".provenance")
+    if type(isfile) ~= "function" or not isfile(menuStampPath) then
+        menuStampPath = configuration.MenuPath
+    end
+    configuration.MenuStampPath = menuStampPath
+    configuration.ReloadMenu = loadCompiledMenu
+    if type(configuration.RivalsAutoCounterTest) ~= "table" then
+        configuration.RivalsAutoCounterTest = {
+            enabled = false,
+            holdDuration = 0.45,
+            startDelay = 0.25,
+            verticalOffset = 1000,
+        }
+    end
+    configuration.HotReload = configuration.HotReload ~= false
     local importCache = {}
+    configuration.Forget = function(path)
+        importCache[path] = nil
+    end
     configuration.Import = function(path)
         assert(
             type(path) == "string"
@@ -165,7 +191,7 @@ local function startBootstrap()
     if queue then
         queue(([[
 getgenv().UniversalHubTeleportBootstrap = true
-loadstring(readfile(%q), "universal-hub/local.lua")()
+loadfile(%q)()
 ]]):format(configuration.LocalRoot .. "/local.lua"))
     end
 

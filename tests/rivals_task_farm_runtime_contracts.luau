@@ -1,4 +1,4 @@
-local Runtime = require("../games/rivals/TaskFarmRuntime")
+local Runtime = require("../games/rivals/tasks/TaskFarmRuntime")
 local function signal()
  local callbacks = {}; local s = {}
  function s:Connect(fn) table.insert(callbacks, fn); local c = { connected = true }; function c:Disconnect() if not self.connected then return end; self.connected=false; for i,v in ipairs(callbacks) do if v==fn then table.remove(callbacks,i); break end end end; return c end
@@ -106,6 +106,32 @@ assert(manualRuntime:status().paused and manualRuntime:status().reason=="manual-
  "duel-pad and other lobby duels must pause task ownership")
 assert(not manualRuntime:isCombatActive() and manualQueueCalls==0 and manualPauseRequests==1,
  "manual lobby duels must neither run combat automation nor enter matchmaking")
+manualRuntime:resume()
+assert(not manualRuntime:status().paused and manualRuntime:status().reason==nil,
+ "user resume during a private duel must stick")
+assert(manualPauseRequests==1 and manualQueueCalls==0,
+ "unpausing a private duel must not re-pause or enter matchmaking")
+fighterSignal:Fire()
+assert(not manualRuntime:status().paused and manualPauseRequests==1,
+ "round or fighter updates must not re-pause after the user unpauses")
+duel.Data.Status="GameOver"
+duelSignal:Fire()
+assert(not manualRuntime:status().paused and manualQueueCalls==0,
+ "unpausing a private duel must not start matchmaking on GameOver")
+duel.Data.Status="RoundStarted"
+manualRuntime:pause("user")
+assert(manualRuntime:status().paused and manualRuntime:status().reason=="user",
+ "the user must still be able to pause again in a private duel")
+manualRuntime:resume()
+assert(not manualRuntime:status().paused and manualPauseRequests==1,
+ "a later manual resume must also stick in a private duel")
+fighter.Data.IsInDuel=false
+fighterSignal:Fire()
+assert(not manualRuntime:status().paused, "leaving a private duel must not re-pause an unpaused farm")
+fighter.Data.IsInDuel=true
+fighterSignal:Fire()
+assert(manualRuntime:status().paused and manualRuntime:status().reason=="manual-duel" and manualPauseRequests==2,
+ "entering a new private duel may auto-pause once")
 manualRuntime:stop()
 fighter.Data.IsInDuel=false
 

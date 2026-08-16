@@ -4,23 +4,13 @@ local oldHydroxideCommit = "8e2d4a84ddb4b7ef901af170966a43b3b35fbaa7"
 local hydroxideCommit = "c0bcd94dd43b84eaf4f0a9f87daab86b701a3682"
 local sourceBaseUrl = "https://raw.githubusercontent.com/3xjn/universal-hub/main/"
 local Catalog = require("../games/Catalog")
+local Sources = require("../modules/Sources")
 local expectedHubPaths = {
-    "modules/Store.lua",
-    "modules/Config.lua",
-    "modules/InputCapture.lua",
-    "modules/MenuToggle.lua",
-    "modules/Registry.lua",
-    "modules/Session.lua",
-    "modules/Overlay.lua",
-    "modules/PresentationHost.lua",
-    "modules/presentation/Runtime.lua",
-    "modules/presentation/StandardPanels.lua",
-    "modules/presentation/CosmeticsPanel.lua",
-    "modules/SourceInventory.lua",
-    "games/Compatibility.lua",
-    "games/Catalog.lua",
     "init.lua",
 }
+for _, path in ipairs(Sources.Core()) do
+    table.insert(expectedHubPaths, path .. ".lua")
+end
 local firstDeclaredSource
 for _, definitionPath in ipairs(Catalog) do
     table.insert(expectedHubPaths, definitionPath .. ".lua")
@@ -82,6 +72,9 @@ function game:HttpGet(url, noCache)
     if url == sourceBaseUrl .. "vendor/Limn.lua" then
         return [[return { new = function() end }]]
     end
+    if url == sourceBaseUrl .. "ui/dist/Menu.lua" then
+        return [[return { mountUniversalHubMenu = function() end }]]
+    end
 
     local hydroxideRoot =
         "https://raw.githubusercontent.com/3xjn/hydroxide/"
@@ -114,19 +107,14 @@ return {
         return [[return {}]]
     end
 
-    if url == sourceBaseUrl .. "modules/Registry.lua"
-        or url == sourceBaseUrl .. "modules/SourceInventory.lua"
-        or url == sourceBaseUrl .. "games/Compatibility.lua"
-        or url == sourceBaseUrl .. "games/Catalog.lua"
-        or url == sourceBaseUrl .. "games/counterblox/Definition.lua"
-        or url == sourceBaseUrl .. "games/rivals/Definition.lua"
-        or url == sourceBaseUrl .. "games/town/Definition.lua"
-    then
+    if url:sub(1, #sourceBaseUrl) == sourceBaseUrl then
         local path = url:sub(#sourceBaseUrl + 1)
         if path == invalidDefinitionPath then
             return [[return {}]]
         end
-        return fs.readFile(path)
+        if path ~= "init.lua" and path ~= "modules/Store.lua" and fs.isFile(path) then
+            return fs.readFile(path)
+        end
     end
 
     if url == sourceBaseUrl .. "init.lua" then
@@ -184,6 +172,8 @@ assert(result == "hub-loader-ok")
 assert(environment.StoreExecutions == 1, "Hub importer must execute a fetched module once")
 local expectedUrls = {
     [sourceBaseUrl .. "vendor/Limn.lua"] = true,
+    [sourceBaseUrl .. "ui/dist/Menu.lua"] = true,
+    [sourceBaseUrl .. "changelog.json"] = true,
 }
 local hydroxideRoot =
     "https://raw.githubusercontent.com/3xjn/hydroxide/"
@@ -269,7 +259,7 @@ function game:HttpGet(url, noCache)
     if url == sourceBaseUrl .. "games/rivals/Definition.lua" then
         return result:gsub(
             'sources = {',
-            'sources = {\n        "games/Counterblox",',
+            'sources = {\n        "games/Town",',
             1
         )
     end
@@ -286,7 +276,7 @@ end)
 assert(
     not duplicateSucceeded
         and tostring(duplicateMessage):find(
-            "Source path owned by multiple game definitions: games/Counterblox (counterblox, rivals)",
+            "Source path owned by multiple game definitions: games/Town (rivals, town)",
             1,
             true
         ),
@@ -294,7 +284,7 @@ assert(
 )
 for _, url in ipairs(requested) do
     assert(
-        url ~= sourceBaseUrl .. "games/Counterblox.lua"
+        url ~= sourceBaseUrl .. "games/Town.lua"
             and url ~= sourceBaseUrl .. "games/rivals/Adapter.lua"
             and url ~= sourceBaseUrl .. "games/Town.lua",
         "Source ownership must validate globally before any game source fetch"

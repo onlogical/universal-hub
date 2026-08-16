@@ -1,4 +1,4 @@
-local Skill=require("../games/rivals/TaskSkillRuntime")
+local Skill=require("../games/rivals/tasks/TaskSkillRuntime")
 local localHum={Health=150,MaxHealth=150} local enemyHum={Health=150,MaxHealth=150}
 local char={FindFirstChildOfClass=function()return enemyHum end}
 local target={character=char,health=150,maxHealth=150}

@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - ".github/workflows/pages.yml"
+      - "changelog.json"
       - "site/**"
   workflow_dispatch:
 
@@ -32,6 +33,9 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
+
+      - name: Stage changelog
+        run: cp changelog.json site/changelog.json
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v4

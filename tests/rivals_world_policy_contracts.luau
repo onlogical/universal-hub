@@ -1,8 +1,8 @@
-local WorldPolicy = require("../games/rivals/WorldPolicy")
+local WorldPolicy = require("../games/rivals/world/WorldPolicy")
 local Definition = require("../games/rivals/Definition")
 local fs = require("@lune/fs")
 
-assert(table.find(Definition.sources, "games/rivals/WorldPolicy") ~= nil,
+assert(table.find(Definition.sources, "games/rivals/world/WorldPolicy") ~= nil,
     "RIVALS must register its native world policy source")
 local adapterSource = fs.readFile("games/rivals/Adapter.lua")
 assert(adapterSource:find('self.worldPolicy = WorldPolicy.new({', 1, true),

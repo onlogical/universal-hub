@@ -1,7 +1,7 @@
 local fs = require("@lune/fs")
-local UtilityPolicy = require("../games/rivals/UtilityPolicy")
+local UtilityPolicy = require("../games/rivals/world/UtilityPolicy")
 
-local effectsSource = fs.readFile("games/rivals/Effects.lua")
+local effectsSource = fs.readFile("games/rivals/world/Effects.lua")
 assert(not effectsSource:find("string.find", 1, true))
 assert(not effectsSource:find("THROWABLE_CONTAINERS", 1, true))
 

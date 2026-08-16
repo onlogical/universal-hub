@@ -24,7 +24,7 @@ function Presentation.mount(host)
                 patch = { { "worldRenderer", "limn" } },
             },
             {
-                label = "Native",
+                label = "Highlights",
                 value = "native",
                 when = { worldRenderer = "native" },
                 patch = { { "worldRenderer", "native" } },
@@ -65,28 +65,16 @@ function Presentation.mount(host)
     host:section("Combat", "trigger", "Trigger Bot", 64)
     host:option("trigger", 1, "triggerBot", "Trigger Bot")
     host:option("trigger", 2, "alwaysScoped", "Always Scoped")
-    host:option("trigger", 3, "autoCounter", "Auto Counter")
 
-    host:section("Movement", "movement", "MOVEMENT", 122)
+    host:section("Rage", "rage", "RAGE", 70)
+    host:option("rage", 1, "teleportBehind", "Warp")
+
+    host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "bhop", "Bunny Hop")
     host:option("movement", 2, "infiniteJump", "Infinite Jump")
     host:option("movement", 3, "wallNoclip", "Wall Noclip")
 
     host:section("Settings", "taskFarming", "TASK FARMING", 70)
-    if type(host.info) == "function" then
-        host:info("taskFarming", "taskAutomationStatus", "Status", function(state)
-            local taskState = state.taskAutomation or {}
-            return taskState.statusLabel or "Idle"
-        end, "primary")
-        host:info("taskFarming", "taskAutomationTask", "Current task", function(state)
-            local taskState = state.taskAutomation or {}
-            return taskState.taskLabel or "No supported task"
-        end)
-        host:info("taskFarming", "taskAutomationAdaptive", "Opponent read", function(state)
-            local taskState = state.taskAutomation or {}
-            return taskState.adaptiveLabel or "Waiting for opponent"
-        end)
-    end
     host:option("taskFarming", 1, "taskAutomationPaused", "Pause Task Farming")
     if type(host.keybind) == "function" then
         host:keybind("taskFarming", "taskAutomationEmergencyKey", "Emergency stop", "End")

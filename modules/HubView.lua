@@ -37,6 +37,18 @@ function HubView:isCaptured()
     return not self.destroyed and self.menu:isCaptured()
 end
 
+function HubView:setMenu(menu)
+    assert(type(menu) == "table" and type(menu.destroy) == "function")
+    if self.destroyed then
+        menu:destroy()
+        return
+    end
+    if self.menu and self.menu ~= menu then
+        self.menu:destroy()
+    end
+    self.menu = menu
+end
+
 function HubView:destroy()
     if self.destroyed then
         return

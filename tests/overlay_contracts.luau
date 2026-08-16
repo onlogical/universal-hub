@@ -12,11 +12,11 @@ Drawing = {
 }
 
 local Store = require("../modules/Store")
-local Overlay = require("../modules/Overlay")
-local PresentationHost = require("../modules/PresentationHost")
-local PresentationRuntime = require("../modules/presentation/Runtime")
-local StandardPanels = require("../modules/presentation/StandardPanels")
-local CosmeticsPanel = require("../modules/presentation/CosmeticsPanel")
+local Overlay = require("../ui/esp/DrawingRenderer")
+local PresentationHost = require("../ui/PresentationHost")
+local PresentationRuntime = require("../ui/presentation/Runtime")
+local StandardPanels = require("../ui/presentation/StandardPanels")
+local CosmeticsPanel = require("../ui/presentation/CosmeticsPanel")
 local RivalsPresentation = require("../games/rivals/Presentation")
 local TownPresentation = require("../games/town/Presentation")
 
@@ -1381,12 +1381,11 @@ local rivalsOverlay = Overlay.new({
     setRate = function() end,
     store = store,
 })
-assert(rivalsOverlay.controls.options.silentAim.label.Text == "Camera Aim")
-assert(rivalsOverlay.controls.options.humanAim.label.Text == "Human Aim")
+assert(rivalsOverlay.controls.targetMode ~= nil, "RIVALS must build the shared FOV/target-mode shell")
 assert(
     rivalsOverlay.controls.panelShadow ~= nil
         and rivalsOverlay.controls.panelBorder ~= nil
-        and rivalsOverlay.controls.options.silentAim.switch.knob ~= nil,
+        and rivalsOverlay.controls.options.triggerBot.switch.knob ~= nil,
     "Game adapters must share the same composed Drawing shell and toggle primitives"
 )
 assert(rivalsOverlay.controls.options.triggerBot ~= nil)
@@ -1408,8 +1407,8 @@ assert(
 assert(rivalsOverlay.controls.options.wallbang == nil)
 assert(rivalsOverlay.controls.options.noSpread == nil)
 assert(rivalsOverlay.controls.options.knifeAura == nil)
-assert(rivalsOverlay.controls.sections.rage ~= nil and rivalsOverlay.controls.sections.visuals ~= nil)
-assert(rivalsOverlay.controls.sections.melee == nil and rivalsOverlay.controls.sections.movement == nil)
+assert(rivalsOverlay.controls.sections.trigger ~= nil and rivalsOverlay.controls.sections.visuals ~= nil)
+assert(rivalsOverlay.controls.sections.rage == nil and rivalsOverlay.controls.sections.melee == nil)
 assert(
     next(rivalsOverlay.controls.cosmetics) == nil,
     "Adapters without cosmetics must omit the Counterblox cosmetics disclosure"

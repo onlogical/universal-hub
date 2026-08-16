@@ -1,7 +1,7 @@
 local roblox = require("@lune/roblox")
 Color3 = roblox.Color3
 
-local Policy = require("../modules/EspColorPolicy")
+local Policy = require("../ui/esp/ColorPolicy")
 local fallback = Color3.fromRGB(1, 2, 3)
 
 assert(Policy.parseHex("#C76559") == Color3.fromRGB(199, 101, 89))

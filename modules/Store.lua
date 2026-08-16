@@ -13,10 +13,28 @@ local function copy(source)
     return result
 end
 
+local function isList(value)
+    if type(value) ~= "table" then
+        return false
+    end
+    local count = 0
+    for key in pairs(value) do
+        if type(key) ~= "number" or key < 1 or key % 1 ~= 0 then
+            return false
+        end
+        count += 1
+    end
+    return count == #value
+end
+
 local function merge(target, patch)
     for key, value in pairs(patch) do
         if type(value) == "table" and type(target[key]) == "table" then
-            merge(target[key], value)
+            if isList(value) and (next(value) ~= nil or isList(target[key])) then
+                target[key] = copy(value)
+            else
+                merge(target[key], value)
+            end
         else
             target[key] = value
         end

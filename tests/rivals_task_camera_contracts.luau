@@ -1,7 +1,7 @@
 local roblox = require("@lune/roblox")
 CFrame = roblox.CFrame
 Vector2 = roblox.Vector2
-local TaskCamera = require("../games/rivals/TaskCamera")
+local TaskCamera = require("../games/rivals/tasks/TaskCamera")
 local camera = { CFrame = CFrame.new(4, 5, 6) }
 local rotation = Vector2.new(math.rad(-12), math.rad(70))
 assert(TaskCamera.commit(camera, rotation) == true)

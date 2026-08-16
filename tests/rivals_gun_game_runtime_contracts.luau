@@ -1,4 +1,4 @@
-local GunGameRuntime = require("../games/rivals/GunGameRuntime")
+local GunGameRuntime = require("../games/rivals/features/GunGameRuntime")
 
 local function signal()
     local callbacks = {}

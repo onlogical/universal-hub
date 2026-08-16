@@ -1,4 +1,4 @@
-local ScopedAccuracy = require("../games/rivals/ScopedAccuracy")
+local ScopedAccuracy = require("../games/rivals/features/ScopedAccuracy")
 
 local enabled = false
 local nativeCalls = 0

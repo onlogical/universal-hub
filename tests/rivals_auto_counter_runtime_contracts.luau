@@ -1,7 +1,7 @@
 local roblox = require("@lune/roblox")
 Vector3 = roblox.Vector3
 
-local AutoCounterRuntime = require("../games/rivals/AutoCounterRuntime")
+local AutoCounterRuntime = require("../games/rivals/features/AutoCounterRuntime")
 
 local epoch = {}
 local function sample(runtime, now, position, overrides)

@@ -7,13 +7,13 @@ Vector3 = roblox.Vector3
 
 local Rivals = require("../games/rivals/Adapter")
 RivalsDefinition = require("../games/rivals/Definition")
-local RivalsTargeting = require("../games/rivals/Targeting")
-local RivalsProjectileAim = require("../games/rivals/ProjectileAim")
-local RivalsShotPresentation = require("../games/rivals/ShotPresentation")
-local RivalsWeaponPolicy = require("../games/rivals/WeaponPolicy")
-local RivalsEffects = require("../games/rivals/Effects")
-local RivalsMovement = require("../games/rivals/Movement")
-local RivalsCombatState = require("../games/rivals/CombatState")
+local RivalsTargeting = require("../games/rivals/libraries/Targeting")
+local RivalsProjectileAim = require("../games/rivals/libraries/ProjectileAim")
+local RivalsShotPresentation = require("../games/rivals/features/ShotPresentation")
+local RivalsWeaponPolicy = require("../games/rivals/libraries/WeaponPolicy")
+local RivalsEffects = require("../games/rivals/world/Effects")
+local RivalsMovement = require("../games/rivals/libraries/Movement")
+local RivalsCombatState = require("../games/rivals/libraries/CombatState")
 
 assert(
     not require("@lune/fs").readFile("games/rivals/Adapter.lua"):find("getLoadedModules", 1, true),
@@ -25,6 +25,8 @@ assert(
     table.find(RivalsDefinition.features.capabilities, "silentAim")
         and table.find(RivalsDefinition.features.capabilities, "shotAim")
         and table.find(RivalsDefinition.features.capabilities, "triggerBot")
+        and table.find(RivalsDefinition.features.capabilities, "autoCounter")
+        and table.find(RivalsDefinition.features.capabilities, "teleportBehind")
         and table.find(RivalsDefinition.features.capabilities, "alwaysScoped")
         and table.find(RivalsDefinition.features.capabilities, "humanAim")
         and table.find(RivalsDefinition.features.capabilities, "aimSmoothness")
@@ -786,6 +788,7 @@ local bow = {
         ChargeLevelTimestamps = { 0, 0.3, 1, 1.8 },
         ChargeReleaseCooldown = 1,
         CriticalDamage = 60,
+        IsProjectile = true,
         ShootDamage = 30,
         ShootCooldown = 0.25,
     },
@@ -1746,6 +1749,7 @@ assert(
 local cameraHarness = {
     bound = {},
     boundCount = 0,
+    physicsConnects = 0,
     rotationDeltaDisconnected = false,
     unbound = {},
     unboundCount = 0,
@@ -1836,6 +1840,9 @@ local fighterModule = {
             return originalMoveVector
         end,
     },
+    GetFighter = function(self, player)
+        return self._player_to_fighter[player]
+    end,
     _player_to_fighter = {
         [enemyPlayer] = {
             Entity = {
@@ -1847,6 +1854,9 @@ local fighterModule = {
         },
     },
 }
+cameraModule.GetCurrentSubject = function(self)
+    return self._current_subject
+end
 cameraModule._current_subject = fighterModule.LocalFighter
 local cameraScript = {}
 local duelScript = {}
@@ -1921,6 +1931,26 @@ local RunService = {
     RenderStepped = {
         Connect = function(_signal, callback)
             renderCallback = callback
+            return {
+                Disconnect = function()
+                    disconnected = true
+                end,
+            }
+        end,
+    },
+    Stepped = {
+        Connect = function()
+            cameraHarness.physicsConnects += 1
+            return {
+                Disconnect = function()
+                    disconnected = true
+                end,
+            }
+        end,
+    },
+    Heartbeat = {
+        Connect = function()
+            cameraHarness.physicsConnects += 1
             return {
                 Disconnect = function()
                     disconnected = true
@@ -2482,9 +2512,7 @@ local triggerCameraDataAtClick
 local triggerRayAtClick
 local rendered
 local inputCaptured = false
-local environmentCast = function()
-    return nil
-end
+local environmentCast = nil
 local taskCombatActive = false
 local taskActivityChanged
 local taskFarmStops = 0
@@ -2499,6 +2527,32 @@ local taskFarmRuntime = {
         taskFarmStops += 1
     end,
 }
+fighterModule.LocalFighter.Input = function(_self, action)
+    if action == "StartShooting" then
+        clicks += 1
+        if triggerCameraCaptureEnabled then
+            local cameraDataHook =
+                hookImplementations[fighterModule.LocalFighter.GetCameraData]
+            assert(cameraDataHook, "Trigger Bot must fire through the installed camera-data hook")
+            triggerCameraDataAtClick, triggerRayAtClick =
+                cameraDataHook(fighterModule.LocalFighter)
+        end
+        return true
+    end
+    if action == "FinishShooting" then
+        releases += 1
+        return true
+    end
+    if action == "StartAiming" then
+        aimClicks += 1
+        return true
+    end
+    if action == "FinishAiming" then
+        aimReleases += 1
+        return true
+    end
+    return false
+end
 local adapter = Rivals.new({
     capabilities = RivalsDefinition.features.capabilities,
     taskFarmRuntime = taskFarmRuntime,
@@ -2649,7 +2703,7 @@ local adapter = Rivals.new({
     rivalsTargeting = RivalsTargeting,
     projectileAim = RivalsProjectileAim,
     shotPresentation = RivalsShotPresentation,
-    alwaysScoped = require("../games/rivals/ScopedAccuracy"),
+    alwaysScoped = require("../games/rivals/features/ScopedAccuracy"),
     weaponPolicy = RivalsWeaponPolicy,
     effects = RivalsEffects,
     movement = RivalsMovement,
@@ -2664,8 +2718,14 @@ local adapter = Rivals.new({
 })
 
 state._adapterStartPatches = state._patches
+settings = store:Get().settings
 assert(renderCallback, "RIVALS adapter must attach a resilient per-frame loop")
 renderCallback()
+assert(cameraHarness.physicsConnects == 0, "Warp must not start physics on the first frame")
+assert(
+    nearestOptions[#nearestOptions].maxScreenDistance == nil,
+    "Camera Aim does not use FOV"
+)
 assert(rendered.position == mousePosition)
 assert(
     state._patches == state._adapterStartPatches and state.observations == nil and state.utilityObservations == nil,
@@ -2697,8 +2757,7 @@ assert(rangeObservation.player == rangeTarget)
 assert(rangeObservation.health == math.huge and rangeObservation.maxHealth == math.huge)
 assert(
     rotationCalls == 1
-        and cameraModule.Rotation == RivalsTargeting.rotationToward(origin, targetPosition)
-        and nearestOptions[1].maxScreenDistance == 180,
+        and cameraModule.Rotation == RivalsTargeting.rotationToward(origin, targetPosition),
     "Camera Aim must ignore a closer-to-crosshair target beyond the ESP distance cap"
 )
 assert(clicks == 0, "Camera Aim must not fire unless Trigger Bot is enabled")
@@ -2794,13 +2853,17 @@ Workspace.ChildAdded:Fire(ammoPickup)
 settings.autoPickup = true
 currentTime += 1
 renderCallback()
+assert(
+    #cameraHarness.pickupTouches == 4,
+    "Gun Game Auto Pickup must emit four touch edges, got " .. tostring(#cameraHarness.pickupTouches)
+)
 local firstPickup = cameraHarness.pickupTouches[1]
 local secondPickup = cameraHarness.pickupTouches[2]
 local thirdPickup = cameraHarness.pickupTouches[3]
 local fourthPickup = cameraHarness.pickupTouches[4]
 local touchedTargets = {
-    [firstPickup and firstPickup.target] = true,
-    [thirdPickup and thirdPickup.target] = true,
+    [firstPickup.target] = true,
+    [thirdPickup.target] = true,
 }
 assert(
     #cameraHarness.pickupTouches == 4
@@ -2872,8 +2935,8 @@ assert(
 observations[2].screenDistance = settings.fov + 1
 renderCallback()
 assert(
-    cameraModule.Rotation == RivalsTargeting.rotationToward(origin, challengerPosition),
-    "RIVALS aim must acquire a new target after the locked target leaves the configured FOV"
+    cameraModule.Rotation == RivalsTargeting.rotationToward(origin, targetPosition),
+    "Camera Aim must keep a locked target when they leave the FOV circle"
 )
 table.remove(observations, 1)
 observations[1].screenDistance = 40
@@ -3225,6 +3288,7 @@ assert(
 )
 
 settings.silentAim = false
+settings.shotAim = false
 settings.triggerBot = true
 fighterModule.LocalFighter.Data.CanPickWeapons = false
 fighterModule.LocalFighter.Data.IsInShootingRange = false
@@ -3242,18 +3306,12 @@ assert(#rendered.utilities == 0, "Throwable ESP must not render unrelated lobby 
 
 fighterModule.LocalFighter.Data.IsInDuel = true
 fighterModule.LocalFighter.Data.IsInShootingRange = true
-target.screenDistance = 40
-observations[1].screenDistance = 40
-rangeObservation.screenDistance = 40
-renderCallback()
-assert(clicks == 0, "Trigger Bot must not fire at an enemy outside the crosshair radius")
-assert(nearestOptions[#nearestOptions].maxScreenDistance == 8)
-
 target.screenDistance = 4
 observations[1].screenDistance = 4
 rangeObservation.screenDistance = 4
 renderCallback()
-assert(clicks == 1, "Trigger Bot must use normal input only when a visible enemy crosses the reticle")
+assert(clicks == lobbyClicks + 1, "Trigger Bot without Camera Aim must take the nearest target, not an 8px reticle")
+assert(nearestOptions[#nearestOptions].maxScreenDistance == nil)
 
 for _, utilityName in ipairs({
     "Medkit",
@@ -3664,9 +3722,10 @@ target.character.FindFirstChildOfClass = function(_self, className)
 end
 observations[1].part = { Name = "Torso" }
 currentTime += 1
+local bowAimStarts = aimClicks
 renderCallback()
 assert(
-    aimPresses == 1 and aimReleases == 0 and presses == 0,
+    aimClicks == bowAimStarts + 1 and aimReleases == 0 and presses == 0,
     "Bow Trigger Bot must begin charging through the held aiming action"
 )
 currentTime += 0.9
@@ -3689,12 +3748,12 @@ currentTime += 1
 local quickBowClicks = clicks
 renderCallback()
 assert(
-    clicks == quickBowClicks + 1 and aimPresses == 1 and aimReleases == 1,
+    clicks == quickBowClicks + 1 and aimClicks == bowAimStarts + 1 and aimReleases == 1,
     "Bow Trigger Bot must tap primary fire when one faster uncharged shot is lethal"
 )
 
 do
-    local practiceBowPresses = aimPresses
+    local practiceBowPresses = aimClicks
     local practiceBowClicks = clicks
     local practiceEnemyScreenDistance = observations[1].screenDistance
     local practiceDummyScreenDistance = rangeObservation.screenDistance
@@ -3708,7 +3767,7 @@ do
         "Infinite-health practice dummies must expose representative full player health"
     )
     assert(
-        aimPresses == practiceBowPresses + 1 and clicks == practiceBowClicks,
+        aimClicks == practiceBowPresses + 1 and clicks == practiceBowClicks,
         "Bow Trigger Bot must charge practice dummies through ADS instead of primary-clicking"
     )
     settings.triggerBot = false
@@ -3796,19 +3855,18 @@ localItem.Info = {
 }
 localItem.Data = {}
 currentTime += 1
-local flamethrowerPresses = presses
+local flamethrowerPresses = clicks
 local flamethrowerReleases = releases
-local flamethrowerClicks = clicks
 renderCallback()
 assert(
-    presses == flamethrowerPresses + 1 and clicks == flamethrowerClicks,
-    "Flamethrower Trigger Bot must press primary fire once instead of clicking repeatedly"
+    clicks == flamethrowerPresses + 1,
+    "Flamethrower Trigger Bot must dispatch StartShooting once instead of repeating"
 )
 currentTime += 0.05
 renderCallback()
 assert(
-    presses == flamethrowerPresses + 1 and releases == flamethrowerReleases,
-    "Flamethrower Trigger Bot must remain held without repeating the press"
+    clicks == flamethrowerPresses + 1 and releases == flamethrowerReleases,
+    "Flamethrower Trigger Bot must remain held without repeating StartShooting"
 )
 target.screenDistance = 40
 observations[1].screenDistance = 40

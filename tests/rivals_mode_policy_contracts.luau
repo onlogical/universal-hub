@@ -1,5 +1,5 @@
 local fs = require("@lune/fs")
-local ModePolicy = require("../games/rivals/ModePolicy")
+local ModePolicy = require("../games/rivals/libraries/ModePolicy")
 
 local adapterSource = fs.readFile("games/rivals/Adapter.lua")
 assert(not adapterSource:find("133215910299950", 1, true))

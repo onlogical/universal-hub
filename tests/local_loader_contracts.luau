@@ -6,6 +6,13 @@ assert(
     "Local bootstrap must stage Limn and Hydroxide Helpers before init"
 )
 assert(
+    source:find("configuration.RivalsAutoCounterTest = {", 1, true)
+        and source:find("enabled = false", 1, true)
+        and source:find("verticalOffset = 1000", 1, true)
+        and not source:find("UniversalHubCounterCandidate", 1, true),
+    "Local bootstrap must keep the Auto Counter hop off unless explicitly enabled"
+)
+assert(
     not source:find('HydroxideRoot .. "/init.lua"', 1, true)
         and not source:find("environment.HydroxideConfig", 1, true),
     "Local bootstrap must not execute or configure the Hydroxide application"
@@ -80,8 +87,21 @@ function game:IsLoaded()
     return gameLoaded
 end
 
+function loadfile(path)
+    local source = readfile(path)
+    local chunk, compileError = loadstring(source, path)
+    return chunk, compileError
+end
+
 function readfile(path)
     table.insert(loaded, path)
+    if path == "universal-hub/local/ui/dist/Menu.lua" then
+        return [[
+return {
+    mountUniversalHubMenu = function() end,
+}
+]]
+    end
     if path == "limn/dist/Limn.lua" then
         return [[return { new = function() end }]]
     end
@@ -174,7 +194,9 @@ assert(spawnCount == 1, "A duplicate early local bootstrap must not schedule a s
 assert(queueCount == 1, "A duplicate early local bootstrap must queue teleport code once")
 assert(
     type(queuedTeleportSource) == "string"
-        and string.find(queuedTeleportSource, "universal%-hub/local/local%.lua") ~= nil,
+        and string.find(queuedTeleportSource, "universal%-hub/local/local%.lua") ~= nil
+        and string.find(queuedTeleportSource, "loadfile%(") ~= nil
+        and not string.find(queuedTeleportSource, "loadstring(readfile", 1, true),
     "Local loader must queue itself so game-to-game teleports refresh the selected adapter"
 )
 local deferredResult = pendingBootstrap()
@@ -182,10 +204,11 @@ assert(deferredResult == "local-loader-ok")
 assert(waitedForLoad, "Local loader must yield to Roblox startup when launched from autoexec")
 assert(exited == false, "Scoped helper loading must not exit an unrelated Hydroxide session")
 assert(
-    loaded[1] == "limn/dist/Limn.lua"
-        and loaded[2] == "hydroxide/local/modules/Helpers.lua"
-        and loaded[3] == "universal-hub/local/init.lua",
-    "Local bootstrap must stage Limn and Helpers before Universal Hub"
+    loaded[1] == "universal-hub/local/ui/dist/Menu.lua"
+        and loaded[2] == "limn/dist/Limn.lua"
+        and loaded[3] == "hydroxide/local/modules/Helpers.lua"
+        and loaded[4] == "universal-hub/local/init.lua",
+    "Local bootstrap must stage the native menu, Limn, and Helpers before Universal Hub"
 )
 local function loadedCount(path)
     local count = 0
@@ -198,6 +221,7 @@ local function loadedCount(path)
 end
 assert(
     loadedCount("hydroxide/local/init.lua") == 0
+        and loadedCount("universal-hub/local/ui/dist/Menu.lua") == 1
         and loadedCount("limn/dist/Limn.lua") == 1
         and loadedCount("hydroxide/local/modules/Helpers.lua") == 1
         and loadedCount("hydroxide/local/modules/Targeting.lua") == 1
@@ -210,6 +234,15 @@ assert(
     "The local loader must read nested Town modules from its selected local root"
 )
 assert(duplicateDuringLoadResult == nil, "A duplicate local bootstrap during helper staging must coalesce")
+assert(type(environment.UniversalHubConfig.ReloadMenu) == "function", "Local loader must expose ReloadMenu")
+assert(
+    environment.UniversalHubConfig.MenuStampPath == "universal-hub/local/ui/dist/Menu.lua",
+    "Without isfile, the compiled menu itself is the hot-reload stamp"
+)
+local restaged = environment.UniversalHubConfig.ReloadMenu()
+assert(type(restaged) == "table" and type(restaged.mountUniversalHubMenu) == "function")
+assert(environment.UniversalHubConfig.Menu == restaged)
+assert(loadedCount("universal-hub/local/ui/dist/Menu.lua") == 2, "ReloadMenu must loadfile the compiled menu again")
 
 waitedForLoad = false
 pendingBootstrap = nil

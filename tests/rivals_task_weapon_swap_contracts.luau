@@ -1,4 +1,4 @@
-local Swap=require("../games/rivals/TaskWeaponSwap")
+local Swap=require("../games/rivals/tasks/TaskWeaponSwap")
 local released=0 local equipped
 local empty={Info={Class="Primary",ShootDamage=12},Data={Ammo=0}} local rifle={Info={Class="Secondary",ShootDamage=12},Data={Ammo=18}}
 local fighter={EquippedItem=empty,GetEquippedItems=function()return{empty,rifle}end,EquipItem=function(self,item) equipped=item self.EquippedItem=item return true end}
@@ -34,5 +34,5 @@ fighter.Items=nil
 local blindPrimary={Info={Class="Primary",ShootDamage=12,MaxAmmo=20},Data={Ammo=6}}
 local blindSecondary={Info={Class="Secondary",ShootDamage=12,MaxAmmo=13},Data={Ammo=13}}
 fighter.EquippedItem=blindPrimary fighter.Items={blindPrimary,blindSecondary} equipped=nil swap.nextAt=0
-assert(swap:update(true,fighter,nil,nil)==true and equipped==blindSecondary,"a low primary magazine must switch to a full secondary that can defeat a standard full-health opponent even during a brief target gap")
+assert(swap:update(true,fighter,nil,nil)==false and equipped==nil,"unknown target health must not invent a full-health finish check")
 print("rivals-task-weapon-swap-contracts-ok")

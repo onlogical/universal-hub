@@ -20,7 +20,7 @@ if [ ! -f "$roblox_types" ]; then
     exit 1
 fi
 
-mapfile -t luau_sources < <(git ls-files '*.lua' | grep -Ev '^(site|vendor)/')
+mapfile -t luau_sources < <(git ls-files '*.lua' | grep -Ev '^(site|vendor|ui/dist)/')
 
 luau-lsp analyze \
     --platform roblox \
@@ -33,13 +33,17 @@ lune run tests/store_contracts.luau
 lune run tests/remote_loader_contracts.luau
 lune run tests/hub_loader_contracts.luau
 lune run tests/local_loader_contracts.luau
+lune run tests/menu_artifact_contracts.luau
 lune run tests/config_contracts.luau
+lune run tests/changelog_contracts.luau
+lune run tests/whats_new_contracts.luau
+lune run scripts/changelog.luau -- --check
 lune run tests/input_capture_contracts.luau
 lune run tests/menu_toggle_contracts.luau
 lune run tests/registry_contracts.luau
 lune run tests/catalog_contracts.luau
 lune run tests/game_composition_contracts.luau
-lune run tests/source_inventory_contracts.luau
+lune run tests/sources_contracts.luau
 lune run tests/presentation_host_contracts.luau
 for onboarding_contract in tests/game_onboarding/*.luau; do
     lune run "$onboarding_contract"
@@ -61,6 +65,13 @@ lune run tests/rivals_auto_counter_runtime_contracts.luau
 lune run tests/rivals_auto_counter_test_simulator_contracts.luau
 lune run tests/rivals_auto_counter_integration_contracts.luau
 lune run tests/rivals_adapter_contracts.luau
+lune run tests/rivals_camera_aim_contracts.luau
+lune run tests/rivals_silent_aim_contracts.luau
+lune run tests/rivals_teleport_behind_contracts.luau
+lune run tests/rivals_trigger_bot_contracts.luau
+lune run tests/rivals_item_input_contracts.luau
+lune run tests/rivals_noscope_pickup_contracts.luau
+lune run tests/rivals_loadout_picker_contracts.luau
 lune run tests/shot_presentation_binding_contracts.luau
 lune run tests/scoped_accuracy_contracts.luau
 if [ -n "${LIMN_ROOT:-}" ]; then

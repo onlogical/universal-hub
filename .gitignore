@@ -2,4 +2,10 @@
 .omo/
 debug-*.lua
 *-inspection.json
+dumps/
 spin-network-*
+ui/node_modules/
+ui/out/
+ui/include/
+ui/.generated/
+

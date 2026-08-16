@@ -1,0 +1,53 @@
+local fs = require("@lune/fs")
+
+assert(fs.isFile("scripts/build_menu.cjs"), "Menu emit must be produced by scripts/build_menu.cjs")
+assert(fs.isFile("ui/dist/Menu.lua"), "Compiled Prism menu must live at ui/dist/Menu.lua")
+assert(fs.isFile("ui/package.json"), "ui/package.json must exist")
+
+local packageJson = fs.readFile("ui/package.json")
+assert(
+    string.find(packageJson, "scripts/build_menu.cjs", 1, true),
+    "ui build must invoke scripts/build_menu.cjs"
+)
+assert(not string.find(packageJson, "build_native_menu.cjs", 1, true), "native-ui build script name is gone")
+
+local localLoader = fs.readFile("local.lua")
+assert(string.find(localLoader, "ui/dist/Menu.lua", 1, true), "local.lua must load ui/dist/Menu.lua")
+assert(string.find(localLoader, "loadfile", 1, true), "local.lua must prefer Volt loadfile for workspace modules")
+assert(string.find(localLoader, "configuration.ReloadMenu", 1, true), "Local loader must restage the compiled menu without init knowing the artifact path")
+assert(string.find(localLoader, "configuration.MenuStampPath", 1, true), "Local loader must expose a cheap stamp for compiled-menu hot reload")
+assert(not string.find(localLoader, "vendor/UniversalHubMenu.lua", 1, true), "vendor/UniversalHubMenu.lua must not be the menu path")
+assert(not string.find(localLoader, "NativeMenu", 1, true), "configuration.NativeMenu is configuration.Menu")
+
+local hubLoader = fs.readFile("hub.lua")
+assert(string.find(hubLoader, "ui/dist/Menu.lua", 1, true), "hub.lua must fetch ui/dist/Menu.lua")
+assert(not string.find(hubLoader, "ReloadMenu", 1, true), "Packaged hub.lua must not hot-reload the compiled menu")
+assert(not string.find(hubLoader, "vendor/UniversalHubMenu.lua", 1, true), "hub.lua must not fetch vendor/UniversalHubMenu.lua")
+
+local init = fs.readFile("init.lua")
+assert(string.find(init, "configuration.Menu", 1, true), "init.lua must consume configuration.Menu")
+assert(string.find(init, "configuration.ReloadMenu", 1, true), "init.lua must restage the compiled menu through the loader seam")
+assert(string.find(init, "overlayContext.prismMenu = nextMenu", 1, true), "A compiled-menu reload must remount through the existing HubMenu context")
+assert(string.find(init, "configuration.MenuStampPath", 1, true), "Hot reload must watch the loader-provided menu stamp")
+assert(not string.find(init, "ui/dist/Menu.lua", 1, true), "init.lua must not hardcode the compiled menu path")
+assert(not string.find(init, "configuration.NativeMenu", 1, true), "init.lua must not read configuration.NativeMenu")
+assert(string.find(init, "menuEnabled = false", 1, true), "Menu must stay disabled until the hub session exists")
+assert(
+    string.find(init, "overlay.menu.gui.Enabled = true", 1, true),
+    "Menu must enable only after Session.new succeeds"
+)
+assert(
+    string.find(init, "if not current then", 1, true),
+    "Option callbacks must not index a nil session"
+)
+
+local hubMenu = fs.readFile("ui/Menu.lua")
+assert(
+    string.find(hubMenu, "screenGui.Enabled = context.menuEnabled ~= false", 1, true),
+    "HubMenu must honor menuEnabled before parenting the ScreenGui"
+)
+
+assert(not fs.isFile("vendor/UniversalHubMenu.lua"), "vendor/UniversalHubMenu.lua must not remain")
+assert(not fs.isFile("scripts/build_native_menu.cjs"), "the missing native-ui build script must not be referenced as a live path")
+
+print("menu-artifact-contracts-ok")

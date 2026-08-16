@@ -1,8 +1,8 @@
 local fs = require("@lune/fs")
 local Compatibility = require("../../games/Compatibility")
 local Registry = require("../../modules/Registry")
-local SourceInventory = require("../../modules/SourceInventory")
-local PresentationHost = require("../../modules/PresentationHost")
+local Sources = require("../../modules/Sources")
+local PresentationHost = require("../../ui/PresentationHost")
 
 local Catalog = require("../../games/Catalog")
 table.insert(Catalog, "tests/fixtures/simplegame/Definition")
@@ -32,7 +32,7 @@ local catalogDefinitions = {}
 for _, path in ipairs(Catalog) do
     table.insert(catalogDefinitions, Compatibility.Compose(require("../../" .. path)))
 end
-local inventory = SourceInventory.new({
+local inventory = Sources.new({
     catalog = Catalog,
     definitions = catalogDefinitions,
 })
@@ -66,7 +66,7 @@ assert(not mounted, "A simple game may mount without optional panels")
 for _, productionPath in ipairs({
     "hub.lua",
     "init.lua",
-    "modules/PresentationHost.lua",
+    "ui/PresentationHost.lua",
     "games/Catalog.lua",
     "tests/catalog_contracts.luau",
     "tests/presentation_host_contracts.luau",

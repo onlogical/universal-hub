@@ -4,25 +4,32 @@ local function contains(source, needle, message)
     assert(string.find(source, needle, 1, true), message or ("missing: " .. needle))
 end
 
-local catalog = read("modules/presentation/Catalog.lua")
+local catalog = read("ui/presentation/Catalog.lua")
 for _, field in ipairs({
     "worldRenderer", "nameLabel", "boxes", "chams", "names", "health", "weapon",
-    "chamsExcludeAccessories", "chamsPerPart",
+    "chamsExcludeAccessories", "chamsPerPart", "chamsColor", "outlineColor",
 }) do
     contains(catalog, "preview." .. field, "Preview model must publish " .. field)
 end
 contains(catalog, "parent = option.parent", "Catalog must retain suboption ownership")
 
-local contracts = read("native-ui/src/contracts.ts")
+local contracts = read("ui/src/contracts.ts")
 contains(contracts, 'readonly worldRenderer?: "limn" | "native";')
 contains(contracts, "readonly parent?: string;")
-contains(contracts, "readonly chamsExcludeAccessories?: boolean;")
+contains(contracts, "readonly chamsTransparency?: number;")
+contains(contracts, "readonly outlineColor?: Color3;")
 contains(contracts, "readonly chamsPerPart?: boolean;")
 
-local menu = read("native-ui/src/UniversalHubMenu.tsx")
+local menu = read("ui/src/UniversalHubMenu.tsx")
 contains(menu, "previewRef.current = preview", "Projection callback must observe the current preview publisher")
-contains(menu, "restyle the single owned preview rig")
-contains(menu, "UniversalHubPreviewTextureStash")
+contains(menu, "so Chams cannot Z-fight")
+contains(menu, "Hitboxes use SelectionBox strokes")
+contains(menu, "UniversalHubPreviewChams")
+contains(menu, "UniversalHubPreviewHitboxes")
+contains(menu, 'new Instance("SelectionBox")')
+contains(menu, "SurfaceTransparency = 1", "Preview hitboxes must be stroke-only")
+contains(menu, "preview.boxes !== true", "Toggling Hitboxes off must tear down the outline overlay")
+assert(not string.find(menu, "_ChamsOutline", 1, true), "Preview hitboxes must not use a 3D outline shell")
 contains(menu, "if (!enabled)", "Disabled preview must not own a RenderStepped connection")
 contains(menu, "currentPreview?.publish === undefined")
 contains(menu, 'currentPreview?.worldRenderer === "native" && accessoryOwned', "Native projection must preserve accessory ownership")

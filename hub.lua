@@ -9,12 +9,12 @@ type HttpGame = typeof(game) & {
 }
 local httpGame = game :: HttpGame
 
-local nativeMenuSource = httpGame:HttpGet(sourceBaseUrl .. "vendor/UniversalHubMenu.lua", true)
-local nativeMenuChunk, nativeMenuError = loadstring(nativeMenuSource, "vendor/UniversalHubMenu.lua")
-local NativeMenu = assert(nativeMenuChunk, nativeMenuError)()
+local menuSource = httpGame:HttpGet(sourceBaseUrl .. "ui/dist/Menu.lua", true)
+local menuChunk, menuError = loadstring(menuSource, "ui/dist/Menu.lua")
+local Menu = assert(menuChunk, menuError)()
 assert(
-    type(NativeMenu) == "table" and type(NativeMenu.mountUniversalHubMenu) == "function",
-    "Universal Hub requires the native Prism menu"
+    type(Menu) == "table" and type(Menu.mountUniversalHubMenu) == "function",
+    "Universal Hub requires the compiled Prism menu"
 )
 
 local limnSource = httpGame:HttpGet(sourceBaseUrl .. "vendor/Limn.lua", true)
@@ -63,7 +63,7 @@ local function execute(path)
 end
 
 local Registry = execute("modules/Registry.lua")
-local SourceInventory = execute("modules/SourceInventory.lua")
+local Sources = execute("modules/Sources.lua")
 local Compatibility = execute("games/Compatibility.lua")
 local catalog = execute("games/Catalog.lua")
 assert(type(catalog) == "table", "Universal Hub catalog must be a table")
@@ -81,7 +81,7 @@ for _, definitionPath in ipairs(catalog) do
     table.insert(definitions, definition)
 end
 
-local inventory = SourceInventory.new({
+local inventory = Sources.new({
     catalog = catalog,
     definitions = definitions,
 })
@@ -140,7 +140,8 @@ configuration.HydroxideImport = function(path)
 end
 configuration.HydroxideHelpers = Helpers
 configuration.Limn = Limn
-configuration.NativeMenu = NativeMenu
+configuration.Menu = Menu
+configuration.ChangelogSource = httpGame:HttpGet(sourceBaseUrl .. "changelog.json", true)
 
 local initSource = httpGame:HttpGet(sourceBaseUrl .. "init.lua", true)
 local initChunk, initError = loadstring(initSource, "init.lua")

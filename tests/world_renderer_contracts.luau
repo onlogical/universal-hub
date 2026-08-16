@@ -14,26 +14,32 @@ contains(compatibility, "chamsExcludeAccessories = false")
 contains(compatibility, "chamsPerPart = false")
 contains(compatibility, "showTeammates = false", "Teammate ESP must remain opt-in")
 
-local world = read("modules/WorldRenderer.lua")
+local world = read("ui/esp/WorldRenderer.lua")
 contains(world, 'settings.worldRenderer == "native"')
-contains(world, "self.native:render(observations)")
-contains(world, "self.limn:render(remainder or {}", "Native mode must preserve Limn-only observations")
-contains(world, "self.native:destroy()")
-contains(world, "self.limn:destroy()")
+contains(world, "self.highlights:render(observations)")
+contains(world, "self.drawing:render(remainder or {}", "Highlights mode must preserve Drawing-only observations")
+contains(world, "self.highlights:destroy()")
+contains(world, "self.drawing:destroy()")
 
-local overlay = read("modules/Overlay.lua")
+local rivalsAdapter = read("games/rivals/Adapter.lua")
+contains(rivalsAdapter, "or overlayVisualsEnabled", "Highlight ESP must still observe names, health, and weapons")
+contains(rivalsAdapter, "context.render(visualObservations", "Native ESP must keep publishing visual observations")
+assert(not string.find(rivalsAdapter, "renderObservations", 1, true),
+    "Native ESP must not drop visual observations before render")
+
+local overlay = read("ui/esp/DrawingRenderer.lua")
 contains(overlay, "observation.tone", "Classic ESP must consume the generic player-tone seam")
 contains(overlay, "COLORS.team", "Classic ESP must render a distinct generic team tone")
 
 local init = read("init.lua")
-contains(init, 'import("modules/NativeWorldRenderer")')
-contains(init, 'import("modules/WorldRenderer")')
+contains(init, 'import("ui/esp/HighlightRenderer")')
+contains(init, 'import("ui/esp/WorldRenderer")')
 contains(init, "worldOverlay:setPolicy(adapter.worldPolicy", "Adapters must configure the generic policy seam")
-contains(init, "guiParent = uiParent", "Native instances must share the gethui parent")
+contains(init, "guiParent = uiParent", "Highlight instances must share the gethui parent")
 
-local inventory = read("modules/SourceInventory.lua")
-contains(inventory, '"modules/NativeWorldRenderer"')
-contains(inventory, '"modules/WorldRenderer"')
+local inventory = read("modules/Sources.lua")
+contains(inventory, '"ui/esp/HighlightRenderer"')
+contains(inventory, '"ui/esp/WorldRenderer"')
 
 for _, path in ipairs({
     "games/rivals/Definition.lua",
@@ -60,7 +66,7 @@ for _, path in ipairs({
     contains(presentation, '"showTeammates"', path .. " must expose the compact Visuals toggle")
 end
 
-local catalog = read("modules/presentation/Catalog.lua")
+local catalog = read("ui/presentation/Catalog.lua")
 contains(catalog, 'type(option.visibility) == "table"')
 contains(catalog, "option.visibility.whenParent")
 

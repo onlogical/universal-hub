@@ -2,7 +2,7 @@ local roblox = require("@lune/roblox")
 Vector2 = roblox.Vector2
 Vector3 = roblox.Vector3
 CFrame = roblox.CFrame
-local ObservationRuntime = require("../games/rivals/ObservationRuntime")
+local ObservationRuntime = require("../games/rivals/world/ObservationRuntime")
 
 local near = { character = {}, player = { team = "enemy" }, position = Vector3.new(0, 0, -10) }
 near.character.FindFirstChildOfClass = function() return { Health = 80, MaxHealth = 100 } end

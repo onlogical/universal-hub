@@ -23,7 +23,7 @@ function Presentation.mount(host)
                 patch = { { "worldRenderer", "limn" } },
             },
             {
-                label = "Native",
+                label = "Highlights",
                 value = "native",
                 when = { worldRenderer = "native" },
                 patch = { { "worldRenderer", "native" } },

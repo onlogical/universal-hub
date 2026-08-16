@@ -1,4 +1,4 @@
-local CombatState = require("../games/rivals/CombatState")
+local CombatState = require("../games/rivals/libraries/CombatState")
 
 local function replica(data)
     return {

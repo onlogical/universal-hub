@@ -1,7 +1,7 @@
 local roblox = require("@lune/roblox")
 Vector3 = roblox.Vector3
 Color3 = roblox.Color3
-local Effects = require("../games/rivals/Effects")
+local Effects = require("../games/rivals/world/Effects")
 
 local traversals = 0
 local root = {

@@ -11,6 +11,13 @@
 - **Visual suppression** — owns reversible mutation of exact client-visible flash and smoke effect instances.
 - **Trajectory renderer** — owns Limn trajectory primitives and their cleanup.
 
+## Hub layout
+
+- `ui/` owns Prism/React chrome: menu host, presentation catalog, and the What's New modal.
+- `ui/esp/` owns the two ESP backends without merging them: Drawing/Limn (`DrawingRenderer`) and Highlights + BillboardGuis (`HighlightRenderer`), plus shared `VisualPolicy`, `ColorPolicy`, and the `WorldRenderer` switch.
+- `modules/` keeps data and runtime libraries (Store, Config, Changelog, Sources, HubView). Games keep `Definition.sources`; the hub packaged list is `modules/Sources.lua`.
+- Loader staging uses `configuration.Menu` from `ui/dist/Menu.lua` (rebuild with `npm run build` in `ui/`, which requires `PRISM_ROOT`). `vendor/Limn.lua` remains the packaged Limn pin; local loads use `limn/dist/Limn.lua`.
+
 ## Architectural invariants
 
 - Prism/React owns the menu; Limn owns world rendering.

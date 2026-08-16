@@ -2,7 +2,7 @@ local roblox = require("@lune/roblox")
 Enum = roblox.Enum
 Color3 = roblox.Color3
 
-local Catalog = require("../modules/presentation/Catalog")
+local Catalog = require("../ui/presentation/Catalog")
 local Presentation = require("../games/rivals/Presentation")
 
 local settings = {

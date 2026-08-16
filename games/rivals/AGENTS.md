@@ -3,7 +3,8 @@
 This directory owns Universal Hub's RIVALS integration. Read this file before
 opening the implementation. Start with the module named for the behavior you
 need; read `Adapter.lua` only when changing orchestration or a cross-module
-flow.
+flow. New features take injected libraries from Adapter. Do not copy
+`importDependency` into a feature.
 
 ## Runtime shape
 
@@ -36,49 +37,76 @@ The per-frame flow is:
 
 ## Module map
 
+Root is the integration surface only: `Adapter.lua`, `Definition.lua`,
+`Presentation.lua`, `Session.lua`. Everything else lives in `features/`,
+`libraries/`, `tasks/`, or `world/`. New features take injected libraries
+from Adapter. Do not copy `importDependency` into a feature.
+
 - `Adapter.lua`
   - RIVALS manifest and capabilities.
   - Live controller discovery and dependency wiring.
   - Observation refresh, target retention, per-frame orchestration, input
     dispatch, and weapon-specific coordination.
-  - This is the integration layer, not the home for reusable ballistics,
-    targeting, effects, movement, or weapon policy.
-- `CombatState.lua`
-  - The single reusable combat-eligibility rule.
+- `Session.lua`
+  - One per-frame snapshot. Features read it; each field has one writer.
+  - `aligned` is the aim-plan target. `presented` is Silent Aim's promoted target.
+- `features/CameraAim.lua`
+  - Writes the aim-plan value that Adapter stores on `session.aligned`.
+  - User-facing Camera Aim (`settings.silentAim`). Does not write `presented`.
+  - Locks the nearest target even when they are off-screen. Do not
+    require FOV or on-screen visibility for Camera Aim.
+- `features/SilentAim.lua`
+  - Reads `session.aligned` and writes `session.presented`.
+  - Owns `features/ShotPresentation.lua`.
+- `features/TeleportBehind.lua`
+  - User-facing Warp (`settings.teleportBehind`) on the Rage page.
+    Irregular hops around the selected target at hitscan height
+    with line of sight. If the sky slot is blocked, fall in to a
+    close pocket. A sniper or knife holds a one-shot angle
+    instead of hopping; other guns keep the barrage. Do not
+    walk a sequential ring. Hold the first grounded focus Y so
+    two teleporters do not stack into the lid. Pull a slot in if
+    it clips a tagged OOB part. Do not engage during a ForceField
+    or entity invincibility.
+  - Rewrites the hold after physics (`Heartbeat`). Do not Anchor the
+    root — that stops CFrame from replicating. Zero velocity instead.
+  - Once engaged, keep holding if combat/camera flickers or the menu
+    opens. Release only on setting off or death.
+- `features/TriggerBot.lua`
+  - Reads `presented` when Silent Aim is on, otherwise `aligned`. Does not reselect.
+  - Fires on the equipped weapon's native cooldown. Do not add a
+    0.1s floor. Keep a hold-to-fire press through one-frame path
+    flicker. If ammo stops moving for one native cooldown, press
+    again — hops can drop the hold. If Camera Aim has no plan,
+    select the nearest target — do not require an 8px reticle.
+- `features/AutoCounter.lua`
+  - Detect-and-shoot only. Must not write fighter `CFrame`.
+- `features/NoScope.lua`
+  - User-facing Always Scoped. Stored setting stays `alwaysScoped`.
+- `features/Pickup.lua`
+  - Gates Gun Game pickup behind `settings.autoPickup`.
+- `features/ScopedAccuracy.lua`
+  - No Scope guts.
+- `tasks/TaskLoadout.lua`
+  - Native `PickWeapon` + `Finish` poll while task farming is armed.
+    Private/paused matches leave the picker to the player.
+- `libraries/CombatState.lua`
   - Practice range is eligible only while its loadout picker is closed.
   - Duels are eligible only at `Status == "RoundStarted"`.
-- `Targeting.lua`
-  - Nearest/retained observation selection.
-  - Humanized rotation, hit/miss rates, and visible critical head points.
-- `ProjectileAim.lua`
-  - Direct projectile lead/gravity, launch offsets, splash impacts, ricochet,
-    and Slingshot trajectory helpers.
-  - Treat each projectile family as a policy seam; do not assume Bow,
-    Slingshot, splash weapons, and raycast guns share one launch model.
-- `ShotPresentation.lua`
-  - Silent Aim's native `GetCameraData` presentation handshake.
-  - Separates logical shot rotation from the rendered camera and restores the
-    visible view around the native camera render step.
-- `ScopedAccuracy.lua`
-  - Opt-in native `IsFullyAiming` policy for equipped Guns with a positive
-    `AimScopePercent`.
-  - Does not mutate `IsAiming`, viewmodel progress, FOV, or persistent item
-    state, and restores its hook on weapon changes and reload.
-- `WeaponPolicy.lua`
-  - Pure or mostly pure item rules: labels, damage/falloff, ADS readiness,
-    hold-to-fire, Bow charge, Revolver action choice, Knife backstab, and
-    Gunblade combo state.
-- `Effects.lua`
-  - Throwable/utility discovery, classification, visibility suppression, and
-    trajectory drawing on a game-owned Limn canvas.
-  - Subspace Tripmine uses projected oriented bounds for its wireframe cube.
-- `Movement.lua`
-  - Bunny hop and slide behavior behind active/combat/input-capture gates.
-- `TaskPolicy.lua`
-  - Pure normalization, classification, and deterministic selection for native task records.
-- `TaskFarmRuntime.lua`
-  - Signal-driven inherent task detection, bounded matchmaking, pause/cleanup, and active PvP state.
-  - Owns no frame loop; Adapter reuses its existing Camera Aim and Trigger Bot paths only during `RoundStarted`.
+- `libraries/Targeting.lua`
+  - Nearest/retained observation selection, humanized rotation, head/miss policy.
+- `libraries/ProjectileAim.lua`
+  - Direct projectile lead/gravity, splash, ricochet, and Slingshot helpers.
+- `libraries/WeaponPolicy.lua` / `libraries/ItemPolicy.lua`
+  - Item labels, damage/falloff, ADS, hold-to-fire, Bow, Revolver, Knife, Gunblade.
+- `libraries/Movement.lua`
+  - Bunny hop and slide behind active/combat/input-capture gates.
+- `tasks/TaskPolicy.lua`
+  - Pure normalization and selection for native task records.
+- `tasks/TaskFarmRuntime.lua`
+  - Signal-driven inherent task detection. Owns no frame loop.
+- `world/Effects.lua`
+  - Utility discovery, visibility suppression, and trajectory drawing.
 
 ## Names that are easy to misread
 
@@ -97,6 +125,8 @@ infer behavior from the setting name alone.
   use the live Pick Weapons page through `CombatState`.
 - Camera Aim, Silent Aim, and Trigger Bot must consume the same selected
   target. Retain a valid target rather than switching every frame.
+- Trigger Bot fires on a solved bullet path (hitscan LOS, projectile lead,
+  ricochet, slingshot, or splash), not on-screen visibility alone.
 - Silent Aim actions must wait for `ShotPresentation:getPresentedTarget()`.
   Never reselect inside a Silent Aim trigger branch; that bypasses the
   presentation-before-action guarantee.
@@ -138,10 +168,13 @@ For authorized RIVALS testing:
 1. Confirm the connected Roblox client before trusting runtime observations.
 2. Prefer read-only status, evaluation, script inventory, and decompilation for
    discovery.
-3. Load the local tree with:
+3. Stage this repo into Volt's workspace (`%LOCALAPPDATA%\Volt\workspace`) at
+   `universal-hub/local`, plus Hydroxide helpers at `hydroxide/local` and Limn
+   at `limn/dist/Limn.lua`. Confirm, then load with Volt `loadfile`:
 
    ```lua
-   loadstring(readfile("universal-hub/local/local.lua"), "universal-hub/local.lua")()
+   assert(isfile("universal-hub/local/local.lua"), "stage the hub tree first")
+   loadfile("universal-hub/local/local.lua")()
    ```
 
 4. Validate state-changing behavior through normal game/client paths against

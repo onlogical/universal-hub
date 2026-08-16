@@ -1,7 +1,7 @@
 local roblox = require("@lune/roblox")
 Enum = roblox.Enum
 Vector3 = roblox.Vector3
-local Movement = require("../games/rivals/Movement")
+local Movement = require("../games/rivals/libraries/Movement")
 
 local moves = {}
 local humanoid = { Move=function(_, direction, relative) table.insert(moves,{direction=direction,relative=relative}) end }
@@ -174,5 +174,22 @@ wallMovement:updateWallPhase({wallPhase=true}) wallMovement:updateWallPhase({wal
 assert(wallCalls==1,"Wall Noclip must use a bounded cooldown instead of phasing every frame")
 wallNow=1 wallTaskActive=true wallMovement:updateWallPhase({wallPhase=true})
 assert(wallCalls==2,"physical movement input must allow Wall Noclip even while farming is active")
+
+local movementSource = require("@lune/fs").readFile("games/rivals/libraries/Movement.lua")
+local wallNoclipStart = assert(movementSource:find("function Movement:updateWallNoclip", 1, true))
+local wallNoclipEnd = assert(movementSource:find("function Movement:updateWallPhase", wallNoclipStart, true))
+local wallNoclipUpdate = movementSource:sub(wallNoclipStart, wallNoclipEnd - 1)
+assert(
+    wallNoclipUpdate:find("settings.wallNoclip ~= true then", 1, true)
+        and not wallNoclipUpdate:find("isTaskInputCaptured", 1, true)
+        and not wallNoclipUpdate:find("isInputCaptured", 1, true),
+    "Wall Noclip must keep collision off while the menu has captured input"
+)
+local adapterSource = require("@lune/fs").readFile("games/rivals/Adapter.lua")
+assert(
+    adapterSource:find("isTaskInputCaptured = function()", 1, true)
+        and adapterSource:find("menuVisible ~= true", 1, true),
+    "Menu visibility must not count as task input capture for Wall Noclip"
+)
 
 print("rivals-task-movement-contracts-ok")

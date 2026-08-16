@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"rootDirs": [
+			"src",
+			"../../../../../../../../../git/prism/src"
+		],
+		"paths": {
+			"@prism": [
+				"../../../../../../../../../../git/prism/src/lib/index"
+			],
+			"@prism/*": [
+				"../../../../../../../../../../git/prism/src/lib/*"
+			]
+		}
+	}
+}
