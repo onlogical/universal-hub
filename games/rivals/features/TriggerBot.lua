@@ -30,6 +30,19 @@ function TriggerBot.fireDelay(item, fallback)
     return TriggerBot.INTERVAL
 end
 
+function TriggerBot.hubReady(state, now)
+    local nextAt = state and state.nextAt
+    if type(nextAt) ~= "number" or type(now) ~= "number" or now >= nextAt then
+        return true
+    end
+    -- A previous click stored tick() in nextAt. os.clock() can never catch that.
+    if nextAt - now > 60 then
+        state.nextAt = 0
+        return true
+    end
+    return false
+end
+
 function TriggerBot.holdDropped(item, now, fallback)
     if type(now) ~= "number" or not TriggerBot.weaponReady(item, now) then
         return false
@@ -330,7 +343,7 @@ function TriggerBot.update(session, ctx)
             state.held = false
             state.heldItem = nil
         end
-        if ctx.clock() < state.nextAt then
+        if not TriggerBot.hubReady(state, ctx.clock()) then
             return
         end
         state.nextAt = ctx.clock() + (item.Info.HeavyAttackCooldown or interval)
@@ -381,7 +394,7 @@ function TriggerBot.update(session, ctx)
             state.held = false
             state.heldItem = nil
         end
-        if not action or ctx.clock() < state.nextAt then
+        if not action or not TriggerBot.hubReady(state, ctx.clock()) then
             return
         end
         state.nextAt = ctx.clock() + action.cooldown
@@ -396,7 +409,7 @@ function TriggerBot.update(session, ctx)
     if WeaponPolicy.isChargedBow(item) then
         ctx.releaseFire()
         if not state.held then
-            if ctx.clock() < state.nextAt then
+            if not TriggerBot.hubReady(state, ctx.clock()) then
                 return
             end
             if WeaponPolicy.bowQuickShotLethal(item, target) then
@@ -460,7 +473,7 @@ function TriggerBot.update(session, ctx)
             end
             return
         end
-        if ctx.clock() < state.nextAt then
+        if not TriggerBot.hubReady(state, ctx.clock()) then
             return
         end
         state.fireHeld = true
@@ -475,7 +488,7 @@ function TriggerBot.update(session, ctx)
 
     ctx.releaseFire()
     local fireClock = type(ctx.itemClock) == "function" and ctx.itemClock() or ctx.clock()
-    if not TriggerBot.weaponReady(item, fireClock) or ctx.clock() < state.nextAt then
+    if not TriggerBot.weaponReady(item, fireClock) or not TriggerBot.hubReady(state, ctx.clock()) then
         return
     end
     if not WeaponPolicy.adsSettled(ctx.cameraController, item) then
@@ -483,9 +496,9 @@ function TriggerBot.update(session, ctx)
     end
 
     ctx.click()
-    local nativeReadyAt = item and item._shoot_cooldown
-    state.nextAt = type(nativeReadyAt) == "number" and nativeReadyAt
-        or ctx.clock() + (sprayCounter and TriggerBot.fireDelay(item, interval) or 0)
+    -- nextAt is os.clock(); item._shoot_cooldown is tick(). Never copy that
+    -- stamp across clocks or a pistol waits ~1.7e9 seconds for the next shot.
+    state.nextAt = sprayCounter and ctx.clock() + TriggerBot.fireDelay(item, interval) or 0
     if taskDebug then
         taskDebug.triggerStage = "clicked-fire"
     end

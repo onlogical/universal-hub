@@ -80,8 +80,10 @@ from Adapter. Do not copy `importDependency` into a feature.
     0.1s floor. Keep a hold-to-fire press through one-frame path
     flicker. If the native shoot cooldown stays expired for a full
     fire interval, press again — hops can drop the hold. Do not
-    restart because ammo replicas are stale. If Camera Aim has no
-    plan, select the nearest target — do not require an 8px reticle.
+    restart because ammo replicas are stale. Compare
+    `item._shoot_cooldown` with `tick`, never `os.clock`. If Camera
+    Aim has no plan, select the nearest target — do not require an
+    8px reticle.
 - `features/AutoCounter.lua`
   - Detect-and-shoot only. Must not write fighter `CFrame`.
 - `features/NoScope.lua`

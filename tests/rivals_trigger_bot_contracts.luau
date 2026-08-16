@@ -13,6 +13,11 @@ assert(TriggerBot.weaponReady({ _shoot_cooldown = 2 }, 1) == false)
 assert(TriggerBot.weaponReady({ _shoot_cooldown = 1 }, 1) == true)
 assert(TriggerBot.fireDelay({ Info = { ShootCooldown = 0.05 } }, 0.1) == 0.05)
 assert(TriggerBot.fireDelay({ Info = { InternalUseCooldown = 0.25 } }, 0) == 0.25)
+local stuck = { nextAt = 1786837540 }
+assert(TriggerBot.hubReady(stuck, 20) == true and stuck.nextAt == 0,
+    "A tick-valued nextAt must not block hub-clock weapons")
+assert(TriggerBot.hubReady({ nextAt = 21 }, 20) == false,
+    "A real hub delay must still wait")
 local assault = { Info = { ShootCooldown = 0.1 }, _shoot_cooldown = 1 }
 assert(TriggerBot.holdDropped(assault, 1.05, 0) == false,
     "A working AR hold must not restart while the native cooldown is still producing shots")
@@ -223,6 +228,9 @@ local source = fs.readFile("games/rivals/features/TriggerBot.lua")
 assert(source:find("TriggerBot.pathReady", 1, true))
 assert(source:find("TriggerBot.weaponReady", 1, true))
 assert(source:find("TriggerBot.holdDropped", 1, true))
+assert(source:find("TriggerBot.hubReady", 1, true))
+assert(not source:find("state.nextAt = type(nativeReadyAt)", 1, true),
+    "Click fire must not copy tick() _shoot_cooldown onto the os.clock nextAt gate")
 assert(source:find("ctx.selectTarget(nil, true, true)", 1, true))
 assert(not source:find("not target.visible", 1, true))
 assert(not source:find("0.35", 1, true), "Hold-to-fire must not restart after an ammo-replica stall")
@@ -245,6 +253,40 @@ TriggerBot.update(session, ctx)
 assert(clicked == 1, "A ready semi must fire on the first ready frame")
 TriggerBot.update(session, ctx)
 assert(clicked == 2, "A ready semi must not wait on a 0.1s hub interval")
+
+local pistol = { Info = { ShootCooldown = 0.28 }, _shoot_cooldown = 1786837540 }
+local pistolNow = 20
+ctx.weaponPolicy.holdToFire = function()
+    return false
+end
+ctx.getFighter = function()
+    return { EquippedItem = pistol }
+end
+ctx.clock = function()
+    return pistolNow
+end
+ctx.itemClock = function()
+    return 1786837539
+end
+clicked = 0
+state.nextAt = 0
+TriggerBot.update(session, ctx)
+assert(clicked == 0, "A cooling semi must wait on the item tick clock")
+ctx.itemClock = function()
+    return 1786837540
+end
+TriggerBot.update(session, ctx)
+assert(clicked == 1, "A ready semi must fire once the item tick clock is ready")
+assert(state.nextAt == 0 or state.nextAt <= pistolNow,
+    "A click must not store tick() _shoot_cooldown on the os.clock nextAt gate")
+pistol._shoot_cooldown = 1786837540.28
+TriggerBot.update(session, ctx)
+assert(clicked == 1, "A just-fired semi must wait for the native tick cooldown")
+ctx.itemClock = function()
+    return 1786837540.28
+end
+TriggerBot.update(session, ctx)
+assert(clicked == 2, "The next semi shot must not be blocked by a tick-valued nextAt")
 
 local now = 10
 local presses = 0
