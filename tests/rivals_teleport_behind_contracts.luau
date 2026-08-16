@@ -51,6 +51,7 @@ assert(string.find(source, "TeleportBehind.knifeDestination", 1, true))
 assert(string.find(source, "CLOSE_DISTANCE", 1, true))
 assert(string.find(adapter, "TeleportBehind.hold(session", 1, true))
 assert(not string.find(adapter, "libs.freeze", 1, true), "Firing must not park the barrage")
+assert(string.find(adapter, "TeleportBehind.aimPoint(movedRoot.Position, lookTarget)", 1, true))
 assert(string.find(adapter, "setAimRotation(", 1, true))
 assert(string.find(adapter, "RunService.Heartbeat:Connect", 1, true))
 assert(string.find(adapter, "RunService.Stepped:Connect", 1, true))
@@ -121,7 +122,19 @@ local clipped = TeleportBehind.destination(target, 0, 56, 64, wallBlocks, 0, 2)
 assert(clipped)
 assert(TeleportBehind.insidePart(wall, clipped.Position) == false)
 
+assert(TeleportBehind.AIM_TORSO == 1)
+assert(TeleportBehind.HIGH_AIM == 12)
 local lookAt = TeleportBehind.lookPoint(target)
+local highFrom = targetRoot.CFrame.Position + Vector3.new(0, 64, 56)
+local highAim = TeleportBehind.aimPoint(highFrom, target)
+assert(highAim)
+assert(highAim.Y == targetRoot.CFrame.Position.Y + TeleportBehind.AIM_TORSO)
+assert(
+    highAim.Y < lookAt.Y or lookAt.Y == targetRoot.CFrame.Position.Y + 2,
+    "A sky slot must aim at the torso, not the head"
+)
+local levelAim = TeleportBehind.aimPoint(targetRoot.CFrame.Position + Vector3.new(-8, 0, 0), target)
+assert(levelAim == lookAt, "A level slot may keep the normal look point")
 assert(TeleportBehind.canSee(clipped.Position, lookAt, function()
     return nil
 end) == true)

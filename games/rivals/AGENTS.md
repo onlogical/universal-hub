@@ -61,9 +61,11 @@ from Adapter. Do not copy `importDependency` into a feature.
 - `features/TeleportBehind.lua`
   - User-facing Warp (`settings.teleportBehind`) on the Rage page.
     Irregular hops around the selected target at hitscan height
-    with line of sight. If the sky slot is blocked, fall in to a
-    close pocket. A sniper or knife holds a one-shot angle
-    instead of hopping; other guns keep the barrage. Do not
+    with line of sight. From a sky slot, aim at the torso so the
+    downward shot hits the body, not over the head. If the sky
+    slot is blocked, fall in to a close pocket. A sniper or knife
+    holds a one-shot angle instead of hopping; other guns keep
+    the barrage. Do not
     walk a sequential ring. Hold the first grounded focus Y so
     two teleporters do not stack into the lid. Pull a slot in if
     it clips a tagged OOB part. Do not engage during a ForceField

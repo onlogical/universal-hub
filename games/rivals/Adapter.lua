@@ -1629,8 +1629,8 @@ function Rivals.new(context)
             TeleportBehind.update(session, libs)
             startTeleportPhysics()
             local lookTarget = session.presented or alignedTarget
-            local lookPoint = lookTarget and (lookTarget.position or targetRootPosition(lookTarget))
             local movedRoot = localFighterRoot()
+            local lookPoint = movedRoot and TeleportBehind.aimPoint(movedRoot.Position, lookTarget)
             if movedRoot and typeof(lookPoint) == "Vector3" then
                 setAimRotation(
                     Targeting.rotationToward(movedRoot.Position, lookPoint),
@@ -1639,6 +1639,7 @@ function Rivals.new(context)
                 )
                 session.cameraOrigin = movedRoot.Position
                 if alignedTarget then
+                    alignedTarget.position = lookPoint
                     alignedTarget.aimSettled = true
                     session.aligned = alignedTarget
                 end

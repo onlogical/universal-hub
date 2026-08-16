@@ -9,6 +9,8 @@ TeleportBehind.CLOSE_DISTANCE = 10
 TeleportBehind.CLOSE_HEIGHT = 4
 TeleportBehind.KNIFE_DISTANCE = 4
 TeleportBehind.KNIFE_HEIGHT = 1
+TeleportBehind.AIM_TORSO = 1
+TeleportBehind.HIGH_AIM = 12
 TeleportBehind.CLEARANCE = 80
 TeleportBehind.MARGIN = 40
 TeleportBehind.BODY = 4
@@ -242,6 +244,23 @@ function TeleportBehind.lookPoint(target)
         return nil
     end
     return frame.Position + Vector3.new(0, 2, 0)
+end
+
+function TeleportBehind.aimPoint(from, target)
+    local lookAt = TeleportBehind.lookPoint(target)
+    local frame = rootFrame(target)
+    local root = frame and frame.Position
+    if typeof(from) ~= "Vector3" then
+        return lookAt
+    end
+    local focus = typeof(root) == "Vector3" and root or lookAt
+    if typeof(focus) ~= "Vector3" then
+        return lookAt
+    end
+    if from.Y - focus.Y < TeleportBehind.HIGH_AIM then
+        return lookAt
+    end
+    return Vector3.new(focus.X, focus.Y + TeleportBehind.AIM_TORSO, focus.Z)
 end
 
 function TeleportBehind.canSee(from, lookAt, raycast)
