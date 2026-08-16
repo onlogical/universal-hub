@@ -453,6 +453,27 @@ function Rivals.new(context)
         local entity = fighter and fighter.Entity
         return entity and entity.Character or LocalPlayer.Character
     end
+    local function ricochetRaycast()
+        local raycastParams = RaycastParams.new()
+        raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+        raycastParams.IgnoreWater = true
+
+        local excluded = {}
+        if LocalPlayer.Character then
+            table.insert(excluded, LocalPlayer.Character)
+        end
+        for _, observation in ipairs(observations) do
+            if observation.character then
+                table.insert(excluded, observation.character)
+            end
+        end
+        raycastParams.FilterDescendantsInstances = excluded
+
+        return function(origin, displacement)
+            return Workspace:Raycast(origin, displacement, raycastParams)
+        end
+    end
+    local environmentRaycast = context.environmentRaycast or ricochetRaycast
     local function teleportLibs()
         return {
             clock = clock,
@@ -466,6 +487,9 @@ function Rivals.new(context)
                     or Rivals.entityIsInvincible(entity)
             end,
             raycast = function(origin, displacement)
+                if type(environmentRaycast) ~= "function" then
+                    return nil
+                end
                 local cast = environmentRaycast()
                 if type(cast) ~= "function" then
                     return nil
@@ -1126,27 +1150,6 @@ function Rivals.new(context)
         return planned
     end
 
-    local function ricochetRaycast()
-        local raycastParams = RaycastParams.new()
-        raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-        raycastParams.IgnoreWater = true
-
-        local excluded = {}
-        if LocalPlayer.Character then
-            table.insert(excluded, LocalPlayer.Character)
-        end
-        for _, observation in ipairs(observations) do
-            if observation.character then
-                table.insert(excluded, observation.character)
-            end
-        end
-        raycastParams.FilterDescendantsInstances = excluded
-
-        return function(origin, displacement)
-            return Workspace:Raycast(origin, displacement, raycastParams)
-        end
-    end
-    local environmentRaycast = context.environmentRaycast or ricochetRaycast
     local solveRicochet = context.solveRicochet or ProjectileAim.solveRicochet
     local solveSplashAim = context.solveSplashAim or ProjectileAim.solveSplashAim
     local solveBouncingProjectile = context.solveBouncingProjectile or ProjectileAim.solveBouncingProjectile

@@ -39,6 +39,12 @@ assert(
     "Warp must not start physics on the first frame before settings have subscribed"
 )
 assert(string.find(adapter, "raycast = function(origin, displacement)", 1, true))
+local environmentAssign = string.find(adapter, "local environmentRaycast = context.environmentRaycast", 1, true)
+local teleportRaycast = string.find(adapter, "local cast = environmentRaycast()", 1, true)
+assert(
+    environmentAssign and teleportRaycast and environmentAssign < teleportRaycast,
+    "Warp raycast must close over the assigned environmentRaycast factory"
+)
 assert(string.find(adapter, "isImmune = function()", 1, true))
 assert(string.find(adapter, "weaponMode = function()", 1, true))
 assert(string.find(source, "TeleportBehind.knifeDestination", 1, true))
