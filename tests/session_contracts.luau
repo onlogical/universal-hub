@@ -52,6 +52,7 @@ local store = Store.new({
     menuVisible = true,
     settings = {
         aimSmoothness = 0,
+        cameraFov = 100,
         enabled = false,
         fov = 100,
         headshotRate = 0,
@@ -98,7 +99,7 @@ session:setSetting("worldRenderer", "native")
 session:toggleMenu()
 assert(store:Get().settings.enabled == true)
 assert(store:Get().settings.worldRenderer == "native", "Typed settings must preserve non-boolean values")
-assert(store:Get().settings.fov == 200, "FOV must clamp to the configured maximum")
+assert(store:Get().settings.cameraFov == 200, "Camera FOV must clamp to the configured maximum")
 assert(
     store:Get().settings.aimSmoothness == 42
         and store:Get().settings.headshotRate == 75

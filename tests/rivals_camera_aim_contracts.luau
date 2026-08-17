@@ -10,10 +10,9 @@ local Targeting = require("../games/rivals/libraries/Targeting")
 local WeaponPolicy = require("../games/rivals/libraries/WeaponPolicy")
 
 local cameraAimSource = require("@lune/fs").readFile("games/rivals/features/CameraAim.lua")
-assert(not cameraAimSource:find("fov", 1, true), "Camera Aim does not use FOV")
 assert(
-    cameraAimSource:find("cameraAim or taskCombatActive == true", 1, true),
-    "Camera Aim must ignore aim FOV when selecting a target"
+    cameraAimSource:find("ctx.selectTarget(nil, true, false, true)", 1, true),
+    "Camera Aim must prefer a visible in-FOV target before a blocked fallback"
 )
 
 assert(table.find(Definition.sources, "games/rivals/features/CameraAim"))
@@ -64,6 +63,7 @@ local target = {
 }
 local item = { Info = { ShootDamage = 24 } }
 local rotations = {}
+local instantRotations = {}
 local retentionClears = 0
 local remembered = {}
 
@@ -104,8 +104,9 @@ local function context(overrides)
         solveRicochet = function()
             return nil
         end,
-        setAimRotation = function(rotation)
+        setAimRotation = function(rotation, instant)
             table.insert(rotations, rotation)
+            table.insert(instantRotations, instant)
             return true
         end,
         selectTarget = function()
@@ -181,14 +182,14 @@ local offScreen = {
     health = 80,
     distance = 22,
 }
-local offScreenSelects = 0
+local offScreenSelects = {}
 local offScreenAligned = cameraAim:align(context({
-    selectTarget = function(_radius, includeBlocked, ignoreAimFov)
-        offScreenSelects += 1
-        assert(includeBlocked == true and ignoreAimFov == true)
-        return nil
-    end,
-    taskNavigationObservation = function()
+    selectTarget = function(_radius, includeBlocked, ignoreAimFov, preferVisible)
+        table.insert(offScreenSelects, {
+            includeBlocked = includeBlocked,
+            ignoreAimFov = ignoreAimFov,
+            preferVisible = preferVisible,
+        })
         return offScreen
     end,
 }))
@@ -196,9 +197,13 @@ assert(
     offScreenAligned
         and offScreenAligned.position == offScreen.position
         and offScreenAligned.aimSettled == true
-        and offScreenSelects == 1
+        and #offScreenSelects == 1
+        and offScreenSelects[1].includeBlocked == true
+        and offScreenSelects[1].ignoreAimFov == false
+        and offScreenSelects[1].preferVisible == true
+        and instantRotations[#instantRotations] == false
         and rotations[#rotations] == Targeting.rotationToward(origin, offScreen.position),
-    "Camera Aim must snap to a target that is not on screen"
+    "Camera Aim must use its FOV and normal smoothing for a blocked fallback"
 )
 
 print("rivals-camera-aim-contracts-ok")

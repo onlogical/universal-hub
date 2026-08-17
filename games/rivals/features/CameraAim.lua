@@ -94,12 +94,16 @@ function CameraAim:align(ctx)
     else
         ctx.rememberWeapon(item)
         local cameraAim = shotOnly ~= true
-        target = ctx.selectTarget(
-            nil,
-            cameraAim or energyRifle or slingshot or splashProjectile,
-            cameraAim or taskCombatActive == true
-        )
-        if not target and (cameraAim or taskCombatActive == true) then
+        if cameraAim and taskCombatActive ~= true then
+            target = ctx.selectTarget(nil, true, false, true)
+        else
+            target = ctx.selectTarget(
+                nil,
+                energyRifle or slingshot or splashProjectile or taskCombatActive == true,
+                taskCombatActive == true
+            )
+        end
+        if not target and taskCombatActive == true then
             target = ctx.taskNavigationObservation()
         end
     end
@@ -135,7 +139,7 @@ function CameraAim:align(ctx)
         local aligned = table.clone(target)
         aligned.aimSettled = settleAim(
             Targeting.rotationToward(origin, target.position),
-            true,
+            taskCombatActive == true,
             target.character
         )
         aligned.navigationOnly = taskCombatActive == true

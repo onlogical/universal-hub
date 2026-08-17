@@ -402,6 +402,17 @@ function Catalog:model(state)
     end
 
     if self.hasAim then
+        local cameraMode = settings.shotAim ~= true
+        local fov = (cameraMode and settings.cameraFov or settings.shotFov)
+            or settings.fov
+        local fullScreenAim = cameraMode
+                and (settings.cameraFullScreenAim == nil
+                    and settings.fullScreenAim
+                    or settings.cameraFullScreenAim)
+            or not cameraMode
+                and (settings.shotFullScreenAim == nil
+                    and settings.fullScreenAim
+                    or settings.shotFullScreenAim)
         append(sectionsByPage.Combat, {
             id = "targeting",
             label = "Targeting",
@@ -411,19 +422,19 @@ function Catalog:model(state)
                     id = "fov",
                     kind = "slider",
                     label = "FOV",
-                    value = settings.fov,
+                    value = fov,
                     min = settings.minimumFov,
                     max = settings.maximumFov,
                     step = 1,
                     unit = "px",
                     emphasis = "row",
-                    disabled = settings.fullScreenAim == true,
+                    disabled = fullScreenAim == true,
                 },
                 {
                     id = "fullScreenAim",
                     kind = "segmented",
                     label = "Target Mode",
-                    value = settings.fullScreenAim and "fullscreen" or "radius",
+                    value = fullScreenAim and "fullscreen" or "radius",
                     options = {
                         { value = "radius", label = "Radius" },
                         { value = "fullscreen", label = "Fullscreen" },
@@ -792,6 +803,24 @@ function Catalog:model(state)
                                 self.context.setOption(related.id, retained, shouldPersist)
                             end
                         end
+                        if id == "aimMode" then
+                            local settings = self.context.store:Get().settings
+                            local shotOnly = settings.shotAim == true
+                            self.context.setFov(
+                                (shotOnly and settings.shotFov or settings.cameraFov)
+                                    or settings.fov,
+                                shouldPersist
+                            )
+                            self.context.setOption(
+                                "fullScreenAim",
+                                (shotOnly
+                                        and settings.shotFullScreenAim
+                                    or not shotOnly
+                                        and settings.cameraFullScreenAim)
+                                    == true,
+                                shouldPersist
+                            )
+                        end
                         return
                     end
                 end
@@ -827,7 +856,15 @@ function Catalog:model(state)
                     self.context.setSetting(ColorPolicy.settingName(relationship, "fillAlpha"), -1, persist == true)
                 end
             elseif id == "fullScreenAim" then
-                self.context.setOption(id, value == "fullscreen", not self.ephemeralSettings[id])
+                local settings = self.context.store:Get().settings
+                local name = settings.shotAim == true
+                        and "shotFullScreenAim"
+                    or "cameraFullScreenAim"
+                if settings[name] == nil then name = "fullScreenAim" end
+                self.context.setOption(name, value == "fullscreen", true)
+                if name ~= "fullScreenAim" then
+                    self.context.setOption("fullScreenAim", value == "fullscreen", true)
+                end
             elseif id == "cosmeticWear" and self.context.setWear then
                 local cosmetics = self.context.store:Get().cosmetics or {}
                 local minimum = cosmetics.minimumWear or 0

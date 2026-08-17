@@ -17,10 +17,14 @@ local settings = {
     skipDeflect = false,
     autoDeflect = false,
     triggerDelay = 0,
+    cameraFov = 58,
+    cameraFullScreenAim = false,
     fov = 58,
     minimumFov = 40,
     maximumFov = 500,
     fullScreenAim = false,
+    shotFov = 96,
+    shotFullScreenAim = true,
     teleportBehind = false,
     boxes = true,
     chams = true,
@@ -76,7 +80,9 @@ local catalog = Catalog.new({
         table.insert(writes, { id, value, persist })
     end,
     setRate = function() end,
-    setFov = function() end,
+    setFov = function(value)
+        settings[settings.shotAim and "shotFov" or "cameraFov"] = value
+    end,
     getPreviewKey = function()
         return "preview-key"
     end,
@@ -121,28 +127,32 @@ model.onValueChange("triggerDelay", 40, true)
 assert(settings.triggerDelay == 40)
 
 model.onValueChange("aimMode", "camera", true)
-assert(#writes == 2 and writes[1][1] == "shotAim" and writes[1][2] == false)
+assert(writes[1][1] == "shotAim" and writes[1][2] == false)
 assert(writes[2][1] == "silentAim" and writes[2][2] == true)
 model = catalog:model(state)
 assert(model.pages[1].sections[1].controls[1].value == "camera")
 assert(#model.pages[1].sections[1].controls == 2)
 assert(model.pages[1].sections[1].controls[2].id == "humanAim")
 assert(model.pages[1].sections[4].id == "trigger")
+assert(model.pages[1].sections[3].controls[1].value == 58)
+model.onValueChange("fov", 72, true)
+model.onValueChange("fullScreenAim", "fullscreen", true)
+assert(settings.cameraFov == 72 and settings.cameraFullScreenAim == true)
 
 model.onValueChange("humanAim", true, true)
 assert(settings.humanAim == true)
 model.onValueChange("aimMode", "silent", true)
-assert(writes[4][1] == "silentAim" and writes[4][2] == false)
-assert(writes[5][1] == "shotAim" and writes[5][2] == true)
+assert(settings.silentAim == false and settings.shotAim == true)
 assert(settings.humanAim == false)
 model = catalog:model(state)
 assert(model.pages[1].sections[1].controls[1].value == "silent")
+assert(model.pages[1].sections[3].controls[1].value == 96)
+assert(model.pages[1].sections[3].controls[1].disabled == true)
 assert(#model.pages[1].sections == 4)
 assert(#model.pages[1].sections[1].controls == 1)
 assert(model.pages[1].sections[4].id == "trigger")
 
 model.onValueChange("aimMode", "camera", true)
-assert(writes[8][1] == "humanAim" and writes[8][2] == true)
 assert(settings.humanAim == true)
 model = catalog:model(state)
 assert(model.pages[1].sections[1].controls[1].value == "camera")

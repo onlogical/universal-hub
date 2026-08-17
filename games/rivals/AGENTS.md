@@ -53,8 +53,9 @@ from Adapter. Do not copy `importDependency` into a feature.
 - `features/CameraAim.lua`
   - Writes the aim-plan value that Adapter stores on `session.aligned`.
   - User-facing Camera Aim (`settings.silentAim`). Does not write `presented`.
-  - Locks the nearest target even when they are off-screen. Do not
-    require FOV or on-screen visibility for Camera Aim.
+  - Prefers a visible target inside the Camera FOV, then falls back to a
+    blocked target inside that same FOV. Through-wall unrestricted acquisition
+    belongs to Silent Aim and task combat.
 - `features/SilentAim.lua`
   - Reads `session.aligned` and writes `session.presented`.
   - Owns `features/ShotPresentation.lua`.

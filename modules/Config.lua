@@ -73,6 +73,16 @@ function Config:load(defaults)
 
     local success, decoded = pcall(self.decode, self.readFile(self.path))
     if success then
+        if type(decoded) == "table" then
+            if decoded.cameraFov == nil then decoded.cameraFov = decoded.fov end
+            if decoded.shotFov == nil then decoded.shotFov = decoded.fov end
+            if decoded.cameraFullScreenAim == nil then
+                decoded.cameraFullScreenAim = decoded.fullScreenAim
+            end
+            if decoded.shotFullScreenAim == nil then
+                decoded.shotFullScreenAim = decoded.fullScreenAim
+            end
+        end
         mergeKnown(result, omitKeys(decoded, self.omittedKeys))
     end
     return result

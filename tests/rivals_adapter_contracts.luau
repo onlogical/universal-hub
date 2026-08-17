@@ -2475,11 +2475,15 @@ local targeting = {
 local settings = {
     aimSmoothness = 0,
     bhop = false,
+    cameraFov = 180,
+    cameraFullScreenAim = false,
     fov = 180,
     fullScreenAim = false,
     headshotRate = 0,
     humanAim = false,
     missRate = 0,
+    shotFov = 180,
+    shotFullScreenAim = false,
     shotAim = false,
     alwaysScoped = false,
     silentAim = true,
@@ -2740,8 +2744,8 @@ assert(renderCallback, "RIVALS adapter must attach a resilient per-frame loop")
 renderCallback()
 assert(cameraHarness.physicsConnects == 0, "Warp must not start physics on the first frame")
 assert(
-    nearestOptions[#nearestOptions].maxScreenDistance == nil,
-    "Camera Aim does not use FOV"
+    nearestOptions[#nearestOptions].maxScreenDistance == settings.cameraFov,
+    "Camera Aim must use its mode-specific FOV"
 )
 assert(rendered.position == mousePosition)
 assert(
@@ -2948,12 +2952,6 @@ renderCallback()
 assert(
     cameraModule.Rotation == RivalsTargeting.rotationToward(origin, targetPosition),
     "RIVALS aim must retain its current valid target instead of switching to a closer observation"
-)
-observations[2].screenDistance = settings.fov + 1
-renderCallback()
-assert(
-    cameraModule.Rotation == RivalsTargeting.rotationToward(origin, targetPosition),
-    "Camera Aim must keep a locked target when they leave the FOV circle"
 )
 table.remove(observations, 1)
 observations[1].screenDistance = 40

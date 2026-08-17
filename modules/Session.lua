@@ -78,8 +78,11 @@ end
 function Session:setFov(value, persist)
     local state = self.store:Get()
     local settings = state.settings
+    local name = settings.shotAim == true and "shotFov" or "cameraFov"
+    if settings[name] == nil then name = "fov" end
     self:patchSettings({
         fov = math.clamp(value, settings.minimumFov, settings.maximumFov),
+        [name] = math.clamp(value, settings.minimumFov, settings.maximumFov),
     }, persist)
 end
 

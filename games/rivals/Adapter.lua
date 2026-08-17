@@ -849,7 +849,7 @@ function Rivals.new(context)
         return nearest
     end
 
-    local function selectTarget(maxScreenDistance, includeBlocked, ignoreAimFov)
+    local function selectTarget(maxScreenDistance, includeBlocked, ignoreAimFov, preferVisible)
         local settings = store:Get().settings
         local options = {
             includeBlocked = includeBlocked,
@@ -858,14 +858,44 @@ function Rivals.new(context)
         }
         if maxScreenDistance then
             options.maxScreenDistance = maxScreenDistance
-        elseif not ignoreAimFov and not settings.fullScreenAim then
-            options.maxScreenDistance = settings.fov
+        elseif not ignoreAimFov then
+            local shotOnly = settings.shotAim == true
+            local fullScreenAim = shotOnly
+                    and (settings.shotFullScreenAim == nil
+                        and settings.fullScreenAim
+                        or settings.shotFullScreenAim)
+                or not shotOnly
+                    and (settings.cameraFullScreenAim == nil
+                        and settings.fullScreenAim
+                        or settings.cameraFullScreenAim)
+            if not fullScreenAim then
+                options.maxScreenDistance = shotOnly
+                        and (settings.shotFov or settings.fov)
+                    or (settings.cameraFov or settings.fov)
+            end
+        end
+        local preferredVisible = false
+        if preferVisible then
+            for _, observation in ipairs(observations) do
+                local screenDistance = observation.screenDistance
+                if observation.visible == true
+                    and (options.maxScreenDistance == nil
+                        or type(screenDistance) == "number"
+                            and screenDistance <= options.maxScreenDistance)
+                    and (observation.player == observation.character
+                        or isTargetable(observation.player, observation.character))
+                then
+                    preferredVisible = true
+                    break
+                end
+            end
         end
         local function nearest(values)
             local eligible = {}
             for _, observation in ipairs(values) do
-                if observation.player == observation.character
-                    or isTargetable(observation.player, observation.character)
+                if (not preferredVisible or observation.visible == true)
+                    and (observation.player == observation.character
+                        or isTargetable(observation.player, observation.character))
                 then
                     table.insert(eligible, observation)
                 end
