@@ -4,6 +4,10 @@ function Presentation.mount(host)
     if type(host.page) == "function" then
         host:page("Visuals", {
             layout = "toggle-grid",
+            views = {
+                { id = "preview", label = "Preview" },
+                { id = "colors", label = "ESP Colors" },
+            },
             preview = { kind = "character" },
         })
     end
@@ -16,6 +20,7 @@ function Presentation.mount(host)
         id = "worldRenderer",
         sectionLabel = "ESP",
         label = "Style",
+        treatment = "style",
         options = {
             {
                 label = "Classic",
@@ -64,7 +69,18 @@ function Presentation.mount(host)
 
     host:section("Combat", "trigger", "Trigger Bot", 64)
     host:option("trigger", 1, "triggerBot", "Trigger Bot")
-    host:option("trigger", 2, "alwaysScoped", "Always Scoped")
+    if type(host.slider) == "function" then
+        host:slider("trigger", "triggerDelay", "Delay", {
+            min = 0,
+            max = 250,
+            step = 1,
+            unit = "ms",
+            parent = "triggerBot",
+        })
+    end
+    host:option("trigger", 2, "skipDeflect", "Katana Stop")
+    host:option("trigger", 2, "autoDeflect", "Auto Katana")
+    host:option("trigger", 3, "alwaysScoped", "Always Scoped")
 
     host:section("Rage", "rage", "RAGE", 70)
     host:option("rage", 1, "teleportBehind", "Warp")
@@ -83,7 +99,7 @@ function Presentation.mount(host)
     host:section("Tools", "world", "WORLD", 70)
     host:option("world", 1, "autoPickup", "Auto Pickup")
 
-    host:section("Visuals", "visuals", "VISUALS", 70)
+    host:section("Visuals", "visuals", "VISUALS", 70, false, 1, { treatment = "grid" })
     host:option("visuals", 1, "boxes", "Hitboxes")
     host:option("visuals", 1, "chams", "Chams")
     host:option("visuals", 2, "chamsExcludeAccessories", "Ignore Accessories", "chams", {

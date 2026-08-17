@@ -41,8 +41,12 @@ assert(rendererSource:find("setthreadidentity", 1, true)
     and rendererSource:find("onExecutorThread", 1, true),
     "Signal-driven Highlight work must restore executor identity before Instance access")
 assert(rendererSource:find("billboard.Parent = self.context.guiParent", 1, true)
-    and rendererSource:find("StudsOffsetWorldSpace", 1, true),
+    and rendererSource:find("StudsOffsetWorldSpace", 1, true)
+    and rendererSource:find("billboard.ClipsDescendants = false", 1, true),
     "Highlight ESP must draw name, health, and weapon billboards above the character")
+assert(not rendererSource:find("UDim2.new(0.5, 0, 0, -18)", 1, true)
+    and not rendererSource:find("UDim2.new(0, -4, 0, 0)", 1, true),
+    "Name, health, and weapon must stay inside the billboard canvas")
 assert(rendererSource:find("function HighlightRenderer:_styleHighlights", 1, true)
     and rendererSource:find("restoreExecutorThread()", 1, true),
     "_styleHighlights must restore Plugin capability on game Signal free threads")
@@ -217,7 +221,9 @@ assert(heartbeat:count() == 0,
     "Ignoring accessories alone must not start the per-part distance refresh")
 store:Patch({ settings = { chamsExcludeAccessories = false } })
 assert(subject.billboard.Parent == guiParent, "Name, health, and weapon billboards must parent to gethui, not the Highlight folder")
-assert(subject.billboard.Size == UDim2.fromOffset(220, 86))
+assert(subject.billboard.Size == UDim2.fromOffset(240, 132))
+assert(subject.billboard.ClipsDescendants == false,
+    "BillboardGui clips descendants by default and would hide name, health, and weapon")
 assert(subject.billboard.StudsOffsetWorldSpace == Vector3.new(0, 3.25, 0),
     "Native labels must sit above AlwaysOnTop Highlights")
 assert(subject.billboard.MaxDistance == HighlightRenderer.HIGHLIGHT_DISTANCE)
@@ -225,7 +231,9 @@ assert(subject.name.TextSize == 13 and subject.healthValue.TextSize == 12 and su
 assert(subject.name.TextTruncate == Enum.TextTruncate.None
     and subject.healthValue.TextTruncate == Enum.TextTruncate.None
     and subject.weapon.TextTruncate == Enum.TextTruncate.None)
-assert(subject.healthTrack.Size == UDim2.new(0, 6, 1, 0)
+assert(subject.name.Position.Y.Offset >= 0 and subject.healthTrack.Position.X.Offset >= 0
+    and subject.healthValue.Position.Y.Offset >= 0 and subject.weapon.Position.Y.Offset >= 0)
+assert(subject.healthTrack.Size == UDim2.fromOffset(6, 76)
     and subject.healthTrack:FindFirstChild("Corner") == nil) -- fake parenting is property-only
 assert(subject.healthFill.Size == UDim2.new(0, 4, 0.25, 0))
 assert(subject.healthFill.BackgroundColor3 == Color3.fromRGB(255, 118, 87):Lerp(Color3.fromRGB(98, 214, 173), 0.5))

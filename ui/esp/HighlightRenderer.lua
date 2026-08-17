@@ -93,7 +93,7 @@ local function label(create, parent, name, size, color, position)
     node.BackgroundTransparency = 1
     node.Font = Enum.Font.GothamBold
     node.Position = position
-    node.Size = UDim2.fromOffset(320, size + 3)
+    node.Size = UDim2.new(1, -20, 0, size + 3)
     node.TextColor3 = color
     node.TextSize = size
     node.TextStrokeColor3 = Color3.new(0, 0, 0)
@@ -490,10 +490,11 @@ function HighlightRenderer:_makeSubject(key, descriptor, player)
     billboard.Name = "SubjectBillboard"
     billboard.Adornee = rootPart
     billboard.AlwaysOnTop = true
+    billboard.ClipsDescendants = false
     billboard.LightInfluence = 0
     billboard.MaxDistance = HighlightRenderer.HIGHLIGHT_DISTANCE
     billboard.ResetOnSpawn = false
-    billboard.Size = UDim2.fromOffset(220, 86)
+    billboard.Size = UDim2.fromOffset(240, 132)
     billboard.StudsOffsetWorldSpace = Vector3.new(0, 3.25, 0)
     billboard.Parent = self.context.guiParent
 
@@ -503,17 +504,16 @@ function HighlightRenderer:_makeSubject(key, descriptor, player)
     canvas.Size = UDim2.fromScale(1, 1)
     canvas.Parent = billboard
 
-    local name = label(self.create, canvas, "Name", 13, COLORS.text, UDim2.new(0.5, 0, 0, -18))
-    local healthValue = label(self.create, canvas, "HealthValue", 12, COLORS.signal, UDim2.new(0.5, 0, 1, 3))
-    local weapon = label(self.create, canvas, "Weapon", 12, COLORS.secondary, UDim2.new(0.5, 0, 1, 18))
+    local name = label(self.create, canvas, "Name", 13, COLORS.text, UDim2.new(0.5, 6, 0, 2))
+    local healthValue = label(self.create, canvas, "HealthValue", 12, COLORS.signal, UDim2.new(0.5, 6, 0, 98))
+    local weapon = label(self.create, canvas, "Weapon", 12, COLORS.secondary, UDim2.new(0.5, 6, 0, 114))
 
     local healthTrack = self.create("Frame")
     healthTrack.Name = "HealthRail"
-    healthTrack.AnchorPoint = Vector2.new(1, 0)
     healthTrack.BackgroundColor3 = COLORS.track
     healthTrack.BorderSizePixel = 0
-    healthTrack.Position = UDim2.new(0, -4, 0, 0)
-    healthTrack.Size = UDim2.new(0, 6, 1, 0)
+    healthTrack.Position = UDim2.fromOffset(4, 20)
+    healthTrack.Size = UDim2.fromOffset(6, 76)
     healthTrack.Parent = canvas
 
     local trackCorner = self.create("UICorner")
@@ -617,13 +617,19 @@ function HighlightRenderer:_weapon(subject, observation)
     return nil
 end
 
-function HighlightRenderer:_updateHealth(subject)
+function HighlightRenderer:_updateHealth(subject, observation)
     if not self.active or not self.subjects[subject.key] then
         return
     end
     local humanoid = subject.humanoid
-    local health = humanoid and humanoid.Health or 0
-    local maximum = humanoid and humanoid.MaxHealth or 0
+    local health = observation and observation.health
+    if type(health) ~= "number" then
+        health = humanoid and humanoid.Health or 0
+    end
+    local maximum = observation and observation.maxHealth
+    if type(maximum) ~= "number" then
+        maximum = humanoid and humanoid.MaxHealth or 0
+    end
     local infinite = health == math.huge
     local fraction
     if infinite or maximum == math.huge then
@@ -656,15 +662,17 @@ function HighlightRenderer:_updateSubject(subject, observation)
         or (subject.player and subject.player.Name) or tostring(subject.key)
     subject.name.TextColor3 = ColorPolicy.color(settings, "name", color, tone)
     subject.name.Visible = settings.names == true
-    subject.healthTrack.Visible = settings.health == true and subject.humanoid ~= nil
-    subject.healthValue.Visible = settings.health == true and subject.humanoid ~= nil
+    local hasHealth = subject.humanoid ~= nil
+        or (observation and type(observation.health) == "number")
+    subject.healthTrack.Visible = settings.health == true and hasHealth
+    subject.healthValue.Visible = settings.health == true and hasHealth
     local weapon = self:_weapon(subject, observation)
     subject.weapon.Text = weapon == nil and "" or tostring(weapon)
     subject.weapon.TextColor3 = ColorPolicy.color(settings, "weapon", color, tone)
     subject.weapon.Visible = settings.weapon == true and weapon ~= nil and tostring(weapon) ~= ""
     subject.billboard.Enabled = subject.rootPart ~= nil
         and (subject.name.Visible or subject.healthTrack.Visible or subject.weapon.Visible)
-    self:_updateHealth(subject)
+    self:_updateHealth(subject, observation)
 end
 
 function HighlightRenderer:_attachCharacter(player, character)

@@ -26,6 +26,7 @@ local function recorder(capabilities)
         "rate",
         "section",
         "segmented",
+        "slider",
     }) do
         host[method] = function(_, ...)
             local values = { method }
@@ -100,7 +101,10 @@ assertSequence(
         "segmented:Combat",
         "section:Combat:trigger:Trigger Bot:64",
         "option:trigger:1:triggerBot:Trigger Bot",
-        "option:trigger:2:alwaysScoped:Always Scoped",
+        "slider:trigger:triggerDelay:Delay",
+        "option:trigger:2:skipDeflect:Katana Stop",
+        "option:trigger:2:autoDeflect:Auto Katana",
+        "option:trigger:3:alwaysScoped:Always Scoped",
         "section:Rage:rage:RAGE:70",
         "option:rage:1:teleportBehind:Warp",
         "section:Movement:movement:MOVEMENT:70",
@@ -111,7 +115,7 @@ assertSequence(
         "option:taskFarming:1:taskAutomationPaused:Pause Task Farming",
         "section:Tools:world:WORLD:70",
         "option:world:1:autoPickup:Auto Pickup",
-        "section:Visuals:visuals:VISUALS:70",
+        "section:Visuals:visuals:VISUALS:70:1",
         "option:visuals:1:boxes:Hitboxes",
         "option:visuals:1:chams:Chams",
         "option:visuals:2:chamsExcludeAccessories:Ignore Accessories:chams",
@@ -149,7 +153,7 @@ assertSequence(
         "section:Movement:movement:MOVEMENT:70",
         "option:movement:1:spinBot:Spin Bot",
         "option:movement:1:bhop:Bunny Hop",
-        "section:Visuals:visuals:VISUALS:70",
+        "section:Visuals:visuals:VISUALS:70:1",
         "option:visuals:1:boxes:Hitboxes",
         "option:visuals:1:chams:Chams",
         "option:visuals:2:names:Names",

@@ -65,6 +65,10 @@ function WeaponPolicy.isDeflector(item)
     return ItemPolicy.isDeflector(item)
 end
 
+function WeaponPolicy.isActivelyDeflecting(item)
+    return ItemPolicy.isActivelyDeflecting(item)
+end
+
 function WeaponPolicy.isRevolver(item)
     return ItemPolicy.isRevolver(item)
 end

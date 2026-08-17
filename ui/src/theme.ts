@@ -50,7 +50,7 @@ export const HUB_THEME: ThemeOverride = {
 			disabled: Color3.fromRGB(103, 115, 126),
 			inverse: Color3.fromRGB(8, 14, 17),
 		},
-		background: { default: shell, surface, raised, overlay },
+		background: { default: shell, surface },
 		border: {
 			subtle: divider,
 			default: Color3.fromRGB(68, 68, 73),

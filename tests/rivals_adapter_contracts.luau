@@ -25,6 +25,9 @@ assert(
     table.find(RivalsDefinition.features.capabilities, "silentAim")
         and table.find(RivalsDefinition.features.capabilities, "shotAim")
         and table.find(RivalsDefinition.features.capabilities, "triggerBot")
+        and table.find(RivalsDefinition.features.capabilities, "skipDeflect")
+        and table.find(RivalsDefinition.features.capabilities, "autoDeflect")
+        and table.find(RivalsDefinition.features.capabilities, "triggerDelay")
         and table.find(RivalsDefinition.features.capabilities, "autoCounter")
         and table.find(RivalsDefinition.features.capabilities, "teleportBehind")
         and table.find(RivalsDefinition.features.capabilities, "alwaysScoped")
@@ -165,8 +168,8 @@ assert(
     table.find(Rivals.capabilitiesFor({
         fireTouchInterestAvailable = true,
         isGunGame = false,
-    }, RivalsDefinition.features.capabilities), "autoPickup") == nil,
-    "Other RIVALS modes must hide Auto Pickup"
+    }, RivalsDefinition.features.capabilities), "autoPickup") ~= nil,
+    "Auto Pickup must stay on Tools when Gun Game is joined after execute"
 )
 assert(
     table.find(Rivals.capabilitiesFor({
@@ -174,6 +177,20 @@ assert(
         isGunGame = true,
     }, RivalsDefinition.features.capabilities), "autoPickup") == nil,
     "Gun Game must hide Auto Pickup when the executor cannot synthesize touch"
+)
+assert(
+    table.find(Rivals.capabilitiesFor({
+        hookFunctionAvailable = false,
+        restoreFunctionAvailable = false,
+    }, RivalsDefinition.features.capabilities), "skipDeflect") == nil,
+    "Katana Stop must stay hidden without a StartShooting hook"
+)
+assert(
+    table.find(Rivals.capabilitiesFor({
+        hookFunctionAvailable = true,
+        restoreFunctionAvailable = true,
+    }, RivalsDefinition.features.capabilities), "skipDeflect") ~= nil,
+    "Katana Stop must appear when StartShooting can be hooked"
 )
 end
 

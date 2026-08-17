@@ -14,10 +14,14 @@ local settings = {
     humanAim = false,
     triggerBot = false,
     alwaysScoped = false,
+    skipDeflect = false,
+    autoDeflect = false,
+    triggerDelay = 0,
     fov = 58,
     minimumFov = 40,
     maximumFov = 500,
     fullScreenAim = false,
+    teleportBehind = false,
     boxes = true,
     chams = true,
     chamsExcludeAccessories = false,
@@ -25,6 +29,8 @@ local settings = {
     names = true,
     health = true,
     weapon = true,
+    showEnemies = true,
+    showTeammates = false,
     worldRenderer = "limn",
     espOutlineColor = "",
     espFillColor = "",
@@ -49,14 +55,17 @@ end
 local catalog = Catalog.new({
     store = store,
     capabilities = {
-        "silentAim", "shotAim", "humanAim", "triggerBot", "alwaysScoped",
+        "silentAim", "shotAim", "humanAim", "triggerBot", "triggerDelay",
+        "skipDeflect", "autoDeflect", "alwaysScoped",
         "aimSmoothness", "headshotRate", "missRate", "boxes", "chams",
         "chamsExcludeAccessories", "chamsPerPart", "names", "health", "weapon", "worldRenderer",
+        "showEnemies", "showTeammates",
+        "teleportBehind",
     },
     setSetting = function(id, value)
         settings[id] = value
     end,
-    setOption = function(id, value)
+    setOption = function(id, value, persist)
         settings[id] = value
         if id == "shotAim" and value then
             settings.silentAim = false
@@ -64,7 +73,7 @@ local catalog = Catalog.new({
         elseif id == "silentAim" and value then
             settings.shotAim = false
         end
-        table.insert(writes, { id, value })
+        table.insert(writes, { id, value, persist })
     end,
     setRate = function() end,
     setFov = function() end,
@@ -76,6 +85,9 @@ local catalog = Catalog.new({
     end,
 })
 Presentation.mount(catalog)
+local ephemeralSettings = Catalog.collectEphemeralSettings(Presentation)
+assert(ephemeralSettings.teleportBehind == true, "Rage settings must be inferred as ephemeral")
+assert(ephemeralSettings.triggerBot == nil, "Non-Rage settings must remain persistent")
 local model = catalog:model(state)
 local combat = model.pages[1]
 assert(combat.id == "Combat")
@@ -87,6 +99,26 @@ assert(combat.sections[1].controls[1].kind == "segmented")
 assert(combat.sections[1].controls[1].value == "off")
 assert(combat.sections[2].controls[1].emphasis == "row")
 assert(combat.sections[4].label == "Trigger Bot")
+local triggerIds = {}
+for _, control in ipairs(combat.sections[4].controls) do
+    triggerIds[control.id] = control
+end
+assert(triggerIds.triggerBot and triggerIds.skipDeflect.label == "Katana Stop")
+assert(triggerIds.autoDeflect and triggerIds.autoDeflect.label == "Auto Katana")
+assert(triggerIds.triggerDelay == nil, "Delay must wait until Trigger Bot is on")
+settings.triggerBot = true
+model = catalog:model(state)
+local triggerControls = model.pages[1].sections[4].controls
+assert(triggerControls[1].id == "triggerBot")
+assert(triggerControls[2].id == "triggerDelay" and triggerControls[2].emphasis == "nested")
+assert(triggerControls[2].parent == "triggerBot" and triggerControls[2].unit == "ms")
+assert(triggerControls[2].min == 0 and triggerControls[2].max == 250)
+triggerIds = {}
+for _, control in ipairs(triggerControls) do
+    triggerIds[control.id] = control
+end
+model.onValueChange("triggerDelay", 40, true)
+assert(settings.triggerDelay == 40)
 
 model.onValueChange("aimMode", "camera", true)
 assert(#writes == 2 and writes[1][1] == "shotAim" and writes[1][2] == false)
@@ -125,6 +157,13 @@ for _, page in ipairs(model.pages) do
     end
 end
 assert(visuals and visuals.layout == "toggle-grid")
+assert(
+    visuals.views[1].id == "preview"
+        and visuals.views[1].label == "Preview"
+        and visuals.views[2].id == "colors"
+        and visuals.views[2].label == "ESP Colors",
+    "Preview pages with a palette must publish their available views"
+)
 assert(visuals.preview.kind == "character" and visuals.preview.key == "preview-key")
 assert(visuals.preview.resolve().marker == "preview-subject")
 assert(visuals.preview.worldRenderer == "limn" and visuals.preview.chams == true)
@@ -146,15 +185,28 @@ assert(enemyPalette.fillAlpha == 0.73)
 local rendererSection
 local visualSection
 for _, section in ipairs(visuals.sections) do
-    if section.id == "worldRenderer" then
+    if section.treatment == "style" then
         rendererSection = section
-    elseif section.id == "visuals" then
+    elseif section.treatment == "grid" then
         visualSection = section
     end
 end
 assert(rendererSection and rendererSection.label == "ESP")
+assert(rendererSection.treatment == "style", "ESP renderer selection must use style treatment")
 assert(rendererSection.controls[1].label == "Style" and rendererSection.controls[1].value == "limn")
-assert(visualSection and #visualSection.controls == 5, "Native-only Chams options must stay hidden in Classic mode")
+assert(visualSection and visualSection.treatment == "grid", "Visual toggle section must use grid treatment")
+assert(#visualSection.controls == 7, "Native-only Chams options must stay hidden in Classic mode")
+local classicControls = {}
+for _, control in ipairs(visualSection.controls) do
+    classicControls[control.id] = control
+end
+assert(
+    classicControls.showEnemies.placement == "audience"
+        and classicControls.showEnemies.parent == nil
+        and classicControls.showTeammates.placement == "audience"
+        and classicControls.showTeammates.parent == nil,
+    "Audience controls must not emit a fake parent"
+)
 model.onValueChange("worldRenderer", "native", true)
 assert(settings.worldRenderer == "native", "Renderer selection must preserve its string setting")
 model = catalog:model(state)
@@ -165,13 +217,78 @@ for _, page in ipairs(model.pages) do
     end
 end
 for _, section in ipairs(visuals.sections) do
-    if section.id == "visuals" then
+    if section.treatment == "grid" then
         visualSection = section
         break
     end
 end
 assert(visuals.preview.worldRenderer == "native")
-assert(#visualSection.controls == 7, "Native Chams sub-options must appear only in Native mode")
+assert(#visualSection.controls == 9, "Native Chams sub-options must appear only in Native mode")
+local nativeControls = {}
+for _, control in ipairs(visualSection.controls) do
+    nativeControls[control.id] = control
+end
+assert(
+    nativeControls.chamsExcludeAccessories.placement == "details"
+        and nativeControls.chamsExcludeAccessories.parent == "chams"
+        and nativeControls.chamsPerPart.placement == "details"
+        and nativeControls.chamsPerPart.parent == "chams",
+    "Chams child options must retain their real toggle parent"
+)
+model.onValueChange("teleportBehind", true, true)
+assert(
+    settings.teleportBehind == true
+        and writes[#writes][1] == "teleportBehind"
+        and writes[#writes][3] == false,
+    "Rage toggles must update live with persistence disabled"
+)
+model.onValueChange("triggerBot", false, true)
+assert(
+    settings.triggerBot == false
+        and writes[#writes][1] == "triggerBot"
+        and writes[#writes][3] == true,
+    "Non-Rage toggles must continue to persist"
+)
+
+local genericState = {
+    menuVisible = true,
+    settings = { fills = true, fillOutline = false, menuKey = "RightShift" },
+}
+local genericStore = {}
+function genericStore:Get()
+    return genericState
+end
+function genericStore:Patch() end
+local genericCatalog = Catalog.new({
+    store = genericStore,
+    capabilities = { "fills", "fillOutline" },
+    setOption = function() end,
+    setRate = function() end,
+    setFov = function() end,
+})
+genericCatalog:page("Visuals", { layout = "toggle-grid" })
+genericCatalog:section("Visuals", "esp", "ESP", 70)
+genericCatalog:option("esp", 1, "fills", "Fills")
+genericCatalog:option("esp", 2, "fillOutline", "Fill Outline", {
+    parent = "fills",
+    placement = "details",
+    visibility = "when-parent",
+})
+local genericModel = genericCatalog:model(genericState)
+local genericVisuals
+for _, page in ipairs(genericModel.pages) do
+    if page.id == "Visuals" then genericVisuals = page break end
+end
+assert(
+    genericVisuals.sections[1].id == "esp"
+        and genericVisuals.sections[1].treatment == "grid"
+        and genericVisuals.sections[1].controls[1].id == "fills"
+        and genericVisuals.sections[1].controls[1].placement == "grid"
+        and genericVisuals.sections[1].controls[2].id == "fillOutline"
+        and genericVisuals.sections[1].controls[2].parent == "fills"
+        and genericVisuals.sections[1].controls[2].placement == "details",
+    "Toggle-grid layout must be driven by treatment and placement, not fixed ids"
+)
 
 local cosmeticState = {
     menuVisible = true,

@@ -12,6 +12,7 @@ interface ControlBase {
 	readonly disabled?: boolean;
 	readonly status?: "available" | "standby" | "unavailable";
 	readonly parent?: string;
+	readonly placement?: "grid" | "details" | "audience";
 }
 
 export interface SliderControl extends ControlBase {
@@ -21,7 +22,7 @@ export interface SliderControl extends ControlBase {
 	readonly max: number;
 	readonly step?: number;
 	readonly unit?: string;
-	readonly emphasis?: "hero" | "row";
+	readonly emphasis?: "hero" | "row" | "nested";
 	readonly intent?: "primary" | "success" | "warning" | "error" | "info";
 }
 
@@ -68,7 +69,7 @@ export type MenuControl =
 export interface MenuSection {
 	readonly id: string;
 	readonly label: string;
-	readonly treatment?: "card" | "list" | "plain";
+	readonly treatment?: "card" | "list" | "plain" | "grid" | "style";
 	readonly controls: readonly MenuControl[];
 }
 
@@ -128,6 +129,7 @@ export interface MenuPage {
 	readonly label: string;
 	readonly icon?: string;
 	readonly layout?: "standard" | "toggle-grid";
+	readonly views?: readonly { readonly id: "preview" | "colors"; readonly label: string }[];
 	readonly preview?: CharacterPreviewModel;
 	readonly sections: readonly MenuSection[];
 }

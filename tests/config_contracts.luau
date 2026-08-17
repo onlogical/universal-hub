@@ -10,6 +10,7 @@ local decoded = {
     espFillAlpha = 0.73,
     fullScreenAim = true,
     silentAim = true,
+    teleportBehind = true,
     gloveOverride = {
         skin = "Crimson Weave",
         wear = 0.63,
@@ -50,11 +51,15 @@ local config = Config.new({
         assert(value.gloveOverride.wear == 0.63)
         assert(value.gloveColorOverride.r == 0.2)
         assert(value.unknown == nil)
+        assert(value.teleportBehind == nil, "Ephemeral settings must be omitted from config writes")
         return "encoded"
     end,
     isFile = function(path)
         return files[path] ~= nil
     end,
+    omittedKeys = {
+        teleportBehind = true,
+    },
     path = "universal-hub/configs/counterblox.json",
     readFile = function(path)
         return files[path]
@@ -72,6 +77,7 @@ local loaded = config:load({
     gloveOverride = false,
     gloveColorOverride = false,
     silentAim = false,
+    teleportBehind = false,
     skinOverrides = {},
 })
 assert(loaded.fov == 320 and loaded.fullScreenAim == true and loaded.silentAim == true)
@@ -83,7 +89,10 @@ assert(loaded.gloveOverride.weapon == "Driver Gloves")
 assert(loaded.gloveOverride.wear == 0.63)
 assert(loaded.gloveColorOverride.b == 0.7)
 assert(loaded.unknown == nil, "Per-game config must ignore unknown top-level settings")
+assert(loaded.teleportBehind == false, "Old configs must not restore ephemeral Rage settings")
 
+loaded.teleportBehind = true
+loaded.worldRenderer = "native"
 config:save(loaded)
 assert(writes["universal-hub/configs/counterblox.json"] == "encoded")
 print("config-contracts-ok")

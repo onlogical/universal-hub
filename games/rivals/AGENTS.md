@@ -83,13 +83,27 @@ from Adapter. Do not copy `importDependency` into a feature.
     restart because ammo replicas are stale. Compare
     `item._shoot_cooldown` with `tick`, never `os.clock`. If Camera
     Aim has no plan, select the nearest target — do not require an
-    8px reticle.
+    8px reticle. Release when the target is deflecting, even if the
+    blade blocks line of sight. Do not keep a hold through that.
+    `settings.triggerDelay` is a first-shot wait in milliseconds; do
+    not add it to the native cooldown after the hold starts.
+- `features/SkipBlocks.lua`
+  - User-facing Katana Stop (`settings.skipDeflect`). Hooks
+    `StartShooting` so a manual click does not fire into a deflect
+    unless true-damage spray applies. Same gate as Trigger Bot.
+- `features/AutoDeflect.lua`
+  - User-facing Auto Katana (`settings.autoDeflect`). Pre-blocks with
+    the equipped deflector when an opponent is looking at us and that
+    shot would be lethal. Katana reflect does not require ADS. Hitscan
+    plus ping means do not wait for the shot. Do not invent latency
+    compensation.
 - `features/AutoCounter.lua`
   - Detect-and-shoot only. Must not write fighter `CFrame`.
 - `features/NoScope.lua`
   - User-facing Always Scoped. Stored setting stays `alwaysScoped`.
 - `features/Pickup.lua`
-  - Gates Gun Game pickup behind `settings.autoPickup`.
+  - Gates Gun Game pickup behind `settings.autoPickup`. Keep the
+    Tools capability even when execute is not already in Gun Game.
 - `features/ScopedAccuracy.lua`
   - No Scope guts.
 - `tasks/TaskLoadout.lua`
@@ -104,6 +118,7 @@ from Adapter. Do not copy `importDependency` into a feature.
   - Direct projectile lead/gravity, splash, ricochet, and Slingshot helpers.
 - `libraries/WeaponPolicy.lua` / `libraries/ItemPolicy.lua`
   - Item labels, damage/falloff, ADS, hold-to-fire, Bow, Revolver, Knife, Gunblade.
+    Continuous InternalUse weapons (no ShootDamage) still get Trigger Bot.
 - `libraries/Movement.lua`
   - Bunny hop and slide behind active/combat/input-capture gates.
 - `tasks/TaskPolicy.lua`

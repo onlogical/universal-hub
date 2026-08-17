@@ -149,6 +149,7 @@ configuration.HydroxideHelpers = nil
 configuration.HydroxideImport = nil
 
 local configPath = configuration.ConfigPath or ("universal-hub/configs/%s.json"):format(adapterDefinition.id)
+local ephemeralSettings = PresentationCatalog.collectEphemeralSettings(presentation)
 local configStore = Config.new({
     decode = function(source)
         return HttpService:JSONDecode(source)
@@ -157,6 +158,7 @@ local configStore = Config.new({
         return HttpService:JSONEncode(value)
     end,
     isFile = type(isfile) == "function" and isfile or nil,
+    omittedKeys = ephemeralSettings,
     path = configPath,
     readFile = type(readfile) == "function" and readfile or nil,
     writeFile = type(writefile) == "function" and writefile or nil,
@@ -165,7 +167,7 @@ local settings = configStore:load(copyData(adapterDefinition.defaults))
 local hasPersistedConfig = type(isfile) == "function" and isfile(configPath)
 if not hasPersistedConfig then
     for name, value in pairs(environment.UniversalHubSettings or {}) do
-        if settings[name] ~= nil then
+        if settings[name] ~= nil and not ephemeralSettings[name] then
             settings[name] = value
         end
     end
@@ -416,17 +418,17 @@ local overlayContext = {
         end
         current:setSetting(name, value, persist)
     end,
-    setOption = function(name, enabled)
+    setOption = function(name, enabled, persist)
         local current = session
         if not current then
             return
         end
-        current:setOption(name, enabled)
+        current:setOption(name, enabled, persist)
         if enabled and features.exclusiveOptions then
             for _, excluded in ipairs(
                 features.exclusiveOptions[name] or {}
             ) do
-                current:setOption(excluded, false)
+                current:setOption(excluded, false, persist)
             end
         end
     end,

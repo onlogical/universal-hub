@@ -58,6 +58,7 @@ local store = Store.new({
         minimumFov = 40,
         maximumFov = 200,
         missRate = 0,
+        teleportBehind = false,
         worldRenderer = "limn",
     },
 })
@@ -117,6 +118,13 @@ assert(
 )
 session:setRate("aimSmoothness", 55, true)
 assert(#savedSettings == 7, "Slider release must persist its final value exactly once")
+session:setOption("teleportBehind", true, false)
+assert(
+    store:Get().settings.teleportBehind == true and #savedSettings == 7,
+    "Ephemeral options must update live without requesting a config save"
+)
+session:setOption("enabled", false)
+assert(#savedSettings == 8, "Existing setOption callers must continue to persist by default")
 
 session:Add(function()
     table.insert(cleanupOrder, "first")

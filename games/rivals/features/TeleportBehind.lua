@@ -506,8 +506,8 @@ function TeleportBehind.update(session, libs)
         return false
     end
     if session.teleportEngaged ~= true then
-        if session.active ~= true or session.inCombat ~= true then
-            return false
+    if session.active ~= true or session.inCombat ~= true then
+        return false
         end
         session.teleportEngaged = true
     end

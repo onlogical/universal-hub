@@ -71,8 +71,8 @@ function Session:setSetting(name, value, persist)
     }, persist)
 end
 
-function Session:setOption(name, enabled)
-    self:setSetting(name, enabled == true)
+function Session:setOption(name, enabled, persist)
+    self:setSetting(name, enabled == true, persist)
 end
 
 function Session:setFov(value, persist)

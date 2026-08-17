@@ -9,6 +9,13 @@ local TriggerBot = require("../games/rivals/features/TriggerBot")
 
 assert(table.find(Definition.sources, "games/rivals/features/TriggerBot"))
 assert(TriggerBot.INTERVAL == 0)
+assert(TriggerBot.delaySeconds({ triggerDelay = 40 }) == 0.04)
+assert(TriggerBot.delaySeconds({ triggerDelay = 0 }) == 0)
+assert(TriggerBot.delaySeconds({ triggerDelay = 999 }) == 0.25)
+local delayState = {}
+assert(TriggerBot.delayReady(delayState, 10, 0.04, "a") == false)
+assert(TriggerBot.delayReady(delayState, 10.04, 0.04, "a") == true)
+assert(TriggerBot.delayReady(delayState, 10.04, 0.04, "b") == false, "A new target must restart the delay")
 assert(TriggerBot.weaponReady({ _shoot_cooldown = 2 }, 1) == false)
 assert(TriggerBot.weaponReady({ _shoot_cooldown = 1 }, 1) == true)
 assert(TriggerBot.fireDelay({ Info = { ShootCooldown = 0.05 } }, 0.1) == 0.05)
@@ -26,6 +33,8 @@ assert(TriggerBot.holdDropped(assault, 1.2, 0) == true,
     "A dropped AR hold may repress only after the native cooldown has stayed expired")
 assert(TriggerBot.holdDropped({ Info = { ShootCooldown = 0.1 } }, 2, 0) == false,
     "Hold recovery must not treat a missing native cooldown as a dropped press")
+assert(TriggerBot.holdDropped({ Info = { InternalUseCooldown = 0.25 }, _shoot_cooldown = 0 }, 2, 0) == false,
+    "A stream weapon with an unset shoot cooldown must keep holding")
 
 local session = Session.new()
 session.settings = { shotAim = true, triggerBot = true }
@@ -226,6 +235,7 @@ local adapter = fs.readFile("games/rivals/Adapter.lua")
 assert(adapter:find("raycast = type(environmentRaycast)", 1, true))
 local source = fs.readFile("games/rivals/features/TriggerBot.lua")
 assert(source:find("TriggerBot.pathReady", 1, true))
+assert(source:find("TriggerBot.shouldHoldForDeflect", 1, true))
 assert(source:find("TriggerBot.weaponReady", 1, true))
 assert(source:find("TriggerBot.holdDropped", 1, true))
 assert(source:find("TriggerBot.hubReady", 1, true))
@@ -249,6 +259,29 @@ ctx.raycast = function()
 end
 clicked = 0
 state.nextAt = 0
+session.settings.triggerDelay = 40
+clicked = 0
+state.nextAt = 0
+state.armedAt = nil
+state.armedKey = nil
+ctx.clock = function()
+    return 1
+end
+TriggerBot.update(session, ctx)
+assert(clicked == 0 and ctx.taskDebug.triggerStage == "delay", "A delayed trigger must wait before the first shot")
+ctx.clock = function()
+    return 1.04
+end
+TriggerBot.update(session, ctx)
+assert(clicked == 1, "A delayed trigger must fire once the wait elapses")
+session.settings.triggerDelay = 0
+state.armedAt = nil
+state.armedKey = nil
+clicked = 0
+state.nextAt = 0
+ctx.clock = function()
+    return 1
+end
 TriggerBot.update(session, ctx)
 assert(clicked == 1, "A ready semi must fire on the first ready frame")
 TriggerBot.update(session, ctx)
@@ -332,5 +365,52 @@ now = 10.35
 TriggerBot.update(session, ctx)
 assert(presses == 2 and fireReleases == 1,
     "A dropped AR hold may repress after the native cooldown stays expired")
+
+assert(TriggerBot.shouldHoldForDeflect({ player = {} }, rifle, {
+    isDeflecting = function()
+        return true
+    end,
+    taskCounterPolicy = {
+        shouldForceSpray = function()
+            return false
+        end,
+    },
+}) == true)
+assert(TriggerBot.shouldHoldForDeflect({ player = {} }, rifle, {
+    isDeflecting = function()
+        return true
+    end,
+    fighterFor = function()
+        return { EquippedItem = {} }
+    end,
+    taskCounterPolicy = {
+        shouldForceSpray = function()
+            return true
+        end,
+    },
+}) == false, "True-damage spray may still fire through a deflector")
+
+ctx.isDeflecting = function()
+    return true
+end
+ctx.fighterFor = function()
+    return { EquippedItem = { Info = { DeflectDuration = 1, DeflectCooldown = 4 } } }
+end
+ctx.raycast = function()
+    return { Instance = wall }
+end
+ctx.targeting.visibleHeadPoint = function()
+    return Vector3.new(0, 0, 10)
+end
+session.aligned = { visible = true, player = {}, position = Vector3.new(0, 0, 10), aimSettled = true }
+ctx.alignedTarget = session.aligned
+state.fireHeld = true
+state.nextAt = 0
+local deflectReleases = fireReleases
+local deflectPresses = presses
+TriggerBot.update(session, ctx)
+assert(fireReleases == deflectReleases + 1 and presses == deflectPresses,
+    "A hold must release when the target is deflecting even if the blade blocks line of sight")
+assert(ctx.taskDebug.triggerStage == "target-deflecting")
 
 print("rivals-trigger-bot-contracts-ok")

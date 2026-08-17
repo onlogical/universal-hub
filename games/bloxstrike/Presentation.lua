@@ -4,6 +4,10 @@ function Presentation.mount(host)
     if type(host.page) == "function" then
         host:page("Visuals", {
             layout = "toggle-grid",
+            views = {
+                { id = "preview", label = "Preview" },
+                { id = "colors", label = "ESP Colors" },
+            },
             preview = { kind = "character", weaponLabel = "KNIFE" },
         })
     end
@@ -15,6 +19,7 @@ function Presentation.mount(host)
         id = "worldRenderer",
         sectionLabel = "ESP",
         label = "Style",
+        treatment = "style",
         options = {
             {
                 label = "Classic",
@@ -48,7 +53,7 @@ function Presentation.mount(host)
     host:option("movement", 1, "spinBot", "Spin Bot")
     host:option("movement", 1, "bhop", "Bunny Hop")
 
-    host:section("Visuals", "visuals", "VISUALS", 70)
+    host:section("Visuals", "visuals", "VISUALS", 70, false, 1, { treatment = "grid" })
     host:option("visuals", 1, "boxes", "Hitboxes")
     host:option("visuals", 1, "chams", "Chams")
     host:option("visuals", 2, "chamsExcludeAccessories", "Ignore Accessories", "chams", {

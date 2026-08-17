@@ -58,12 +58,30 @@ function ItemPolicy.isBurst(item)
     return itemInfo ~= nil and type(itemInfo.BurstCount) == "number" and itemInfo.BurstCount > 1
 end
 
-function ItemPolicy.isDeflector(item)
+function ItemPolicy.hasDeflectCapability(item)
     local itemInfo = info(item)
     return itemInfo ~= nil
         and positive(itemInfo.DeflectDuration)
         and positive(itemInfo.DeflectCooldown)
+end
+
+function ItemPolicy.isDeflector(item)
+    return ItemPolicy.hasDeflectCapability(item)
         and type(item._deflect_hash) == "number"
+end
+
+function ItemPolicy.isActivelyDeflecting(item)
+    if not ItemPolicy.hasDeflectCapability(item) then
+        return false
+    end
+    if type(item.Get) == "function" then
+        local succeeded, value = pcall(item.Get, item, "FOVOffset")
+        if succeeded and value == 5 then
+            return true
+        end
+    end
+    local data = item.Data
+    return type(data) == "table" and data.FOVOffset == 5
 end
 
 function ItemPolicy.isRicochetWeapon(item)
@@ -121,6 +139,11 @@ function ItemPolicy.isTrueDamageBurst(item)
     return ItemPolicy.isTrueDamage(item) and ItemPolicy.isBurst(item)
 end
 
+function ItemPolicy.isContinuous(item)
+    local itemInfo = info(item)
+    return itemInfo ~= nil and positive(itemInfo.InternalUseCooldown)
+end
+
 function ItemPolicy.hasTargetedDamage(item)
     local itemInfo = info(item)
     if not itemInfo or ItemPolicy.isThrowable(item) then
@@ -130,6 +153,7 @@ function ItemPolicy.hasTargetedDamage(item)
         or positive(itemInfo.AttackDamage)
         or positive(itemInfo.CriticalDamage)
         or ItemPolicy.isDualModeBlade(item)
+        or ItemPolicy.isContinuous(item)
 end
 
 function ItemPolicy.automationPolicy(item)

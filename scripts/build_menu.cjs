@@ -35,18 +35,32 @@ function posixRelative(from, to) {
 function resolvePrismRoot() {
 	const candidates = [
 		process.env.PRISM_ROOT,
+		path.join(generatedRoot, "prism"),
 		path.resolve(repoRoot, "../prism"),
 		path.resolve(repoRoot, "../../prism"),
 		"C:/git/prism",
 	].filter(Boolean);
+	const rejected = [];
 	for (const candidate of candidates) {
-		if (fs.existsSync(path.join(candidate, "src", "lib", "index.ts"))) {
-			return path.resolve(candidate);
-		}
+		const indexPath = path.join(candidate, "src", "lib", "index.ts");
+		if (!fs.existsSync(indexPath)) continue;
+		const tabsTypes = path.join(candidate, "src", "lib", "components", "Tabs", "types.ts");
+		const keybindTypes = path.join(candidate, "src", "lib", "components", "KeybindInput", "types.ts");
+		const segmentedTypes = path.join(candidate, "src", "lib", "components", "SegmentedControl", "types.ts");
+		const compatible =
+			fs.existsSync(tabsTypes) &&
+			fs.readFileSync(tabsTypes, "utf8").includes("tabIndicator") &&
+			fs.existsSync(keybindTypes) &&
+			fs.readFileSync(keybindTypes, "utf8").includes("Enum.UserInputType") &&
+			fs.existsSync(segmentedTypes) &&
+			fs.readFileSync(segmentedTypes, "utf8").includes("styleOverrides");
+		if (compatible) return path.resolve(candidate);
+		rejected.push(path.resolve(candidate));
 	}
 	fail(
-		"Set PRISM_ROOT to a Prism checkout containing src/lib/index.ts. Tried: " +
-			candidates.join(", "),
+		"Set PRISM_ROOT to a compatible Prism checkout containing Tabs.tabIndicator, mouse keybinds, and styleOverrides. Tried: " +
+			candidates.join(", ") +
+			(rejected.length > 0 ? `. Incompatible: ${rejected.join(", ")}` : ""),
 	);
 }
 
@@ -99,13 +113,15 @@ function main() {
 	fs.mkdirSync(generatedRoot, { recursive: true });
 	fs.mkdirSync(path.join(uiRoot, "dist"), { recursive: true });
 
-	const prismIndex = posixRelative(path.join(uiRoot, "src"), path.join(prismRoot, "src", "lib", "index"));
-	const prismLib = posixRelative(path.join(uiRoot, "src"), path.join(prismRoot, "src", "lib"));
+	const prismSourceRoot = path.join(generatedRoot, "prism-src");
+	fs.rmSync(prismSourceRoot, { recursive: true, force: true });
+	fs.cpSync(path.join(prismRoot, "src"), prismSourceRoot, { recursive: true });
+	const prismLib = posixRelative(path.join(uiRoot, "src"), path.join(prismSourceRoot, "lib"));
 	writeJson(path.join(uiRoot, "tsconfig.prism.json"), {
 		compilerOptions: {
-			rootDirs: ["src", posixRelative(uiRoot, path.join(prismRoot, "src"))],
+			rootDirs: ["src", posixRelative(uiRoot, prismSourceRoot)],
 			paths: {
-				"@prism": [prismIndex],
+				"@prism": ["prismCompat"],
 				"@prism/*": [`${prismLib}/*`],
 			},
 		},
@@ -134,6 +150,7 @@ function main() {
 			$className: "ModuleScript",
 			$path: "init.lua",
 			ReplicatedStorage: {
+				$className: "Folder",
 				UniversalHubMenu: {
 					$path: posixRelative(generatedRoot, path.join(uiRoot, "out")),
 				},
@@ -159,6 +176,9 @@ function main() {
 	const waxPath =
 		process.env.WAX_PATH ||
 		downloadWax(path.join(generatedRoot, "wax.luau"));
+	if (fs.existsSync(path.join(prismRoot, "rokit.toml"))) {
+		run("rokit", ["install"], prismRoot);
+	}
 	run(
 		"lune",
 		[
@@ -169,8 +189,18 @@ function main() {
 			`output=${distLua}`,
 			"env-name=UniversalHubNativeBundle",
 		],
-		generatedRoot,
+		prismRoot,
 	);
+
+	const bundled = fs.readFileSync(distLua, "utf8");
+	const schedulerPatched = bundled.replace(
+		/local function wrapPerformWorkWithCoroutine\(performWork\)[\s\S]*?\nend\r?\nperformWorkUntilDeadline = wrapPerformWorkWithCoroutine/,
+		"local function wrapPerformWorkWithCoroutine(performWork)\n\treturn performWork\nend\nperformWorkUntilDeadline = wrapPerformWorkWithCoroutine",
+	);
+	if (schedulerPatched === bundled) {
+		fail("Wax bundle is missing wrapPerformWorkWithCoroutine; cannot keep Instance work on the executor thread");
+	}
+	fs.writeFileSync(distLua, schedulerPatched);
 
 	const sha256 = crypto.createHash("sha256").update(fs.readFileSync(distLua)).digest("hex");
 	fs.writeFileSync(

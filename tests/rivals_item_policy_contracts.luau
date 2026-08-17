@@ -31,6 +31,13 @@ local firearm = { Info = { ShootDamage = 25 } }
 assert(ItemPolicy.hasTargetedDamage(firearm))
 assert(ItemPolicy.automationPolicy(firearm).silentAim == true)
 
+local continuous = { Info = { InternalUseCooldown = 0.25, MaxAmmo = 100 } }
+assert(ItemPolicy.isContinuous(continuous))
+assert(ItemPolicy.hasTargetedDamage(continuous),
+    "A stream weapon must be triggerable without a per-shot damage field")
+assert(ItemPolicy.automationPolicy(continuous).triggerBot == true)
+assert(not ItemPolicy.isContinuous({ Info = { ShootDamage = 12 } }))
+
 local backstab = {
     _backstab_hash = 12,
     Info = { CriticalDamage = 150, HeavyAttackReach = 6, HeavyAttackCooldown = 1 },
@@ -73,6 +80,32 @@ assert(ItemPolicy.isTrueDamage({ Info = { DealsTrueDamage = true } }))
 assert(not ItemPolicy.isTrueDamage({ Name = "Spray", Info = {} }))
 assert(ItemPolicy.isAbsorber({ Info = { MaxAbsorption = 500 } }))
 assert(not ItemPolicy.isAbsorber({ Name = "Riot Shield", Info = {} }))
+local deflectInfo = { DeflectDuration = 1, DeflectCooldown = 4 }
+assert(ItemPolicy.hasDeflectCapability({ Info = deflectInfo }))
+assert(ItemPolicy.isDeflector({ _deflect_hash = 0, Info = deflectInfo }))
+assert(not ItemPolicy.isDeflector({ Info = deflectInfo }),
+    "A catalog-shaped deflector must still require a live deflect hash")
+assert(ItemPolicy.isActivelyDeflecting({
+    Info = deflectInfo,
+    Get = function()
+        return 0
+    end,
+    Data = { FOVOffset = 5 },
+}), "A default Get must not hide a replicated block FOV")
+assert(ItemPolicy.isActivelyDeflecting({
+    Info = deflectInfo,
+    Get = function()
+        return 5
+    end,
+    Data = { FOVOffset = 0 },
+}))
+assert(not ItemPolicy.isActivelyDeflecting({
+    Info = deflectInfo,
+    Get = function()
+        return 0
+    end,
+    Data = { FOVOffset = 0 },
+}))
 assert(policySources:find("FighterController.GetFighter", 1, true), "fighter lookup must prefer the public GetFighter seam")
 assert(policySources:find("CameraController.GetCurrentSubject", 1, true), "active-subject checks must prefer GetCurrentSubject")
 assert(policySources:find("WeaponPolicy.isFanFirearm", 1, true), "Revolver trigger must use the fan-firearm policy")

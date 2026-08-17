@@ -16,6 +16,8 @@ local CameraAim = importDependency("games/rivals/features/CameraAim", "./feature
 local SilentAim = importDependency("games/rivals/features/SilentAim", "./features/SilentAim")
 local TeleportBehind = importDependency("games/rivals/features/TeleportBehind", "./features/TeleportBehind")
 local TriggerBot = importDependency("games/rivals/features/TriggerBot", "./features/TriggerBot")
+local SkipBlocks = importDependency("games/rivals/features/SkipBlocks", "./features/SkipBlocks")
+local AutoDeflect = importDependency("games/rivals/features/AutoDeflect", "./features/AutoDeflect")
 local AutoCounter = importDependency("games/rivals/features/AutoCounter", "./features/AutoCounter")
 local NoScope = importDependency("games/rivals/features/NoScope", "./features/NoScope")
 local Pickup = importDependency("games/rivals/features/Pickup", "./features/Pickup")
@@ -94,14 +96,15 @@ end
 
 function Rivals.capabilitiesFor(context, declaredCapabilities)
     context = context or {}
-    local autoPickupAvailable = context.isGunGame == true
-        and context.fireTouchInterestAvailable == true
+    -- Gun Game is joined after execute. Do not snapshot IsGunGame here or the
+    -- Tools tab disappears for the rest of the session.
+    local autoPickupAvailable = context.fireTouchInterestAvailable == true
     local hookFeaturesAvailable = context.hookFunctionAvailable == true
         and context.restoreFunctionAvailable == true
     local capabilities = {}
     for _, capability in ipairs(declaredCapabilities or {}) do
         local available = capability ~= "autoPickup" or autoPickupAvailable
-        if capability == "shotAim" or capability == "alwaysScoped" then
+        if capability == "shotAim" or capability == "alwaysScoped" or capability == "skipDeflect" then
             available = available and hookFeaturesAvailable
         end
         if available then
@@ -377,18 +380,7 @@ function Rivals.new(context)
 
     local function isDeflecting(player)
         local fighter = fighterFor(player)
-        local item = fighter and fighter.EquippedItem
-        if not WeaponPolicy.isDeflector(item) then
-            return false
-        end
-        if type(item.Get) == "function" then
-            local succeeded, value = pcall(item.Get, item, "FOVOffset")
-            if succeeded and value ~= nil then
-                return value == 5
-            end
-        end
-        local data = item.Data
-        return type(data) == "table" and data.FOVOffset == 5
+        return WeaponPolicy.isActivelyDeflecting(fighter and fighter.EquippedItem)
     end
 
     local function currentCameraSubject()
@@ -1373,6 +1365,28 @@ function Rivals.new(context)
         capabilities = context.capabilities,
         hookFunction = context.hookFunction,
         restoreFunction = context.restoreFunction,
+        skipBlocks = {
+            getFighter = function()
+                return FighterController.LocalFighter
+            end,
+            hookFunction = context.hookFunction,
+            isEnabled = function()
+                return not stopped and store:Get().settings.skipDeflect == true
+            end,
+            restoreFunction = context.restoreFunction,
+            shouldBlock = function(item)
+                local settings = store:Get().settings
+                local target = settings.shotAim == true and session.presented or session.aligned
+                if not target and settings.shotAim ~= true then
+                    target = selectTarget(nil, true, true)
+                end
+                return SkipBlocks.shouldBlock(item, target, {
+                    isDeflecting = isDeflecting,
+                    fighterFor = fighterFor,
+                    taskCounterPolicy = TaskCounterPolicy,
+                })
+            end,
+        },
         scopedAccuracy = {
             getFighter = function()
                 return FighterController.LocalFighter
@@ -1492,7 +1506,7 @@ function Rivals.new(context)
             taskSkillRuntime:reset()
             taskSkillWasActive = taskCombatActive
         end
-        if NoScope.shouldRefresh(settings) then
+        if NoScope.shouldRefresh(settings) or settings.skipDeflect == true then
             refreshHooks()
         end
         if type(deltaTime) == "number" and deltaTime > 0 then
@@ -1697,7 +1711,86 @@ function Rivals.new(context)
         elseif not settingsSubscription then
             effects:renderTrajectory(nil)
         end
+        if settings.skipDeflect == true then
+            local equipped = fighter and fighter.EquippedItem
+            SkipBlocks.update(equipped, triggerTarget, {
+                isDeflecting = isDeflecting,
+                fighterFor = fighterFor,
+                taskCounterPolicy = TaskCounterPolicy,
+                fireHeld = trigger.fireHeld,
+                releaseFire = function()
+                    finishShooting()
+                    trigger.fireHeld = false
+                    trigger.fireItem = nil
+                end,
+            })
+        end
+        local autoDeflectActed = false
+        if settings.autoDeflect == true then
+            local entity = fighter and fighter.Entity
+            local humanoid = entity and entity.Humanoid
+            local ours = entity and entity.Character or LocalPlayer.Character
+            local opponents = {}
+            local map = FighterController._player_to_fighter
+            if type(map) == "table" then
+                for player, opponentFighter in pairs(map) do
+                    local character = player and player.Character
+                    if player ~= LocalPlayer
+                        and opponentFighter
+                        and character
+                        and isTargetable(player, character)
+                    then
+                        opponents[#opponents + 1] = {
+                            player = player,
+                            character = character,
+                            EquippedItem = opponentFighter.EquippedItem,
+                        }
+                    end
+                end
+            end
+            autoDeflectActed = AutoDeflect.update(settings, {
+                inputCaptured = context.isInputCaptured(),
+                fighterActive = localFighterIsActive(),
+                inCombat = localFighterIsInCombat(),
+                getFighter = function()
+                    return FighterController.LocalFighter
+                end,
+                weaponPolicy = WeaponPolicy,
+                itemClock = itemClock,
+                health = humanoid and humanoid.Health,
+                character = ours,
+                opponents = opponents,
+                hasLine = function(origin, point, opponentCharacter)
+                    local cast = type(environmentRaycast) == "function" and environmentRaycast()
+                    if type(cast) ~= "function"
+                        or typeof(origin) ~= "Vector3"
+                        or typeof(point) ~= "Vector3"
+                    then
+                        return true
+                    end
+                    local delta = point - origin
+                    local distance = delta.Magnitude
+                    if distance < 1 then
+                        return true
+                    end
+                    local result = cast(origin, delta.Unit, distance)
+                    if not result or not result.Instance then
+                        return true
+                    end
+                    if ours and result.Instance:IsDescendantOf(ours) then
+                        return true
+                    end
+                    if opponentCharacter and result.Instance:IsDescendantOf(opponentCharacter) then
+                        return true
+                    end
+                    return false
+                end,
+                aimClick = startAiming,
+                taskDebug = self.taskDebug,
+            })
+        end
         if not autoCounterActed
+            and not autoDeflectActed
             and (settings.triggerBot == true
                 or taskCombatActive
                 or trigger.held

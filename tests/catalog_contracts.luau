@@ -209,6 +209,9 @@ for _, path in ipairs(Catalog) do
             expected.wallNoclip = false
             expected.wallPhase = false
             expected.teleportBehind = false
+            expected.skipDeflect = false
+            expected.autoDeflect = false
+            expected.triggerDelay = 0
             expectedState = Compatibility.InitialState()
         end
         assert(deepEqual(definition.defaults, expected), path .. " must preserve the existing config defaults")
@@ -261,7 +264,7 @@ for _, id in ipairs({ "counterblox", "rivals", "town" }) do
     if id == "rivals" then
         local count = 0
         for _ in pairs(rawDefinitions[id].defaults) do count += 1 end
-        defaultsAreSparse = count == 7
+        defaultsAreSparse = count == 10
             and rawDefinitions[id].defaults.autoCounter == false
             and rawDefinitions[id].defaults.taskAutomationPaused == true
             and rawDefinitions[id].defaults.taskAutomationEmergencyKey == "End"
@@ -269,6 +272,9 @@ for _, id in ipairs({ "counterblox", "rivals", "town" }) do
             and rawDefinitions[id].defaults.wallNoclip == false
             and rawDefinitions[id].defaults.wallPhase == false
             and rawDefinitions[id].defaults.teleportBehind == false
+            and rawDefinitions[id].defaults.skipDeflect == false
+            and rawDefinitions[id].defaults.autoDeflect == false
+            and rawDefinitions[id].defaults.triggerDelay == 0
         initialStateIsSparse = next(rawDefinitions[id].initialState) == nil
     end
     assert(

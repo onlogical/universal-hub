@@ -37,12 +37,24 @@ local function mergeKnown(target, source)
     return target
 end
 
+local function omitKeys(settings, omittedKeys)
+    if type(settings) ~= "table" then
+        return settings
+    end
+    local result = copy(settings)
+    for key in pairs(omittedKeys or {}) do
+        result[key] = nil
+    end
+    return result
+end
+
 function Config.new(options)
     assert(options and options.path, "Config requires a workspace path")
     return setmetatable({
         decode = options.decode,
         encode = options.encode,
         isFile = options.isFile,
+        omittedKeys = options.omittedKeys or {},
         path = options.path,
         readFile = options.readFile,
         writeFile = options.writeFile,
@@ -61,7 +73,7 @@ function Config:load(defaults)
 
     local success, decoded = pcall(self.decode, self.readFile(self.path))
     if success then
-        mergeKnown(result, decoded)
+        mergeKnown(result, omitKeys(decoded, self.omittedKeys))
     end
     return result
 end
@@ -71,7 +83,7 @@ function Config:save(settings)
         return false
     end
 
-    local success = pcall(self.writeFile, self.path, self.encode(copy(settings)))
+    local success = pcall(self.writeFile, self.path, self.encode(omitKeys(settings, self.omittedKeys)))
     return success
 end
 

@@ -263,6 +263,7 @@ function StandardPanels.new(bridge, available)
         available = available,
         bridge = bridge,
         controls = bridge.controls,
+        ephemeralSettings = {},
         groups = {},
         groupById = {},
         pages = {},
@@ -571,6 +572,9 @@ function StandardPanels:aim()
     end)
 end
 
+function StandardPanels:slider(_sectionId, _id, _label, _spec)
+end
+
 function StandardPanels:rate(id, label)
     if not self.available[id] or self.controls.rates[id] then
         return
@@ -654,7 +658,7 @@ function StandardPanels:rate(id, label)
     table.insert(state.rates, id)
 end
 
-function StandardPanels:section(page, id, label, lineOffset, includesRates, columns)
+function StandardPanels:section(page, id, label, lineOffset, includesRates, columns, spec)
     assert(not self.groupById[id], "Duplicate presentation section: " .. id)
     assert(type(page) == "string" and page ~= "", "Presentation sections require a game-owned page")
     local group = {
@@ -664,6 +668,7 @@ function StandardPanels:section(page, id, label, lineOffset, includesRates, colu
         lineOffset = lineOffset or 70,
         includesRates = includesRates == true,
         columns = columns or 1,
+        ephemeral = page == "Rage" or (type(spec) == "table" and spec.persist == false),
         maxRow = 0,
         rows = {},
     }
@@ -726,6 +731,11 @@ function StandardPanels:option(sectionId, rowIndex, id, label, parent)
     end
     local state = self
     local group = assert(state.groupById[sectionId], "Unknown presentation section: " .. sectionId)
+    local optionSpec = type(parent) == "table" and parent or nil
+    local ephemeral = group.ephemeral or (optionSpec and optionSpec.persist == false)
+    if ephemeral then
+        state.ephemeralSettings[id] = true
+    end
     buildSection(state, group)
     group.rows[rowIndex] = group.rows[rowIndex] or {}
     table.insert(group.rows[rowIndex], id)
@@ -815,7 +825,7 @@ function StandardPanels:option(sectionId, rowIndex, id, label, parent)
             return
         end
         local current = state.bridge.context.store:Get()
-        state.bridge.context.setOption(id, not current.settings[id])
+        state.bridge.context.setOption(id, not current.settings[id], not ephemeral)
     end)
     state.controls.options[id] = {
         row = row,

@@ -43,6 +43,34 @@ function TriggerBot.hubReady(state, now)
     return false
 end
 
+TriggerBot.MAX_DELAY_MS = 250
+
+function TriggerBot.delaySeconds(settings)
+    local ms = settings and settings.triggerDelay
+    if type(ms) ~= "number" or ms <= 0 then
+        return 0
+    end
+    return math.clamp(ms, 0, TriggerBot.MAX_DELAY_MS) / 1000
+end
+
+function TriggerBot.delayReady(state, now, delay, targetKey)
+    if type(delay) ~= "number" or delay <= 0 then
+        if state then
+            state.armedAt = nil
+            state.armedKey = nil
+        end
+        return true
+    end
+    if type(now) ~= "number" then
+        return true
+    end
+    if state.armedKey ~= targetKey or type(state.armedAt) ~= "number" then
+        state.armedAt = now
+        state.armedKey = targetKey
+    end
+    return now >= state.armedAt + delay
+end
+
 function TriggerBot.holdDropped(item, now, fallback)
     if type(now) ~= "number" or not TriggerBot.weaponReady(item, now) then
         return false
@@ -52,7 +80,7 @@ function TriggerBot.holdDropped(item, now, fallback)
         return false
     end
     local readyAt = item and item._shoot_cooldown
-    if type(readyAt) ~= "number" then
+    if type(readyAt) ~= "number" or readyAt <= 0 then
         return false
     end
     return now - readyAt > delay
@@ -151,6 +179,19 @@ function TriggerBot.pathReady(target, item, ctx)
     return TriggerBot.hitscanReady(target, cameraOrigin(ctx), ctx.raycast, ctx.targeting)
 end
 
+function TriggerBot.shouldHoldForDeflect(target, item, ctx)
+    if not target or type(ctx) ~= "table" or type(ctx.isDeflecting) ~= "function" then
+        return false
+    end
+    local targetFighter = target.player and type(ctx.fighterFor) == "function" and ctx.fighterFor(target.player)
+    local counter = ctx.taskCounterPolicy
+    local sprayCounter = targetFighter
+        and type(counter) == "table"
+        and type(counter.shouldForceSpray) == "function"
+        and counter.shouldForceSpray(item, targetFighter.EquippedItem)
+    return ctx.isDeflecting(target.player) == true and sprayCounter ~= true
+end
+
 function TriggerBot.update(session, ctx)
     local settings = session and session.settings or {}
     local alignedTarget = TriggerBot.target(session, ctx.alignedTarget)
@@ -174,6 +215,8 @@ function TriggerBot.update(session, ctx)
             taskDebug.triggerStage = "inactive"
         end
         state.gunblade = nil
+        state.armedAt = nil
+        state.armedKey = nil
         ctx.releaseFire()
         if state.held then
             ctx.aimRelease()
@@ -231,6 +274,21 @@ function TriggerBot.update(session, ctx)
             target = ctx.selectTarget(nil, true, true)
         end
     end
+    if TriggerBot.shouldHoldForDeflect(target, item, ctx) then
+        if taskDebug then
+            taskDebug.triggerStage = "target-deflecting"
+        end
+        state.gunblade = nil
+        state.armedAt = nil
+        state.armedKey = nil
+        ctx.releaseFire()
+        if state.held then
+            ctx.aimRelease()
+            state.held = false
+            state.heldItem = nil
+        end
+        return
+    end
     if not target or not TriggerBot.pathReady(target, item, ctx) then
         if taskDebug then
             taskDebug.triggerStage = not target and "no-target" or "path-blocked"
@@ -239,28 +297,14 @@ function TriggerBot.update(session, ctx)
             return
         end
         state.gunblade = nil
+        state.armedAt = nil
+        state.armedKey = nil
         ctx.releaseFire()
         if state.held then
             ctx.aimRelease()
             state.held = false
             state.heldItem = nil
             state.nextAt = ctx.clock() + TriggerBot.fireDelay(item, interval)
-        end
-        return
-    end
-    local targetFighter = target.player and ctx.fighterFor(target.player)
-    local sprayCounter = targetFighter
-        and ctx.taskCounterPolicy.shouldForceSpray(item, targetFighter.EquippedItem)
-    if ctx.isDeflecting(target.player) and not sprayCounter then
-        if taskDebug then
-            taskDebug.triggerStage = "target-deflecting"
-        end
-        state.gunblade = nil
-        ctx.releaseFire()
-        if state.held then
-            ctx.aimRelease()
-            state.held = false
-            state.heldItem = nil
         end
         return
     end
@@ -350,6 +394,9 @@ function TriggerBot.update(session, ctx)
         ctx.aimClick()
         return
     end
+    local targetFighter = target.player and ctx.fighterFor(target.player)
+    local sprayCounter = targetFighter
+        and ctx.taskCounterPolicy.shouldForceSpray(item, targetFighter.EquippedItem)
     local camera = ctx.camera
     local cameraFrame = camera
         and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
@@ -384,6 +431,17 @@ function TriggerBot.update(session, ctx)
     if taskDebug then
         taskDebug.triggerStage = "ready"
         taskDebug.triggerDistance = targetDistance
+    end
+    local targetKey = target.character or target.player or target
+    local previousKey = state.armedKey
+    if not TriggerBot.delayReady(state, ctx.clock(), TriggerBot.delaySeconds(settings), targetKey) then
+        if taskDebug then
+            taskDebug.triggerStage = "delay"
+        end
+        if previousKey ~= targetKey then
+            ctx.releaseFire()
+        end
+        return
     end
     if WeaponPolicy.isFanFirearm(item) then
         ctx.releaseFire()

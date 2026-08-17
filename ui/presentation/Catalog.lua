@@ -16,6 +16,68 @@ Catalog.__index = Catalog
 
 local PAGE_ORDER = { "Combat", "Rage", "Movement", "Visuals", "Tools", "Settings" }
 
+local function isEphemeral(page, spec)
+    return page == "Rage" or (type(spec) == "table" and spec.persist == false)
+end
+
+function Catalog.collectEphemeralSettings(presentation)
+    assert(
+        type(presentation) == "table" and type(presentation.mount) == "function",
+        "Ephemeral setting collection requires a game presentation"
+    )
+    local result = {}
+    local sections = {}
+    local collector = {}
+
+    function collector:section(page, id, _label, _lineOffset, _includesRates, _columns, spec)
+        sections[id] = {
+            ephemeral = isEphemeral(page, spec),
+            page = page,
+        }
+    end
+
+    function collector:option(sectionId, _rowIndex, id, _label, parent)
+        local section = assert(sections[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+        if section.ephemeral or isEphemeral(section.page, type(parent) == "table" and parent or nil) then
+            result[id] = true
+        end
+    end
+
+    function collector:slider(sectionId, id, _label, spec)
+        local section = assert(sections[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+        if section.ephemeral or isEphemeral(section.page, spec) then
+            result[id] = true
+        end
+    end
+
+    function collector:keybind(sectionId, id)
+        local section = assert(sections[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+        if section.ephemeral then
+            result[id] = true
+        end
+    end
+
+    function collector:segmented(page, spec)
+        if not isEphemeral(page, spec) then
+            return
+        end
+        result[spec.id] = true
+        for _, option in ipairs(spec.options or {}) do
+            for _, entry in ipairs(option.patch or {}) do
+                result[entry[1]] = true
+            end
+        end
+    end
+
+    setmetatable(collector, {
+        __index = function()
+            return function() end
+        end,
+    })
+    presentation.mount(collector)
+    return result
+end
+
 local function buildAvailability(capabilities)
     local available = {}
     for key, value in pairs(capabilities or {}) do
@@ -39,10 +101,12 @@ function Catalog.new(context)
         hasContent = {},
         optionSupport = context.optionSupport or {},
         pageMetadata = {},
+        ephemeralSettings = {},
         rates = {},
         relatedValues = {},
         segments = {},
         segmentById = {},
+        sliderById = {},
     }, Catalog)
 end
 
@@ -116,13 +180,23 @@ function Catalog:segmented(page, spec)
         return
     end
     spec.page = page
+    spec.ephemeral = isEphemeral(page, spec)
+    if spec.ephemeral then
+        self.ephemeralSettings[spec.id] = true
+        for _, option in ipairs(spec.options or {}) do
+            for _, entry in ipairs(option.patch or {}) do
+                self.ephemeralSettings[entry[1]] = true
+            end
+        end
+    end
     self.segmentById[spec.id] = spec
     table.insert(self.segments, spec)
     self:_markPage(page)
 end
 
-function Catalog:section(page, id, label, lineOffset, includesRates, columns)
+function Catalog:section(page, id, label, lineOffset, includesRates, columns, spec)
     assert(not self.groupById[id], "Duplicate presentation section: " .. tostring(id))
+    spec = type(spec) == "table" and spec or {}
     local group = {
         id = id,
         page = page,
@@ -130,8 +204,11 @@ function Catalog:section(page, id, label, lineOffset, includesRates, columns)
         lineOffset = lineOffset,
         includesRates = includesRates == true,
         columns = columns or 1,
+        ephemeral = isEphemeral(page, spec),
+        treatment = spec.treatment,
         options = {},
         keybinds = {},
+        sliders = {},
     }
     self.groupById[id] = group
     table.insert(self.groups, group)
@@ -142,19 +219,70 @@ function Catalog:option(sectionId, rowIndex, id, label, parent, visibility)
         return
     end
     local group = assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+    local spec = type(parent) == "table" and parent or nil
+    if spec then
+        parent = spec.parent
+        visibility = spec.visibility or spec.when or visibility
+    end
+    local placement = spec and spec.placement or nil
+    local ephemeral = group.ephemeral or isEphemeral(group.page, spec)
+    if placement == nil then
+        if parent == "audience" then
+            placement = "audience"
+        elseif type(parent) == "string" then
+            placement = "details"
+        else
+            placement = "grid"
+        end
+    end
+    if placement == "audience" then
+        parent = nil
+    end
     table.insert(group.options, {
+        ephemeral = ephemeral,
         id = id,
         label = label,
         parent = parent,
+        placement = placement,
         row = rowIndex,
         visibility = visibility,
     })
+    if ephemeral then
+        self.ephemeralSettings[id] = true
+    end
+    self:_markPage(group.page)
+end
+
+function Catalog:slider(sectionId, id, label, spec)
+    if not self.available[id] then
+        return
+    end
+    local group = assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+    spec = spec or {}
+    local slider = {
+        ephemeral = group.ephemeral or isEphemeral(group.page, spec),
+        id = id,
+        label = label,
+        min = spec.min or 0,
+        max = spec.max or 100,
+        step = spec.step or 1,
+        unit = spec.unit or "",
+        parent = spec.parent,
+    }
+    if slider.ephemeral then
+        self.ephemeralSettings[id] = true
+    end
+    table.insert(group.sliders, slider)
+    self.sliderById[id] = slider
     self:_markPage(group.page)
 end
 
 function Catalog:keybind(sectionId, id, label, defaultValue)
     local group = assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
     table.insert(group.keybinds, { id = id, label = label, defaultValue = defaultValue })
+    if group.ephemeral then
+        self.ephemeralSettings[id] = true
+    end
     self:_markPage(group.page)
 end
 
@@ -245,7 +373,7 @@ function Catalog:model(state)
         append(sectionsByPage[segment.page], {
             id = segment.id,
             label = segment.sectionLabel or segment.label,
-            treatment = "card",
+            treatment = segment.treatment or (segment.id == "worldRenderer" and "style" or "card"),
             controls = controls,
         })
     end
@@ -306,7 +434,7 @@ function Catalog:model(state)
     end
 
     for _, group in ipairs(self.groups) do
-        if #group.options > 0 or #group.keybinds > 0 then
+        if #group.options > 0 or #group.keybinds > 0 or #group.sliders > 0 then
             local controls = {}
             for _, keybind in ipairs(group.keybinds) do
                 local value = settings[keybind.id]
@@ -339,16 +467,69 @@ function Catalog:model(state)
                         kind = "toggle",
                         label = option.label,
                         parent = option.parent,
+                        placement = option.placement,
                         value = settings[option.id] == true,
                         status = status,
                     })
+                    for _, slider in ipairs(group.sliders) do
+                        if slider.parent == option.id and settings[option.id] == true then
+                            local value = settings[slider.id]
+                            if type(value) ~= "number" then
+                                value = slider.min
+                            end
+                            append(controls, {
+                                id = slider.id,
+                                kind = "slider",
+                                label = slider.label,
+                                parent = slider.parent,
+                                value = math.clamp(value, slider.min, slider.max),
+                                min = slider.min,
+                                max = slider.max,
+                                step = slider.step,
+                                unit = slider.unit,
+                                emphasis = "nested",
+                            })
+                        end
+                    end
                 end
             end
+            for _, slider in ipairs(group.sliders) do
+                if slider.parent then
+                    continue
+                end
+                local value = settings[slider.id]
+                if type(value) ~= "number" then
+                    value = slider.min
+                end
+                append(controls, {
+                    id = slider.id,
+                    kind = "slider",
+                    label = slider.label,
+                    value = math.clamp(value, slider.min, slider.max),
+                    min = slider.min,
+                    max = slider.max,
+                    step = slider.step,
+                    unit = slider.unit,
+                    emphasis = "row",
+                })
+            end
             if #controls > 0 then
+                local treatment = group.treatment
+                if treatment == nil then
+                    local metadata = self.pageMetadata[group.page] or {}
+                    if metadata.layout == "toggle-grid" then
+                        for _, option in ipairs(group.options) do
+                            if option.placement == "grid" then
+                                treatment = "grid"
+                                break
+                            end
+                        end
+                    end
+                end
                 append(sectionsByPage[group.page], {
                     id = group.id,
                     label = group.label,
-                    treatment = "list",
+                    treatment = treatment or "list",
                     controls = controls,
                 })
             end
@@ -533,6 +714,7 @@ function Catalog:model(state)
                     },
                 }
                 preview.nameLabel = self.context.localPlayer and self.context.localPlayer.Name or "Preview Player"
+                preview.weaponLabel = preview.weaponLabel or "Assault Rifle"
                 preview.boxes = settings.boxes == true
                 preview.chams = settings.chams == true
                 preview.names = settings.names == true
@@ -555,11 +737,19 @@ function Catalog:model(state)
                     end
                 end
             end
+            local views = metadata.views
+            if views == nil and preview and preview.palette then
+                views = {
+                    { id = "preview", label = "Preview" },
+                    { id = "colors", label = "ESP Colors" },
+                }
+            end
             append(pages, {
                 id = page,
                 label = page,
                 icon = self.context.pageIcons and self.context.pageIcons[page] or nil,
                 layout = metadata.layout,
+                views = views,
                 preview = preview,
                 sections = sectionsByPage[page],
             })
@@ -579,6 +769,7 @@ function Catalog:model(state)
         onValueChange = function(id, value, persist)
             local segment = self.segmentById[id]
             if segment then
+                local shouldPersist = not segment.ephemeral
                 local currentSettings = self.context.store:Get().settings
                 local currentValue = selectedSegmentValue(segment, currentSettings)
                 for _, related in ipairs(segment.related or {}) do
@@ -590,15 +781,15 @@ function Catalog:model(state)
                     if option.value == value then
                         for _, entry in ipairs(option.patch or {}) do
                             if type(entry[2]) == "boolean" or type(self.context.setSetting) ~= "function" then
-                                self.context.setOption(entry[1], entry[2])
+                                self.context.setOption(entry[1], entry[2], shouldPersist)
                             else
-                                self.context.setSetting(entry[1], entry[2], true)
+                                self.context.setSetting(entry[1], entry[2], shouldPersist)
                             end
                         end
                         for _, related in ipairs(segment.related or {}) do
                             local retained = self.relatedValues[related.id]
                             if related.when == value and retained ~= nil then
-                                self.context.setOption(related.id, retained)
+                                self.context.setOption(related.id, retained, shouldPersist)
                             end
                         end
                         return
@@ -636,7 +827,7 @@ function Catalog:model(state)
                     self.context.setSetting(ColorPolicy.settingName(relationship, "fillAlpha"), -1, persist == true)
                 end
             elseif id == "fullScreenAim" then
-                self.context.setOption(id, value == "fullscreen")
+                self.context.setOption(id, value == "fullscreen", not self.ephemeralSettings[id])
             elseif id == "cosmeticWear" and self.context.setWear then
                 local cosmetics = self.context.store:Get().cosmetics or {}
                 local minimum = cosmetics.minimumWear or 0
@@ -652,9 +843,13 @@ function Catalog:model(state)
                 if (cosmetics.statTrak == true) ~= (value == true) then
                     self.context.toggleStatTrak()
                 end
+            elseif self.sliderById[id] then
+                local slider = self.sliderById[id]
+                local nextValue = math.clamp(math.round(value), slider.min, slider.max)
+                self.context.setSetting(id, nextValue, persist == true and not slider.ephemeral)
             elseif self.groupById[id] or self.available[id] then
                 if type(value) == "boolean" then
-                    self.context.setOption(id, value)
+                    self.context.setOption(id, value, not self.ephemeralSettings[id])
                 else
                     self.context.setRate(id, value, persist == true)
                 end

@@ -11,6 +11,7 @@ end
 
 local ScopedAccuracy = importDependency("games/rivals/features/ScopedAccuracy", "../features/ScopedAccuracy")
 local ShotPresentation = importDependency("games/rivals/features/ShotPresentation", "../features/ShotPresentation")
+local SkipBlocks = importDependency("games/rivals/features/SkipBlocks", "../features/SkipBlocks")
 local HookRuntime = {}
 HookRuntime.__index = HookRuntime
 
@@ -29,10 +30,15 @@ local NullScoped = {}
 function NullScoped:refreshHook() end
 function NullScoped:stop() end
 
+local NullSkip = {}
+function NullSkip:refreshHook() end
+function NullSkip:stop() end
+
 function HookRuntime.new(options)
     local wantsShotAim = supports(options.capabilities, "shotAim")
     local wantsScoped = supports(options.capabilities, "alwaysScoped")
-    if wantsShotAim or wantsScoped then
+    local wantsSkip = supports(options.capabilities, "skipDeflect")
+    if wantsShotAim or wantsScoped or wantsSkip then
         assert(options.hookFunction, "enabled RIVALS hook features require hookfunction")
         assert(options.restoreFunction, "enabled RIVALS hook features require restorefunction")
     end
@@ -44,17 +50,23 @@ function HookRuntime.new(options)
     if wantsScoped then
         scoped = ScopedAccuracy.new(options.scopedAccuracy)
     end
-    return setmetatable({ presentation = presentation, scoped = scoped }, HookRuntime)
+    local skip = NullSkip
+    if wantsSkip then
+        skip = SkipBlocks.new(options.skipBlocks)
+    end
+    return setmetatable({ presentation = presentation, scoped = scoped, skip = skip }, HookRuntime)
 end
 
 function HookRuntime:refresh()
     self.presentation:refreshHook()
     self.scoped:refreshHook()
+    self.skip:refreshHook()
 end
 
 function HookRuntime:stop()
     self.presentation:stop()
     self.scoped:stop()
+    self.skip:stop()
 end
 
 return HookRuntime
