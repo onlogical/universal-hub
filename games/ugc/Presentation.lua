@@ -52,6 +52,9 @@ function Presentation.mount(host)
             parent = "autoParry",
         })
     end
+
+    host:section("Movement", "movement", "MOVEMENT", 70)
+    host:option("movement", 1, "wallPhase", "Wall Phase")
 end
 
 return Presentation

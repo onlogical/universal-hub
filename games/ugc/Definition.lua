@@ -3,6 +3,7 @@ return {
         autoParry = false,
         autoParryDelay = 0.05,
         autoParryRange = 25,
+        wallPhase = false,
     },
     features = {
         capabilities = {
@@ -17,6 +18,7 @@ return {
             "autoParry",
             "autoParryRange",
             "autoParryDelay",
+            "wallPhase",
         },
         cosmetics = false,
     },

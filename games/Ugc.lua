@@ -4,6 +4,7 @@ local GUARD_KEY = 0x46
 local DEFAULT_PARRY_RANGE = 25
 local DEFAULT_PARRY_DELAY = 0.05
 local PARRY_COOLDOWN = 0.4
+local WALL_PHASE_COOLDOWN = 0.35
 
 local function isAttackTrack(track)
     local priority = track.Priority
@@ -23,6 +24,7 @@ function Ugc.new(context)
     local localPlayer = context.players.LocalPlayer
     local stopped = false
     local lastParryAt = -math.huge
+    local lastWallPhaseAt = -math.huge
     local seenTracks = setmetatable({}, { __mode = "k" })
 
     local function parry()
@@ -70,6 +72,47 @@ function Ugc.new(context)
         end
     end
 
+    local function updateWallPhase(settings)
+        if settings.wallPhase ~= true or os.clock() - lastWallPhaseAt < WALL_PHASE_COOLDOWN then
+            return
+        end
+        local character = localPlayer.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local direction = type(context.movementDirection) == "function" and context.movementDirection() or nil
+        if not root or typeof(direction) ~= "Vector3" or direction.Magnitude < 0.1 then
+            return
+        end
+        direction = direction.Unit
+
+        local exclude = RaycastParams.new()
+        exclude.FilterType = Enum.RaycastFilterType.Exclude
+        exclude.FilterDescendantsInstances = { character }
+        exclude.IgnoreWater = true
+        local front = context.workspace:Raycast(root.Position + Vector3.new(0, 0.5, 0), direction * 3.5, exclude)
+        if not front
+            or not front.Instance:IsA("BasePart")
+            or front.Instance.CanCollide ~= true
+            or math.abs(front.Normal.Y) > 0.45
+        then
+            return
+        end
+
+        local include = RaycastParams.new()
+        include.FilterType = Enum.RaycastFilterType.Include
+        include.FilterDescendantsInstances = { front.Instance }
+        include.IgnoreWater = true
+        local back = context.workspace:Raycast(front.Position + direction * 12, -direction * 12.2, include)
+        if not back then
+            return
+        end
+        local thickness = (back.Position - front.Position):Dot(direction)
+        if thickness < 0.05 or thickness > 10 then
+            return
+        end
+        character:PivotTo(character:GetPivot() + direction * (thickness + 2.25))
+        lastWallPhaseAt = os.clock()
+    end
+
     local connection = game:GetService("RunService").RenderStepped:Connect(function()
         if stopped then
             return
@@ -77,6 +120,7 @@ function Ugc.new(context)
 
         local settings = context.store:Get().settings or {}
         updateAutoParry(settings)
+        updateWallPhase(settings)
         local observations = {}
         if settings.showEnemies ~= false then
             observations = context.oh.targeting.observePlayers({
@@ -112,6 +156,7 @@ function Ugc.new(context)
             "autoParry",
             "autoParryRange",
             "autoParryDelay",
+            "wallPhase",
         },
         isOpponent = function(player)
             return player ~= nil and player ~= localPlayer
