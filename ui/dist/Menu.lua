@@ -84341,525 +84341,7 @@ return {
 }
 
 end)() end,
-    [308] = function()local wax,script,require=ImportGlobals(308)local ImportGlobals return (function(...)local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local Prism = ReplicatedStorage:WaitForChild("Prism")
-local Bridge = require(Prism:WaitForChild("bridge"))
-local mountPrism = Bridge.mountPrism
-
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local screenGuiName = "PrismBridgeLuauSmoke"
-
-local existingGui = playerGui:FindFirstChild(screenGuiName)
-if existingGui and existingGui:IsA("ScreenGui") then
-	existingGui:Destroy()
-end
-
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = screenGuiName
-screenGui.DisplayOrder = 1001
-screenGui.IgnoreGuiInset = true
-screenGui.ResetOnSpawn = false
-screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-screenGui.Parent = playerGui
-
-local handle
-local cleanedUp = false
-local ancestryConnection
-
-local state = {
-	backdropVisible = false,
-	buttonPresses = 0,
-	pressablePresses = 0,
-	inputValue = "hello from Luau",
-	modalOpened = false,
-	selectValue = "alpha",
-	sliderValue = 25,
-	sliderEndValue = 25,
-	switchChecked = true,
-	dragOrder = { "one", "two", "three" },
-	lastCallback = "mounted",
-	updates = 0,
-}
-
-local function copyArray(values)
-	local result = {}
-	for index, value in ipairs(values) do
-		result[index] = value
-	end
-	return result
-end
-
-local function joinStrings(values)
-	local parts = {}
-	for index, value in ipairs(values) do
-		parts[index] = value
-	end
-	return table.concat(parts, ", ")
-end
-
-local renderTree
-
-local function setState(changes)
-	for key, value in pairs(changes) do
-		state[key] = value
-	end
-
-	state.updates += 1
-	if handle and not cleanedUp then
-		handle.update(renderTree())
-	end
-end
-
-local function textNode(text, color, size)
-	return {
-		component = "Text",
-		props = {
-			text = text,
-			color = color or "text.secondary",
-			size = size,
-			width = "100%",
-			wrap = true,
-		},
-	}
-end
-
-local function section(title, children)
-	local sectionChildren = {
-		{
-			component = "Text",
-			props = {
-				text = title,
-				color = "text.primary",
-				size = "md",
-				weight = 700,
-				width = "100%",
-				wrap = true,
-			},
-		},
-		{
-			component = "Divider",
-			props = {
-				orientation = "horizontal",
-				color = "border.subtle",
-				size = 1,
-			},
-		},
-	}
-
-	for _, child in ipairs(children) do
-		table.insert(sectionChildren, child)
-	end
-
-	return {
-		component = "Card",
-		props = {
-			width = "100%",
-			variant = "outline",
-			p = "md",
-			radius = "lg",
-			shadow = "sm",
-		},
-		children = {
-			component = "Stack",
-			props = {
-				width = "100%",
-				gap = "sm",
-			},
-			children = sectionChildren,
-		},
-	}
-end
-
-local function cleanup()
-	if cleanedUp then
-		return
-	end
-
-	cleanedUp = true
-	if handle then
-		handle.destroy()
-		handle = nil
-	end
-
-	if screenGui.Parent then
-		screenGui:Destroy()
-	end
-
-	if ancestryConnection then
-		ancestryConnection:Disconnect()
-		ancestryConnection = nil
-	end
-end
-
-renderTree = function()
-	return {
-		component = "Fragment",
-		children = {
-			{
-				component = "Backdrop",
-				props = {
-					visible = state.backdropVisible,
-					active = state.backdropVisible,
-					color = "background.default",
-					opacity = 0.35,
-					zIndex = 900,
-					cursor = "pointer",
-					excludeRect = {
-						position = UDim2.fromOffset(24, 24),
-						size = UDim2.fromOffset(560, 520),
-						anchor = Vector2.new(0, 0),
-					},
-					onPress = function()
-						setState({ backdropVisible = false, lastCallback = "Backdrop.onPress()" })
-					end,
-				},
-			},
-			{
-				component = "Stack",
-				props = {
-					width = 560,
-					height = 700,
-					position = UDim2.fromOffset(24, 24),
-					p = "lg",
-					gap = "md",
-					bg = "background.default",
-					borderColor = "border.default",
-					radius = "lg",
-					zIndex = 910,
-				},
-				children = {
-					{
-						component = "Stack",
-						props = {
-							width = "100%",
-							gap = "xs",
-						},
-						children = {
-							{
-								component = "Text",
-								props = {
-									text = "Prism bridge full Luau smoke",
-									size = "lg",
-									weight = 700,
-									color = "text.primary",
-									width = "100%",
-									wrap = true,
-								},
-							},
-							textNode("Real Luau consumer: require(ReplicatedStorage.Prism.bridge), mountPrism, controlled updates, callbacks, and destroy.", "text.secondary", "sm"),
-							textNode("Last callback: " .. state.lastCallback .. " | renders: " .. tostring(state.updates), "info.main", "sm"),
-						},
-					},
-					{
-						component = "ScrollArea",
-						props = {
-							width = "100%",
-							height = 560,
-							direction = "vertical",
-							automaticCanvasSize = Enum.AutomaticSize.Y,
-							scrollingEnabled = true,
-							scrollbarSize = 8,
-							scrollbarColor = "primary.main",
-							scrollbarTransparency = 0.2,
-							slotProps = {
-								root = { ClipsDescendants = true },
-							},
-						},
-						children = {
-							component = "Stack",
-							props = {
-								width = "100%",
-								gap = "md",
-								p = "sm",
-							},
-							children = {
-								section("Layout, slots, icon, image", {
-									{
-										component = "Box",
-										props = {
-											width = "100%",
-											p = "md",
-											bg = "background.surface",
-											borderColor = "border.subtle",
-											stroke = {
-												color = "primary.main",
-												thickness = 1,
-												transparency = 0.15,
-												mode = Enum.ApplyStrokeMode.Border,
-											},
-											radius = "md",
-											slotProps = {
-												root = { ZIndex = 912 },
-											},
-										},
-										children = {
-											component = "Stack",
-											props = { width = "100%", direction = "horizontal", gap = "sm", align = "center" },
-											children = {
-												{ component = "Icon", props = { name = "check", size = "md", color = "success.main" } },
-												{ component = "Image", props = { src = "rbxassetid://0", width = 36, height = 36, scaleType = Enum.ScaleType.Fit, resampleMode = Enum.ResamplerMode.Default, bg = "action.hover", radius = "sm" } },
-												textNode("Box + slotProps + stroke + Icon + Image are bridged.", "text.primary"),
-											},
-										},
-									},
-								}),
-								section("Callbacks", {
-									{
-										component = "Button",
-										props = {
-											label = "Button.onPress count = " .. tostring(state.buttonPresses),
-											variant = "filled",
-											color = "primary",
-											fullWidth = true,
-											onPress = function()
-												setState({ buttonPresses = state.buttonPresses + 1, lastCallback = "Button.onPress()" })
-											end,
-										},
-									},
-									{
-										component = "Pressable",
-										props = {
-											width = "100%",
-											p = "sm",
-											bg = "action.hover",
-											radius = "md",
-											cursor = "pointer",
-											onPress = function()
-												setState({ pressablePresses = state.pressablePresses + 1, lastCallback = "Pressable.onPress()" })
-											end,
-										},
-										children = textNode("Pressable.onPress count = " .. tostring(state.pressablePresses), "text.primary"),
-									},
-									{
-										component = "Button",
-										props = {
-											label = "Show Backdrop, then click outside panel",
-											variant = "outline",
-											color = "info",
-											fullWidth = true,
-											onPress = function()
-												setState({ backdropVisible = true, lastCallback = "show Backdrop" })
-											end,
-										},
-									},
-								}),
-								section("Controlled state", {
-									{
-										component = "Input",
-										props = {
-											value = state.inputValue,
-											placeholder = "Type to test Input.onChange",
-											variant = "outline",
-											color = "primary",
-											fullWidth = true,
-											onChange = function(value)
-												setState({ inputValue = value, lastCallback = "Input.onChange(" .. value .. ")" })
-											end,
-										},
-									},
-									{
-										component = "Select",
-										props = {
-											options = {
-												{ value = "alpha", label = "Alpha" },
-												{ value = "beta", label = "Beta" },
-												{ value = "gamma", label = "Gamma", disabled = true },
-											},
-											value = state.selectValue,
-											placeholder = "Choose option",
-											variant = "outline",
-											color = "secondary",
-							fullWidth = true,
-							maxVisibleOptions = 3,
-							onChange = function(value)
-												setState({ selectValue = value, lastCallback = "Select.onChange(" .. value .. ")" })
-											end,
-										},
-									},
-									{
-										component = "Slider",
-										props = {
-											value = state.sliderValue,
-											min = 0,
-											max = 100,
-											step = 5,
-											color = "primary",
-											tooltip = true,
-											fullWidth = true,
-											onChange = function(value)
-												setState({ sliderValue = value, lastCallback = "Slider.onChange(" .. tostring(value) .. ")" })
-											end,
-											onChangeEnd = function(value)
-												setState({ sliderEndValue = value, lastCallback = "Slider.onChangeEnd(" .. tostring(value) .. ")" })
-											end,
-										},
-									},
-									textNode("Slider value: " .. tostring(state.sliderValue) .. " | end: " .. tostring(state.sliderEndValue), "text.secondary", "sm"),
-									{
-										component = "Switch",
-										props = {
-											label = "Switch checked = " .. tostring(state.switchChecked),
-											checked = state.switchChecked,
-											color = "success",
-											onChange = function(value)
-												setState({ switchChecked = value, lastCallback = "Switch.onChange(" .. tostring(value) .. ")" })
-											end,
-										},
-									},
-								}),
-								section("Draggable, Tooltip, Modal", {
-									{
-										component = "Draggable",
-										props = {
-											items = {
-												{ id = "one", label = "One" },
-												{ id = "two", label = "Two" },
-												{ id = "three", label = "Three", disabled = true },
-											},
-											value = copyArray(state.dragOrder),
-											width = "100%",
-											gap = "sm",
-											direction = "vertical",
-											onReorder = function(value)
-												setState({ dragOrder = copyArray(value), lastCallback = "Draggable.onReorder(" .. joinStrings(value) .. ")" })
-											end,
-										},
-									},
-									textNode("Drag order: " .. joinStrings(state.dragOrder), "text.secondary", "sm"),
-									{
-										component = "Tooltip",
-										props = {
-											label = "Tooltip trigger",
-											content = "Tooltip is forced open through bridge props.",
-							opened = true,
-							gap = 8,
-							width = "100%",
-						},
-										children = {
-											component = "Button",
-											props = { label = "Tooltip child Button", variant = "light", color = "info", fullWidth = true },
-										},
-									},
-									{
-										component = "Button",
-										props = {
-											label = "Open Modal",
-											variant = "outline",
-											color = "secondary",
-											fullWidth = true,
-											onPress = function()
-												setState({ modalOpened = true, lastCallback = "open Modal" })
-											end,
-										},
-									},
-								}),
-							},
-						},
-					},
-					{
-						component = "Stack",
-						props = { width = "100%", direction = "horizontal", gap = "sm" },
-						children = {
-							{
-								component = "Button",
-								props = {
-									label = "Force update",
-									variant = "light",
-									color = "primary",
-									fullWidth = true,
-									onPress = function()
-										setState({ lastCallback = "handle.update(renderTree())" })
-									end,
-								},
-							},
-							{
-								component = "Button",
-								props = {
-									label = "Destroy bridge UI",
-									variant = "outline",
-									color = "error",
-									fullWidth = true,
-									onPress = cleanup,
-								},
-							},
-						},
-					},
-				},
-			},
-			{
-				component = "Modal",
-				props = {
-					opened = state.modalOpened,
-					title = "Bridge Modal",
-					size = "md",
-					withCloseButton = true,
-					zIndex = 1000,
-					onClose = function()
-						setState({ modalOpened = false, lastCallback = "Modal.onClose()" })
-					end,
-				},
-				children = {
-					component = "Stack",
-					props = { width = "100%", gap = "md" },
-					children = {
-						textNode("Modal opened/closed through bridge state.", "text.secondary"),
-						{
-							component = "Button",
-							props = {
-								label = "Close Modal",
-								variant = "filled",
-								color = "primary",
-								onPress = function()
-									setState({ modalOpened = false, lastCallback = "Modal body close button" })
-								end,
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-end
-
-handle = mountPrism(screenGui, renderTree())
-
-task.delay(2, function()
-	if handle and not cleanedUp then
-		setState({ lastCallback = "task.delay auto update" })
-	end
-end)
-
-ancestryConnection = script.AncestryChanged:Connect(function(_, parent)
-	if parent == nil then
-		cleanup()
-	end
-end)
-
-end)() end,
-    [309] = function()local wax,script,require=ImportGlobals(309)local ImportGlobals return (function(...)local Players = game:GetService("Players")
-
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-
-local function destroyBridgeGui()
-	local bridgeGui = playerGui:FindFirstChild("PrismBridgeLuauSmoke")
-
-	if bridgeGui and bridgeGui:IsA("ScreenGui") then
-		bridgeGui:Destroy()
-	end
-end
-
-destroyBridgeGui()
-task.defer(destroyBridgeGui)
-task.delay(0.25, destroyBridgeGui)
-task.delay(1, destroyBridgeGui)
-task.delay(2, destroyBridgeGui)
-
-end)() end,
-    [312] = function()local wax,script,require=ImportGlobals(312)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
+    [307] = function()local wax,script,require=ImportGlobals(307)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
 local ReactRoblox = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react-roblox")
@@ -84909,7 +84391,7 @@ return {
 }
 
 end)() end,
-    [313] = function()local wax,script,require=ImportGlobals(313)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
+    [308] = function()local wax,script,require=ImportGlobals(308)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
 local __prism = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat")
@@ -85221,7 +84703,7 @@ return {
 }
 
 end)() end,
-    [315] = function()local wax,script,require=ImportGlobals(315)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
+    [310] = function()local wax,script,require=ImportGlobals(310)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
 local __prism = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat")
@@ -85552,7 +85034,7 @@ return {
 }
 
 end)() end,
-    [316] = function()local wax,script,require=ImportGlobals(316)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
+    [311] = function()local wax,script,require=ImportGlobals(311)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
 local __prism = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat")
@@ -85697,7 +85179,7 @@ return {
 }
 
 end)() end,
-    [317] = function()local wax,script,require=ImportGlobals(317)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
+    [312] = function()local wax,script,require=ImportGlobals(312)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
 local __prism = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat")
@@ -85761,7 +85243,7 @@ return {
 }
 
 end)() end,
-    [318] = function()local wax,script,require=ImportGlobals(318)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
+    [313] = function()local wax,script,require=ImportGlobals(313)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
 local __prism = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat")
@@ -86009,7 +85491,7 @@ return {
 }
 
 end)() end,
-    [319] = function()local wax,script,require=ImportGlobals(319)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
+    [314] = function()local wax,script,require=ImportGlobals(314)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local function validateModel(model)
 	if #model.pages == 0 then
 		error("UniversalHubMenu requires at least one page")
@@ -86086,7 +85568,7 @@ return {
 }
 
 end)() end,
-    [321] = function()local wax,script,require=ImportGlobals(321)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
+    [316] = function()local wax,script,require=ImportGlobals(316)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
 local Text = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat").Text
@@ -86297,7 +85779,7 @@ return {
 }
 
 end)() end,
-    [322] = function()local wax,script,require=ImportGlobals(322)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
+    [317] = function()local wax,script,require=ImportGlobals(317)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
 local Text = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat").Text
@@ -87086,7 +86568,7 @@ return {
 }
 
 end)() end,
-    [323] = function()local wax,script,require=ImportGlobals(323)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
+    [318] = function()local wax,script,require=ImportGlobals(318)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
 local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
@@ -87407,7 +86889,7 @@ exports.colorToHex = colorToHex
 return exports
 
 end)() end,
-    [324] = function()local wax,script,require=ImportGlobals(324)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
+    [319] = function()local wax,script,require=ImportGlobals(319)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local shell = Color3.fromRGB(18, 18, 19)
 local surface = Color3.fromRGB(24, 24, 26)
 local raised = Color3.fromRGB(31, 31, 34)
@@ -87508,7 +86990,7 @@ return {
 }
 
 end)() end,
-    [326] = function()local wax,script,require=ImportGlobals(326)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
+    [321] = function()local wax,script,require=ImportGlobals(321)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
 local __prism = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat")
@@ -88339,7 +87821,7 @@ return {
 }
 
 end)() end,
-    [328] = function()local wax,script,require=ImportGlobals(328)local ImportGlobals return (function(...)--[[
+    [323] = function()local wax,script,require=ImportGlobals(323)local ImportGlobals return (function(...)--[[
 	An implementation of Promises similar to Promise/A+.
 ]]
 
@@ -90409,7 +89891,7 @@ end
 return Promise
 
 end)() end,
-    [329] = function()local wax,script,require=ImportGlobals(329)local ImportGlobals return (function(...)local Promise = require(script.Parent.Promise)
+    [324] = function()local wax,script,require=ImportGlobals(324)local ImportGlobals return (function(...)local Promise = require(script.Parent.Promise)
 
 local RunService = game:GetService("RunService")
 
@@ -90671,7 +90153,7 @@ end
 return TS
 
 end)() end,
-    [333] = function()local wax,script,require=ImportGlobals(333)local ImportGlobals return (function(...)return {
+    [328] = function()local wax,script,require=ImportGlobals(328)local ImportGlobals return (function(...)return {
 	author = "roblox-ts",
 	description = "",
 	devDependencies = {
@@ -90697,7 +90179,7 @@ end)() end,
 	version = "3.0.0-types.0",
 }
 end)() end,
-    [335] = function()local wax,script,require=ImportGlobals(335)local ImportGlobals return (function(...)local React: { [string]: any } = require(script.Parent.Parent:WaitForChild("@rbxts-js").React)
+    [330] = function()local wax,script,require=ImportGlobals(330)local ImportGlobals return (function(...)local React: { [string]: any } = require(script.Parent.Parent:WaitForChild("@rbxts-js").React)
 local tags = require(script.tags)
 
 local exports = table.clone(React)
@@ -90776,7 +90258,7 @@ end
 return exports
 
 end)() end,
-    [336] = function()local wax,script,require=ImportGlobals(336)local ImportGlobals return (function(...)local classNames = {
+    [331] = function()local wax,script,require=ImportGlobals(331)local ImportGlobals return (function(...)local classNames = {
 	"Accessory",
 	"AccessoryDescription",
 	"Accoutrement",
@@ -91092,10 +90574,10 @@ end
 return tags
 
 end)() end,
-    [337] = function()local wax,script,require=ImportGlobals(337)local ImportGlobals return (function(...)return require(script.Parent.Parent:WaitForChild("@rbxts-js").ReactRoblox)
+    [332] = function()local wax,script,require=ImportGlobals(332)local ImportGlobals return (function(...)return require(script.Parent.Parent:WaitForChild("@rbxts-js").ReactRoblox)
 
 end)() end,
-    [341] = function()local wax,script,require=ImportGlobals(341)local ImportGlobals return (function(...)return {
+    [336] = function()local wax,script,require=ImportGlobals(336)local ImportGlobals return (function(...)return {
 	author = "roblox-ts",
 	bugs = {
 		url = "https://github.com/roblox-ts/types/issues",
@@ -91121,13 +90603,13 @@ end)() end,
 	version = "1.0.916",
 }
 end)() end,
-    [343] = function()local wax,script,require=ImportGlobals(343)local ImportGlobals return (function(...)--!strict
+    [338] = function()local wax,script,require=ImportGlobals(338)local ImportGlobals return (function(...)--!strict
 return {
 	toJSBoolean = require(script.toJSBoolean),
 }
 
 end)() end,
-    [344] = function()local wax,script,require=ImportGlobals(344)local ImportGlobals return (function(...)--!strict
+    [339] = function()local wax,script,require=ImportGlobals(339)local ImportGlobals return (function(...)--!strict
 local Packages = script.Parent.Parent
 local Number = require(Packages.Number)
 
@@ -91137,7 +90619,7 @@ return function(val: any): boolean
 end
 
 end)() end,
-    [345] = function()local wax,script,require=ImportGlobals(345)local ImportGlobals return (function(...)--!strict
+    [340] = function()local wax,script,require=ImportGlobals(340)local ImportGlobals return (function(...)--!strict
 local Packages = script.Parent
 
 local Array = require(script.Array)
@@ -91167,7 +90649,7 @@ return {
 }
 
 end)() end,
-    [346] = function()local wax,script,require=ImportGlobals(346)local ImportGlobals return (function(...)--!strict
+    [341] = function()local wax,script,require=ImportGlobals(341)local ImportGlobals return (function(...)--!strict
 local Packages = script.Parent.Parent
 local ES7Types = require(Packages.ES7Types)
 
@@ -91199,7 +90681,7 @@ return {
 }
 
 end)() end,
-    [347] = function()local wax,script,require=ImportGlobals(347)local ImportGlobals return (function(...)--!strict
+    [342] = function()local wax,script,require=ImportGlobals(342)local ImportGlobals return (function(...)--!strict
 local __DEV__ = _G.__DEV__
 local Array = script.Parent
 local Packages = Array.Parent.Parent
@@ -91256,7 +90738,7 @@ end
 return concat
 
 end)() end,
-    [348] = function()local wax,script,require=ImportGlobals(348)local ImportGlobals return (function(...)--!strict
+    [343] = function()local wax,script,require=ImportGlobals(343)local ImportGlobals return (function(...)--!strict
 local __DEV__ = _G.__DEV__
 local Array = script.Parent
 local Packages = Array.Parent.Parent
@@ -91302,7 +90784,7 @@ return function<T, U>(t: Array<T>, callback: callbackFn<T> | callbackFnWithThisA
 end
 
 end)() end,
-    [349] = function()local wax,script,require=ImportGlobals(349)local ImportGlobals return (function(...)--!strict
+    [344] = function()local wax,script,require=ImportGlobals(344)local ImportGlobals return (function(...)--!strict
 local __DEV__ = _G.__DEV__
 local Array = script.Parent
 local Packages = Array.Parent.Parent
@@ -91354,7 +90836,7 @@ return function<T, U>(t: Array<T>, callback: callbackFn<T> | callbackFnWithThisA
 end
 
 end)() end,
-    [350] = function()local wax,script,require=ImportGlobals(350)local ImportGlobals return (function(...)--!strict
+    [345] = function()local wax,script,require=ImportGlobals(345)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent
 local Packages = Array.Parent.Parent
 local types = require(Packages.ES7Types)
@@ -91372,7 +90854,7 @@ return function<T>(array: Array<T>, predicate: PredicateFunction<T>): T | nil
 end
 
 end)() end,
-    [351] = function()local wax,script,require=ImportGlobals(351)local ImportGlobals return (function(...)--!strict
+    [346] = function()local wax,script,require=ImportGlobals(346)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent
 local Packages = Array.Parent.Parent
 local types = require(Packages.ES7Types)
@@ -91390,7 +90872,7 @@ return function<T>(array: Array<T>, predicate: PredicateFunction<T>): number
 end
 
 end)() end,
-    [352] = function()local wax,script,require=ImportGlobals(352)local ImportGlobals return (function(...)local __DEV__ = _G.__DEV__
+    [347] = function()local wax,script,require=ImportGlobals(347)local ImportGlobals return (function(...)local __DEV__ = _G.__DEV__
 local Array = script.Parent
 local Packages = Array.Parent.Parent
 local isArray = require(Array.isArray)
@@ -91426,7 +90908,7 @@ end
 return flat
 
 end)() end,
-    [353] = function()local wax,script,require=ImportGlobals(353)local ImportGlobals return (function(...)local __DEV__ = _G.__DEV__
+    [348] = function()local wax,script,require=ImportGlobals(348)local ImportGlobals return (function(...)local __DEV__ = _G.__DEV__
 local Array = script.Parent
 local Packages = Array.Parent.Parent
 local flat = require(Array.flat)
@@ -91455,7 +90937,7 @@ end
 return flatMap
 
 end)() end,
-    [354] = function()local wax,script,require=ImportGlobals(354)local ImportGlobals return (function(...)--!strict
+    [349] = function()local wax,script,require=ImportGlobals(349)local ImportGlobals return (function(...)--!strict
 local __DEV__ = _G.__DEV__
 local Array = script.Parent
 local Packages = Array.Parent.Parent
@@ -91498,7 +90980,7 @@ return function<T, U>(t: Array<T>, callback: callbackFn<T> | callbackFnWithThisA
 end
 
 end)() end,
-    [355] = function()local wax,script,require=ImportGlobals(355)local ImportGlobals return (function(...)--!strict
+    [350] = function()local wax,script,require=ImportGlobals(350)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent
 local Collections = Array.Parent
 local Packages = Collections.Parent
@@ -91549,7 +91031,7 @@ return function<T, U>(
 end
 
 end)() end,
-    [356] = function()local wax,script,require=ImportGlobals(356)local ImportGlobals return (function(...)--!strict
+    [351] = function()local wax,script,require=ImportGlobals(351)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent.Parent
 local Packages = Array.Parent.Parent
 local types = require(Packages.ES7Types)
@@ -91585,7 +91067,7 @@ return function<T, U>(
 end
 
 end)() end,
-    [357] = function()local wax,script,require=ImportGlobals(357)local ImportGlobals return (function(...)--!strict
+    [352] = function()local wax,script,require=ImportGlobals(352)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent.Parent
 local Packages = Array.Parent.Parent
 local types = require(Packages.ES7Types)
@@ -91623,7 +91105,7 @@ return function<T, U>(
 end
 
 end)() end,
-    [358] = function()local wax,script,require=ImportGlobals(358)local ImportGlobals return (function(...)--!strict
+    [353] = function()local wax,script,require=ImportGlobals(353)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent.Parent
 local Packages = Array.Parent.Parent
 local types = require(Packages.ES7Types)
@@ -91658,7 +91140,7 @@ return function<T, U>(
 end
 
 end)() end,
-    [359] = function()local wax,script,require=ImportGlobals(359)local ImportGlobals return (function(...)--!strict
+    [354] = function()local wax,script,require=ImportGlobals(354)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent.Parent
 local Packages = Array.Parent.Parent
 local types = require(Packages.ES7Types)
@@ -91696,7 +91178,7 @@ return function<T, U>(
 end
 
 end)() end,
-    [360] = function()local wax,script,require=ImportGlobals(360)local ImportGlobals return (function(...)--!strict
+    [355] = function()local wax,script,require=ImportGlobals(355)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent
 local Packages = Array.Parent.Parent
 local types = require(Packages.ES7Types)
@@ -91708,7 +91190,7 @@ return function<T>(array: Array<T>, searchElement: T, fromIndex: number?): boole
 end
 
 end)() end,
-    [361] = function()local wax,script,require=ImportGlobals(361)local ImportGlobals return (function(...)--!strict
+    [356] = function()local wax,script,require=ImportGlobals(356)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent
 local Packages = Array.Parent.Parent
 local types = require(Packages.ES7Types)
@@ -91741,7 +91223,7 @@ return function<T>(array: Array<T>, searchElement: T, fromIndex: number?): numbe
 end
 
 end)() end,
-    [362] = function()local wax,script,require=ImportGlobals(362)local ImportGlobals return (function(...)--!strict
+    [357] = function()local wax,script,require=ImportGlobals(357)local ImportGlobals return (function(...)--!strict
 return function(value: any): boolean
 	if typeof(value) ~= "table" then
 		return false
@@ -91774,7 +91256,7 @@ return function(value: any): boolean
 end
 
 end)() end,
-    [363] = function()local wax,script,require=ImportGlobals(363)local ImportGlobals return (function(...)--!strict
+    [358] = function()local wax,script,require=ImportGlobals(358)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent
 local Packages = Array.Parent.Parent
 local types = require(Packages.ES7Types)
@@ -91794,7 +91276,7 @@ return function<T>(arr: Array<T>, separator: string?): string
 end
 
 end)() end,
-    [364] = function()local wax,script,require=ImportGlobals(364)local ImportGlobals return (function(...)--!strict
+    [359] = function()local wax,script,require=ImportGlobals(359)local ImportGlobals return (function(...)--!strict
 local __DEV__ = _G.__DEV__
 local Array = script.Parent
 local Packages = Array.Parent.Parent
@@ -91841,7 +91323,7 @@ return function<T, U, V>(t: Array<T>, callback: callbackFn<T, U> | callbackFnWit
 end
 
 end)() end,
-    [365] = function()local wax,script,require=ImportGlobals(365)local ImportGlobals return (function(...)--!strict
+    [360] = function()local wax,script,require=ImportGlobals(360)local ImportGlobals return (function(...)--!strict
 local __DEV__ = _G.__DEV__
 local Array = script.Parent
 local Packages = Array.Parent.Parent
@@ -91885,7 +91367,7 @@ return function<T, U>(array: Array<T>, callback: reduceFn<T, U>, initialValue: U
 end
 
 end)() end,
-    [366] = function()local wax,script,require=ImportGlobals(366)local ImportGlobals return (function(...)--!strict
+    [361] = function()local wax,script,require=ImportGlobals(361)local ImportGlobals return (function(...)--!strict
 -- https://programming-idioms.org/idiom/19/reverse-a-list/1314/lua
 local Array = script.Parent
 local Packages = Array.Parent.Parent
@@ -91904,7 +91386,7 @@ return function<T>(t: Array<T>): Array<T>
 end
 
 end)() end,
-    [367] = function()local wax,script,require=ImportGlobals(367)local ImportGlobals return (function(...)--!strict
+    [362] = function()local wax,script,require=ImportGlobals(362)local ImportGlobals return (function(...)--!strict
 local __DEV__ = _G.__DEV__
 local Array = script.Parent
 local Packages = Array.Parent.Parent
@@ -91927,7 +91409,7 @@ return function<T>(value: Array<T>): T?
 end
 
 end)() end,
-    [368] = function()local wax,script,require=ImportGlobals(368)local ImportGlobals return (function(...)--!strict
+    [363] = function()local wax,script,require=ImportGlobals(363)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent
 local Packages = Array.Parent.Parent
 local types = require(Packages.ES7Types)
@@ -91974,7 +91456,7 @@ return function<T>(t: Array<T>, start_idx: number?, end_idx: number?): Array<T>
 end
 
 end)() end,
-    [369] = function()local wax,script,require=ImportGlobals(369)local ImportGlobals return (function(...)--!strict
+    [364] = function()local wax,script,require=ImportGlobals(364)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent
 local Packages = Array.Parent.Parent
 local types = require(Packages.ES7Types)
@@ -92010,7 +91492,7 @@ return function<T, U>(t: Array<T>, callback: callbackFn<T> | callbackFnWithThisA
 end
 
 end)() end,
-    [370] = function()local wax,script,require=ImportGlobals(370)local ImportGlobals return (function(...)--!strict
+    [365] = function()local wax,script,require=ImportGlobals(365)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent
 local Collections = Array.Parent
 local Packages = Collections.Parent
@@ -92046,7 +91528,7 @@ return function<T>(array: Array<T>, compare: Comparable?): Array<T>
 end
 
 end)() end,
-    [371] = function()local wax,script,require=ImportGlobals(371)local ImportGlobals return (function(...)--!strict
+    [366] = function()local wax,script,require=ImportGlobals(366)local ImportGlobals return (function(...)--!strict
 local Array = script.Parent
 local Packages = Array.Parent.Parent
 local types = require(Packages.ES7Types)
@@ -92098,7 +91580,7 @@ return function<T>(array: Array<T>, start: number, deleteCount: number?, ...: T)
 end
 
 end)() end,
-    [372] = function()local wax,script,require=ImportGlobals(372)local ImportGlobals return (function(...)--!strict
+    [367] = function()local wax,script,require=ImportGlobals(367)local ImportGlobals return (function(...)--!strict
 local __DEV__ = _G.__DEV__
 local Array = script.Parent
 local Packages = Array.Parent.Parent
@@ -92125,7 +91607,7 @@ return function<T>(array: Array<T>, ...: T): number
 end
 
 end)() end,
-    [373] = function()local wax,script,require=ImportGlobals(373)local ImportGlobals return (function(...)local Packages = script.Parent.Parent
+    [368] = function()local wax,script,require=ImportGlobals(368)local ImportGlobals return (function(...)local Packages = script.Parent.Parent
 
 local ES7Types = require(Packages.ES7Types)
 
@@ -92142,7 +91624,7 @@ return {
 }
 
 end)() end,
-    [374] = function()local wax,script,require=ImportGlobals(374)local ImportGlobals return (function(...)--!strict
+    [369] = function()local wax,script,require=ImportGlobals(369)local ImportGlobals return (function(...)--!strict
 local __DEV__ = _G.__DEV__
 local Collections = script.Parent.Parent
 local Packages = Collections.Parent
@@ -92331,7 +91813,7 @@ end
 return Map
 
 end)() end,
-    [375] = function()local wax,script,require=ImportGlobals(375)local ImportGlobals return (function(...)local MapModule = script.Parent
+    [370] = function()local wax,script,require=ImportGlobals(370)local ImportGlobals return (function(...)local MapModule = script.Parent
 local Collections = MapModule.Parent
 local Packages = Collections.Parent
 
@@ -92351,7 +91833,7 @@ end
 return coerceToMap
 
 end)() end,
-    [376] = function()local wax,script,require=ImportGlobals(376)local ImportGlobals return (function(...)local MapModule = script.Parent
+    [371] = function()local wax,script,require=ImportGlobals(371)local ImportGlobals return (function(...)local MapModule = script.Parent
 local Collections = MapModule.Parent
 local Packages = Collections.Parent
 
@@ -92378,7 +91860,7 @@ end
 return coerceToTable
 
 end)() end,
-    [377] = function()local wax,script,require=ImportGlobals(377)local ImportGlobals return (function(...)--!strict
+    [372] = function()local wax,script,require=ImportGlobals(372)local ImportGlobals return (function(...)--!strict
 
 return {
 	assign = require(script.assign),
@@ -92396,7 +91878,7 @@ return {
 }
 
 end)() end,
-    [378] = function()local wax,script,require=ImportGlobals(378)local ImportGlobals return (function(...)--!nonstrict
+    [373] = function()local wax,script,require=ImportGlobals(373)local ImportGlobals return (function(...)--!nonstrict
 -- Marker used to specify that the value is nothing, because nil cannot be
 -- stored in tables.
 local None = newproxy(true)
@@ -92408,7 +91890,7 @@ end
 return None
 
 end)() end,
-    [379] = function()local wax,script,require=ImportGlobals(379)local ImportGlobals return (function(...)--!strict
+    [374] = function()local wax,script,require=ImportGlobals(374)local ImportGlobals return (function(...)--!strict
 local Object = script.Parent
 local Packages = Object.Parent.Parent
 
@@ -92473,7 +91955,7 @@ return function<T, U, V, W>(target: T, source0: U?, source1: V?, source2: W?, ..
 end
 
 end)() end,
-    [380] = function()local wax,script,require=ImportGlobals(380)local ImportGlobals return (function(...)--!strict
+    [375] = function()local wax,script,require=ImportGlobals(375)local ImportGlobals return (function(...)--!strict
 local Object = script.Parent
 local Packages = Object.Parent.Parent
 
@@ -92503,7 +91985,7 @@ return function<T>(value: string | { [string]: T } | Array<T> | Map<any, T>): Ar
 end
 
 end)() end,
-    [381] = function()local wax,script,require=ImportGlobals(381)local ImportGlobals return (function(...)--!strict
+    [376] = function()local wax,script,require=ImportGlobals(376)local ImportGlobals return (function(...)--!strict
 local Object = script.Parent
 local Packages = Object.Parent.Parent
 
@@ -92517,7 +91999,7 @@ return function<T>(t: T & (Object | Array<any>)): T
 end
 
 end)() end,
-    [382] = function()local wax,script,require=ImportGlobals(382)local ImportGlobals return (function(...)-- Implements Javascript's `Object.is` as defined below
+    [377] = function()local wax,script,require=ImportGlobals(377)local ImportGlobals return (function(...)-- Implements Javascript's `Object.is` as defined below
 -- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
 return function(value1: any, value2: any): boolean
 	if value1 == value2 then
@@ -92528,7 +92010,7 @@ return function(value1: any, value2: any): boolean
 end
 
 end)() end,
-    [383] = function()local wax,script,require=ImportGlobals(383)local ImportGlobals return (function(...)--!strict
+    [378] = function()local wax,script,require=ImportGlobals(378)local ImportGlobals return (function(...)--!strict
 local __DEV__ = _G.__DEV__
 local Object = script.Parent
 local Packages = Object.Parent.Parent
@@ -92545,7 +92027,7 @@ return function(t: Object | Array<any>): boolean
 end
 
 end)() end,
-    [384] = function()local wax,script,require=ImportGlobals(384)local ImportGlobals return (function(...)local Object = script.Parent
+    [379] = function()local wax,script,require=ImportGlobals(379)local ImportGlobals return (function(...)local Object = script.Parent
 local Collections = Object.Parent
 local Packages = Object.Parent.Parent
 
@@ -92585,7 +92067,7 @@ return function(value: Set<any> | Table | string): Array<string>
 end
 
 end)() end,
-    [385] = function()local wax,script,require=ImportGlobals(385)local ImportGlobals return (function(...)--!strict
+    [380] = function()local wax,script,require=ImportGlobals(380)local ImportGlobals return (function(...)--!strict
 local Object = script.Parent
 local Packages = Object.Parent.Parent
 
@@ -92614,7 +92096,7 @@ end
 return preventExtensions
 
 end)() end,
-    [386] = function()local wax,script,require=ImportGlobals(386)local ImportGlobals return (function(...)--!strict
+    [381] = function()local wax,script,require=ImportGlobals(381)local ImportGlobals return (function(...)--!strict
 local Object = script.Parent
 local Packages = Object.Parent.Parent
 
@@ -92628,7 +92110,7 @@ return function<T>(t: T & (Object | Array<any>)): T
 end
 
 end)() end,
-    [387] = function()local wax,script,require=ImportGlobals(387)local ImportGlobals return (function(...)--!strict
+    [382] = function()local wax,script,require=ImportGlobals(382)local ImportGlobals return (function(...)--!strict
 local Object = script.Parent
 local Packages = Object.Parent.Parent
 
@@ -92661,7 +92143,7 @@ return function<T>(value: { [string]: T } | Array<T> | string): Array<T> | Array
 end
 
 end)() end,
-    [388] = function()local wax,script,require=ImportGlobals(388)local ImportGlobals return (function(...)--!nonstrict
+    [383] = function()local wax,script,require=ImportGlobals(383)local ImportGlobals return (function(...)--!nonstrict
 local __DEV__ = _G.__DEV__
 local Collections = script.Parent
 local Packages = Collections.Parent
@@ -92812,7 +92294,7 @@ end
 return Set
 
 end)() end,
-    [389] = function()local wax,script,require=ImportGlobals(389)local ImportGlobals return (function(...)--!strict
+    [384] = function()local wax,script,require=ImportGlobals(384)local ImportGlobals return (function(...)--!strict
 local Collections = script.Parent
 local Packages = Collections.Parent
 
@@ -92855,7 +92337,7 @@ end
 return WeakMap :: WeakMap<any, any> & WeakMap_Statics
 
 end)() end,
-    [390] = function()local wax,script,require=ImportGlobals(390)local ImportGlobals return (function(...)-- derived from these upstream sources:
+    [385] = function()local wax,script,require=ImportGlobals(385)local ImportGlobals return (function(...)-- derived from these upstream sources:
 -- https://github.com/graphql/graphql-js/blob/1951bce42092123e844763b6a8e985a8a3327511/src/jsutils/inspect.js
 local HttpService = game:GetService("HttpService")
 
@@ -93087,13 +92569,13 @@ end
 return inspect
 
 end)() end,
-    [391] = function()local wax,script,require=ImportGlobals(391)local ImportGlobals return (function(...)--!strict
+    [386] = function()local wax,script,require=ImportGlobals(386)local ImportGlobals return (function(...)--!strict
 local makeConsoleImpl = require(script.makeConsoleImpl)
 
 return makeConsoleImpl()
 
 end)() end,
-    [392] = function()local wax,script,require=ImportGlobals(392)local ImportGlobals return (function(...)--!strict
+    [387] = function()local wax,script,require=ImportGlobals(387)local ImportGlobals return (function(...)--!strict
 local root = script.Parent
 local Packages = root.Parent
 local inspect = require(Packages.Collections).inspect
@@ -93193,7 +92675,7 @@ return function()
 end
 
 end)() end,
-    [393] = function()local wax,script,require=ImportGlobals(393)local ImportGlobals return (function(...)--!strict
+    [388] = function()local wax,script,require=ImportGlobals(388)local ImportGlobals return (function(...)--!strict
 export type Object = { [string]: any }
 export type Array<T> = { [number]: T }
 export type Function = (...any) -> ...any
@@ -93263,12 +92745,12 @@ export type Set<T> = typeof(setmetatable(
 return {}
 
 end)() end,
-    [394] = function()local wax,script,require=ImportGlobals(394)local ImportGlobals return (function(...)local instanceof = require(script.instanceof)
+    [389] = function()local wax,script,require=ImportGlobals(389)local ImportGlobals return (function(...)local instanceof = require(script.instanceof)
 
 return instanceof
 
 end)() end,
-    [395] = function()local wax,script,require=ImportGlobals(395)local ImportGlobals return (function(...)--!strict
+    [390] = function()local wax,script,require=ImportGlobals(390)local ImportGlobals return (function(...)--!strict
 -- polyfill for https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/instanceof
 local __DEV__ = _G.__DEV__
 
@@ -93316,7 +92798,7 @@ end
 return instanceof
 
 end)() end,
-    [396] = function()local wax,script,require=ImportGlobals(396)local ImportGlobals return (function(...)--!strict
+    [391] = function()local wax,script,require=ImportGlobals(391)local ImportGlobals return (function(...)--!strict
 local Packages = script.Parent
 
 local Boolean = require(Packages.Boolean)
@@ -93378,14 +92860,14 @@ return {
 }
 
 end)() end,
-    [397] = function()local wax,script,require=ImportGlobals(397)local ImportGlobals return (function(...)local AssertionErrorModule = require(script["AssertionError.global"])
+    [392] = function()local wax,script,require=ImportGlobals(392)local ImportGlobals return (function(...)local AssertionErrorModule = require(script["AssertionError.global"])
 
 export type AssertionError = AssertionErrorModule.AssertionError
 
 return AssertionErrorModule.AssertionError
 
 end)() end,
-    [398] = function()local wax,script,require=ImportGlobals(398)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/nodejs/node/blob/v18.1.0/lib/internal/assert/assertion_error.js
+    [393] = function()local wax,script,require=ImportGlobals(393)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/nodejs/node/blob/v18.1.0/lib/internal/assert/assertion_error.js
 --[[
 	Copyright Node.js contributors. All rights reserved.
 
@@ -93969,12 +93451,12 @@ AssertionError.name = "AssertionError"
 return { AssertionError = AssertionError }
 
 end)() end,
-    [399] = function()local wax,script,require=ImportGlobals(399)local ImportGlobals return (function(...)local Error = require(script["Error.global"])
+    [394] = function()local wax,script,require=ImportGlobals(394)local ImportGlobals return (function(...)local Error = require(script["Error.global"])
 export type Error = Error.Error
 return Error
 
 end)() end,
-    [400] = function()local wax,script,require=ImportGlobals(400)local ImportGlobals return (function(...)local LuauPolyfill = script.Parent.Parent
+    [395] = function()local wax,script,require=ImportGlobals(395)local ImportGlobals return (function(...)local LuauPolyfill = script.Parent.Parent
 local Packages = LuauPolyfill.Parent
 
 local types = require(Packages.ES7Types)
@@ -94062,7 +93544,7 @@ return setmetatable(Error, {
 })
 
 end)() end,
-    [401] = function()local wax,script,require=ImportGlobals(401)local ImportGlobals return (function(...)-- this maps onto community promise libraries which won't support Luau, so we inline
+    [396] = function()local wax,script,require=ImportGlobals(396)local ImportGlobals return (function(...)-- this maps onto community promise libraries which won't support Luau, so we inline
 export type PromiseLike<T> = {
 	andThen: (
 		self: PromiseLike<T>,
@@ -94097,7 +93579,7 @@ export type Promise<T> = {
 return {}
 
 end)() end,
-    [402] = function()local wax,script,require=ImportGlobals(402)local ImportGlobals return (function(...)-- reference documentation: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
+    [397] = function()local wax,script,require=ImportGlobals(397)local ImportGlobals return (function(...)-- reference documentation: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
 local HttpService = game:GetService("HttpService")
 
 local root = script.Parent
@@ -94143,7 +93625,7 @@ end
 return encodeURIComponent
 
 end)() end,
-    [403] = function()local wax,script,require=ImportGlobals(403)local ImportGlobals return (function(...)--!nonstrict
+    [398] = function()local wax,script,require=ImportGlobals(398)local ImportGlobals return (function(...)--!nonstrict
 --[[
 	deviation: Our constructors currently have no notion of 'super' so any
 	such behavior in upstream JS must be implemented manually by setting fields
@@ -94194,16 +93676,16 @@ return function(parent, childName, constructor)
 end
 
 end)() end,
-    [404] = function()local wax,script,require=ImportGlobals(404)local ImportGlobals return (function(...)--!strict
+    [399] = function()local wax,script,require=ImportGlobals(399)local ImportGlobals return (function(...)--!strict
 return {
 	clz32 = require(script.clz32),
 }
 
 end)() end,
-    [405] = function()local wax,script,require=ImportGlobals(405)local ImportGlobals return (function(...)return bit32.countlz
+    [400] = function()local wax,script,require=ImportGlobals(400)local ImportGlobals return (function(...)return bit32.countlz
 
 end)() end,
-    [406] = function()local wax,script,require=ImportGlobals(406)local ImportGlobals return (function(...)--!strict
+    [401] = function()local wax,script,require=ImportGlobals(401)local ImportGlobals return (function(...)--!strict
 return {
 	isFinite = require(script.isFinite),
 	isInteger = require(script.isInteger),
@@ -94216,37 +93698,37 @@ return {
 }
 
 end)() end,
-    [407] = function()local wax,script,require=ImportGlobals(407)local ImportGlobals return (function(...)--!strict
+    [402] = function()local wax,script,require=ImportGlobals(402)local ImportGlobals return (function(...)--!strict
 -- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
 return 9007199254740991
 
 end)() end,
-    [408] = function()local wax,script,require=ImportGlobals(408)local ImportGlobals return (function(...)--!strict
+    [403] = function()local wax,script,require=ImportGlobals(403)local ImportGlobals return (function(...)--!strict
 -- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MIN_SAFE_INTEGER
 return -9007199254740991
 
 end)() end,
-    [409] = function()local wax,script,require=ImportGlobals(409)local ImportGlobals return (function(...)--!strict
+    [404] = function()local wax,script,require=ImportGlobals(404)local ImportGlobals return (function(...)--!strict
 return function(value)
 	return typeof(value) == "number" and value == value and value ~= math.huge and value ~= -math.huge
 end
 
 end)() end,
-    [410] = function()local wax,script,require=ImportGlobals(410)local ImportGlobals return (function(...)--!strict
+    [405] = function()local wax,script,require=ImportGlobals(405)local ImportGlobals return (function(...)--!strict
 -- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger
 return function(value)
 	return type(value) == "number" and value ~= math.huge and value == math.floor(value)
 end
 
 end)() end,
-    [411] = function()local wax,script,require=ImportGlobals(411)local ImportGlobals return (function(...)--!strict
+    [406] = function()local wax,script,require=ImportGlobals(406)local ImportGlobals return (function(...)--!strict
 -- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
 return function(value)
 	return type(value) == "number" and value ~= value
 end
 
 end)() end,
-    [412] = function()local wax,script,require=ImportGlobals(412)local ImportGlobals return (function(...)--!strict
+    [407] = function()local wax,script,require=ImportGlobals(407)local ImportGlobals return (function(...)--!strict
 -- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isSafeInteger
 local isInteger = require(script.Parent.isInteger)
 local MAX_SAFE_INTEGER = require(script.Parent.MAX_SAFE_INTEGER)
@@ -94256,7 +93738,7 @@ return function(value)
 end
 
 end)() end,
-    [413] = function()local wax,script,require=ImportGlobals(413)local ImportGlobals return (function(...)--!strict
+    [408] = function()local wax,script,require=ImportGlobals(408)local ImportGlobals return (function(...)--!strict
 -- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential
 return function(value: string | number, fractionDigits: number?): string | nil
 	local num = value
@@ -94292,7 +93774,7 @@ return function(value: string | number, fractionDigits: number?): string | nil
 end
 
 end)() end,
-    [414] = function()local wax,script,require=ImportGlobals(414)local ImportGlobals return (function(...)--!strict
+    [409] = function()local wax,script,require=ImportGlobals(409)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/56e9feead0f91075ba0a4f725c9e4e343bca1c67/packages/react/src/index.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -94377,7 +93859,7 @@ export type React_Node = SharedModule.React_Node
 return React
 
 end)() end,
-    [415] = function()local wax,script,require=ImportGlobals(415)local ImportGlobals return (function(...)--!strict
+    [410] = function()local wax,script,require=ImportGlobals(410)local ImportGlobals return (function(...)--!strict
 -- code derived from https://github.com/Roblox/roact/blob/master/src/None.lua
 --[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
@@ -94403,7 +93885,7 @@ local LuauPolyfill = require(Packages.LuauPolyfill)
 return LuauPolyfill.Object.None
 
 end)() end,
-    [416] = function()local wax,script,require=ImportGlobals(416)local ImportGlobals return (function(...)--!strict
+    [411] = function()local wax,script,require=ImportGlobals(411)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/56e9feead0f91075ba0a4f725c9e4e343bca1c67/packages/react/src/React.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -94577,7 +94059,7 @@ return {
 }
 
 end)() end,
-    [417] = function()local wax,script,require=ImportGlobals(417)local ImportGlobals return (function(...)--!strict
+    [412] = function()local wax,script,require=ImportGlobals(412)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/0cf22a56a18790ef34c71bef14f64695c0498619/packages/react/src/ReactBaseClasses.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -95018,7 +94500,7 @@ return {
 }
 
 end)() end,
-    [418] = function()local wax,script,require=ImportGlobals(418)local ImportGlobals return (function(...)--!strict
+    [413] = function()local wax,script,require=ImportGlobals(413)local ImportGlobals return (function(...)--!strict
 --[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
@@ -95253,7 +94735,7 @@ end
 return BindingInternalApi
 
 end)() end,
-    [419] = function()local wax,script,require=ImportGlobals(419)local ImportGlobals return (function(...)--!strict
+    [414] = function()local wax,script,require=ImportGlobals(414)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/7516bdfce3f0f8c675494b5c5d0e7ae441bef1d9/packages/react/src/ReactChildren.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -95615,7 +95097,7 @@ return {
 }
 
 end)() end,
-    [420] = function()local wax,script,require=ImportGlobals(420)local ImportGlobals return (function(...)--!strict
+    [415] = function()local wax,script,require=ImportGlobals(415)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/7516bdfce3f0f8c675494b5c5d0e7ae441bef1d9/packages/react/src/ReactContext.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -95743,7 +95225,7 @@ end
 return exports
 
 end)() end,
-    [421] = function()local wax,script,require=ImportGlobals(421)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/b87aabdfe1b7461e7331abb3601d9e6bb27544bc/packages/react/src/ReactCreateRef.js
+    [416] = function()local wax,script,require=ImportGlobals(416)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/b87aabdfe1b7461e7331abb3601d9e6bb27544bc/packages/react/src/ReactCreateRef.js
 --!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -95815,7 +95297,7 @@ end
 return exports
 
 end)() end,
-    [422] = function()local wax,script,require=ImportGlobals(422)local ImportGlobals return (function(...)--!strict
+    [417] = function()local wax,script,require=ImportGlobals(417)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/702fad4b1b48ac8f626ed3f35e8f86f5ea728084/packages/react/src/ReactElement.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -96545,7 +96027,7 @@ end
 return exports
 
 end)() end,
-    [423] = function()local wax,script,require=ImportGlobals(423)local ImportGlobals return (function(...)--!strict
+    [418] = function()local wax,script,require=ImportGlobals(418)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/bc6b7b6b16f771bfc8048fe15e211ac777253b64/packages/react/src/ReactElementValidator.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -97199,7 +96681,7 @@ end
 return exports
 
 end)() end,
-    [424] = function()local wax,script,require=ImportGlobals(424)local ImportGlobals return (function(...)--!strict
+    [419] = function()local wax,script,require=ImportGlobals(419)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/41694201988c5e651f0c3bc69921d5c9717be88b/packages/react/src/ReactForwardRef.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -97320,7 +96802,7 @@ end
 return exports
 
 end)() end,
-    [425] = function()local wax,script,require=ImportGlobals(425)local ImportGlobals return (function(...)--!strict
+    [420] = function()local wax,script,require=ImportGlobals(420)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/ddd1faa1972b614dfbfae205f2aa4a6c0b39a759/packages/react/src/ReactHooks.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -97646,7 +97128,7 @@ end
 return exports
 
 end)() end,
-    [426] = function()local wax,script,require=ImportGlobals(426)local ImportGlobals return (function(...)--!nonstrict
+    [421] = function()local wax,script,require=ImportGlobals(421)local ImportGlobals return (function(...)--!nonstrict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/v17.0.2/packages/react/src/ReactLazy.js
 --[[
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -97843,7 +97325,7 @@ end
 return exports
 
 end)() end,
-    [427] = function()local wax,script,require=ImportGlobals(427)local ImportGlobals return (function(...)--!strict
+    [422] = function()local wax,script,require=ImportGlobals(422)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/41694201988c5e651f0c3bc69921d5c9717be88b/packages/react/src/ReactMemo.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -97985,7 +97467,7 @@ end
 return exports
 
 end)() end,
-    [428] = function()local wax,script,require=ImportGlobals(428)local ImportGlobals return (function(...)--!strict
+    [423] = function()local wax,script,require=ImportGlobals(423)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/142d4f1c00c66f3d728177082dbc027fd6335115/packages/react/src/ReactMutableSource.js
 -- [[
 --  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -98024,7 +97506,7 @@ end
 return createMutableSource
 
 end)() end,
-    [429] = function()local wax,script,require=ImportGlobals(429)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/0cf22a56a18790ef34c71bef14f64695c0498619/packages/react/src/ReactNoopUpdateQueue.js
+    [424] = function()local wax,script,require=ImportGlobals(424)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/0cf22a56a18790ef34c71bef14f64695c0498619/packages/react/src/ReactNoopUpdateQueue.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -98131,7 +97613,7 @@ local ReactNoopUpdateQueue = {
 return ReactNoopUpdateQueue
 
 end)() end,
-    [430] = function()local wax,script,require=ImportGlobals(430)local ImportGlobals return (function(...)--!strict
+    [425] = function()local wax,script,require=ImportGlobals(425)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/Roblox/roact/blob/master/src/createSignal.lua
 --[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
@@ -98224,12 +97706,12 @@ end
 return createSignal
 
 end)() end,
-    [431] = function()local wax,script,require=ImportGlobals(431)local ImportGlobals return (function(...)local ReactGlobals = require(script["ReactGlobals.global"])
+    [426] = function()local wax,script,require=ImportGlobals(426)local ImportGlobals return (function(...)local ReactGlobals = require(script["ReactGlobals.global"])
 
 return ReactGlobals
 
 end)() end,
-    [432] = function()local wax,script,require=ImportGlobals(432)local ImportGlobals return (function(...)-- NOTE: No upstream
+    [427] = function()local wax,script,require=ImportGlobals(427)local ImportGlobals return (function(...)-- NOTE: No upstream
 
 --[[
     Defines all React globals in a type-safe manner that's scoped to each
@@ -98330,7 +97812,7 @@ export type ReactGlobals = typeof(ReactGlobals)
 return ReactGlobals
 
 end)() end,
-    [433] = function()local wax,script,require=ImportGlobals(433)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/43363e2795393a00fd77312a16d6b80e626c29de/packages/react-reconciler/src/index.js
+    [428] = function()local wax,script,require=ImportGlobals(428)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/43363e2795393a00fd77312a16d6b80e626c29de/packages/react-reconciler/src/index.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -98380,7 +97862,7 @@ end
 return initialize
 
 end)() end,
-    [434] = function()local wax,script,require=ImportGlobals(434)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/43363e2795393a00fd77312a16d6b80e626c29de/packages/react-reconciler/src/DebugTracing.js
+    [429] = function()local wax,script,require=ImportGlobals(429)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/43363e2795393a00fd77312a16d6b80e626c29de/packages/react-reconciler/src/DebugTracing.js
 -- /**
 --  * Copyright (c) Facebook, Inc. and its affiliates.
 --  *
@@ -98668,7 +98150,7 @@ exports.logStateUpdateScheduled = logStateUpdateScheduled
 return exports
 
 end)() end,
-    [435] = function()local wax,script,require=ImportGlobals(435)local ImportGlobals return (function(...)--!strict
+    [430] = function()local wax,script,require=ImportGlobals(430)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/c5d2fc7127654e43de59fff865b74765a103c4a5/packages/react-reconciler/src/MaxInts.js
 -- /**
 --  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -98685,7 +98167,7 @@ end)() end,
 return { MAX_SIGNED_31_BIT_INT = 1073741823 }
 
 end)() end,
-    [436] = function()local wax,script,require=ImportGlobals(436)local ImportGlobals return (function(...)--!strict
+    [431] = function()local wax,script,require=ImportGlobals(431)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/56e9feead0f91075ba0a4f725c9e4e343bca1c67/packages/react-reconciler/src/ReactCapturedValue.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -98723,7 +98205,7 @@ end
 return exports
 
 end)() end,
-    [437] = function()local wax,script,require=ImportGlobals(437)local ImportGlobals return (function(...)--!strict
+    [432] = function()local wax,script,require=ImportGlobals(432)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/16654436039dd8f16a63928e71081c7745872e8f/packages/react-reconciler/src/ReactChildFiber.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -100407,7 +99889,7 @@ end
 return exports
 
 end)() end,
-    [438] = function()local wax,script,require=ImportGlobals(438)local ImportGlobals return (function(...)--!strict
+    [433] = function()local wax,script,require=ImportGlobals(433)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/b0cb137bcbd3a11d8eff3c2229cd6b8379d29785/packages/react-reconciler/src/ReactCurrentFiber.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -100506,7 +99988,7 @@ end
 return exports
 
 end)() end,
-    [439] = function()local wax,script,require=ImportGlobals(439)local ImportGlobals return (function(...)--!strict
+    [434] = function()local wax,script,require=ImportGlobals(434)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/56e9feead0f91075ba0a4f725c9e4e343bca1c67/packages/react-reconciler/src/ReactFiber.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -101530,7 +101012,7 @@ return {
 }
 
 end)() end,
-    [440] = function()local wax,script,require=ImportGlobals(440)local ImportGlobals return (function(...)--!strict
+    [435] = function()local wax,script,require=ImportGlobals(435)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/1faf9e3dd5d6492f3607d5c721055819e4106bc6/packages/react-reconciler/src/ReactFiberBeginWork.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -105170,7 +104652,7 @@ exports.beginWork = beginWork
 return exports
 
 end)() end,
-    [441] = function()local wax,script,require=ImportGlobals(441)local ImportGlobals return (function(...)--!strict
+    [436] = function()local wax,script,require=ImportGlobals(436)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/c63741fb3daef6c1e8746cbe7d7b07ecb281a9fd/packages/react-reconciler/src/ReactFiberClassComponent.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -106605,7 +106087,7 @@ return {
 }
 
 end)() end,
-    [442] = function()local wax,script,require=ImportGlobals(442)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/7f08e908b10a58cda902611378ec053003d371ed/packages/react-reconciler/src/ReactFiberCommitWork.new.js
+    [437] = function()local wax,script,require=ImportGlobals(437)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/7f08e908b10a58cda902611378ec053003d371ed/packages/react-reconciler/src/ReactFiberCommitWork.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -108947,7 +108429,7 @@ return {
 }
 
 end)() end,
-    [443] = function()local wax,script,require=ImportGlobals(443)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/87c023b1c1b00d6776b7031f6e105913ead355da/packages/react-reconciler/src/ReactFiberCompleteWork.new.js
+    [438] = function()local wax,script,require=ImportGlobals(438)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/87c023b1c1b00d6776b7031f6e105913ead355da/packages/react-reconciler/src/ReactFiberCompleteWork.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -110566,7 +110048,7 @@ return {
 }
 
 end)() end,
-    [444] = function()local wax,script,require=ImportGlobals(444)local ImportGlobals return (function(...)--!strict
+    [439] = function()local wax,script,require=ImportGlobals(439)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/72d00ab623502983ebd7ac0756cf2787df109811/packages/react-reconciler/src/ReactFiberComponentStack.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -110673,7 +110155,7 @@ return {
 }
 
 end)() end,
-    [445] = function()local wax,script,require=ImportGlobals(445)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/a724a3b578dce77d427bef313102a4d0e978d9b4/packages/react-reconciler/src/ReactFiberContext.new.js
+    [440] = function()local wax,script,require=ImportGlobals(440)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/a724a3b578dce77d427bef313102a4d0e978d9b4/packages/react-reconciler/src/ReactFiberContext.new.js
 --!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -111075,7 +110557,7 @@ return {
 }
 
 end)() end,
-    [446] = function()local wax,script,require=ImportGlobals(446)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/16654436039dd8f16a63928e71081c7745872e8f/packages/react-reconciler/src/ReactFiberDevToolsHook.new.js
+    [441] = function()local wax,script,require=ImportGlobals(441)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/16654436039dd8f16a63928e71081c7745872e8f/packages/react-reconciler/src/ReactFiberDevToolsHook.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -111247,7 +110729,7 @@ end
 return exports
 
 end)() end,
-    [447] = function()local wax,script,require=ImportGlobals(447)local ImportGlobals return (function(...)--!strict
+    [442] = function()local wax,script,require=ImportGlobals(442)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/56e9feead0f91075ba0a4f725c9e4e343bca1c67/packages/react-reconciler/src/ReactFiberErrorDialog.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -111271,7 +110753,7 @@ end
 return exports
 
 end)() end,
-    [448] = function()local wax,script,require=ImportGlobals(448)local ImportGlobals return (function(...)--!strict
+    [443] = function()local wax,script,require=ImportGlobals(443)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/702fad4b1b48ac8f626ed3f35e8f86f5ea728084/packages/react-reconciler/src/ReactFiberErrorLogger.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -111406,7 +110888,7 @@ end
 return exports
 
 end)() end,
-    [449] = function()local wax,script,require=ImportGlobals(449)local ImportGlobals return (function(...)--!strict
+    [444] = function()local wax,script,require=ImportGlobals(444)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/37cb732c59863297e48f69ac1f6e2ba1aa1886f0/packages/react-reconciler/src/ReactFiberFlags.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -111507,7 +110989,7 @@ exports.MountPassiveDev = --[[              ]]
 return exports
 
 end)() end,
-    [450] = function()local wax,script,require=ImportGlobals(450)local ImportGlobals return (function(...)--!strict
+    [445] = function()local wax,script,require=ImportGlobals(445)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/43363e2795393a00fd77312a16d6b80e626c29de/packages/react-reconciler/src/ReactFiberHooks.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -114797,7 +114279,7 @@ exports.renderWithHooks = renderWithHooks
 return exports
 
 end)() end,
-    [451] = function()local wax,script,require=ImportGlobals(451)local ImportGlobals return (function(...)--!strict
+    [446] = function()local wax,script,require=ImportGlobals(446)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/9ac42dd074c42b66ecc0334b75200b1d2989f892/packages/react-reconciler/src/ReactFiberHostConfig.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -114847,7 +114329,7 @@ return exports
 -- error('This module must be shimmed by a specific renderer.')
 
 end)() end,
-    [452] = function()local wax,script,require=ImportGlobals(452)local ImportGlobals return (function(...)--!strict
+    [447] = function()local wax,script,require=ImportGlobals(447)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/17f582e0453b808860be59ed3437c6a426ae52de/packages/react-reconciler/src/ReactFiberHostContext.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -114975,7 +114457,7 @@ return {
 }
 
 end)() end,
-    [453] = function()local wax,script,require=ImportGlobals(453)local ImportGlobals return (function(...)--!strict
+    [448] = function()local wax,script,require=ImportGlobals(448)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/6edaf6f764f23043f0cd1c2da355b42f641afd8b/packages/react-reconciler/src/ReactFiberHotReloading.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -115493,7 +114975,7 @@ end
 return exports
 
 end)() end,
-    [454] = function()local wax,script,require=ImportGlobals(454)local ImportGlobals return (function(...)--!strict
+    [449] = function()local wax,script,require=ImportGlobals(449)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/16654436039dd8f16a63928e71081c7745872e8f/packages/react-reconciler/src/ReactFiberHydrationContext.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -116017,7 +115499,7 @@ return {
 }
 
 end)() end,
-    [455] = function()local wax,script,require=ImportGlobals(455)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/6f62abb58ae46d9c88525635f1790487285666e6/packages/react-reconciler/src/ReactFiberLane.js
+    [450] = function()local wax,script,require=ImportGlobals(450)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/6f62abb58ae46d9c88525635f1790487285666e6/packages/react-reconciler/src/ReactFiberLane.js
 --!strict
 --[[
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -116988,7 +116470,7 @@ exports.getBumpedLaneForHydration = getBumpedLaneForHydration
 return exports
 
 end)() end,
-    [456] = function()local wax,script,require=ImportGlobals(456)local ImportGlobals return (function(...)--!strict
+    [451] = function()local wax,script,require=ImportGlobals(451)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/17f582e0453b808860be59ed3437c6a426ae52de/packages/react-reconciler/src/ReactFiberLazyComponent.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -117023,7 +116505,7 @@ return {
 }
 
 end)() end,
-    [457] = function()local wax,script,require=ImportGlobals(457)local ImportGlobals return (function(...)--!strict
+    [452] = function()local wax,script,require=ImportGlobals(452)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/1eaafc9ade46ba708b2361b324dd907d019e3939/packages/react-reconciler/src/ReactFiberNewContext.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -117459,7 +116941,7 @@ end
 return exports
 
 end)() end,
-    [458] = function()local wax,script,require=ImportGlobals(458)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/1faf9e3dd5d6492f3607d5c721055819e4106bc6/packages/react-reconciler/src/ReactFiberOffscreenComponent.js
+    [453] = function()local wax,script,require=ImportGlobals(453)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/1faf9e3dd5d6492f3607d5c721055819e4106bc6/packages/react-reconciler/src/ReactFiberOffscreenComponent.js
 --!strict
 -- /**
 --  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -117500,7 +116982,7 @@ export type OffscreenState = {
 return {}
 
 end)() end,
-    [459] = function()local wax,script,require=ImportGlobals(459)local ImportGlobals return (function(...)--!strict
+    [454] = function()local wax,script,require=ImportGlobals(454)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/faa697f4f9afe9f1c98e315b2a9e70f5a74a7a74/packages/react-reconciler/src/ReactFiberReconciler.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -117515,7 +116997,7 @@ end)() end,
 return require(script.Parent["ReactFiberReconciler.new"])
 
 end)() end,
-    [460] = function()local wax,script,require=ImportGlobals(460)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/50d9451f320a9aaf94304209193562cc385567d8/packages/react-reconciler/src/ReactFiberReconciler.new.js
+    [455] = function()local wax,script,require=ImportGlobals(455)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/50d9451f320a9aaf94304209193562cc385567d8/packages/react-reconciler/src/ReactFiberReconciler.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -118361,7 +117843,7 @@ exports.schedulingProfiler = {
 return exports
 
 end)() end,
-    [461] = function()local wax,script,require=ImportGlobals(461)local ImportGlobals return (function(...)--!strict
+    [456] = function()local wax,script,require=ImportGlobals(456)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/96ac799eace5d989de3b4f80e6414e94a08ff77a/packages/react-reconciler/src/ReactFiberRoot.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -118490,7 +117972,7 @@ end
 return exports
 
 end)() end,
-    [462] = function()local wax,script,require=ImportGlobals(462)local ImportGlobals return (function(...)--!strict
+    [457] = function()local wax,script,require=ImportGlobals(457)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/d17086c7c813402a550d15a2f56dc43f1dbd1735/packages/react-reconciler/src/SchedulerWithReactIntegration.new.js
 --[[
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -118524,7 +118006,7 @@ local exports: { [string]: ReactPriorityLevel } = {
 return exports
 
 end)() end,
-    [463] = function()local wax,script,require=ImportGlobals(463)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/17f582e0453b808860be59ed3437c6a426ae52de/packages/react-reconciler/src/ReactFiberStack.new.js
+    [458] = function()local wax,script,require=ImportGlobals(458)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/17f582e0453b808860be59ed3437c6a426ae52de/packages/react-reconciler/src/ReactFiberStack.new.js
 --!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -118646,7 +118128,7 @@ return {
 }
 
 end)() end,
-    [464] = function()local wax,script,require=ImportGlobals(464)local ImportGlobals return (function(...)--!strict
+    [459] = function()local wax,script,require=ImportGlobals(459)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/1faf9e3dd5d6492f3607d5c721055819e4106bc6/packages/react-reconciler/src/ReactFiberSuspenseComponent.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -118811,7 +118293,7 @@ end
 return exports
 
 end)() end,
-    [465] = function()local wax,script,require=ImportGlobals(465)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/17f582e0453b808860be59ed3437c6a426ae52de/packages/react-reconciler/src/ReactFiberSuspenseContext.new.js
+    [460] = function()local wax,script,require=ImportGlobals(460)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/17f582e0453b808860be59ed3437c6a426ae52de/packages/react-reconciler/src/ReactFiberSuspenseContext.new.js
 --!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/17f582e0453b808860be59ed3437c6a426ae52de/packages/react-reconciler/src/ReactFiberSuspenseContext.new.js
 --[[*
@@ -118910,7 +118392,7 @@ end
 return exports
 
 end)() end,
-    [466] = function()local wax,script,require=ImportGlobals(466)local ImportGlobals return (function(...)--!strict
+    [461] = function()local wax,script,require=ImportGlobals(461)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/16654436039dd8f16a63928e71081c7745872e8f/packages/react-reconciler/src/ReactFiberThrow.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -119402,7 +118884,7 @@ return {
 }
 
 end)() end,
-    [467] = function()local wax,script,require=ImportGlobals(467)local ImportGlobals return (function(...)--!strict
+    [462] = function()local wax,script,require=ImportGlobals(462)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/ddd1faa1972b614dfbfae205f2aa4a6c0b39a759/packages/react-reconciler/src/ReactFiberTransition.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -119427,7 +118909,7 @@ return {
 }
 
 end)() end,
-    [468] = function()local wax,script,require=ImportGlobals(468)local ImportGlobals return (function(...)--!nonstrict
+    [463] = function()local wax,script,require=ImportGlobals(463)local ImportGlobals return (function(...)--!nonstrict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/16654436039dd8f16a63928e71081c7745872e8f/packages/react-reconciler/src/ReactFiberTreeReflection.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -119812,7 +119294,7 @@ end
 return exports
 
 end)() end,
-    [469] = function()local wax,script,require=ImportGlobals(469)local ImportGlobals return (function(...)--!strict
+    [464] = function()local wax,script,require=ImportGlobals(464)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/16654436039dd8f16a63928e71081c7745872e8f/packages/react-reconciler/src/ReactFiberUnwindWork.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -120006,7 +119488,7 @@ return {
 }
 
 end)() end,
-    [470] = function()local wax,script,require=ImportGlobals(470)local ImportGlobals return (function(...)--!strict
+    [465] = function()local wax,script,require=ImportGlobals(465)local ImportGlobals return (function(...)--!strict
 -- ROBLOX deviation: this is an extraction of a single state field
 -- (and associated mutation/getters) from ReactFiberWorkLooop.new
 -- which allows us to break dependency cycles involving that module
@@ -120046,7 +119528,7 @@ end
 return exports
 
 end)() end,
-    [471] = function()local wax,script,require=ImportGlobals(471)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/56e9feead0f91075ba0a4f725c9e4e343bca1c67/packages/react-reconciler/src/ReactFiberWorkLoop.new.js
+    [466] = function()local wax,script,require=ImportGlobals(466)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/56e9feead0f91075ba0a4f725c9e4e343bca1c67/packages/react-reconciler/src/ReactFiberWorkLoop.new.js
 --!nonstrict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -124178,7 +123660,7 @@ end
 return exports
 
 end)() end,
-    [472] = function()local wax,script,require=ImportGlobals(472)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/16654436039dd8f16a63928e71081c7745872e8f/packages/react-reconciler/src/ReactHookEffectTags.js
+    [467] = function()local wax,script,require=ImportGlobals(467)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/16654436039dd8f16a63928e71081c7745872e8f/packages/react-reconciler/src/ReactHookEffectTags.js
 --!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -124207,7 +123689,7 @@ return {
 }
 
 end)() end,
-    [473] = function()local wax,script,require=ImportGlobals(473)local ImportGlobals return (function(...)--!strict
+    [468] = function()local wax,script,require=ImportGlobals(468)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/7baf9d4128d41903de125527b50285ea9862cf9a/packages/react-reconciler/src/ReactInternalTypes.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -124574,7 +124056,7 @@ export type Dispatcher = Shared.Dispatcher
 return {}
 
 end)() end,
-    [474] = function()local wax,script,require=ImportGlobals(474)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/142d4f1c00c66f3d728177082dbc027fd6335115/packages/react-reconciler/src/ReactMutableSource.new.js
+    [469] = function()local wax,script,require=ImportGlobals(469)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/142d4f1c00c66f3d728177082dbc027fd6335115/packages/react-reconciler/src/ReactMutableSource.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -124698,7 +124180,7 @@ end
 return exports
 
 end)() end,
-    [475] = function()local wax,script,require=ImportGlobals(475)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/142d4f1c00c66f3d728177082dbc027fd6335115/packages/react-reconciler/src/ReactPortal.js
+    [470] = function()local wax,script,require=ImportGlobals(470)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/142d4f1c00c66f3d728177082dbc027fd6335115/packages/react-reconciler/src/ReactPortal.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -124741,7 +124223,7 @@ return {
 }
 
 end)() end,
-    [476] = function()local wax,script,require=ImportGlobals(476)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/142d4f1c00c66f3d728177082dbc027fd6335115/packages/react-reconciler/src/ReactProfilerTimer.new.js
+    [471] = function()local wax,script,require=ImportGlobals(471)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/142d4f1c00c66f3d728177082dbc027fd6335115/packages/react-reconciler/src/ReactProfilerTimer.new.js
 -- /**
 --  * Copyright (c) Facebook, Inc. and its affiliates.
 --  *
@@ -124922,7 +124404,7 @@ return {
 }
 
 end)() end,
-    [477] = function()local wax,script,require=ImportGlobals(477)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/c5d2fc7127654e43de59fff865b74765a103c4a5/packages/react-reconciler/src/ReactRootTags.js
+    [472] = function()local wax,script,require=ImportGlobals(472)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/c5d2fc7127654e43de59fff865b74765a103c4a5/packages/react-reconciler/src/ReactRootTags.js
 --!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -124942,7 +124424,7 @@ return {
 }
 
 end)() end,
-    [478] = function()local wax,script,require=ImportGlobals(478)local ImportGlobals return (function(...)--!strict
+    [473] = function()local wax,script,require=ImportGlobals(473)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/702fad4b1b48ac8f626ed3f35e8f86f5ea728084/packages/react-reconciler/src/ReactStrictModeWarnings.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -125334,7 +124816,7 @@ end
 return ReactStrictModeWarnings
 
 end)() end,
-    [479] = function()local wax,script,require=ImportGlobals(479)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/3cde22a84e246fc5361f038bf0c23405b2572c22/packages/react-reconciler/src/ReactTestSelectors.js
+    [474] = function()local wax,script,require=ImportGlobals(474)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/3cde22a84e246fc5361f038bf0c23405b2572c22/packages/react-reconciler/src/ReactTestSelectors.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -125913,7 +125395,7 @@ export type ObserveVisibleRectsCallback = (
 return exports
 
 end)() end,
-    [480] = function()local wax,script,require=ImportGlobals(480)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/22dc2e42bdc00d87fc19c5e75fc7c0b3fdcdc572/packages/react-reconciler/src/ReactTypeOfMode.js
+    [475] = function()local wax,script,require=ImportGlobals(475)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/22dc2e42bdc00d87fc19c5e75fc7c0b3fdcdc572/packages/react-reconciler/src/ReactTypeOfMode.js
 --!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -125938,7 +125420,7 @@ return {
 }
 
 end)() end,
-    [481] = function()local wax,script,require=ImportGlobals(481)local ImportGlobals return (function(...)--!strict
+    [476] = function()local wax,script,require=ImportGlobals(476)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/16654436039dd8f16a63928e71081c7745872e8f/packages/react-reconciler/src/ReactUpdateQueue.new.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -126681,7 +126163,7 @@ exports.commitUpdateQueue = commitUpdateQueue
 return exports
 
 end)() end,
-    [482] = function()local wax,script,require=ImportGlobals(482)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/56e9feead0f91075ba0a4f725c9e4e343bca1c67/packages/react-reconciler/src/ReactWorkTags.js
+    [477] = function()local wax,script,require=ImportGlobals(477)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/56e9feead0f91075ba0a4f725c9e4e343bca1c67/packages/react-reconciler/src/ReactWorkTags.js
 --!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -126723,7 +126205,7 @@ return {
 }
 
 end)() end,
-    [483] = function()local wax,script,require=ImportGlobals(483)local ImportGlobals return (function(...)--[[
+    [478] = function()local wax,script,require=ImportGlobals(478)local ImportGlobals return (function(...)--[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
 	* you may not use this file except in compliance with the License.
@@ -126959,7 +126441,7 @@ return {
 }
 
 end)() end,
-    [484] = function()local wax,script,require=ImportGlobals(484)local ImportGlobals return (function(...)--!strict
+    [479] = function()local wax,script,require=ImportGlobals(479)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/d17086c7c813402a550d15a2f56dc43f1dbd1735/packages/react-reconciler/src/SchedulerWithReactIntegration.new.js
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
@@ -127320,7 +126802,7 @@ return {
 }
 
 end)() end,
-    [485] = function()local wax,script,require=ImportGlobals(485)local ImportGlobals return (function(...)--!strict
+    [480] = function()local wax,script,require=ImportGlobals(480)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/56e9feead0f91075ba0a4f725c9e4e343bca1c67/packages/react-reconciler/src/SchedulingProfiler.js
 -- /**
 --  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -127584,7 +127066,7 @@ end
 return exports
 
 end)() end,
-    [487] = function()local wax,script,require=ImportGlobals(487)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/b87aabdfe1b7461e7331abb3601d9e6bb27544bc/packages/react-reconciler/src/forks/ReactFiberHostConfig.test.js
+    [482] = function()local wax,script,require=ImportGlobals(482)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/b87aabdfe1b7461e7331abb3601d9e6bb27544bc/packages/react-reconciler/src/forks/ReactFiberHostConfig.test.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -127599,7 +127081,7 @@ local Packages = script.Parent.Parent.Parent
 return require(Packages.Dev.ReactTestRenderer)
 
 end)() end,
-    [488] = function()local wax,script,require=ImportGlobals(488)local ImportGlobals return (function(...)--!strict
+    [483] = function()local wax,script,require=ImportGlobals(483)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/efd8f6442d1aa7c4566fe812cba03e7e83aaccc3/packages/react-native-renderer/index.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -127615,7 +127097,7 @@ export type RootType = HostTypes.RootType
 return require(script.client.ReactRoblox)
 
 end)() end,
-    [489] = function()local wax,script,require=ImportGlobals(489)local ImportGlobals return (function(...)--!strict
+    [484] = function()local wax,script,require=ImportGlobals(484)local ImportGlobals return (function(...)--!strict
 -- ROBLOX deviation: Initializes the reconciler with this package's host
 -- config and returns the resulting module
 
@@ -127627,7 +127109,7 @@ local ReactRobloxHostConfig = require(script.Parent.client.ReactRobloxHostConfig
 return initializeReconciler(ReactRobloxHostConfig)
 
 end)() end,
-    [491] = function()local wax,script,require=ImportGlobals(491)local ImportGlobals return (function(...)--!strict
+    [486] = function()local wax,script,require=ImportGlobals(486)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOM.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -127960,7 +127442,7 @@ exports.schedulingProfiler = ReactReconciler.schedulingProfiler
 return exports
 
 end)() end,
-    [492] = function()local wax,script,require=ImportGlobals(492)local ImportGlobals return (function(...)--!strict
+    [487] = function()local wax,script,require=ImportGlobals(487)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMComponent.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -128208,7 +127690,7 @@ exports.cleanupHostComponent = RobloxComponentProps.cleanupHostComponent
 return exports
 
 end)() end,
-    [493] = function()local wax,script,require=ImportGlobals(493)local ImportGlobals return (function(...)--!strict
+    [488] = function()local wax,script,require=ImportGlobals(488)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMComponentTree.js
 -- ROBLOX upstream: https://github.com/facebook/react/blob/efd8f6442d1aa7c4566fe812cba03e7e83aaccc3/packages/react-native-renderer/src/ReactNativeComponentTree.js
 --[[*
@@ -128510,7 +127992,7 @@ end
 return exports
 
 end)() end,
-    [494] = function()local wax,script,require=ImportGlobals(494)local ImportGlobals return (function(...)--!strict
+    [489] = function()local wax,script,require=ImportGlobals(489)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js
 -- ROBLOX upstream: https://github.com/facebook/react/blob/efd8f6442d1aa7c4566fe812cba03e7e83aaccc3/packages/react-native-renderer/src/ReactNativeHostConfig.js
 --[[*
@@ -129883,7 +129365,7 @@ end
 return exports
 
 end)() end,
-    [495] = function()local wax,script,require=ImportGlobals(495)local ImportGlobals return (function(...)--!strict
+    [490] = function()local wax,script,require=ImportGlobals(490)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMHostConfig.js
 -- ROBLOX upstream: https://github.com/facebook/react/blob/efd8f6442d1aa7c4566fe812cba03e7e83aaccc3/packages/react-native-renderer/src/ReactNativeHostConfig.js
 --[[*
@@ -129981,7 +129463,7 @@ export type RootOptions = {
 return {}
 
 end)() end,
-    [496] = function()local wax,script,require=ImportGlobals(496)local ImportGlobals return (function(...)--!strict
+    [491] = function()local wax,script,require=ImportGlobals(491)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/8e5adfbd7e605bda9c5e96c10e015b3dc0df688e/packages/react-dom/src/client/ReactDOMRoot.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -130257,7 +129739,7 @@ end
 return exports
 
 end)() end,
-    [498] = function()local wax,script,require=ImportGlobals(498)local ImportGlobals return (function(...)--[[
+    [493] = function()local wax,script,require=ImportGlobals(493)local ImportGlobals return (function(...)--[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
 	* you may not use this file except in compliance with the License.
@@ -130636,7 +130118,7 @@ return {
 }
 
 end)() end,
-    [499] = function()local wax,script,require=ImportGlobals(499)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/Roblox/roact/blob/b2ba9cf4c219c2654e6572219a68d0bf1b541418/src/SingleEventManager.lua
+    [494] = function()local wax,script,require=ImportGlobals(494)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/Roblox/roact/blob/b2ba9cf4c219c2654e6572219a68d0bf1b541418/src/SingleEventManager.lua
 --[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the Apache License, Version 2.0 (the "License");
@@ -130813,7 +130295,7 @@ end
 return SingleEventManager
 
 end)() end,
-    [500] = function()local wax,script,require=ImportGlobals(500)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/Roblox/roact/blob/b2ba9cf4c219c2654e6572219a68d0bf1b541418/src/getDefaultInstanceProperty.lua
+    [495] = function()local wax,script,require=ImportGlobals(495)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/Roblox/roact/blob/b2ba9cf4c219c2654e6572219a68d0bf1b541418/src/getDefaultInstanceProperty.lua
 --[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the Apache License, Version 2.0 (the "License");
@@ -130888,7 +130370,7 @@ end
 return getDefaultInstanceProperty
 
 end)() end,
-    [501] = function()local wax,script,require=ImportGlobals(501)local ImportGlobals return (function(...)--[[
+    [496] = function()local wax,script,require=ImportGlobals(496)local ImportGlobals return (function(...)--[[
 	An implementation of Promises similar to Promise/A+.
 ]]
 
@@ -133007,7 +132489,7 @@ end
 return Promise
 
 end)() end,
-    [502] = function()local wax,script,require=ImportGlobals(502)local ImportGlobals return (function(...)local safeFlags = {
+    [497] = function()local wax,script,require=ImportGlobals(497)local ImportGlobals return (function(...)local safeFlags = {
 	ReactCatchYieldingInDEV = true,
 	ReactCleanQueueOnUpdateBailout = true,
 	ReactDevtoolsUseHttpWebStream = true,
@@ -133050,7 +132532,7 @@ return {
 }
 
 end)() end,
-    [503] = function()local wax,script,require=ImportGlobals(503)local ImportGlobals return (function(...)--!strict
+    [498] = function()local wax,script,require=ImportGlobals(498)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/efd8f6442d1aa7c4566fe812cba03e7e83aaccc3/packages/scheduler/index.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -133136,7 +132618,7 @@ end
 return exports
 
 end)() end,
-    [504] = function()local wax,script,require=ImportGlobals(504)local ImportGlobals return (function(...)-- ROBLOX note: no upstream
+    [499] = function()local wax,script,require=ImportGlobals(499)local ImportGlobals return (function(...)-- ROBLOX note: no upstream
 --!strict
 --[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
@@ -133188,7 +132670,7 @@ end
 return NoYield
 
 end)() end,
-    [505] = function()local wax,script,require=ImportGlobals(505)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/9abc2785cb070148d64fae81e523246b90b92016/packages/scheduler/src/Scheduler.js
+    [500] = function()local wax,script,require=ImportGlobals(500)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/9abc2785cb070148d64fae81e523246b90b92016/packages/scheduler/src/Scheduler.js
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
 *
@@ -133796,7 +133278,7 @@ return function(hostConfig)
 end
 
 end)() end,
-    [506] = function()local wax,script,require=ImportGlobals(506)local ImportGlobals return (function(...)--!strict
+    [501] = function()local wax,script,require=ImportGlobals(501)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/9abc2785cb070148d64fae81e523246b90b92016/packages/scheduler/src/SchedulerFeatureFlags.js
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
@@ -133813,7 +133295,7 @@ return {
 }
 
 end)() end,
-    [507] = function()local wax,script,require=ImportGlobals(507)local ImportGlobals return (function(...)--!strict
+    [502] = function()local wax,script,require=ImportGlobals(502)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/00748c53e183952696157088a858352cc77b0010/packages/scheduler/src/SchedulerHostConfig.js
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
@@ -133830,7 +133312,7 @@ end)() end,
 return require(script.Parent.forks["SchedulerHostConfig.default"])
 
 end)() end,
-    [508] = function()local wax,script,require=ImportGlobals(508)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/e706721490e50d0bd6af2cd933dbf857fd8b61ed/packages/scheduler/src/SchedulerMinHeap.js
+    [503] = function()local wax,script,require=ImportGlobals(503)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/e706721490e50d0bd6af2cd933dbf857fd8b61ed/packages/scheduler/src/SchedulerMinHeap.js
 --!strict
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
@@ -133938,7 +133420,7 @@ end
 return exports
 
 end)() end,
-    [509] = function()local wax,script,require=ImportGlobals(509)local ImportGlobals return (function(...)--!strict
+    [504] = function()local wax,script,require=ImportGlobals(504)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/00748c53e183952696157088a858352cc77b0010/packages/scheduler/src/SchedulerHostConfig.js
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
@@ -133962,7 +133444,7 @@ return {
 }
 
 end)() end,
-    [510] = function()local wax,script,require=ImportGlobals(510)local ImportGlobals return (function(...)--!strict
+    [505] = function()local wax,script,require=ImportGlobals(505)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream https://github.com/facebook/react/blob/8af27aeedbc6b00bc2ef49729fc84f116c70a27c/packages/scheduler/src/SchedulerProfiling.js
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
@@ -134125,7 +133607,7 @@ end
 return exports
 
 end)() end,
-    [511] = function()local wax,script,require=ImportGlobals(511)local ImportGlobals return (function(...)--!strict
+    [506] = function()local wax,script,require=ImportGlobals(506)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/9abc2785cb070148d64fae81e523246b90b92016/packages/scheduler/src/Tracing.js
 -- /**
 --  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -134467,7 +133949,7 @@ end
 return exports
 
 end)() end,
-    [512] = function()local wax,script,require=ImportGlobals(512)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/9abc2785cb070148d64fae81e523246b90b92016/packages/scheduler/src/TracingSubscriptions.js
+    [507] = function()local wax,script,require=ImportGlobals(507)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/9abc2785cb070148d64fae81e523246b90b92016/packages/scheduler/src/TracingSubscriptions.js
 -- /**
 --  * Copyright (c) Facebook, Inc. and its affiliates.
 --  *
@@ -134659,7 +134141,7 @@ end
 return exports
 
 end)() end,
-    [514] = function()local wax,script,require=ImportGlobals(514)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/5474a83e258b497584bed9df95de1d554bc53f89/packages/scheduler/src/forks/SchedulerHostConfig.default.js
+    [509] = function()local wax,script,require=ImportGlobals(509)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/5474a83e258b497584bed9df95de1d554bc53f89/packages/scheduler/src/forks/SchedulerHostConfig.default.js
 --!strict
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
@@ -135005,7 +134487,7 @@ return {
 }
 
 end)() end,
-    [515] = function()local wax,script,require=ImportGlobals(515)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/5474a83e258b497584bed9df95de1d554bc53f89/packages/scheduler/src/forks/SchedulerHostConfig.mock.js
+    [510] = function()local wax,script,require=ImportGlobals(510)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/5474a83e258b497584bed9df95de1d554bc53f89/packages/scheduler/src/forks/SchedulerHostConfig.mock.js
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
 *
@@ -135282,7 +134764,7 @@ end
 return exports
 
 end)() end,
-    [516] = function()local wax,script,require=ImportGlobals(516)local ImportGlobals return (function(...)--!strict
+    [511] = function()local wax,script,require=ImportGlobals(511)local ImportGlobals return (function(...)--!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -135325,7 +134807,7 @@ exports.unstable_Profiling = Scheduler.unstable_Profiling
 return exports
 
 end)() end,
-    [517] = function()local wax,script,require=ImportGlobals(517)local ImportGlobals return (function(...)--!strict
+    [512] = function()local wax,script,require=ImportGlobals(512)local ImportGlobals return (function(...)--!strict
 --[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
@@ -135468,7 +134950,7 @@ return {
 }
 
 end)() end,
-    [518] = function()local wax,script,require=ImportGlobals(518)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/55cb0b7eeb0e539d89858b8ed69beabf7fe2fb46/packages/shared/checkPropTypes.js
+    [513] = function()local wax,script,require=ImportGlobals(513)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/55cb0b7eeb0e539d89858b8ed69beabf7fe2fb46/packages/shared/checkPropTypes.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -135560,7 +135042,7 @@ end
 return exports
 
 end)() end,
-    [519] = function()local wax,script,require=ImportGlobals(519)local ImportGlobals return (function(...)--!strict
+    [514] = function()local wax,script,require=ImportGlobals(514)local ImportGlobals return (function(...)--!strict
 --[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
@@ -135780,7 +135262,7 @@ return {
 }
 
 end)() end,
-    [520] = function()local wax,script,require=ImportGlobals(520)local ImportGlobals return (function(...)--!strict
+    [515] = function()local wax,script,require=ImportGlobals(515)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/55cb0b7eeb0e539d89858b8ed69beabf7fe2fb46/packages/shared/ExecutionEnvironment.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -135801,7 +135283,7 @@ end
 return exports
 
 end)() end,
-    [522] = function()local wax,script,require=ImportGlobals(522)local ImportGlobals return (function(...)--[[
+    [517] = function()local wax,script,require=ImportGlobals(517)local ImportGlobals return (function(...)--[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
 	* you may not use this file except in compliance with the License.
@@ -135855,7 +135337,7 @@ setmetatable(Change, {
 return Change
 
 end)() end,
-    [523] = function()local wax,script,require=ImportGlobals(523)local ImportGlobals return (function(...)--[[
+    [518] = function()local wax,script,require=ImportGlobals(518)local ImportGlobals return (function(...)--[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
 	* you may not use this file except in compliance with the License.
@@ -135912,7 +135394,7 @@ setmetatable(Event, {
 return Event
 
 end)() end,
-    [524] = function()local wax,script,require=ImportGlobals(524)local ImportGlobals return (function(...)--[[
+    [519] = function()local wax,script,require=ImportGlobals(519)local ImportGlobals return (function(...)--[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
 	* you may not use this file except in compliance with the License.
@@ -135936,7 +135418,7 @@ local Tag = Symbol.named("RobloxTag")
 return Tag
 
 end)() end,
-    [525] = function()local wax,script,require=ImportGlobals(525)local ImportGlobals return (function(...)--!strict
+    [520] = function()local wax,script,require=ImportGlobals(520)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/56e9feead0f91075ba0a4f725c9e4e343bca1c67/packages/shared/ReactComponentStackFrame.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -136417,7 +135899,7 @@ return {
 }
 
 end)() end,
-    [526] = function()local wax,script,require=ImportGlobals(526)local ImportGlobals return (function(...)--!strict
+    [521] = function()local wax,script,require=ImportGlobals(521)local ImportGlobals return (function(...)--!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -136468,7 +135950,7 @@ export type ReactElement<P = Object, T = any> = {
 return {}
 
 end)() end,
-    [527] = function()local wax,script,require=ImportGlobals(527)local ImportGlobals return (function(...)--!strict
+    [522] = function()local wax,script,require=ImportGlobals(522)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/b87aabdfe1b7461e7331abb3601d9e6bb27544bc/packages/shared/ReactErrorUtils.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -136581,7 +136063,7 @@ exports.clearCaughtError = clearCaughtError
 return exports
 
 end)() end,
-    [528] = function()local wax,script,require=ImportGlobals(528)local ImportGlobals return (function(...)--!strict
+    [523] = function()local wax,script,require=ImportGlobals(523)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/ba82eea3837e4aaeb5a30b7827b664a8c2128d2e/packages/shared/ReactFeatureFlags.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -136725,7 +136207,7 @@ exports.enableDoubleInvokingEffects = false
 return exports
 
 end)() end,
-    [529] = function()local wax,script,require=ImportGlobals(529)local ImportGlobals return (function(...)--[[
+    [524] = function()local wax,script,require=ImportGlobals(524)local ImportGlobals return (function(...)--[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
 	* you may not use this file except in compliance with the License.
@@ -136766,7 +136248,7 @@ return {
 }
 
 end)() end,
-    [530] = function()local wax,script,require=ImportGlobals(530)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/c5d2fc7127654e43de59fff865b74765a103c4a5/packages/react-reconciler/src/ReactFiberHostConfigWithNoHydration.js
+    [525] = function()local wax,script,require=ImportGlobals(525)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/c5d2fc7127654e43de59fff865b74765a103c4a5/packages/react-reconciler/src/ReactFiberHostConfigWithNoHydration.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -136823,7 +136305,7 @@ return {
 }
 
 end)() end,
-    [531] = function()local wax,script,require=ImportGlobals(531)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/c5d2fc7127654e43de59fff865b74765a103c4a5/packages/react-reconciler/src/ReactFiberHostConfigWithNoPersistence.js
+    [526] = function()local wax,script,require=ImportGlobals(526)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/c5d2fc7127654e43de59fff865b74765a103c4a5/packages/react-reconciler/src/ReactFiberHostConfigWithNoPersistence.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -136861,7 +136343,7 @@ return {
 }
 
 end)() end,
-    [532] = function()local wax,script,require=ImportGlobals(532)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/3cde22a84e246fc5361f038bf0c23405b2572c22/packages/react-reconciler/src/ReactFiberHostConfigWithNoTestSelectors.js
+    [527] = function()local wax,script,require=ImportGlobals(527)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/3cde22a84e246fc5361f038bf0c23405b2572c22/packages/react-reconciler/src/ReactFiberHostConfigWithNoTestSelectors.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -136898,7 +136380,7 @@ return {
 }
 
 end)() end,
-    [533] = function()local wax,script,require=ImportGlobals(533)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/2ba43edc2675380a0f2222f351475bf9d750c6a9/packages/shared/ReactInstanceMap.js
+    [528] = function()local wax,script,require=ImportGlobals(528)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/2ba43edc2675380a0f2222f351475bf9d750c6a9/packages/shared/ReactInstanceMap.js
 --!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -137034,7 +136516,7 @@ end
 return exports
 
 end)() end,
-    [534] = function()local wax,script,require=ImportGlobals(534)local ImportGlobals return (function(...)--!strict
+    [529] = function()local wax,script,require=ImportGlobals(529)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/607148673b3156d051d1fed17cd49e83698dce54/packages/react/src/ReactSharedInternals.js
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
@@ -137097,7 +136579,7 @@ local ReactSharedInternals = {
 return ReactSharedInternals
 
 end)() end,
-    [535] = function()local wax,script,require=ImportGlobals(535)local ImportGlobals return (function(...)--!strict
+    [530] = function()local wax,script,require=ImportGlobals(530)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/a457e02ae3a2d3903fcf8748380b1cc293a2445e/packages/react/src/IsSomeRendererActing.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -137118,7 +136600,7 @@ local IsSomeRendererActing = {
 return IsSomeRendererActing
 
 end)() end,
-    [536] = function()local wax,script,require=ImportGlobals(536)local ImportGlobals return (function(...)--!strict
+    [531] = function()local wax,script,require=ImportGlobals(531)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/92fcd46cc79bbf45df4ce86b0678dcef3b91078d/packages/react/src/ReactCurrentBatchConfig.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -137140,7 +136622,7 @@ local ReactCurrentBatchConfig = {
 return ReactCurrentBatchConfig
 
 end)() end,
-    [537] = function()local wax,script,require=ImportGlobals(537)local ImportGlobals return (function(...)--!strict
+    [532] = function()local wax,script,require=ImportGlobals(532)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/376d5c1b5aa17724c5fea9412f8fcde14a7b23f1/packages/react/src/ReactCurrentDispatcher.js
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
@@ -137245,7 +136727,7 @@ local ReactCurrentDispatcher: { current: nil | Dispatcher } = {
 return ReactCurrentDispatcher
 
 end)() end,
-    [538] = function()local wax,script,require=ImportGlobals(538)local ImportGlobals return (function(...)--!strict
+    [533] = function()local wax,script,require=ImportGlobals(533)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/376d5c1b5aa17724c5fea9412f8fcde14a7b23f1/packages/react/src/ReactCurrentOwner.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -137275,7 +136757,7 @@ local ReactCurrentOwner = {
 return ReactCurrentOwner
 
 end)() end,
-    [539] = function()local wax,script,require=ImportGlobals(539)local ImportGlobals return (function(...)--!strict
+    [534] = function()local wax,script,require=ImportGlobals(534)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/98d410f5005988644d01c9ec79b7181c3dd6c847/packages/react/src/ReactDebugCurrentFrame.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -137331,7 +136813,7 @@ end
 return ReactDebugCurrentFrame
 
 end)() end,
-    [540] = function()local wax,script,require=ImportGlobals(540)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/b61174fb7b09580c1ec2a8f55e73204b706d2935/packages/shared/ReactSymbols.js
+    [535] = function()local wax,script,require=ImportGlobals(535)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/b61174fb7b09580c1ec2a8f55e73204b706d2935/packages/shared/ReactSymbols.js
 --!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -137444,7 +136926,7 @@ end
 return exports
 
 end)() end,
-    [541] = function()local wax,script,require=ImportGlobals(541)local ImportGlobals return (function(...)--!strict
+    [536] = function()local wax,script,require=ImportGlobals(536)local ImportGlobals return (function(...)--!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -137713,7 +137195,7 @@ export type Thenable<R> = {
 return exports
 
 end)() end,
-    [542] = function()local wax,script,require=ImportGlobals(542)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/a89854bc936668d325cac9a22e2ebfa128c7addf/packages/shared/ReactVersion.js
+    [537] = function()local wax,script,require=ImportGlobals(537)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/a89854bc936668d325cac9a22e2ebfa128c7addf/packages/shared/ReactVersion.js
 --!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -137726,7 +137208,7 @@ end)() end,
 return "17.3.7"
 
 end)() end,
-    [543] = function()local wax,script,require=ImportGlobals(543)local ImportGlobals return (function(...)--[[
+    [538] = function()local wax,script,require=ImportGlobals(538)local ImportGlobals return (function(...)--[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
 	* you may not use this file except in compliance with the License.
@@ -137772,7 +137254,7 @@ end
 return Symbol
 
 end)() end,
-    [544] = function()local wax,script,require=ImportGlobals(544)local ImportGlobals return (function(...)--[[
+    [539] = function()local wax,script,require=ImportGlobals(539)local ImportGlobals return (function(...)--[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
 	* you may not use this file except in compliance with the License.
@@ -137827,7 +137309,7 @@ end
 return Type
 
 end)() end,
-    [545] = function()local wax,script,require=ImportGlobals(545)local ImportGlobals return (function(...)--[[
+    [540] = function()local wax,script,require=ImportGlobals(540)local ImportGlobals return (function(...)--[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
 	* you may not use this file except in compliance with the License.
@@ -137877,7 +137359,7 @@ setmetatable(UninitializedState, {
 return UninitializedState
 
 end)() end,
-    [546] = function()local wax,script,require=ImportGlobals(546)local ImportGlobals return (function(...)--!strict
+    [541] = function()local wax,script,require=ImportGlobals(541)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/55cb0b7eeb0e539d89858b8ed69beabf7fe2fb46/packages/shared/checkPropTypes.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -138072,7 +137554,7 @@ end
 return checkPropTypes
 
 end)() end,
-    [547] = function()local wax,script,require=ImportGlobals(547)local ImportGlobals return (function(...)--[[
+    [542] = function()local wax,script,require=ImportGlobals(542)local ImportGlobals return (function(...)--[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
 	* you may not use this file except in compliance with the License.
@@ -138112,7 +137594,7 @@ end
 return console
 
 end)() end,
-    [548] = function()local wax,script,require=ImportGlobals(548)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/cb141681750c8221ac799074df09df2bb448c7a4/packages/shared/consoleWithStackDev.js
+    [543] = function()local wax,script,require=ImportGlobals(543)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/cb141681750c8221ac799074df09df2bb448c7a4/packages/shared/consoleWithStackDev.js
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
 *
@@ -138175,7 +137657,7 @@ end
 return exports
 
 end)() end,
-    [549] = function()local wax,script,require=ImportGlobals(549)local ImportGlobals return (function(...)--!strict
+    [544] = function()local wax,script,require=ImportGlobals(544)local ImportGlobals return (function(...)--!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -138194,7 +137676,7 @@ return function(task)
 end
 
 end)() end,
-    [550] = function()local wax,script,require=ImportGlobals(550)local ImportGlobals return (function(...)--[[
+    [545] = function()local wax,script,require=ImportGlobals(545)local ImportGlobals return (function(...)--[[
 	* Copyright (c) Roblox Corporation. All rights reserved.
 	* Licensed under the MIT License (the "License");
 	* you may not use this file except in compliance with the License.
@@ -138430,7 +137912,7 @@ export type React_Key = string | number
 return {}
 
 end)() end,
-    [551] = function()local wax,script,require=ImportGlobals(551)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/75955bf1d7ff6c2c1f4052f4a84dd2ce6944c62e/packages/shared/formatProdErrorMessage.js
+    [546] = function()local wax,script,require=ImportGlobals(546)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/75955bf1d7ff6c2c1f4052f4a84dd2ce6944c62e/packages/shared/formatProdErrorMessage.js
 --!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -138465,7 +137947,7 @@ end
 return formatProdErrorMessage
 
 end)() end,
-    [552] = function()local wax,script,require=ImportGlobals(552)local ImportGlobals return (function(...)--!strict
+    [547] = function()local wax,script,require=ImportGlobals(547)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/a774502e0ff2a82e3c0a3102534dbc3f1406e5ea/packages/shared/getComponentName.js
 --[[*
 * Copyright (c) Facebook, Inc. and its affiliates.
@@ -138623,7 +138105,7 @@ end
 return getComponentName
 
 end)() end,
-    [553] = function()local wax,script,require=ImportGlobals(553)local ImportGlobals return (function(...)--!strict
+    [548] = function()local wax,script,require=ImportGlobals(548)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/42c3c967d1e4ca4731b47866f2090bc34caa086c/packages/shared/invariant.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -138659,7 +138141,7 @@ end
 return invariant
 
 end)() end,
-    [554] = function()local wax,script,require=ImportGlobals(554)local ImportGlobals return (function(...)--!strict
+    [549] = function()local wax,script,require=ImportGlobals(549)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/702fad4b1b48ac8f626ed3f35e8f86f5ea728084/packages/shared/invokeGuardedCallbackImpl.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -138876,7 +138358,7 @@ end
 return invokeGuardedCallbackImpl
 
 end)() end,
-    [555] = function()local wax,script,require=ImportGlobals(555)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/b61174fb7b09580c1ec2a8f55e73204b706d2935/packages/shared/isValidElementType.js
+    [550] = function()local wax,script,require=ImportGlobals(550)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/b61174fb7b09580c1ec2a8f55e73204b706d2935/packages/shared/isValidElementType.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -138952,7 +138434,7 @@ return function(type)
 end
 
 end)() end,
-    [556] = function()local wax,script,require=ImportGlobals(556)local ImportGlobals return (function(...)--!strict
+    [551] = function()local wax,script,require=ImportGlobals(551)local ImportGlobals return (function(...)--!strict
 -- ROBLOX upstream: https://github.com/facebook/react/blob/6faf6f5eb1705eef39a1d762d6ee381930f36775/packages/shared/objectIs.js
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -138977,7 +138459,7 @@ local objectIs = is
 return objectIs
 
 end)() end,
-    [557] = function()local wax,script,require=ImportGlobals(557)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/a9b035b0c2b8235405835beca0c4db2cc37f18d0/packages/shared/shallowEqual.js
+    [552] = function()local wax,script,require=ImportGlobals(552)local ImportGlobals return (function(...)-- ROBLOX upstream: https://github.com/facebook/react/blob/a9b035b0c2b8235405835beca0c4db2cc37f18d0/packages/shared/shallowEqual.js
 --!strict
 --[[*
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -139028,7 +138510,7 @@ end
 return shallowEqual
 
 end)() end,
-    [558] = function()local wax,script,require=ImportGlobals(558)local ImportGlobals return (function(...)return {
+    [553] = function()local wax,script,require=ImportGlobals(553)local ImportGlobals return (function(...)return {
 	charCodeAt = require(script.charCodeAt),
 	endsWith = require(script.endsWith),
 	findOr = require(script.findOr),
@@ -139048,7 +138530,7 @@ end)() end,
 }
 
 end)() end,
-    [559] = function()local wax,script,require=ImportGlobals(559)local ImportGlobals return (function(...)--!strict
+    [554] = function()local wax,script,require=ImportGlobals(554)local ImportGlobals return (function(...)--!strict
 local String = script.Parent
 local Packages = String.Parent
 local Number = require(Packages.Number)
@@ -139089,7 +138571,7 @@ return function(str: string, index: number): number
 end
 
 end)() end,
-    [560] = function()local wax,script,require=ImportGlobals(560)local ImportGlobals return (function(...)--!strict
+    [555] = function()local wax,script,require=ImportGlobals(555)local ImportGlobals return (function(...)--!strict
 local function endsWith(value: string, substring: string, optionalLength: number?): boolean
 	local substringLength = substring:len()
 	if substringLength == 0 then
@@ -139110,7 +138592,7 @@ end
 return endsWith
 
 end)() end,
-    [561] = function()local wax,script,require=ImportGlobals(561)local ImportGlobals return (function(...)--!strict
+    [556] = function()local wax,script,require=ImportGlobals(556)local ImportGlobals return (function(...)--!strict
 type Match = {
 	index: number,
 	match: string,
@@ -139169,7 +138651,7 @@ end
 return findOr
 
 end)() end,
-    [562] = function()local wax,script,require=ImportGlobals(562)local ImportGlobals return (function(...)--!strict
+    [557] = function()local wax,script,require=ImportGlobals(557)local ImportGlobals return (function(...)--!strict
 
 -- excluding the `+` and `*` character, since findOr tests and graphql use them explicitly
 local luaPatternCharacters = "([" .. ("$%^()-[].?"):gsub("(.)", "%%%1") .. "])"
@@ -139206,7 +138688,7 @@ end
 return includes
 
 end)() end,
-    [563] = function()local wax,script,require=ImportGlobals(563)local ImportGlobals return (function(...)--!strict
+    [558] = function()local wax,script,require=ImportGlobals(558)local ImportGlobals return (function(...)--!strict
 
 -- excluding the `+` and `*` character, since findOr tests and graphql use them explicitly
 local luaPatternCharacters = "([" .. ("$%^()-[].?"):gsub("(.)", "%%%1") .. "])"
@@ -139239,7 +138721,7 @@ return function(str: string, searchElement: string, fromIndex: number?): number
 end
 
 end)() end,
-    [564] = function()local wax,script,require=ImportGlobals(564)local ImportGlobals return (function(...)--!strict
+    [559] = function()local wax,script,require=ImportGlobals(559)local ImportGlobals return (function(...)--!strict
 local function lastIndexOf(str: string, searchValue: string, fromIndex: number?): number
 	local strLength = string.len(str)
 	local calculatedFromIndex
@@ -139278,7 +138760,7 @@ end
 return lastIndexOf
 
 end)() end,
-    [565] = function()local wax,script,require=ImportGlobals(565)local ImportGlobals return (function(...)--!strict
+    [560] = function()local wax,script,require=ImportGlobals(560)local ImportGlobals return (function(...)--!strict
 local function slice(str: string, startIndexStr: string | number, lastIndexStr: (string | number)?): string
 	local strLen, invalidBytePosition = utf8.len(str)
 	assert(strLen ~= nil, ("string `%s` has an invalid byte at position %s"):format(str, tostring(invalidBytePosition)))
@@ -139317,7 +138799,7 @@ end
 return slice
 
 end)() end,
-    [566] = function()local wax,script,require=ImportGlobals(566)local ImportGlobals return (function(...)--!strict
+    [561] = function()local wax,script,require=ImportGlobals(561)local ImportGlobals return (function(...)--!strict
 local String = script.Parent
 local findOr = require(String.findOr)
 local slice = require(String.slice)
@@ -139387,7 +138869,7 @@ end
 return split
 
 end)() end,
-    [567] = function()local wax,script,require=ImportGlobals(567)local ImportGlobals return (function(...)--!strict
+    [562] = function()local wax,script,require=ImportGlobals(562)local ImportGlobals return (function(...)--!strict
 local function startsWith(value: string, substring: string, position: number?): boolean
 	if string.len(substring) == 0 then
 		return true
@@ -139409,7 +138891,7 @@ end
 return startsWith
 
 end)() end,
-    [568] = function()local wax,script,require=ImportGlobals(568)local ImportGlobals return (function(...)--!strict
+    [563] = function()local wax,script,require=ImportGlobals(563)local ImportGlobals return (function(...)--!strict
 return function(s: string, startIndex: number, numberOfCharacters: number?): string
 	if numberOfCharacters and numberOfCharacters <= 0 then
 		return ""
@@ -139418,7 +138900,7 @@ return function(s: string, startIndex: number, numberOfCharacters: number?): str
 end
 
 end)() end,
-    [569] = function()local wax,script,require=ImportGlobals(569)local ImportGlobals return (function(...)--!strict
+    [564] = function()local wax,script,require=ImportGlobals(564)local ImportGlobals return (function(...)--!strict
 
 local trimStart = require(script.Parent.trimStart)
 local trimEnd = require(script.Parent.trimEnd)
@@ -139428,19 +138910,19 @@ return function(source: string): string
 end
 
 end)() end,
-    [570] = function()local wax,script,require=ImportGlobals(570)local ImportGlobals return (function(...)--!strict
+    [565] = function()local wax,script,require=ImportGlobals(565)local ImportGlobals return (function(...)--!strict
 return function(source: string): string
 	return (source:gsub("[%s]+$", ""))
 end
 
 end)() end,
-    [571] = function()local wax,script,require=ImportGlobals(571)local ImportGlobals return (function(...)--!strict
+    [566] = function()local wax,script,require=ImportGlobals(566)local ImportGlobals return (function(...)--!strict
 return function(source: string): string
 	return (source:gsub("^[%s]+", ""))
 end
 
 end)() end,
-    [572] = function()local wax,script,require=ImportGlobals(572)local ImportGlobals return (function(...)--!strict
+    [567] = function()local wax,script,require=ImportGlobals(567)local ImportGlobals return (function(...)--!strict
 --[[
 	A 'Symbol' is an opaque marker type, implemented to behave similarly to JS:
 	https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol
@@ -139464,7 +138946,7 @@ SymbolObject.for_ = GlobalRegistry.getOrInit
 return SymbolObject
 
 end)() end,
-    [573] = function()local wax,script,require=ImportGlobals(573)local ImportGlobals return (function(...)local Symbol = require(script.Parent.Symbol)
+    [568] = function()local wax,script,require=ImportGlobals(568)local ImportGlobals return (function(...)local Symbol = require(script.Parent.Symbol)
 
 local GlobalRegistry: { [string]: Symbol.Symbol } = {}
 
@@ -139483,7 +138965,7 @@ return {
 }
 
 end)() end,
-    [574] = function()local wax,script,require=ImportGlobals(574)local ImportGlobals return (function(...)--!strict
+    [569] = function()local wax,script,require=ImportGlobals(569)local ImportGlobals return (function(...)--!strict
 --[[
 	Symbols have the type 'userdata', but when printed or coerced to a string,
 	the symbol will turn into the string given as its name.
@@ -139514,7 +138996,7 @@ return {
 }
 
 end)() end,
-    [575] = function()local wax,script,require=ImportGlobals(575)local ImportGlobals return (function(...)--!strict
+    [570] = function()local wax,script,require=ImportGlobals(570)local ImportGlobals return (function(...)--!strict
 local Packages = script.Parent
 
 local Object = require(Packages.Collections).Object
@@ -139528,7 +139010,7 @@ export type Interval = makeIntervalImpl.Interval
 return Object.assign({}, makeTimerImpl(task.delay), makeIntervalImpl(task.delay))
 
 end)() end,
-    [576] = function()local wax,script,require=ImportGlobals(576)local ImportGlobals return (function(...)local Status = newproxy(false)
+    [571] = function()local wax,script,require=ImportGlobals(571)local ImportGlobals return (function(...)local Status = newproxy(false)
 
 type TaskStatus = number
 export type Interval = { [typeof(Status)]: TaskStatus }
@@ -139582,7 +139064,7 @@ return function(delayImpl)
 end
 
 end)() end,
-    [577] = function()local wax,script,require=ImportGlobals(577)local ImportGlobals return (function(...)local Status = newproxy(false)
+    [572] = function()local wax,script,require=ImportGlobals(572)local ImportGlobals return (function(...)local Status = newproxy(false)
 
 type TaskStatus = number
 export type Timeout = { [typeof(Status)]: TaskStatus }
@@ -139650,2887 +139132,65 @@ local ObjectTree = {
                 },
                 {
                     {
-                        187,
-                        1,
-                        {
-                            "UniversalHubMenu"
-                        },
-                        {
-                            {
-                                312,
-                                2,
-                                {
-                                    "src"
-                                },
-                                {
-                                    {
-                                        325,
-                                        1,
-                                        {
-                                            "visuals"
-                                        },
-                                        {
-                                            {
-                                                326,
-                                                2,
-                                                {
-                                                    "VisualsPage"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        319,
-                                        2,
-                                        {
-                                            "contracts"
-                                        }
-                                    },
-                                    {
-                                        324,
-                                        2,
-                                        {
-                                            "theme"
-                                        }
-                                    },
-                                    {
-                                        320,
-                                        1,
-                                        {
-                                            "preview"
-                                        },
-                                        {
-                                            {
-                                                321,
-                                                2,
-                                                {
-                                                    "ModelViewer"
-                                                }
-                                            },
-                                            {
-                                                322,
-                                                2,
-                                                {
-                                                    "ViewportDummy"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        313,
-                                        2,
-                                        {
-                                            "UniversalHubMenu"
-                                        }
-                                    },
-                                    {
-                                        323,
-                                        2,
-                                        {
-                                            "prismCompat"
-                                        }
-                                    },
-                                    {
-                                        314,
-                                        1,
-                                        {
-                                            "components"
-                                        },
-                                        {
-                                            {
-                                                317,
-                                                2,
-                                                {
-                                                    "SectionList"
-                                                }
-                                            },
-                                            {
-                                                318,
-                                                2,
-                                                {
-                                                    "WhatsNewModal"
-                                                }
-                                            },
-                                            {
-                                                315,
-                                                2,
-                                                {
-                                                    "ControlView"
-                                                }
-                                            },
-                                            {
-                                                316,
-                                                2,
-                                                {
-                                                    "Keycap"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                188,
-                                1,
-                                {
-                                    ".generated"
-                                },
-                                {
-                                    {
-                                        189,
-                                        1,
-                                        {
-                                            "prism-src"
-                                        },
-                                        {
-                                            {
-                                                190,
-                                                1,
-                                                {
-                                                    "lib"
-                                                },
-                                                {
-                                                    {
-                                                        290,
-                                                        1,
-                                                        {
-                                                            "icons"
-                                                        },
-                                                        {
-                                                            {
-                                                                291,
-                                                                2,
-                                                                {
-                                                                    "lucide"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        192,
-                                                        1,
-                                                        {
-                                                            "components"
-                                                        },
-                                                        {
-                                                            {
-                                                                219,
-                                                                2,
-                                                                {
-                                                                    "Modal"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        220,
-                                                                        2,
-                                                                        {
-                                                                            "Modal"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        221,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                218,
-                                                                1,
-                                                                {
-                                                                    "Menu"
-                                                                }
-                                                            },
-                                                            {
-                                                                270,
-                                                                1,
-                                                                {
-                                                                    "WorldPortal"
-                                                                }
-                                                            },
-                                                            {
-                                                                214,
-                                                                2,
-                                                                {
-                                                                    "KeybindInput"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        217,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        216,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        215,
-                                                                        2,
-                                                                        {
-                                                                            "KeybindInput"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                271,
-                                                                1,
-                                                                {
-                                                                    "_shared"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        275,
-                                                                        2,
-                                                                        {
-                                                                            "frameSize"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        282,
-                                                                        2,
-                                                                        {
-                                                                            "textFont"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        277,
-                                                                        2,
-                                                                        {
-                                                                            "layering"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        285,
-                                                                        2,
-                                                                        {
-                                                                            "usePresence"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        273,
-                                                                        2,
-                                                                        {
-                                                                            "elevation"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        278,
-                                                                        2,
-                                                                        {
-                                                                            "mergeSharedStyleProps"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        283,
-                                                                        2,
-                                                                        {
-                                                                            "useControllableState"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        276,
-                                                                        2,
-                                                                        {
-                                                                            "interaction"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        272,
-                                                                        2,
-                                                                        {
-                                                                            "TriggerOverlayLayer"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        288,
-                                                                        2,
-                                                                        {
-                                                                            "useRootCursor"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        289,
-                                                                        2,
-                                                                        {
-                                                                            "visual"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        286,
-                                                                        2,
-                                                                        {
-                                                                            "usePressInteraction"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        287,
-                                                                        2,
-                                                                        {
-                                                                            "useResolvedStyleProps"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        279,
-                                                                        2,
-                                                                        {
-                                                                            "overlayLayerPolicy"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        280,
-                                                                        2,
-                                                                        {
-                                                                            "slotProps"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        284,
-                                                                        2,
-                                                                        {
-                                                                            "useDelayedCallback"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        281,
-                                                                        2,
-                                                                        {
-                                                                            "styleOverride"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        274,
-                                                                        2,
-                                                                        {
-                                                                            "foundationDecorators"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                204,
-                                                                1,
-                                                                {
-                                                                    "Card"
-                                                                }
-                                                            },
-                                                            {
-                                                                200,
-                                                                2,
-                                                                {
-                                                                    "Button"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        202,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        203,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        201,
-                                                                        2,
-                                                                        {
-                                                                            "Button"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                262,
-                                                                2,
-                                                                {
-                                                                    "Text"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        263,
-                                                                        2,
-                                                                        {
-                                                                            "Text"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        264,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                197,
-                                                                2,
-                                                                {
-                                                                    "Box"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        199,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        198,
-                                                                        2,
-                                                                        {
-                                                                            "Box"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                258,
-                                                                2,
-                                                                {
-                                                                    "Tabs"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        260,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        261,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        259,
-                                                                        2,
-                                                                        {
-                                                                            "Tabs"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                244,
-                                                                2,
-                                                                {
-                                                                    "Slider"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        247,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        249,
-                                                                        2,
-                                                                        {
-                                                                            "utils"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        248,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        246,
-                                                                        2,
-                                                                        {
-                                                                            "controllerInput"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        245,
-                                                                        2,
-                                                                        {
-                                                                            "Slider"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                254,
-                                                                2,
-                                                                {
-                                                                    "Switch"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        255,
-                                                                        2,
-                                                                        {
-                                                                            "Switch"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        257,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        256,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                206,
-                                                                1,
-                                                                {
-                                                                    "CircularProgress"
-                                                                }
-                                                            },
-                                                            {
-                                                                212,
-                                                                1,
-                                                                {
-                                                                    "Image"
-                                                                }
-                                                            },
-                                                            {
-                                                                237,
-                                                                2,
-                                                                {
-                                                                    "Select"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        238,
-                                                                        2,
-                                                                        {
-                                                                            "Select"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        241,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        240,
-                                                                        2,
-                                                                        {
-                                                                            "SelectOptionRow"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        242,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        243,
-                                                                        2,
-                                                                        {
-                                                                            "utils"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        239,
-                                                                        2,
-                                                                        {
-                                                                            "SelectDropdown"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                207,
-                                                                1,
-                                                                {
-                                                                    "Divider"
-                                                                }
-                                                            },
-                                                            {
-                                                                209,
-                                                                2,
-                                                                {
-                                                                    "Icon"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        210,
-                                                                        2,
-                                                                        {
-                                                                            "Icon"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        211,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                250,
-                                                                2,
-                                                                {
-                                                                    "Stack"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        252,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        251,
-                                                                        2,
-                                                                        {
-                                                                            "Stack"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                233,
-                                                                2,
-                                                                {
-                                                                    "SegmentedControl"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        234,
-                                                                        2,
-                                                                        {
-                                                                            "SegmentedControl"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        236,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        235,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                208,
-                                                                1,
-                                                                {
-                                                                    "Draggable"
-                                                                }
-                                                            },
-                                                            {
-                                                                193,
-                                                                1,
-                                                                {
-                                                                    "Avatar"
-                                                                }
-                                                            },
-                                                            {
-                                                                229,
-                                                                1,
-                                                                {
-                                                                    "Progress"
-                                                                }
-                                                            },
-                                                            {
-                                                                228,
-                                                                1,
-                                                                {
-                                                                    "Pressable"
-                                                                }
-                                                            },
-                                                            {
-                                                                222,
-                                                                2,
-                                                                {
-                                                                    "Popover"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        225,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        223,
-                                                                        2,
-                                                                        {
-                                                                            "Popover"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        226,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        227,
-                                                                        2,
-                                                                        {
-                                                                            "utils"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        224,
-                                                                        2,
-                                                                        {
-                                                                            "PopoverOverlayPanel"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                213,
-                                                                1,
-                                                                {
-                                                                    "Input"
-                                                                }
-                                                            },
-                                                            {
-                                                                230,
-                                                                2,
-                                                                {
-                                                                    "ScrollArea"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        231,
-                                                                        2,
-                                                                        {
-                                                                            "ScrollArea"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        232,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                265,
-                                                                2,
-                                                                {
-                                                                    "Tooltip"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        268,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        269,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        267,
-                                                                        2,
-                                                                        {
-                                                                            "TooltipOverlayBubble"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        266,
-                                                                        2,
-                                                                        {
-                                                                            "Tooltip"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                194,
-                                                                2,
-                                                                {
-                                                                    "Backdrop"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        196,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        195,
-                                                                        2,
-                                                                        {
-                                                                            "Backdrop"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                205,
-                                                                1,
-                                                                {
-                                                                    "Checkbox"
-                                                                }
-                                                            },
-                                                            {
-                                                                253,
-                                                                1,
-                                                                {
-                                                                    "StepperInput"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        297,
-                                                        1,
-                                                        {
-                                                            "testing"
-                                                        }
-                                                    },
-                                                    {
-                                                        304,
-                                                        2,
-                                                        {
-                                                            "utils"
-                                                        },
-                                                        {
-                                                            {
-                                                                305,
-                                                                2,
-                                                                {
-                                                                    "diagnostics"
-                                                                }
-                                                            },
-                                                            {
-                                                                306,
-                                                                2,
-                                                                {
-                                                                    "units"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        292,
-                                                        2,
-                                                        {
-                                                            "motion"
-                                                        },
-                                                        {
-                                                            {
-                                                                294,
-                                                                2,
-                                                                {
-                                                                    "transitions"
-                                                                }
-                                                            },
-                                                            {
-                                                                295,
-                                                                2,
-                                                                {
-                                                                    "types"
-                                                                }
-                                                            },
-                                                            {
-                                                                296,
-                                                                2,
-                                                                {
-                                                                    "useMotion"
-                                                                }
-                                                            },
-                                                            {
-                                                                293,
-                                                                2,
-                                                                {
-                                                                    "signatures"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        298,
-                                                        2,
-                                                        {
-                                                            "theme"
-                                                        },
-                                                        {
-                                                            {
-                                                                299,
-                                                                2,
-                                                                {
-                                                                    "ThemeProvider"
-                                                                }
-                                                            },
-                                                            {
-                                                                303,
-                                                                2,
-                                                                {
-                                                                    "types"
-                                                                }
-                                                            },
-                                                            {
-                                                                300,
-                                                                2,
-                                                                {
-                                                                    "defaults"
-                                                                }
-                                                            },
-                                                            {
-                                                                301,
-                                                                2,
-                                                                {
-                                                                    "refs"
-                                                                }
-                                                            },
-                                                            {
-                                                                302,
-                                                                2,
-                                                                {
-                                                                    "resolveToken"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        191,
-                                                        1,
-                                                        {
-                                                            "bridge"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                307,
-                                                1,
-                                                {
-                                                    "playground"
-                                                },
-                                                {
-                                                    {
-                                                        309,
-                                                        4,
-                                                        {
-                                                            "BridgeLuauConsumer.disabled"
-                                                        }
-                                                    },
-                                                    {
-                                                        310,
-                                                        1,
-                                                        {
-                                                            "stories"
-                                                        },
-                                                        {
-                                                            {
-                                                                311,
-                                                                1,
-                                                                {
-                                                                    "_shared"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        308,
-                                                        4,
-                                                        {
-                                                            "BridgeLuauConsumer"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    {
-                        327,
-                        1,
-                        {
-                            "rbxts_include"
-                        },
-                        {
-                            {
-                                330,
-                                1,
-                                {
-                                    "node_modules"
-                                },
-                                {
-                                    {
-                                        331,
-                                        1,
-                                        {
-                                            "@rbxts"
-                                        },
-                                        {
-                                            {
-                                                337,
-                                                2,
-                                                {
-                                                    "react-roblox"
-                                                }
-                                            },
-                                            {
-                                                335,
-                                                2,
-                                                {
-                                                    "react"
-                                                },
-                                                {
-                                                    {
-                                                        336,
-                                                        2,
-                                                        {
-                                                            "tags"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                332,
-                                                1,
-                                                {
-                                                    "compiler-types"
-                                                },
-                                                {
-                                                    {
-                                                        333,
-                                                        2,
-                                                        {
-                                                            "package"
-                                                        }
-                                                    },
-                                                    {
-                                                        334,
-                                                        1,
-                                                        {
-                                                            "types"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                338,
-                                                1,
-                                                {
-                                                    "types"
-                                                },
-                                                {
-                                                    {
-                                                        339,
-                                                        1,
-                                                        {
-                                                            "include"
-                                                        },
-                                                        {
-                                                            {
-                                                                340,
-                                                                1,
-                                                                {
-                                                                    "generated"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        341,
-                                                        2,
-                                                        {
-                                                            "package"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        342,
-                                        1,
-                                        {
-                                            "@rbxts-js"
-                                        },
-                                        {
-                                            {
-                                                431,
-                                                2,
-                                                {
-                                                    "ReactGlobals"
-                                                },
-                                                {
-                                                    {
-                                                        432,
-                                                        2,
-                                                        {
-                                                            "ReactGlobals.global"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                414,
-                                                2,
-                                                {
-                                                    "React"
-                                                },
-                                                {
-                                                    {
-                                                        425,
-                                                        2,
-                                                        {
-                                                            "ReactHooks"
-                                                        }
-                                                    },
-                                                    {
-                                                        428,
-                                                        2,
-                                                        {
-                                                            "ReactMutableSource"
-                                                        }
-                                                    },
-                                                    {
-                                                        416,
-                                                        2,
-                                                        {
-                                                            "React"
-                                                        }
-                                                    },
-                                                    {
-                                                        429,
-                                                        2,
-                                                        {
-                                                            "ReactNoopUpdateQueue"
-                                                        }
-                                                    },
-                                                    {
-                                                        420,
-                                                        2,
-                                                        {
-                                                            "ReactContext"
-                                                        }
-                                                    },
-                                                    {
-                                                        430,
-                                                        2,
-                                                        {
-                                                            "createSignal.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        426,
-                                                        2,
-                                                        {
-                                                            "ReactLazy"
-                                                        }
-                                                    },
-                                                    {
-                                                        417,
-                                                        2,
-                                                        {
-                                                            "ReactBaseClasses"
-                                                        }
-                                                    },
-                                                    {
-                                                        419,
-                                                        2,
-                                                        {
-                                                            "ReactChildren"
-                                                        }
-                                                    },
-                                                    {
-                                                        427,
-                                                        2,
-                                                        {
-                                                            "ReactMemo"
-                                                        }
-                                                    },
-                                                    {
-                                                        424,
-                                                        2,
-                                                        {
-                                                            "ReactForwardRef"
-                                                        }
-                                                    },
-                                                    {
-                                                        418,
-                                                        2,
-                                                        {
-                                                            "ReactBinding.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        421,
-                                                        2,
-                                                        {
-                                                            "ReactCreateRef"
-                                                        }
-                                                    },
-                                                    {
-                                                        423,
-                                                        2,
-                                                        {
-                                                            "ReactElementValidator"
-                                                        }
-                                                    },
-                                                    {
-                                                        415,
-                                                        2,
-                                                        {
-                                                            "None.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        422,
-                                                        2,
-                                                        {
-                                                            "ReactElement"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                345,
-                                                2,
-                                                {
-                                                    "Collections"
-                                                },
-                                                {
-                                                    {
-                                                        389,
-                                                        2,
-                                                        {
-                                                            "WeakMap"
-                                                        }
-                                                    },
-                                                    {
-                                                        388,
-                                                        2,
-                                                        {
-                                                            "Set"
-                                                        }
-                                                    },
-                                                    {
-                                                        390,
-                                                        2,
-                                                        {
-                                                            "inspect"
-                                                        }
-                                                    },
-                                                    {
-                                                        373,
-                                                        2,
-                                                        {
-                                                            "Map"
-                                                        },
-                                                        {
-                                                            {
-                                                                375,
-                                                                2,
-                                                                {
-                                                                    "coerceToMap"
-                                                                }
-                                                            },
-                                                            {
-                                                                376,
-                                                                2,
-                                                                {
-                                                                    "coerceToTable"
-                                                                }
-                                                            },
-                                                            {
-                                                                374,
-                                                                2,
-                                                                {
-                                                                    "Map"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        346,
-                                                        2,
-                                                        {
-                                                            "Array"
-                                                        },
-                                                        {
-                                                            {
-                                                                350,
-                                                                2,
-                                                                {
-                                                                    "find"
-                                                                }
-                                                            },
-                                                            {
-                                                                363,
-                                                                2,
-                                                                {
-                                                                    "join"
-                                                                }
-                                                            },
-                                                            {
-                                                                355,
-                                                                2,
-                                                                {
-                                                                    "from"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        357,
-                                                                        2,
-                                                                        {
-                                                                            "fromMap"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        358,
-                                                                        2,
-                                                                        {
-                                                                            "fromSet"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        359,
-                                                                        2,
-                                                                        {
-                                                                            "fromString"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        356,
-                                                                        2,
-                                                                        {
-                                                                            "fromArray"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                349,
-                                                                2,
-                                                                {
-                                                                    "filter"
-                                                                }
-                                                            },
-                                                            {
-                                                                354,
-                                                                2,
-                                                                {
-                                                                    "forEach"
-                                                                }
-                                                            },
-                                                            {
-                                                                364,
-                                                                2,
-                                                                {
-                                                                    "map"
-                                                                }
-                                                            },
-                                                            {
-                                                                353,
-                                                                2,
-                                                                {
-                                                                    "flatMap"
-                                                                }
-                                                            },
-                                                            {
-                                                                365,
-                                                                2,
-                                                                {
-                                                                    "reduce"
-                                                                }
-                                                            },
-                                                            {
-                                                                372,
-                                                                2,
-                                                                {
-                                                                    "unshift"
-                                                                }
-                                                            },
-                                                            {
-                                                                361,
-                                                                2,
-                                                                {
-                                                                    "indexOf"
-                                                                }
-                                                            },
-                                                            {
-                                                                362,
-                                                                2,
-                                                                {
-                                                                    "isArray"
-                                                                }
-                                                            },
-                                                            {
-                                                                352,
-                                                                2,
-                                                                {
-                                                                    "flat"
-                                                                }
-                                                            },
-                                                            {
-                                                                371,
-                                                                2,
-                                                                {
-                                                                    "splice"
-                                                                }
-                                                            },
-                                                            {
-                                                                369,
-                                                                2,
-                                                                {
-                                                                    "some"
-                                                                }
-                                                            },
-                                                            {
-                                                                370,
-                                                                2,
-                                                                {
-                                                                    "sort"
-                                                                }
-                                                            },
-                                                            {
-                                                                347,
-                                                                2,
-                                                                {
-                                                                    "concat"
-                                                                }
-                                                            },
-                                                            {
-                                                                368,
-                                                                2,
-                                                                {
-                                                                    "slice"
-                                                                }
-                                                            },
-                                                            {
-                                                                367,
-                                                                2,
-                                                                {
-                                                                    "shift"
-                                                                }
-                                                            },
-                                                            {
-                                                                366,
-                                                                2,
-                                                                {
-                                                                    "reverse"
-                                                                }
-                                                            },
-                                                            {
-                                                                360,
-                                                                2,
-                                                                {
-                                                                    "includes"
-                                                                }
-                                                            },
-                                                            {
-                                                                351,
-                                                                2,
-                                                                {
-                                                                    "findIndex"
-                                                                }
-                                                            },
-                                                            {
-                                                                348,
-                                                                2,
-                                                                {
-                                                                    "every"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        377,
-                                                        2,
-                                                        {
-                                                            "Object"
-                                                        },
-                                                        {
-                                                            {
-                                                                379,
-                                                                2,
-                                                                {
-                                                                    "assign"
-                                                                }
-                                                            },
-                                                            {
-                                                                381,
-                                                                2,
-                                                                {
-                                                                    "freeze"
-                                                                }
-                                                            },
-                                                            {
-                                                                378,
-                                                                2,
-                                                                {
-                                                                    "None"
-                                                                }
-                                                            },
-                                                            {
-                                                                385,
-                                                                2,
-                                                                {
-                                                                    "preventExtensions"
-                                                                }
-                                                            },
-                                                            {
-                                                                383,
-                                                                2,
-                                                                {
-                                                                    "isFrozen"
-                                                                }
-                                                            },
-                                                            {
-                                                                382,
-                                                                2,
-                                                                {
-                                                                    "is"
-                                                                }
-                                                            },
-                                                            {
-                                                                384,
-                                                                2,
-                                                                {
-                                                                    "keys"
-                                                                }
-                                                            },
-                                                            {
-                                                                387,
-                                                                2,
-                                                                {
-                                                                    "values"
-                                                                }
-                                                            },
-                                                            {
-                                                                386,
-                                                                2,
-                                                                {
-                                                                    "seal"
-                                                                }
-                                                            },
-                                                            {
-                                                                380,
-                                                                2,
-                                                                {
-                                                                    "entries"
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                503,
-                                                2,
-                                                {
-                                                    "Scheduler"
-                                                },
-                                                {
-                                                    {
-                                                        507,
-                                                        2,
-                                                        {
-                                                            "SchedulerHostConfig"
-                                                        }
-                                                    },
-                                                    {
-                                                        513,
-                                                        1,
-                                                        {
-                                                            "forks"
-                                                        },
-                                                        {
-                                                            {
-                                                                514,
-                                                                2,
-                                                                {
-                                                                    "SchedulerHostConfig.default"
-                                                                }
-                                                            },
-                                                            {
-                                                                515,
-                                                                2,
-                                                                {
-                                                                    "SchedulerHostConfig.mock"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        509,
-                                                        2,
-                                                        {
-                                                            "SchedulerPriorities"
-                                                        }
-                                                    },
-                                                    {
-                                                        505,
-                                                        2,
-                                                        {
-                                                            "Scheduler"
-                                                        }
-                                                    },
-                                                    {
-                                                        511,
-                                                        2,
-                                                        {
-                                                            "Tracing"
-                                                        }
-                                                    },
-                                                    {
-                                                        508,
-                                                        2,
-                                                        {
-                                                            "SchedulerMinHeap"
-                                                        }
-                                                    },
-                                                    {
-                                                        506,
-                                                        2,
-                                                        {
-                                                            "SchedulerFeatureFlags"
-                                                        }
-                                                    },
-                                                    {
-                                                        510,
-                                                        2,
-                                                        {
-                                                            "SchedulerProfiling"
-                                                        }
-                                                    },
-                                                    {
-                                                        516,
-                                                        2,
-                                                        {
-                                                            "unstable_mock"
-                                                        }
-                                                    },
-                                                    {
-                                                        512,
-                                                        2,
-                                                        {
-                                                            "TracingSubscriptions"
-                                                        }
-                                                    },
-                                                    {
-                                                        504,
-                                                        2,
-                                                        {
-                                                            "NoYield"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                343,
-                                                2,
-                                                {
-                                                    "Boolean"
-                                                },
-                                                {
-                                                    {
-                                                        344,
-                                                        2,
-                                                        {
-                                                            "toJSBoolean"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                517,
-                                                2,
-                                                {
-                                                    "Shared"
-                                                },
-                                                {
-                                                    {
-                                                        528,
-                                                        2,
-                                                        {
-                                                            "ReactFeatureFlags"
-                                                        }
-                                                    },
-                                                    {
-                                                        525,
-                                                        2,
-                                                        {
-                                                            "ReactComponentStackFrame"
-                                                        }
-                                                    },
-                                                    {
-                                                        533,
-                                                        2,
-                                                        {
-                                                            "ReactInstanceMap"
-                                                        }
-                                                    },
-                                                    {
-                                                        534,
-                                                        2,
-                                                        {
-                                                            "ReactSharedInternals"
-                                                        },
-                                                        {
-                                                            {
-                                                                537,
-                                                                2,
-                                                                {
-                                                                    "ReactCurrentDispatcher"
-                                                                }
-                                                            },
-                                                            {
-                                                                536,
-                                                                2,
-                                                                {
-                                                                    "ReactCurrentBatchConfig"
-                                                                }
-                                                            },
-                                                            {
-                                                                538,
-                                                                2,
-                                                                {
-                                                                    "ReactCurrentOwner"
-                                                                }
-                                                            },
-                                                            {
-                                                                539,
-                                                                2,
-                                                                {
-                                                                    "ReactDebugCurrentFrame"
-                                                                }
-                                                            },
-                                                            {
-                                                                535,
-                                                                2,
-                                                                {
-                                                                    "IsSomeRendererActing"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        547,
-                                                        2,
-                                                        {
-                                                            "console"
-                                                        }
-                                                    },
-                                                    {
-                                                        550,
-                                                        2,
-                                                        {
-                                                            "flowtypes.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        557,
-                                                        2,
-                                                        {
-                                                            "shallowEqual"
-                                                        }
-                                                    },
-                                                    {
-                                                        520,
-                                                        2,
-                                                        {
-                                                            "ExecutionEnvironment"
-                                                        }
-                                                    },
-                                                    {
-                                                        556,
-                                                        2,
-                                                        {
-                                                            "objectIs"
-                                                        }
-                                                    },
-                                                    {
-                                                        544,
-                                                        2,
-                                                        {
-                                                            "Type.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        526,
-                                                        2,
-                                                        {
-                                                            "ReactElementType"
-                                                        }
-                                                    },
-                                                    {
-                                                        519,
-                                                        2,
-                                                        {
-                                                            "ErrorHandling.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        518,
-                                                        2,
-                                                        {
-                                                            "ConsolePatchingDev.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        541,
-                                                        2,
-                                                        {
-                                                            "ReactTypes"
-                                                        }
-                                                    },
-                                                    {
-                                                        527,
-                                                        2,
-                                                        {
-                                                            "ReactErrorUtils"
-                                                        }
-                                                    },
-                                                    {
-                                                        542,
-                                                        2,
-                                                        {
-                                                            "ReactVersion"
-                                                        }
-                                                    },
-                                                    {
-                                                        553,
-                                                        2,
-                                                        {
-                                                            "invariant"
-                                                        }
-                                                    },
-                                                    {
-                                                        555,
-                                                        2,
-                                                        {
-                                                            "isValidElementType"
-                                                        }
-                                                    },
-                                                    {
-                                                        529,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHostConfig"
-                                                        },
-                                                        {
-                                                            {
-                                                                531,
-                                                                2,
-                                                                {
-                                                                    "WithNoPersistence"
-                                                                }
-                                                            },
-                                                            {
-                                                                530,
-                                                                2,
-                                                                {
-                                                                    "WithNoHydration"
-                                                                }
-                                                            },
-                                                            {
-                                                                532,
-                                                                2,
-                                                                {
-                                                                    "WithNoTestSelectors"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        554,
-                                                        2,
-                                                        {
-                                                            "invokeGuardedCallbackImpl"
-                                                        }
-                                                    },
-                                                    {
-                                                        521,
-                                                        1,
-                                                        {
-                                                            "PropMarkers"
-                                                        },
-                                                        {
-                                                            {
-                                                                522,
-                                                                2,
-                                                                {
-                                                                    "Change"
-                                                                }
-                                                            },
-                                                            {
-                                                                523,
-                                                                2,
-                                                                {
-                                                                    "Event"
-                                                                }
-                                                            },
-                                                            {
-                                                                524,
-                                                                2,
-                                                                {
-                                                                    "Tag"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        549,
-                                                        2,
-                                                        {
-                                                            "enqueueTask.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        540,
-                                                        2,
-                                                        {
-                                                            "ReactSymbols"
-                                                        }
-                                                    },
-                                                    {
-                                                        546,
-                                                        2,
-                                                        {
-                                                            "checkPropTypes"
-                                                        }
-                                                    },
-                                                    {
-                                                        548,
-                                                        2,
-                                                        {
-                                                            "consoleWithStackDev"
-                                                        }
-                                                    },
-                                                    {
-                                                        543,
-                                                        2,
-                                                        {
-                                                            "Symbol.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        551,
-                                                        2,
-                                                        {
-                                                            "formatProdErrorMessage"
-                                                        }
-                                                    },
-                                                    {
-                                                        552,
-                                                        2,
-                                                        {
-                                                            "getComponentName"
-                                                        }
-                                                    },
-                                                    {
-                                                        545,
-                                                        2,
-                                                        {
-                                                            "UninitializedState.roblox"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                404,
-                                                2,
-                                                {
-                                                    "Math"
-                                                },
-                                                {
-                                                    {
-                                                        405,
-                                                        2,
-                                                        {
-                                                            "clz32"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                406,
-                                                2,
-                                                {
-                                                    "Number"
-                                                },
-                                                {
-                                                    {
-                                                        412,
-                                                        2,
-                                                        {
-                                                            "isSafeInteger"
-                                                        }
-                                                    },
-                                                    {
-                                                        408,
-                                                        2,
-                                                        {
-                                                            "MIN_SAFE_INTEGER"
-                                                        }
-                                                    },
-                                                    {
-                                                        410,
-                                                        2,
-                                                        {
-                                                            "isInteger"
-                                                        }
-                                                    },
-                                                    {
-                                                        413,
-                                                        2,
-                                                        {
-                                                            "toExponential"
-                                                        }
-                                                    },
-                                                    {
-                                                        411,
-                                                        2,
-                                                        {
-                                                            "isNaN"
-                                                        }
-                                                    },
-                                                    {
-                                                        407,
-                                                        2,
-                                                        {
-                                                            "MAX_SAFE_INTEGER"
-                                                        }
-                                                    },
-                                                    {
-                                                        409,
-                                                        2,
-                                                        {
-                                                            "isFinite"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                394,
-                                                2,
-                                                {
-                                                    "InstanceOf"
-                                                },
-                                                {
-                                                    {
-                                                        395,
-                                                        2,
-                                                        {
-                                                            "instanceof"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                502,
-                                                2,
-                                                {
-                                                    "SafeFlags"
-                                                }
-                                            },
-                                            {
-                                                558,
-                                                2,
-                                                {
-                                                    "String"
-                                                },
-                                                {
-                                                    {
-                                                        571,
-                                                        2,
-                                                        {
-                                                            "trimStart"
-                                                        }
-                                                    },
-                                                    {
-                                                        560,
-                                                        2,
-                                                        {
-                                                            "endsWith"
-                                                        }
-                                                    },
-                                                    {
-                                                        566,
-                                                        2,
-                                                        {
-                                                            "split"
-                                                        }
-                                                    },
-                                                    {
-                                                        569,
-                                                        2,
-                                                        {
-                                                            "trim"
-                                                        }
-                                                    },
-                                                    {
-                                                        564,
-                                                        2,
-                                                        {
-                                                            "lastIndexOf"
-                                                        }
-                                                    },
-                                                    {
-                                                        565,
-                                                        2,
-                                                        {
-                                                            "slice"
-                                                        }
-                                                    },
-                                                    {
-                                                        567,
-                                                        2,
-                                                        {
-                                                            "startsWith"
-                                                        }
-                                                    },
-                                                    {
-                                                        563,
-                                                        2,
-                                                        {
-                                                            "indexOf"
-                                                        }
-                                                    },
-                                                    {
-                                                        562,
-                                                        2,
-                                                        {
-                                                            "includes"
-                                                        }
-                                                    },
-                                                    {
-                                                        570,
-                                                        2,
-                                                        {
-                                                            "trimEnd"
-                                                        }
-                                                    },
-                                                    {
-                                                        561,
-                                                        2,
-                                                        {
-                                                            "findOr"
-                                                        }
-                                                    },
-                                                    {
-                                                        559,
-                                                        2,
-                                                        {
-                                                            "charCodeAt"
-                                                        }
-                                                    },
-                                                    {
-                                                        568,
-                                                        2,
-                                                        {
-                                                            "substr"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                393,
-                                                2,
-                                                {
-                                                    "ES7Types"
-                                                }
-                                            },
-                                            {
-                                                433,
-                                                2,
-                                                {
-                                                    "ReactReconciler"
-                                                },
-                                                {
-                                                    {
-                                                        441,
-                                                        2,
-                                                        {
-                                                            "ReactFiberClassComponent.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        437,
-                                                        2,
-                                                        {
-                                                            "ReactChildFiber.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        453,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHotReloading.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        474,
-                                                        2,
-                                                        {
-                                                            "ReactMutableSource.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        440,
-                                                        2,
-                                                        {
-                                                            "ReactFiberBeginWork.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        443,
-                                                        2,
-                                                        {
-                                                            "ReactFiberCompleteWork.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        454,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHydrationContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        462,
-                                                        2,
-                                                        {
-                                                            "ReactFiberSchedulerPriorities.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        460,
-                                                        2,
-                                                        {
-                                                            "ReactFiberReconciler.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        470,
-                                                        2,
-                                                        {
-                                                            "ReactFiberWorkInProgress"
-                                                        }
-                                                    },
-                                                    {
-                                                        450,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHooks.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        455,
-                                                        2,
-                                                        {
-                                                            "ReactFiberLane"
-                                                        }
-                                                    },
-                                                    {
-                                                        479,
-                                                        2,
-                                                        {
-                                                            "ReactTestSelectors"
-                                                        }
-                                                    },
-                                                    {
-                                                        459,
-                                                        2,
-                                                        {
-                                                            "ReactFiberReconciler"
-                                                        }
-                                                    },
-                                                    {
-                                                        480,
-                                                        2,
-                                                        {
-                                                            "ReactTypeOfMode"
-                                                        }
-                                                    },
-                                                    {
-                                                        435,
-                                                        2,
-                                                        {
-                                                            "MaxInts"
-                                                        }
-                                                    },
-                                                    {
-                                                        484,
-                                                        2,
-                                                        {
-                                                            "SchedulerWithReactIntegration.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        452,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHostContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        449,
-                                                        2,
-                                                        {
-                                                            "ReactFiberFlags"
-                                                        }
-                                                    },
-                                                    {
-                                                        478,
-                                                        2,
-                                                        {
-                                                            "ReactStrictModeWarnings.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        481,
-                                                        2,
-                                                        {
-                                                            "ReactUpdateQueue.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        436,
-                                                        2,
-                                                        {
-                                                            "ReactCapturedValue"
-                                                        }
-                                                    },
-                                                    {
-                                                        444,
-                                                        2,
-                                                        {
-                                                            "ReactFiberComponentStack"
-                                                        }
-                                                    },
-                                                    {
-                                                        458,
-                                                        2,
-                                                        {
-                                                            "ReactFiberOffscreenComponent"
-                                                        }
-                                                    },
-                                                    {
-                                                        485,
-                                                        2,
-                                                        {
-                                                            "SchedulingProfiler"
-                                                        }
-                                                    },
-                                                    {
-                                                        451,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHostConfig"
-                                                        }
-                                                    },
-                                                    {
-                                                        482,
-                                                        2,
-                                                        {
-                                                            "ReactWorkTags"
-                                                        }
-                                                    },
-                                                    {
-                                                        445,
-                                                        2,
-                                                        {
-                                                            "ReactFiberContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        448,
-                                                        2,
-                                                        {
-                                                            "ReactFiberErrorLogger"
-                                                        }
-                                                    },
-                                                    {
-                                                        477,
-                                                        2,
-                                                        {
-                                                            "ReactRootTags"
-                                                        }
-                                                    },
-                                                    {
-                                                        464,
-                                                        2,
-                                                        {
-                                                            "ReactFiberSuspenseComponent.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        472,
-                                                        2,
-                                                        {
-                                                            "ReactHookEffectTags"
-                                                        }
-                                                    },
-                                                    {
-                                                        461,
-                                                        2,
-                                                        {
-                                                            "ReactFiberRoot.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        473,
-                                                        2,
-                                                        {
-                                                            "ReactInternalTypes"
-                                                        }
-                                                    },
-                                                    {
-                                                        475,
-                                                        2,
-                                                        {
-                                                            "ReactPortal"
-                                                        }
-                                                    },
-                                                    {
-                                                        476,
-                                                        2,
-                                                        {
-                                                            "ReactProfilerTimer.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        457,
-                                                        2,
-                                                        {
-                                                            "ReactFiberNewContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        438,
-                                                        2,
-                                                        {
-                                                            "ReactCurrentFiber"
-                                                        }
-                                                    },
-                                                    {
-                                                        463,
-                                                        2,
-                                                        {
-                                                            "ReactFiberStack.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        447,
-                                                        2,
-                                                        {
-                                                            "ReactFiberErrorDialog"
-                                                        }
-                                                    },
-                                                    {
-                                                        486,
-                                                        1,
-                                                        {
-                                                            "forks"
-                                                        },
-                                                        {
-                                                            {
-                                                                487,
-                                                                2,
-                                                                {
-                                                                    "ReactFiberHostConfig.test"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        469,
-                                                        2,
-                                                        {
-                                                            "ReactFiberUnwindWork.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        468,
-                                                        2,
-                                                        {
-                                                            "ReactFiberTreeReflection"
-                                                        }
-                                                    },
-                                                    {
-                                                        442,
-                                                        2,
-                                                        {
-                                                            "ReactFiberCommitWork.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        456,
-                                                        2,
-                                                        {
-                                                            "ReactFiberLazyComponent.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        466,
-                                                        2,
-                                                        {
-                                                            "ReactFiberThrow.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        471,
-                                                        2,
-                                                        {
-                                                            "ReactFiberWorkLoop.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        465,
-                                                        2,
-                                                        {
-                                                            "ReactFiberSuspenseContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        446,
-                                                        2,
-                                                        {
-                                                            "ReactFiberDevToolsHook.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        467,
-                                                        2,
-                                                        {
-                                                            "ReactFiberTransition"
-                                                        }
-                                                    },
-                                                    {
-                                                        439,
-                                                        2,
-                                                        {
-                                                            "ReactFiber.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        483,
-                                                        2,
-                                                        {
-                                                            "RobloxReactProfiling"
-                                                        }
-                                                    },
-                                                    {
-                                                        434,
-                                                        2,
-                                                        {
-                                                            "DebugTracing"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                391,
-                                                2,
-                                                {
-                                                    "Console"
-                                                },
-                                                {
-                                                    {
-                                                        392,
-                                                        2,
-                                                        {
-                                                            "makeConsoleImpl"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                575,
-                                                2,
-                                                {
-                                                    "Timers"
-                                                },
-                                                {
-                                                    {
-                                                        576,
-                                                        2,
-                                                        {
-                                                            "makeIntervalImpl"
-                                                        }
-                                                    },
-                                                    {
-                                                        577,
-                                                        2,
-                                                        {
-                                                            "makeTimerImpl"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                572,
-                                                2,
-                                                {
-                                                    "Symbol"
-                                                },
-                                                {
-                                                    {
-                                                        574,
-                                                        2,
-                                                        {
-                                                            "Symbol"
-                                                        }
-                                                    },
-                                                    {
-                                                        573,
-                                                        2,
-                                                        {
-                                                            "Registry.global"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                396,
-                                                2,
-                                                {
-                                                    "LuauPolyfill"
-                                                },
-                                                {
-                                                    {
-                                                        399,
-                                                        2,
-                                                        {
-                                                            "Error"
-                                                        },
-                                                        {
-                                                            {
-                                                                400,
-                                                                2,
-                                                                {
-                                                                    "Error.global"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        403,
-                                                        2,
-                                                        {
-                                                            "extends"
-                                                        }
-                                                    },
-                                                    {
-                                                        401,
-                                                        2,
-                                                        {
-                                                            "Promise"
-                                                        }
-                                                    },
-                                                    {
-                                                        402,
-                                                        2,
-                                                        {
-                                                            "encodeURIComponent"
-                                                        }
-                                                    },
-                                                    {
-                                                        397,
-                                                        2,
-                                                        {
-                                                            "AssertionError"
-                                                        },
-                                                        {
-                                                            {
-                                                                398,
-                                                                2,
-                                                                {
-                                                                    "AssertionError.global"
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                488,
-                                                2,
-                                                {
-                                                    "ReactRoblox"
-                                                },
-                                                {
-                                                    {
-                                                        490,
-                                                        1,
-                                                        {
-                                                            "client"
-                                                        },
-                                                        {
-                                                            {
-                                                                493,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxComponentTree"
-                                                                }
-                                                            },
-                                                            {
-                                                                494,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxHostConfig"
-                                                                }
-                                                            },
-                                                            {
-                                                                491,
-                                                                2,
-                                                                {
-                                                                    "ReactRoblox"
-                                                                }
-                                                            },
-                                                            {
-                                                                495,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxHostTypes.roblox"
-                                                                }
-                                                            },
-                                                            {
-                                                                497,
-                                                                1,
-                                                                {
-                                                                    "roblox"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        498,
-                                                                        2,
-                                                                        {
-                                                                            "RobloxComponentProps"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        499,
-                                                                        2,
-                                                                        {
-                                                                            "SingleEventManager"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        500,
-                                                                        2,
-                                                                        {
-                                                                            "getDefaultInstanceProperty"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                496,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxRoot"
-                                                                }
-                                                            },
-                                                            {
-                                                                492,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxComponent"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        489,
-                                                        2,
-                                                        {
-                                                            "ReactReconciler.roblox"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                501,
-                                                2,
-                                                {
-                                                    "Promise"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                329,
-                                2,
-                                {
-                                    "RuntimeLib"
-                                }
-                            },
-                            {
-                                328,
-                                2,
-                                {
-                                    "Promise"
-                                }
-                            }
-                        }
-                    },
-                    {
                         3,
                         2,
                         {
                             "Prism"
                         },
                         {
+                            {
+                                174,
+                                2,
+                                {
+                                    "styled"
+                                }
+                            },
+                            {
+                                183,
+                                2,
+                                {
+                                    "utils"
+                                },
+                                {
+                                    {
+                                        185,
+                                        2,
+                                        {
+                                            "diagnostics"
+                                        }
+                                    },
+                                    {
+                                        184,
+                                        2,
+                                        {
+                                            "__test__"
+                                        }
+                                    },
+                                    {
+                                        186,
+                                        2,
+                                        {
+                                            "units"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                166,
+                                2,
+                                {
+                                    "icons"
+                                },
+                                {
+                                    {
+                                        167,
+                                        2,
+                                        {
+                                            "lucide"
+                                        }
+                                    }
+                                }
+                            },
                             {
                                 168,
                                 2,
@@ -142546,10 +139206,10 @@ local ObjectTree = {
                                         }
                                     },
                                     {
-                                        173,
+                                        169,
                                         2,
                                         {
-                                            "useMotion"
+                                            "__typecheck__"
                                         }
                                     },
                                     {
@@ -142560,19 +139220,49 @@ local ObjectTree = {
                                         }
                                     },
                                     {
+                                        173,
+                                        2,
+                                        {
+                                            "useMotion"
+                                        }
+                                    },
+                                    {
                                         171,
                                         2,
                                         {
                                             "transitions"
                                         }
-                                    },
+                                    }
+                                }
+                            },
+                            {
+                                5,
+                                2,
+                                {
+                                    "bridge"
+                                },
+                                {
                                     {
-                                        169,
+                                        7,
                                         2,
                                         {
                                             "__typecheck__"
                                         }
+                                    },
+                                    {
+                                        6,
+                                        2,
+                                        {
+                                            "LuauBridge"
+                                        }
                                     }
+                                }
+                            },
+                            {
+                                4,
+                                2,
+                                {
+                                    "__typecheck__"
                                 }
                             },
                             {
@@ -142583,131 +139273,6 @@ local ObjectTree = {
                                 },
                                 {
                                     {
-                                        99,
-                                        2,
-                                        {
-                                            "Select"
-                                        },
-                                        {
-                                            {
-                                                103,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                104,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                106,
-                                                2,
-                                                {
-                                                    "utils"
-                                                }
-                                            },
-                                            {
-                                                102,
-                                                2,
-                                                {
-                                                    "SelectOptionRow"
-                                                }
-                                            },
-                                            {
-                                                105,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                101,
-                                                2,
-                                                {
-                                                    "SelectDropdown"
-                                                }
-                                            },
-                                            {
-                                                100,
-                                                2,
-                                                {
-                                                    "Select"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        17,
-                                        2,
-                                        {
-                                            "Box"
-                                        },
-                                        {
-                                            {
-                                                20,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                18,
-                                                2,
-                                                {
-                                                    "Box"
-                                                }
-                                            },
-                                            {
-                                                19,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        94,
-                                        2,
-                                        {
-                                            "SegmentedControl"
-                                        },
-                                        {
-                                            {
-                                                97,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                95,
-                                                2,
-                                                {
-                                                    "SegmentedControl"
-                                                }
-                                            },
-                                            {
-                                                96,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                98,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
                                         51,
                                         2,
                                         {
@@ -142715,10 +139280,10 @@ local ObjectTree = {
                                         },
                                         {
                                             {
-                                                52,
+                                                54,
                                                 2,
                                                 {
-                                                    "Image"
+                                                    "types"
                                                 }
                                             },
                                             {
@@ -142729,84 +139294,10 @@ local ObjectTree = {
                                                 }
                                             },
                                             {
-                                                54,
+                                                52,
                                                 2,
                                                 {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        30,
-                                        2,
-                                        {
-                                            "Checkbox"
-                                        },
-                                        {
-                                            {
-                                                34,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                32,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                33,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                31,
-                                                2,
-                                                {
-                                                    "Checkbox"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        65,
-                                        2,
-                                        {
-                                            "Menu"
-                                        },
-                                        {
-                                            {
-                                                66,
-                                                2,
-                                                {
-                                                    "Menu"
-                                                }
-                                            },
-                                            {
-                                                69,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                68,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                67,
-                                                2,
-                                                {
-                                                    "__typecheck__"
+                                                    "Image"
                                                 }
                                             }
                                         }
@@ -142819,108 +139310,10 @@ local ObjectTree = {
                                         },
                                         {
                                             {
-                                                162,
-                                                2,
-                                                {
-                                                    "usePressInteraction"
-                                                }
-                                            },
-                                            {
-                                                156,
-                                                2,
-                                                {
-                                                    "slotProps"
-                                                }
-                                            },
-                                            {
-                                                157,
-                                                2,
-                                                {
-                                                    "styleOverride"
-                                                }
-                                            },
-                                            {
-                                                155,
-                                                2,
-                                                {
-                                                    "overlayLayerPolicy"
-                                                }
-                                            },
-                                            {
-                                                159,
-                                                2,
-                                                {
-                                                    "useControllableState"
-                                                }
-                                            },
-                                            {
-                                                151,
-                                                2,
-                                                {
-                                                    "frameSize"
-                                                }
-                                            },
-                                            {
                                                 158,
                                                 2,
                                                 {
                                                     "textFont"
-                                                }
-                                            },
-                                            {
-                                                149,
-                                                2,
-                                                {
-                                                    "elevation"
-                                                }
-                                            },
-                                            {
-                                                150,
-                                                2,
-                                                {
-                                                    "foundationDecorators"
-                                                }
-                                            },
-                                            {
-                                                163,
-                                                2,
-                                                {
-                                                    "useResolvedStyleProps"
-                                                }
-                                            },
-                                            {
-                                                164,
-                                                2,
-                                                {
-                                                    "useRootCursor"
-                                                }
-                                            },
-                                            {
-                                                165,
-                                                2,
-                                                {
-                                                    "visual"
-                                                }
-                                            },
-                                            {
-                                                152,
-                                                2,
-                                                {
-                                                    "interaction"
-                                                }
-                                            },
-                                            {
-                                                161,
-                                                2,
-                                                {
-                                                    "usePresence"
-                                                }
-                                            },
-                                            {
-                                                154,
-                                                2,
-                                                {
-                                                    "mergeSharedStyleProps"
                                                 }
                                             },
                                             {
@@ -142931,6 +139324,90 @@ local ObjectTree = {
                                                 }
                                             },
                                             {
+                                                148,
+                                                2,
+                                                {
+                                                    "TriggerOverlayLayer"
+                                                }
+                                            },
+                                            {
+                                                150,
+                                                2,
+                                                {
+                                                    "foundationDecorators"
+                                                }
+                                            },
+                                            {
+                                                162,
+                                                2,
+                                                {
+                                                    "usePressInteraction"
+                                                }
+                                            },
+                                            {
+                                                151,
+                                                2,
+                                                {
+                                                    "frameSize"
+                                                }
+                                            },
+                                            {
+                                                152,
+                                                2,
+                                                {
+                                                    "interaction"
+                                                }
+                                            },
+                                            {
+                                                149,
+                                                2,
+                                                {
+                                                    "elevation"
+                                                }
+                                            },
+                                            {
+                                                155,
+                                                2,
+                                                {
+                                                    "overlayLayerPolicy"
+                                                }
+                                            },
+                                            {
+                                                156,
+                                                2,
+                                                {
+                                                    "slotProps"
+                                                }
+                                            },
+                                            {
+                                                163,
+                                                2,
+                                                {
+                                                    "useResolvedStyleProps"
+                                                }
+                                            },
+                                            {
+                                                154,
+                                                2,
+                                                {
+                                                    "mergeSharedStyleProps"
+                                                }
+                                            },
+                                            {
+                                                165,
+                                                2,
+                                                {
+                                                    "visual"
+                                                }
+                                            },
+                                            {
+                                                159,
+                                                2,
+                                                {
+                                                    "useControllableState"
+                                                }
+                                            },
+                                            {
                                                 153,
                                                 2,
                                                 {
@@ -142938,61 +139415,181 @@ local ObjectTree = {
                                                 }
                                             },
                                             {
-                                                148,
+                                                164,
                                                 2,
                                                 {
-                                                    "TriggerOverlayLayer"
+                                                    "useRootCursor"
+                                                }
+                                            },
+                                            {
+                                                161,
+                                                2,
+                                                {
+                                                    "usePresence"
+                                                }
+                                            },
+                                            {
+                                                157,
+                                                2,
+                                                {
+                                                    "styleOverride"
                                                 }
                                             }
                                         }
                                     },
                                     {
-                                        107,
+                                        94,
                                         2,
                                         {
-                                            "Slider"
+                                            "SegmentedControl"
                                         },
                                         {
                                             {
-                                                109,
+                                                96,
                                                 2,
                                                 {
                                                     "__typecheck__"
                                                 }
                                             },
                                             {
-                                                110,
+                                                97,
                                                 2,
                                                 {
-                                                    "controllerInput"
+                                                    "styles"
                                                 }
                                             },
                                             {
-                                                108,
-                                                2,
-                                                {
-                                                    "Slider"
-                                                }
-                                            },
-                                            {
-                                                112,
+                                                98,
                                                 2,
                                                 {
                                                     "types"
                                                 }
                                             },
                                             {
-                                                113,
+                                                95,
                                                 2,
                                                 {
-                                                    "utils"
+                                                    "SegmentedControl"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        9,
+                                        2,
+                                        {
+                                            "Avatar"
+                                        },
+                                        {
+                                            {
+                                                12,
+                                                2,
+                                                {
+                                                    "types"
                                                 }
                                             },
                                             {
-                                                111,
+                                                11,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                10,
+                                                2,
+                                                {
+                                                    "Avatar"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        35,
+                                        2,
+                                        {
+                                            "CircularProgress"
+                                        },
+                                        {
+                                            {
+                                                38,
                                                 2,
                                                 {
                                                     "styles"
+                                                }
+                                            },
+                                            {
+                                                39,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                36,
+                                                2,
+                                                {
+                                                    "CircularProgress"
+                                                }
+                                            },
+                                            {
+                                                37,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        13,
+                                        2,
+                                        {
+                                            "Backdrop"
+                                        },
+                                        {
+                                            {
+                                                16,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                15,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                14,
+                                                2,
+                                                {
+                                                    "Backdrop"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        40,
+                                        2,
+                                        {
+                                            "Divider"
+                                        },
+                                        {
+                                            {
+                                                41,
+                                                2,
+                                                {
+                                                    "Divider"
+                                                }
+                                            },
+                                            {
+                                                42,
+                                                2,
+                                                {
+                                                    "types"
                                                 }
                                             }
                                         }
@@ -143004,13 +139601,6 @@ local ObjectTree = {
                                             "Draggable"
                                         },
                                         {
-                                            {
-                                                45,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
                                             {
                                                 44,
                                                 2,
@@ -143024,478 +139614,9 @@ local ObjectTree = {
                                                 {
                                                     "types"
                                                 }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        81,
-                                        2,
-                                        {
-                                            "Pressable"
-                                        },
-                                        {
-                                            {
-                                                83,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
                                             },
                                             {
-                                                82,
-                                                2,
-                                                {
-                                                    "Pressable"
-                                                }
-                                            },
-                                            {
-                                                84,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        123,
-                                        2,
-                                        {
-                                            "Switch"
-                                        },
-                                        {
-                                            {
-                                                124,
-                                                2,
-                                                {
-                                                    "Switch"
-                                                }
-                                            },
-                                            {
-                                                127,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                126,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                125,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        137,
-                                        2,
-                                        {
-                                            "Tooltip"
-                                        },
-                                        {
-                                            {
-                                                141,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                139,
-                                                2,
-                                                {
-                                                    "TooltipOverlayBubble"
-                                                }
-                                            },
-                                            {
-                                                142,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                140,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                138,
-                                                2,
-                                                {
-                                                    "Tooltip"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        133,
-                                        2,
-                                        {
-                                            "Text"
-                                        },
-                                        {
-                                            {
-                                                134,
-                                                2,
-                                                {
-                                                    "Text"
-                                                }
-                                            },
-                                            {
-                                                136,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                135,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        128,
-                                        2,
-                                        {
-                                            "Tabs"
-                                        },
-                                        {
-                                            {
-                                                130,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                131,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                132,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                129,
-                                                2,
-                                                {
-                                                    "Tabs"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        70,
-                                        2,
-                                        {
-                                            "Modal"
-                                        },
-                                        {
-                                            {
-                                                73,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                72,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                71,
-                                                2,
-                                                {
-                                                    "Modal"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        117,
-                                        2,
-                                        {
-                                            "StepperInput"
-                                        },
-                                        {
-                                            {
-                                                118,
-                                                2,
-                                                {
-                                                    "StepperInput"
-                                                }
-                                            },
-                                            {
-                                                120,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                122,
-                                                2,
-                                                {
-                                                    "utils"
-                                                }
-                                            },
-                                            {
-                                                121,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                119,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        114,
-                                        2,
-                                        {
-                                            "Stack"
-                                        },
-                                        {
-                                            {
-                                                116,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                115,
-                                                2,
-                                                {
-                                                    "Stack"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        40,
-                                        2,
-                                        {
-                                            "Divider"
-                                        },
-                                        {
-                                            {
-                                                42,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                41,
-                                                2,
-                                                {
-                                                    "Divider"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        26,
-                                        2,
-                                        {
-                                            "Card"
-                                        },
-                                        {
-                                            {
-                                                29,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                27,
-                                                2,
-                                                {
-                                                    "Card"
-                                                }
-                                            },
-                                            {
-                                                28,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        85,
-                                        2,
-                                        {
-                                            "Progress"
-                                        },
-                                        {
-                                            {
-                                                89,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                86,
-                                                2,
-                                                {
-                                                    "Progress"
-                                                }
-                                            },
-                                            {
-                                                88,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                87,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        143,
-                                        2,
-                                        {
-                                            "WorldPortal"
-                                        },
-                                        {
-                                            {
-                                                146,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                145,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                144,
-                                                2,
-                                                {
-                                                    "WorldPortal"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        90,
-                                        2,
-                                        {
-                                            "ScrollArea"
-                                        },
-                                        {
-                                            {
-                                                92,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                91,
-                                                2,
-                                                {
-                                                    "ScrollArea"
-                                                }
-                                            },
-                                            {
-                                                93,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        74,
-                                        2,
-                                        {
-                                            "Popover"
-                                        },
-                                        {
-                                            {
-                                                75,
-                                                2,
-                                                {
-                                                    "Popover"
-                                                }
-                                            },
-                                            {
-                                                76,
-                                                2,
-                                                {
-                                                    "PopoverOverlayPanel"
-                                                }
-                                            },
-                                            {
-                                                78,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                80,
-                                                2,
-                                                {
-                                                    "utils"
-                                                }
-                                            },
-                                            {
-                                                79,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                77,
+                                                45,
                                                 2,
                                                 {
                                                     "__typecheck__"
@@ -143541,31 +139662,31 @@ local ObjectTree = {
                                         }
                                     },
                                     {
-                                        9,
+                                        90,
                                         2,
                                         {
-                                            "Avatar"
+                                            "ScrollArea"
                                         },
                                         {
                                             {
-                                                10,
-                                                2,
-                                                {
-                                                    "Avatar"
-                                                }
-                                            },
-                                            {
-                                                11,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                12,
+                                                93,
                                                 2,
                                                 {
                                                     "types"
+                                                }
+                                            },
+                                            {
+                                                91,
+                                                2,
+                                                {
+                                                    "ScrollArea"
+                                                }
+                                            },
+                                            {
+                                                92,
+                                                2,
+                                                {
+                                                    "__typecheck__"
                                                 }
                                             }
                                         }
@@ -143592,84 +139713,232 @@ local ObjectTree = {
                                                 }
                                             },
                                             {
-                                                56,
-                                                2,
-                                                {
-                                                    "Input"
-                                                }
-                                            },
-                                            {
                                                 57,
                                                 2,
                                                 {
                                                     "__typecheck__"
                                                 }
+                                            },
+                                            {
+                                                56,
+                                                2,
+                                                {
+                                                    "Input"
+                                                }
                                             }
                                         }
                                     },
                                     {
-                                        35,
+                                        114,
                                         2,
                                         {
-                                            "CircularProgress"
+                                            "Stack"
                                         },
                                         {
                                             {
-                                                37,
+                                                116,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                115,
+                                                2,
+                                                {
+                                                    "Stack"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        137,
+                                        2,
+                                        {
+                                            "Tooltip"
+                                        },
+                                        {
+                                            {
+                                                138,
+                                                2,
+                                                {
+                                                    "Tooltip"
+                                                }
+                                            },
+                                            {
+                                                139,
+                                                2,
+                                                {
+                                                    "TooltipOverlayBubble"
+                                                }
+                                            },
+                                            {
+                                                140,
                                                 2,
                                                 {
                                                     "__typecheck__"
                                                 }
                                             },
                                             {
-                                                36,
+                                                142,
                                                 2,
                                                 {
-                                                    "CircularProgress"
+                                                    "types"
                                                 }
                                             },
                                             {
-                                                38,
+                                                141,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        74,
+                                        2,
+                                        {
+                                            "Popover"
+                                        },
+                                        {
+                                            {
+                                                76,
+                                                2,
+                                                {
+                                                    "PopoverOverlayPanel"
+                                                }
+                                            },
+                                            {
+                                                77,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                78,
                                                 2,
                                                 {
                                                     "styles"
                                                 }
                                             },
                                             {
-                                                39,
+                                                80,
+                                                2,
+                                                {
+                                                    "utils"
+                                                }
+                                            },
+                                            {
+                                                79,
                                                 2,
                                                 {
                                                     "types"
+                                                }
+                                            },
+                                            {
+                                                75,
+                                                2,
+                                                {
+                                                    "Popover"
                                                 }
                                             }
                                         }
                                     },
                                     {
-                                        13,
+                                        70,
                                         2,
                                         {
-                                            "Backdrop"
+                                            "Modal"
                                         },
                                         {
                                             {
-                                                16,
+                                                73,
                                                 2,
                                                 {
                                                     "types"
                                                 }
                                             },
                                             {
-                                                14,
+                                                71,
                                                 2,
                                                 {
-                                                    "Backdrop"
+                                                    "Modal"
                                                 }
                                             },
                                             {
-                                                15,
+                                                72,
                                                 2,
                                                 {
                                                     "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        123,
+                                        2,
+                                        {
+                                            "Switch"
+                                        },
+                                        {
+                                            {
+                                                125,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                124,
+                                                2,
+                                                {
+                                                    "Switch"
+                                                }
+                                            },
+                                            {
+                                                127,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                126,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        133,
+                                        2,
+                                        {
+                                            "Text"
+                                        },
+                                        {
+                                            {
+                                                136,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                135,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                134,
+                                                2,
+                                                {
+                                                    "Text"
                                                 }
                                             }
                                         }
@@ -143681,6 +139950,13 @@ local ObjectTree = {
                                             "Button"
                                         },
                                         {
+                                            {
+                                                22,
+                                                2,
+                                                {
+                                                    "Button"
+                                                }
+                                            },
                                             {
                                                 24,
                                                 2,
@@ -143701,12 +139977,241 @@ local ObjectTree = {
                                                 {
                                                     "__typecheck__"
                                                 }
-                                            },
+                                            }
+                                        }
+                                    },
+                                    {
+                                        81,
+                                        2,
+                                        {
+                                            "Pressable"
+                                        },
+                                        {
                                             {
-                                                22,
+                                                83,
                                                 2,
                                                 {
-                                                    "Button"
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                84,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                82,
+                                                2,
+                                                {
+                                                    "Pressable"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        143,
+                                        2,
+                                        {
+                                            "WorldPortal"
+                                        },
+                                        {
+                                            {
+                                                145,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                144,
+                                                2,
+                                                {
+                                                    "WorldPortal"
+                                                }
+                                            },
+                                            {
+                                                146,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        30,
+                                        2,
+                                        {
+                                            "Checkbox"
+                                        },
+                                        {
+                                            {
+                                                34,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                33,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                32,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                31,
+                                                2,
+                                                {
+                                                    "Checkbox"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        117,
+                                        2,
+                                        {
+                                            "StepperInput"
+                                        },
+                                        {
+                                            {
+                                                118,
+                                                2,
+                                                {
+                                                    "StepperInput"
+                                                }
+                                            },
+                                            {
+                                                122,
+                                                2,
+                                                {
+                                                    "utils"
+                                                }
+                                            },
+                                            {
+                                                119,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                120,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                121,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        65,
+                                        2,
+                                        {
+                                            "Menu"
+                                        },
+                                        {
+                                            {
+                                                69,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                66,
+                                                2,
+                                                {
+                                                    "Menu"
+                                                }
+                                            },
+                                            {
+                                                67,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                68,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        99,
+                                        2,
+                                        {
+                                            "Select"
+                                        },
+                                        {
+                                            {
+                                                100,
+                                                2,
+                                                {
+                                                    "Select"
+                                                }
+                                            },
+                                            {
+                                                101,
+                                                2,
+                                                {
+                                                    "SelectDropdown"
+                                                }
+                                            },
+                                            {
+                                                103,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                104,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                106,
+                                                2,
+                                                {
+                                                    "utils"
+                                                }
+                                            },
+                                            {
+                                                105,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                102,
+                                                2,
+                                                {
+                                                    "SelectOptionRow"
                                                 }
                                             }
                                         }
@@ -143719,10 +140224,10 @@ local ObjectTree = {
                                         },
                                         {
                                             {
-                                                49,
+                                                48,
                                                 2,
                                                 {
-                                                    "__typecheck__"
+                                                    "Icon"
                                                 }
                                             },
                                             {
@@ -143733,74 +140238,199 @@ local ObjectTree = {
                                                 }
                                             },
                                             {
-                                                48,
+                                                49,
                                                 2,
                                                 {
-                                                    "Icon"
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        17,
+                                        2,
+                                        {
+                                            "Box"
+                                        },
+                                        {
+                                            {
+                                                19,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                18,
+                                                2,
+                                                {
+                                                    "Box"
+                                                }
+                                            },
+                                            {
+                                                20,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        128,
+                                        2,
+                                        {
+                                            "Tabs"
+                                        },
+                                        {
+                                            {
+                                                130,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                132,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                129,
+                                                2,
+                                                {
+                                                    "Tabs"
+                                                }
+                                            },
+                                            {
+                                                131,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        85,
+                                        2,
+                                        {
+                                            "Progress"
+                                        },
+                                        {
+                                            {
+                                                87,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                86,
+                                                2,
+                                                {
+                                                    "Progress"
+                                                }
+                                            },
+                                            {
+                                                88,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                89,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        26,
+                                        2,
+                                        {
+                                            "Card"
+                                        },
+                                        {
+                                            {
+                                                29,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                28,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                27,
+                                                2,
+                                                {
+                                                    "Card"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        107,
+                                        2,
+                                        {
+                                            "Slider"
+                                        },
+                                        {
+                                            {
+                                                109,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                110,
+                                                2,
+                                                {
+                                                    "controllerInput"
+                                                }
+                                            },
+                                            {
+                                                112,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                108,
+                                                2,
+                                                {
+                                                    "Slider"
+                                                }
+                                            },
+                                            {
+                                                111,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                113,
+                                                2,
+                                                {
+                                                    "utils"
                                                 }
                                             }
                                         }
                                     }
-                                }
-                            },
-                            {
-                                5,
-                                2,
-                                {
-                                    "bridge"
-                                },
-                                {
-                                    {
-                                        6,
-                                        2,
-                                        {
-                                            "LuauBridge"
-                                        }
-                                    },
-                                    {
-                                        7,
-                                        2,
-                                        {
-                                            "__typecheck__"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                183,
-                                2,
-                                {
-                                    "utils"
-                                },
-                                {
-                                    {
-                                        184,
-                                        2,
-                                        {
-                                            "__test__"
-                                        }
-                                    },
-                                    {
-                                        185,
-                                        2,
-                                        {
-                                            "diagnostics"
-                                        }
-                                    },
-                                    {
-                                        186,
-                                        2,
-                                        {
-                                            "units"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                4,
-                                2,
-                                {
-                                    "__typecheck__"
                                 }
                             },
                             {
@@ -143820,13 +140450,6 @@ local ObjectTree = {
                                 }
                             },
                             {
-                                174,
-                                2,
-                                {
-                                    "styled"
-                                }
-                            },
-                            {
                                 177,
                                 2,
                                 {
@@ -143834,17 +140457,17 @@ local ObjectTree = {
                                 },
                                 {
                                     {
-                                        181,
-                                        2,
-                                        {
-                                            "resolveToken"
-                                        }
-                                    },
-                                    {
                                         178,
                                         2,
                                         {
                                             "ThemeProvider"
+                                        }
+                                    },
+                                    {
+                                        179,
+                                        2,
+                                        {
+                                            "defaults"
                                         }
                                     },
                                     {
@@ -143855,33 +140478,2853 @@ local ObjectTree = {
                                         }
                                     },
                                     {
+                                        181,
+                                        2,
+                                        {
+                                            "resolveToken"
+                                        }
+                                    },
+                                    {
                                         180,
                                         2,
                                         {
                                             "refs"
                                         }
-                                    },
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        187,
+                        1,
+                        {
+                            "UniversalHubMenu"
+                        },
+                        {
+                            {
+                                307,
+                                2,
+                                {
+                                    "src"
+                                },
+                                {
                                     {
-                                        179,
+                                        314,
                                         2,
                                         {
-                                            "defaults"
+                                            "contracts"
+                                        }
+                                    },
+                                    {
+                                        315,
+                                        1,
+                                        {
+                                            "preview"
+                                        },
+                                        {
+                                            {
+                                                317,
+                                                2,
+                                                {
+                                                    "ViewportDummy"
+                                                }
+                                            },
+                                            {
+                                                316,
+                                                2,
+                                                {
+                                                    "ModelViewer"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        320,
+                                        1,
+                                        {
+                                            "visuals"
+                                        },
+                                        {
+                                            {
+                                                321,
+                                                2,
+                                                {
+                                                    "VisualsPage"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        318,
+                                        2,
+                                        {
+                                            "prismCompat"
+                                        }
+                                    },
+                                    {
+                                        309,
+                                        1,
+                                        {
+                                            "components"
+                                        },
+                                        {
+                                            {
+                                                311,
+                                                2,
+                                                {
+                                                    "Keycap"
+                                                }
+                                            },
+                                            {
+                                                313,
+                                                2,
+                                                {
+                                                    "WhatsNewModal"
+                                                }
+                                            },
+                                            {
+                                                310,
+                                                2,
+                                                {
+                                                    "ControlView"
+                                                }
+                                            },
+                                            {
+                                                312,
+                                                2,
+                                                {
+                                                    "SectionList"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        308,
+                                        2,
+                                        {
+                                            "UniversalHubMenu"
+                                        }
+                                    },
+                                    {
+                                        319,
+                                        2,
+                                        {
+                                            "theme"
                                         }
                                     }
                                 }
                             },
                             {
-                                166,
-                                2,
+                                188,
+                                1,
                                 {
-                                    "icons"
+                                    ".generated"
                                 },
                                 {
                                     {
-                                        167,
-                                        2,
+                                        189,
+                                        1,
                                         {
-                                            "lucide"
+                                            "prism-src"
+                                        },
+                                        {
+                                            {
+                                                190,
+                                                1,
+                                                {
+                                                    "lib"
+                                                },
+                                                {
+                                                    {
+                                                        192,
+                                                        1,
+                                                        {
+                                                            "components"
+                                                        },
+                                                        {
+                                                            {
+                                                                212,
+                                                                1,
+                                                                {
+                                                                    "Image"
+                                                                }
+                                                            },
+                                                            {
+                                                                218,
+                                                                1,
+                                                                {
+                                                                    "Menu"
+                                                                }
+                                                            },
+                                                            {
+                                                                193,
+                                                                1,
+                                                                {
+                                                                    "Avatar"
+                                                                }
+                                                            },
+                                                            {
+                                                                207,
+                                                                1,
+                                                                {
+                                                                    "Divider"
+                                                                }
+                                                            },
+                                                            {
+                                                                250,
+                                                                2,
+                                                                {
+                                                                    "Stack"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        252,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        251,
+                                                                        2,
+                                                                        {
+                                                                            "Stack"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                204,
+                                                                1,
+                                                                {
+                                                                    "Card"
+                                                                }
+                                                            },
+                                                            {
+                                                                197,
+                                                                2,
+                                                                {
+                                                                    "Box"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        199,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        198,
+                                                                        2,
+                                                                        {
+                                                                            "Box"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                229,
+                                                                1,
+                                                                {
+                                                                    "Progress"
+                                                                }
+                                                            },
+                                                            {
+                                                                271,
+                                                                1,
+                                                                {
+                                                                    "_shared"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        283,
+                                                                        2,
+                                                                        {
+                                                                            "useControllableState"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        285,
+                                                                        2,
+                                                                        {
+                                                                            "usePresence"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        272,
+                                                                        2,
+                                                                        {
+                                                                            "TriggerOverlayLayer"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        280,
+                                                                        2,
+                                                                        {
+                                                                            "slotProps"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        279,
+                                                                        2,
+                                                                        {
+                                                                            "overlayLayerPolicy"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        277,
+                                                                        2,
+                                                                        {
+                                                                            "layering"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        276,
+                                                                        2,
+                                                                        {
+                                                                            "interaction"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        284,
+                                                                        2,
+                                                                        {
+                                                                            "useDelayedCallback"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        278,
+                                                                        2,
+                                                                        {
+                                                                            "mergeSharedStyleProps"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        275,
+                                                                        2,
+                                                                        {
+                                                                            "frameSize"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        286,
+                                                                        2,
+                                                                        {
+                                                                            "usePressInteraction"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        289,
+                                                                        2,
+                                                                        {
+                                                                            "visual"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        288,
+                                                                        2,
+                                                                        {
+                                                                            "useRootCursor"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        281,
+                                                                        2,
+                                                                        {
+                                                                            "styleOverride"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        287,
+                                                                        2,
+                                                                        {
+                                                                            "useResolvedStyleProps"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        282,
+                                                                        2,
+                                                                        {
+                                                                            "textFont"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        273,
+                                                                        2,
+                                                                        {
+                                                                            "elevation"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        274,
+                                                                        2,
+                                                                        {
+                                                                            "foundationDecorators"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                270,
+                                                                1,
+                                                                {
+                                                                    "WorldPortal"
+                                                                }
+                                                            },
+                                                            {
+                                                                194,
+                                                                2,
+                                                                {
+                                                                    "Backdrop"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        196,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        195,
+                                                                        2,
+                                                                        {
+                                                                            "Backdrop"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                208,
+                                                                1,
+                                                                {
+                                                                    "Draggable"
+                                                                }
+                                                            },
+                                                            {
+                                                                265,
+                                                                2,
+                                                                {
+                                                                    "Tooltip"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        267,
+                                                                        2,
+                                                                        {
+                                                                            "TooltipOverlayBubble"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        269,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        266,
+                                                                        2,
+                                                                        {
+                                                                            "Tooltip"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        268,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                244,
+                                                                2,
+                                                                {
+                                                                    "Slider"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        249,
+                                                                        2,
+                                                                        {
+                                                                            "utils"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        245,
+                                                                        2,
+                                                                        {
+                                                                            "Slider"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        247,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        248,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        246,
+                                                                        2,
+                                                                        {
+                                                                            "controllerInput"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                262,
+                                                                2,
+                                                                {
+                                                                    "Text"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        264,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        263,
+                                                                        2,
+                                                                        {
+                                                                            "Text"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                258,
+                                                                2,
+                                                                {
+                                                                    "Tabs"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        261,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        260,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        259,
+                                                                        2,
+                                                                        {
+                                                                            "Tabs"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                214,
+                                                                2,
+                                                                {
+                                                                    "KeybindInput"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        217,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        216,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        215,
+                                                                        2,
+                                                                        {
+                                                                            "KeybindInput"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                205,
+                                                                1,
+                                                                {
+                                                                    "Checkbox"
+                                                                }
+                                                            },
+                                                            {
+                                                                228,
+                                                                1,
+                                                                {
+                                                                    "Pressable"
+                                                                }
+                                                            },
+                                                            {
+                                                                254,
+                                                                2,
+                                                                {
+                                                                    "Switch"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        257,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        255,
+                                                                        2,
+                                                                        {
+                                                                            "Switch"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        256,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                219,
+                                                                2,
+                                                                {
+                                                                    "Modal"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        221,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        220,
+                                                                        2,
+                                                                        {
+                                                                            "Modal"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                253,
+                                                                1,
+                                                                {
+                                                                    "StepperInput"
+                                                                }
+                                                            },
+                                                            {
+                                                                206,
+                                                                1,
+                                                                {
+                                                                    "CircularProgress"
+                                                                }
+                                                            },
+                                                            {
+                                                                237,
+                                                                2,
+                                                                {
+                                                                    "Select"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        238,
+                                                                        2,
+                                                                        {
+                                                                            "Select"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        242,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        243,
+                                                                        2,
+                                                                        {
+                                                                            "utils"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        240,
+                                                                        2,
+                                                                        {
+                                                                            "SelectOptionRow"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        239,
+                                                                        2,
+                                                                        {
+                                                                            "SelectDropdown"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        241,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                233,
+                                                                2,
+                                                                {
+                                                                    "SegmentedControl"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        234,
+                                                                        2,
+                                                                        {
+                                                                            "SegmentedControl"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        235,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        236,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                200,
+                                                                2,
+                                                                {
+                                                                    "Button"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        202,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        201,
+                                                                        2,
+                                                                        {
+                                                                            "Button"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        203,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                230,
+                                                                2,
+                                                                {
+                                                                    "ScrollArea"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        232,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        231,
+                                                                        2,
+                                                                        {
+                                                                            "ScrollArea"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                209,
+                                                                2,
+                                                                {
+                                                                    "Icon"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        210,
+                                                                        2,
+                                                                        {
+                                                                            "Icon"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        211,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                222,
+                                                                2,
+                                                                {
+                                                                    "Popover"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        227,
+                                                                        2,
+                                                                        {
+                                                                            "utils"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        225,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        224,
+                                                                        2,
+                                                                        {
+                                                                            "PopoverOverlayPanel"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        226,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        223,
+                                                                        2,
+                                                                        {
+                                                                            "Popover"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                213,
+                                                                1,
+                                                                {
+                                                                    "Input"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        292,
+                                                        2,
+                                                        {
+                                                            "motion"
+                                                        },
+                                                        {
+                                                            {
+                                                                295,
+                                                                2,
+                                                                {
+                                                                    "types"
+                                                                }
+                                                            },
+                                                            {
+                                                                296,
+                                                                2,
+                                                                {
+                                                                    "useMotion"
+                                                                }
+                                                            },
+                                                            {
+                                                                294,
+                                                                2,
+                                                                {
+                                                                    "transitions"
+                                                                }
+                                                            },
+                                                            {
+                                                                293,
+                                                                2,
+                                                                {
+                                                                    "signatures"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        298,
+                                                        2,
+                                                        {
+                                                            "theme"
+                                                        },
+                                                        {
+                                                            {
+                                                                300,
+                                                                2,
+                                                                {
+                                                                    "defaults"
+                                                                }
+                                                            },
+                                                            {
+                                                                302,
+                                                                2,
+                                                                {
+                                                                    "resolveToken"
+                                                                }
+                                                            },
+                                                            {
+                                                                301,
+                                                                2,
+                                                                {
+                                                                    "refs"
+                                                                }
+                                                            },
+                                                            {
+                                                                299,
+                                                                2,
+                                                                {
+                                                                    "ThemeProvider"
+                                                                }
+                                                            },
+                                                            {
+                                                                303,
+                                                                2,
+                                                                {
+                                                                    "types"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        297,
+                                                        1,
+                                                        {
+                                                            "testing"
+                                                        }
+                                                    },
+                                                    {
+                                                        290,
+                                                        1,
+                                                        {
+                                                            "icons"
+                                                        },
+                                                        {
+                                                            {
+                                                                291,
+                                                                2,
+                                                                {
+                                                                    "lucide"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        304,
+                                                        2,
+                                                        {
+                                                            "utils"
+                                                        },
+                                                        {
+                                                            {
+                                                                306,
+                                                                2,
+                                                                {
+                                                                    "units"
+                                                                }
+                                                            },
+                                                            {
+                                                                305,
+                                                                2,
+                                                                {
+                                                                    "diagnostics"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        191,
+                                                        1,
+                                                        {
+                                                            "bridge"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        322,
+                        1,
+                        {
+                            "rbxts_include"
+                        },
+                        {
+                            {
+                                324,
+                                2,
+                                {
+                                    "RuntimeLib"
+                                }
+                            },
+                            {
+                                323,
+                                2,
+                                {
+                                    "Promise"
+                                }
+                            },
+                            {
+                                325,
+                                1,
+                                {
+                                    "node_modules"
+                                },
+                                {
+                                    {
+                                        337,
+                                        1,
+                                        {
+                                            "@rbxts-js"
+                                        },
+                                        {
+                                            {
+                                                512,
+                                                2,
+                                                {
+                                                    "Shared"
+                                                },
+                                                {
+                                                    {
+                                                        535,
+                                                        2,
+                                                        {
+                                                            "ReactSymbols"
+                                                        }
+                                                    },
+                                                    {
+                                                        528,
+                                                        2,
+                                                        {
+                                                            "ReactInstanceMap"
+                                                        }
+                                                    },
+                                                    {
+                                                        543,
+                                                        2,
+                                                        {
+                                                            "consoleWithStackDev"
+                                                        }
+                                                    },
+                                                    {
+                                                        516,
+                                                        1,
+                                                        {
+                                                            "PropMarkers"
+                                                        },
+                                                        {
+                                                            {
+                                                                518,
+                                                                2,
+                                                                {
+                                                                    "Event"
+                                                                }
+                                                            },
+                                                            {
+                                                                519,
+                                                                2,
+                                                                {
+                                                                    "Tag"
+                                                                }
+                                                            },
+                                                            {
+                                                                517,
+                                                                2,
+                                                                {
+                                                                    "Change"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        551,
+                                                        2,
+                                                        {
+                                                            "objectIs"
+                                                        }
+                                                    },
+                                                    {
+                                                        520,
+                                                        2,
+                                                        {
+                                                            "ReactComponentStackFrame"
+                                                        }
+                                                    },
+                                                    {
+                                                        524,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHostConfig"
+                                                        },
+                                                        {
+                                                            {
+                                                                527,
+                                                                2,
+                                                                {
+                                                                    "WithNoTestSelectors"
+                                                                }
+                                                            },
+                                                            {
+                                                                526,
+                                                                2,
+                                                                {
+                                                                    "WithNoPersistence"
+                                                                }
+                                                            },
+                                                            {
+                                                                525,
+                                                                2,
+                                                                {
+                                                                    "WithNoHydration"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        536,
+                                                        2,
+                                                        {
+                                                            "ReactTypes"
+                                                        }
+                                                    },
+                                                    {
+                                                        540,
+                                                        2,
+                                                        {
+                                                            "UninitializedState.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        522,
+                                                        2,
+                                                        {
+                                                            "ReactErrorUtils"
+                                                        }
+                                                    },
+                                                    {
+                                                        552,
+                                                        2,
+                                                        {
+                                                            "shallowEqual"
+                                                        }
+                                                    },
+                                                    {
+                                                        550,
+                                                        2,
+                                                        {
+                                                            "isValidElementType"
+                                                        }
+                                                    },
+                                                    {
+                                                        542,
+                                                        2,
+                                                        {
+                                                            "console"
+                                                        }
+                                                    },
+                                                    {
+                                                        549,
+                                                        2,
+                                                        {
+                                                            "invokeGuardedCallbackImpl"
+                                                        }
+                                                    },
+                                                    {
+                                                        547,
+                                                        2,
+                                                        {
+                                                            "getComponentName"
+                                                        }
+                                                    },
+                                                    {
+                                                        546,
+                                                        2,
+                                                        {
+                                                            "formatProdErrorMessage"
+                                                        }
+                                                    },
+                                                    {
+                                                        513,
+                                                        2,
+                                                        {
+                                                            "ConsolePatchingDev.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        529,
+                                                        2,
+                                                        {
+                                                            "ReactSharedInternals"
+                                                        },
+                                                        {
+                                                            {
+                                                                531,
+                                                                2,
+                                                                {
+                                                                    "ReactCurrentBatchConfig"
+                                                                }
+                                                            },
+                                                            {
+                                                                532,
+                                                                2,
+                                                                {
+                                                                    "ReactCurrentDispatcher"
+                                                                }
+                                                            },
+                                                            {
+                                                                530,
+                                                                2,
+                                                                {
+                                                                    "IsSomeRendererActing"
+                                                                }
+                                                            },
+                                                            {
+                                                                533,
+                                                                2,
+                                                                {
+                                                                    "ReactCurrentOwner"
+                                                                }
+                                                            },
+                                                            {
+                                                                534,
+                                                                2,
+                                                                {
+                                                                    "ReactDebugCurrentFrame"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        544,
+                                                        2,
+                                                        {
+                                                            "enqueueTask.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        545,
+                                                        2,
+                                                        {
+                                                            "flowtypes.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        521,
+                                                        2,
+                                                        {
+                                                            "ReactElementType"
+                                                        }
+                                                    },
+                                                    {
+                                                        548,
+                                                        2,
+                                                        {
+                                                            "invariant"
+                                                        }
+                                                    },
+                                                    {
+                                                        538,
+                                                        2,
+                                                        {
+                                                            "Symbol.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        541,
+                                                        2,
+                                                        {
+                                                            "checkPropTypes"
+                                                        }
+                                                    },
+                                                    {
+                                                        539,
+                                                        2,
+                                                        {
+                                                            "Type.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        537,
+                                                        2,
+                                                        {
+                                                            "ReactVersion"
+                                                        }
+                                                    },
+                                                    {
+                                                        514,
+                                                        2,
+                                                        {
+                                                            "ErrorHandling.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        515,
+                                                        2,
+                                                        {
+                                                            "ExecutionEnvironment"
+                                                        }
+                                                    },
+                                                    {
+                                                        523,
+                                                        2,
+                                                        {
+                                                            "ReactFeatureFlags"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                498,
+                                                2,
+                                                {
+                                                    "Scheduler"
+                                                },
+                                                {
+                                                    {
+                                                        508,
+                                                        1,
+                                                        {
+                                                            "forks"
+                                                        },
+                                                        {
+                                                            {
+                                                                509,
+                                                                2,
+                                                                {
+                                                                    "SchedulerHostConfig.default"
+                                                                }
+                                                            },
+                                                            {
+                                                                510,
+                                                                2,
+                                                                {
+                                                                    "SchedulerHostConfig.mock"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        505,
+                                                        2,
+                                                        {
+                                                            "SchedulerProfiling"
+                                                        }
+                                                    },
+                                                    {
+                                                        504,
+                                                        2,
+                                                        {
+                                                            "SchedulerPriorities"
+                                                        }
+                                                    },
+                                                    {
+                                                        502,
+                                                        2,
+                                                        {
+                                                            "SchedulerHostConfig"
+                                                        }
+                                                    },
+                                                    {
+                                                        511,
+                                                        2,
+                                                        {
+                                                            "unstable_mock"
+                                                        }
+                                                    },
+                                                    {
+                                                        499,
+                                                        2,
+                                                        {
+                                                            "NoYield"
+                                                        }
+                                                    },
+                                                    {
+                                                        507,
+                                                        2,
+                                                        {
+                                                            "TracingSubscriptions"
+                                                        }
+                                                    },
+                                                    {
+                                                        500,
+                                                        2,
+                                                        {
+                                                            "Scheduler"
+                                                        }
+                                                    },
+                                                    {
+                                                        506,
+                                                        2,
+                                                        {
+                                                            "Tracing"
+                                                        }
+                                                    },
+                                                    {
+                                                        501,
+                                                        2,
+                                                        {
+                                                            "SchedulerFeatureFlags"
+                                                        }
+                                                    },
+                                                    {
+                                                        503,
+                                                        2,
+                                                        {
+                                                            "SchedulerMinHeap"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                399,
+                                                2,
+                                                {
+                                                    "Math"
+                                                },
+                                                {
+                                                    {
+                                                        400,
+                                                        2,
+                                                        {
+                                                            "clz32"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                553,
+                                                2,
+                                                {
+                                                    "String"
+                                                },
+                                                {
+                                                    {
+                                                        557,
+                                                        2,
+                                                        {
+                                                            "includes"
+                                                        }
+                                                    },
+                                                    {
+                                                        564,
+                                                        2,
+                                                        {
+                                                            "trim"
+                                                        }
+                                                    },
+                                                    {
+                                                        566,
+                                                        2,
+                                                        {
+                                                            "trimStart"
+                                                        }
+                                                    },
+                                                    {
+                                                        555,
+                                                        2,
+                                                        {
+                                                            "endsWith"
+                                                        }
+                                                    },
+                                                    {
+                                                        561,
+                                                        2,
+                                                        {
+                                                            "split"
+                                                        }
+                                                    },
+                                                    {
+                                                        554,
+                                                        2,
+                                                        {
+                                                            "charCodeAt"
+                                                        }
+                                                    },
+                                                    {
+                                                        563,
+                                                        2,
+                                                        {
+                                                            "substr"
+                                                        }
+                                                    },
+                                                    {
+                                                        556,
+                                                        2,
+                                                        {
+                                                            "findOr"
+                                                        }
+                                                    },
+                                                    {
+                                                        559,
+                                                        2,
+                                                        {
+                                                            "lastIndexOf"
+                                                        }
+                                                    },
+                                                    {
+                                                        558,
+                                                        2,
+                                                        {
+                                                            "indexOf"
+                                                        }
+                                                    },
+                                                    {
+                                                        560,
+                                                        2,
+                                                        {
+                                                            "slice"
+                                                        }
+                                                    },
+                                                    {
+                                                        562,
+                                                        2,
+                                                        {
+                                                            "startsWith"
+                                                        }
+                                                    },
+                                                    {
+                                                        565,
+                                                        2,
+                                                        {
+                                                            "trimEnd"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                386,
+                                                2,
+                                                {
+                                                    "Console"
+                                                },
+                                                {
+                                                    {
+                                                        387,
+                                                        2,
+                                                        {
+                                                            "makeConsoleImpl"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                496,
+                                                2,
+                                                {
+                                                    "Promise"
+                                                }
+                                            },
+                                            {
+                                                483,
+                                                2,
+                                                {
+                                                    "ReactRoblox"
+                                                },
+                                                {
+                                                    {
+                                                        485,
+                                                        1,
+                                                        {
+                                                            "client"
+                                                        },
+                                                        {
+                                                            {
+                                                                490,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxHostTypes.roblox"
+                                                                }
+                                                            },
+                                                            {
+                                                                487,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxComponent"
+                                                                }
+                                                            },
+                                                            {
+                                                                491,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxRoot"
+                                                                }
+                                                            },
+                                                            {
+                                                                488,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxComponentTree"
+                                                                }
+                                                            },
+                                                            {
+                                                                492,
+                                                                1,
+                                                                {
+                                                                    "roblox"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        493,
+                                                                        2,
+                                                                        {
+                                                                            "RobloxComponentProps"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        495,
+                                                                        2,
+                                                                        {
+                                                                            "getDefaultInstanceProperty"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        494,
+                                                                        2,
+                                                                        {
+                                                                            "SingleEventManager"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                486,
+                                                                2,
+                                                                {
+                                                                    "ReactRoblox"
+                                                                }
+                                                            },
+                                                            {
+                                                                489,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxHostConfig"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        484,
+                                                        2,
+                                                        {
+                                                            "ReactReconciler.roblox"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                401,
+                                                2,
+                                                {
+                                                    "Number"
+                                                },
+                                                {
+                                                    {
+                                                        405,
+                                                        2,
+                                                        {
+                                                            "isInteger"
+                                                        }
+                                                    },
+                                                    {
+                                                        403,
+                                                        2,
+                                                        {
+                                                            "MIN_SAFE_INTEGER"
+                                                        }
+                                                    },
+                                                    {
+                                                        404,
+                                                        2,
+                                                        {
+                                                            "isFinite"
+                                                        }
+                                                    },
+                                                    {
+                                                        408,
+                                                        2,
+                                                        {
+                                                            "toExponential"
+                                                        }
+                                                    },
+                                                    {
+                                                        406,
+                                                        2,
+                                                        {
+                                                            "isNaN"
+                                                        }
+                                                    },
+                                                    {
+                                                        402,
+                                                        2,
+                                                        {
+                                                            "MAX_SAFE_INTEGER"
+                                                        }
+                                                    },
+                                                    {
+                                                        407,
+                                                        2,
+                                                        {
+                                                            "isSafeInteger"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                497,
+                                                2,
+                                                {
+                                                    "SafeFlags"
+                                                }
+                                            },
+                                            {
+                                                426,
+                                                2,
+                                                {
+                                                    "ReactGlobals"
+                                                },
+                                                {
+                                                    {
+                                                        427,
+                                                        2,
+                                                        {
+                                                            "ReactGlobals.global"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                428,
+                                                2,
+                                                {
+                                                    "ReactReconciler"
+                                                },
+                                                {
+                                                    {
+                                                        451,
+                                                        2,
+                                                        {
+                                                            "ReactFiberLazyComponent.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        446,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHostConfig"
+                                                        }
+                                                    },
+                                                    {
+                                                        445,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHooks.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        435,
+                                                        2,
+                                                        {
+                                                            "ReactFiberBeginWork.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        436,
+                                                        2,
+                                                        {
+                                                            "ReactFiberClassComponent.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        457,
+                                                        2,
+                                                        {
+                                                            "ReactFiberSchedulerPriorities.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        478,
+                                                        2,
+                                                        {
+                                                            "RobloxReactProfiling"
+                                                        }
+                                                    },
+                                                    {
+                                                        448,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHotReloading.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        481,
+                                                        1,
+                                                        {
+                                                            "forks"
+                                                        },
+                                                        {
+                                                            {
+                                                                482,
+                                                                2,
+                                                                {
+                                                                    "ReactFiberHostConfig.test"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        434,
+                                                        2,
+                                                        {
+                                                            "ReactFiber.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        480,
+                                                        2,
+                                                        {
+                                                            "SchedulingProfiler"
+                                                        }
+                                                    },
+                                                    {
+                                                        443,
+                                                        2,
+                                                        {
+                                                            "ReactFiberErrorLogger"
+                                                        }
+                                                    },
+                                                    {
+                                                        456,
+                                                        2,
+                                                        {
+                                                            "ReactFiberRoot.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        479,
+                                                        2,
+                                                        {
+                                                            "SchedulerWithReactIntegration.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        441,
+                                                        2,
+                                                        {
+                                                            "ReactFiberDevToolsHook.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        477,
+                                                        2,
+                                                        {
+                                                            "ReactWorkTags"
+                                                        }
+                                                    },
+                                                    {
+                                                        467,
+                                                        2,
+                                                        {
+                                                            "ReactHookEffectTags"
+                                                        }
+                                                    },
+                                                    {
+                                                        440,
+                                                        2,
+                                                        {
+                                                            "ReactFiberContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        460,
+                                                        2,
+                                                        {
+                                                            "ReactFiberSuspenseContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        476,
+                                                        2,
+                                                        {
+                                                            "ReactUpdateQueue.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        474,
+                                                        2,
+                                                        {
+                                                            "ReactTestSelectors"
+                                                        }
+                                                    },
+                                                    {
+                                                        475,
+                                                        2,
+                                                        {
+                                                            "ReactTypeOfMode"
+                                                        }
+                                                    },
+                                                    {
+                                                        473,
+                                                        2,
+                                                        {
+                                                            "ReactStrictModeWarnings.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        472,
+                                                        2,
+                                                        {
+                                                            "ReactRootTags"
+                                                        }
+                                                    },
+                                                    {
+                                                        438,
+                                                        2,
+                                                        {
+                                                            "ReactFiberCompleteWork.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        471,
+                                                        2,
+                                                        {
+                                                            "ReactProfilerTimer.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        470,
+                                                        2,
+                                                        {
+                                                            "ReactPortal"
+                                                        }
+                                                    },
+                                                    {
+                                                        466,
+                                                        2,
+                                                        {
+                                                            "ReactFiberWorkLoop.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        429,
+                                                        2,
+                                                        {
+                                                            "DebugTracing"
+                                                        }
+                                                    },
+                                                    {
+                                                        463,
+                                                        2,
+                                                        {
+                                                            "ReactFiberTreeReflection"
+                                                        }
+                                                    },
+                                                    {
+                                                        469,
+                                                        2,
+                                                        {
+                                                            "ReactMutableSource.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        449,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHydrationContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        453,
+                                                        2,
+                                                        {
+                                                            "ReactFiberOffscreenComponent"
+                                                        }
+                                                    },
+                                                    {
+                                                        439,
+                                                        2,
+                                                        {
+                                                            "ReactFiberComponentStack"
+                                                        }
+                                                    },
+                                                    {
+                                                        455,
+                                                        2,
+                                                        {
+                                                            "ReactFiberReconciler.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        464,
+                                                        2,
+                                                        {
+                                                            "ReactFiberUnwindWork.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        447,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHostContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        437,
+                                                        2,
+                                                        {
+                                                            "ReactFiberCommitWork.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        465,
+                                                        2,
+                                                        {
+                                                            "ReactFiberWorkInProgress"
+                                                        }
+                                                    },
+                                                    {
+                                                        468,
+                                                        2,
+                                                        {
+                                                            "ReactInternalTypes"
+                                                        }
+                                                    },
+                                                    {
+                                                        444,
+                                                        2,
+                                                        {
+                                                            "ReactFiberFlags"
+                                                        }
+                                                    },
+                                                    {
+                                                        462,
+                                                        2,
+                                                        {
+                                                            "ReactFiberTransition"
+                                                        }
+                                                    },
+                                                    {
+                                                        461,
+                                                        2,
+                                                        {
+                                                            "ReactFiberThrow.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        431,
+                                                        2,
+                                                        {
+                                                            "ReactCapturedValue"
+                                                        }
+                                                    },
+                                                    {
+                                                        458,
+                                                        2,
+                                                        {
+                                                            "ReactFiberStack.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        450,
+                                                        2,
+                                                        {
+                                                            "ReactFiberLane"
+                                                        }
+                                                    },
+                                                    {
+                                                        442,
+                                                        2,
+                                                        {
+                                                            "ReactFiberErrorDialog"
+                                                        }
+                                                    },
+                                                    {
+                                                        454,
+                                                        2,
+                                                        {
+                                                            "ReactFiberReconciler"
+                                                        }
+                                                    },
+                                                    {
+                                                        459,
+                                                        2,
+                                                        {
+                                                            "ReactFiberSuspenseComponent.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        430,
+                                                        2,
+                                                        {
+                                                            "MaxInts"
+                                                        }
+                                                    },
+                                                    {
+                                                        433,
+                                                        2,
+                                                        {
+                                                            "ReactCurrentFiber"
+                                                        }
+                                                    },
+                                                    {
+                                                        452,
+                                                        2,
+                                                        {
+                                                            "ReactFiberNewContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        432,
+                                                        2,
+                                                        {
+                                                            "ReactChildFiber.new"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                338,
+                                                2,
+                                                {
+                                                    "Boolean"
+                                                },
+                                                {
+                                                    {
+                                                        339,
+                                                        2,
+                                                        {
+                                                            "toJSBoolean"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                570,
+                                                2,
+                                                {
+                                                    "Timers"
+                                                },
+                                                {
+                                                    {
+                                                        572,
+                                                        2,
+                                                        {
+                                                            "makeTimerImpl"
+                                                        }
+                                                    },
+                                                    {
+                                                        571,
+                                                        2,
+                                                        {
+                                                            "makeIntervalImpl"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                567,
+                                                2,
+                                                {
+                                                    "Symbol"
+                                                },
+                                                {
+                                                    {
+                                                        568,
+                                                        2,
+                                                        {
+                                                            "Registry.global"
+                                                        }
+                                                    },
+                                                    {
+                                                        569,
+                                                        2,
+                                                        {
+                                                            "Symbol"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                391,
+                                                2,
+                                                {
+                                                    "LuauPolyfill"
+                                                },
+                                                {
+                                                    {
+                                                        394,
+                                                        2,
+                                                        {
+                                                            "Error"
+                                                        },
+                                                        {
+                                                            {
+                                                                395,
+                                                                2,
+                                                                {
+                                                                    "Error.global"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        397,
+                                                        2,
+                                                        {
+                                                            "encodeURIComponent"
+                                                        }
+                                                    },
+                                                    {
+                                                        396,
+                                                        2,
+                                                        {
+                                                            "Promise"
+                                                        }
+                                                    },
+                                                    {
+                                                        398,
+                                                        2,
+                                                        {
+                                                            "extends"
+                                                        }
+                                                    },
+                                                    {
+                                                        392,
+                                                        2,
+                                                        {
+                                                            "AssertionError"
+                                                        },
+                                                        {
+                                                            {
+                                                                393,
+                                                                2,
+                                                                {
+                                                                    "AssertionError.global"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                340,
+                                                2,
+                                                {
+                                                    "Collections"
+                                                },
+                                                {
+                                                    {
+                                                        341,
+                                                        2,
+                                                        {
+                                                            "Array"
+                                                        },
+                                                        {
+                                                            {
+                                                                348,
+                                                                2,
+                                                                {
+                                                                    "flatMap"
+                                                                }
+                                                            },
+                                                            {
+                                                                346,
+                                                                2,
+                                                                {
+                                                                    "findIndex"
+                                                                }
+                                                            },
+                                                            {
+                                                                356,
+                                                                2,
+                                                                {
+                                                                    "indexOf"
+                                                                }
+                                                            },
+                                                            {
+                                                                367,
+                                                                2,
+                                                                {
+                                                                    "unshift"
+                                                                }
+                                                            },
+                                                            {
+                                                                350,
+                                                                2,
+                                                                {
+                                                                    "from"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        353,
+                                                                        2,
+                                                                        {
+                                                                            "fromSet"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        354,
+                                                                        2,
+                                                                        {
+                                                                            "fromString"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        351,
+                                                                        2,
+                                                                        {
+                                                                            "fromArray"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        352,
+                                                                        2,
+                                                                        {
+                                                                            "fromMap"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                344,
+                                                                2,
+                                                                {
+                                                                    "filter"
+                                                                }
+                                                            },
+                                                            {
+                                                                366,
+                                                                2,
+                                                                {
+                                                                    "splice"
+                                                                }
+                                                            },
+                                                            {
+                                                                362,
+                                                                2,
+                                                                {
+                                                                    "shift"
+                                                                }
+                                                            },
+                                                            {
+                                                                361,
+                                                                2,
+                                                                {
+                                                                    "reverse"
+                                                                }
+                                                            },
+                                                            {
+                                                                359,
+                                                                2,
+                                                                {
+                                                                    "map"
+                                                                }
+                                                            },
+                                                            {
+                                                                357,
+                                                                2,
+                                                                {
+                                                                    "isArray"
+                                                                }
+                                                            },
+                                                            {
+                                                                365,
+                                                                2,
+                                                                {
+                                                                    "sort"
+                                                                }
+                                                            },
+                                                            {
+                                                                347,
+                                                                2,
+                                                                {
+                                                                    "flat"
+                                                                }
+                                                            },
+                                                            {
+                                                                343,
+                                                                2,
+                                                                {
+                                                                    "every"
+                                                                }
+                                                            },
+                                                            {
+                                                                349,
+                                                                2,
+                                                                {
+                                                                    "forEach"
+                                                                }
+                                                            },
+                                                            {
+                                                                363,
+                                                                2,
+                                                                {
+                                                                    "slice"
+                                                                }
+                                                            },
+                                                            {
+                                                                364,
+                                                                2,
+                                                                {
+                                                                    "some"
+                                                                }
+                                                            },
+                                                            {
+                                                                345,
+                                                                2,
+                                                                {
+                                                                    "find"
+                                                                }
+                                                            },
+                                                            {
+                                                                342,
+                                                                2,
+                                                                {
+                                                                    "concat"
+                                                                }
+                                                            },
+                                                            {
+                                                                358,
+                                                                2,
+                                                                {
+                                                                    "join"
+                                                                }
+                                                            },
+                                                            {
+                                                                355,
+                                                                2,
+                                                                {
+                                                                    "includes"
+                                                                }
+                                                            },
+                                                            {
+                                                                360,
+                                                                2,
+                                                                {
+                                                                    "reduce"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        368,
+                                                        2,
+                                                        {
+                                                            "Map"
+                                                        },
+                                                        {
+                                                            {
+                                                                369,
+                                                                2,
+                                                                {
+                                                                    "Map"
+                                                                }
+                                                            },
+                                                            {
+                                                                370,
+                                                                2,
+                                                                {
+                                                                    "coerceToMap"
+                                                                }
+                                                            },
+                                                            {
+                                                                371,
+                                                                2,
+                                                                {
+                                                                    "coerceToTable"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        383,
+                                                        2,
+                                                        {
+                                                            "Set"
+                                                        }
+                                                    },
+                                                    {
+                                                        372,
+                                                        2,
+                                                        {
+                                                            "Object"
+                                                        },
+                                                        {
+                                                            {
+                                                                373,
+                                                                2,
+                                                                {
+                                                                    "None"
+                                                                }
+                                                            },
+                                                            {
+                                                                375,
+                                                                2,
+                                                                {
+                                                                    "entries"
+                                                                }
+                                                            },
+                                                            {
+                                                                376,
+                                                                2,
+                                                                {
+                                                                    "freeze"
+                                                                }
+                                                            },
+                                                            {
+                                                                382,
+                                                                2,
+                                                                {
+                                                                    "values"
+                                                                }
+                                                            },
+                                                            {
+                                                                381,
+                                                                2,
+                                                                {
+                                                                    "seal"
+                                                                }
+                                                            },
+                                                            {
+                                                                380,
+                                                                2,
+                                                                {
+                                                                    "preventExtensions"
+                                                                }
+                                                            },
+                                                            {
+                                                                374,
+                                                                2,
+                                                                {
+                                                                    "assign"
+                                                                }
+                                                            },
+                                                            {
+                                                                379,
+                                                                2,
+                                                                {
+                                                                    "keys"
+                                                                }
+                                                            },
+                                                            {
+                                                                377,
+                                                                2,
+                                                                {
+                                                                    "is"
+                                                                }
+                                                            },
+                                                            {
+                                                                378,
+                                                                2,
+                                                                {
+                                                                    "isFrozen"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        385,
+                                                        2,
+                                                        {
+                                                            "inspect"
+                                                        }
+                                                    },
+                                                    {
+                                                        384,
+                                                        2,
+                                                        {
+                                                            "WeakMap"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                409,
+                                                2,
+                                                {
+                                                    "React"
+                                                },
+                                                {
+                                                    {
+                                                        413,
+                                                        2,
+                                                        {
+                                                            "ReactBinding.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        420,
+                                                        2,
+                                                        {
+                                                            "ReactHooks"
+                                                        }
+                                                    },
+                                                    {
+                                                        419,
+                                                        2,
+                                                        {
+                                                            "ReactForwardRef"
+                                                        }
+                                                    },
+                                                    {
+                                                        411,
+                                                        2,
+                                                        {
+                                                            "React"
+                                                        }
+                                                    },
+                                                    {
+                                                        417,
+                                                        2,
+                                                        {
+                                                            "ReactElement"
+                                                        }
+                                                    },
+                                                    {
+                                                        412,
+                                                        2,
+                                                        {
+                                                            "ReactBaseClasses"
+                                                        }
+                                                    },
+                                                    {
+                                                        425,
+                                                        2,
+                                                        {
+                                                            "createSignal.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        415,
+                                                        2,
+                                                        {
+                                                            "ReactContext"
+                                                        }
+                                                    },
+                                                    {
+                                                        424,
+                                                        2,
+                                                        {
+                                                            "ReactNoopUpdateQueue"
+                                                        }
+                                                    },
+                                                    {
+                                                        410,
+                                                        2,
+                                                        {
+                                                            "None.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        414,
+                                                        2,
+                                                        {
+                                                            "ReactChildren"
+                                                        }
+                                                    },
+                                                    {
+                                                        423,
+                                                        2,
+                                                        {
+                                                            "ReactMutableSource"
+                                                        }
+                                                    },
+                                                    {
+                                                        422,
+                                                        2,
+                                                        {
+                                                            "ReactMemo"
+                                                        }
+                                                    },
+                                                    {
+                                                        421,
+                                                        2,
+                                                        {
+                                                            "ReactLazy"
+                                                        }
+                                                    },
+                                                    {
+                                                        418,
+                                                        2,
+                                                        {
+                                                            "ReactElementValidator"
+                                                        }
+                                                    },
+                                                    {
+                                                        416,
+                                                        2,
+                                                        {
+                                                            "ReactCreateRef"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                389,
+                                                2,
+                                                {
+                                                    "InstanceOf"
+                                                },
+                                                {
+                                                    {
+                                                        390,
+                                                        2,
+                                                        {
+                                                            "instanceof"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                388,
+                                                2,
+                                                {
+                                                    "ES7Types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        326,
+                                        1,
+                                        {
+                                            "@rbxts"
+                                        },
+                                        {
+                                            {
+                                                332,
+                                                2,
+                                                {
+                                                    "react-roblox"
+                                                }
+                                            },
+                                            {
+                                                330,
+                                                2,
+                                                {
+                                                    "react"
+                                                },
+                                                {
+                                                    {
+                                                        331,
+                                                        2,
+                                                        {
+                                                            "tags"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                333,
+                                                1,
+                                                {
+                                                    "types"
+                                                },
+                                                {
+                                                    {
+                                                        336,
+                                                        2,
+                                                        {
+                                                            "package"
+                                                        }
+                                                    },
+                                                    {
+                                                        334,
+                                                        1,
+                                                        {
+                                                            "include"
+                                                        },
+                                                        {
+                                                            {
+                                                                335,
+                                                                1,
+                                                                {
+                                                                    "generated"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                327,
+                                                1,
+                                                {
+                                                    "compiler-types"
+                                                },
+                                                {
+                                                    {
+                                                        329,
+                                                        1,
+                                                        {
+                                                            "types"
+                                                        }
+                                                    },
+                                                    {
+                                                        328,
+                                                        2,
+                                                        {
+                                                            "package"
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -144176,257 +143619,255 @@ local LineOffsets = {
     [304] = 84112,
     [305] = 84122,
     [306] = 84182,
-    [308] = 84344,
-    [309] = 84842,
-    [312] = 84862,
-    [313] = 84912,
-    [315] = 85224,
-    [316] = 85555,
-    [317] = 85700,
-    [318] = 85764,
-    [319] = 86012,
-    [321] = 86089,
-    [322] = 86300,
-    [323] = 87089,
-    [324] = 87410,
-    [326] = 87511,
-    [328] = 88342,
-    [329] = 90412,
-    [333] = 90674,
-    [335] = 90700,
-    [336] = 90779,
-    [337] = 91095,
-    [341] = 91098,
-    [343] = 91124,
-    [344] = 91130,
-    [345] = 91140,
-    [346] = 91170,
-    [347] = 91202,
-    [348] = 91259,
-    [349] = 91305,
-    [350] = 91357,
-    [351] = 91375,
-    [352] = 91393,
-    [353] = 91429,
-    [354] = 91458,
-    [355] = 91501,
-    [356] = 91552,
-    [357] = 91588,
-    [358] = 91626,
-    [359] = 91661,
-    [360] = 91699,
-    [361] = 91711,
-    [362] = 91744,
-    [363] = 91777,
-    [364] = 91797,
-    [365] = 91844,
-    [366] = 91888,
-    [367] = 91907,
-    [368] = 91930,
-    [369] = 91977,
-    [370] = 92013,
-    [371] = 92049,
-    [372] = 92101,
-    [373] = 92128,
-    [374] = 92145,
-    [375] = 92334,
-    [376] = 92354,
-    [377] = 92381,
-    [378] = 92399,
-    [379] = 92411,
-    [380] = 92476,
-    [381] = 92506,
-    [382] = 92520,
-    [383] = 92531,
-    [384] = 92548,
-    [385] = 92588,
-    [386] = 92617,
-    [387] = 92631,
-    [388] = 92664,
-    [389] = 92815,
-    [390] = 92858,
-    [391] = 93090,
-    [392] = 93096,
-    [393] = 93196,
-    [394] = 93266,
-    [395] = 93271,
-    [396] = 93319,
-    [397] = 93381,
-    [398] = 93388,
-    [399] = 93972,
-    [400] = 93977,
-    [401] = 94065,
-    [402] = 94100,
-    [403] = 94146,
-    [404] = 94197,
-    [405] = 94203,
-    [406] = 94206,
-    [407] = 94219,
-    [408] = 94224,
-    [409] = 94229,
-    [410] = 94235,
-    [411] = 94242,
-    [412] = 94249,
-    [413] = 94259,
-    [414] = 94295,
-    [415] = 94380,
-    [416] = 94406,
-    [417] = 94580,
-    [418] = 95021,
-    [419] = 95256,
-    [420] = 95618,
-    [421] = 95746,
-    [422] = 95818,
-    [423] = 96548,
-    [424] = 97202,
-    [425] = 97323,
-    [426] = 97649,
-    [427] = 97846,
-    [428] = 97988,
-    [429] = 98027,
-    [430] = 98134,
-    [431] = 98227,
-    [432] = 98232,
-    [433] = 98333,
-    [434] = 98383,
-    [435] = 98671,
-    [436] = 98688,
-    [437] = 98726,
-    [438] = 100410,
-    [439] = 100509,
-    [440] = 101533,
-    [441] = 105173,
-    [442] = 106608,
-    [443] = 108950,
-    [444] = 110569,
-    [445] = 110676,
-    [446] = 111078,
-    [447] = 111250,
-    [448] = 111274,
-    [449] = 111409,
-    [450] = 111510,
-    [451] = 114800,
-    [452] = 114850,
-    [453] = 114978,
-    [454] = 115496,
-    [455] = 116020,
-    [456] = 116991,
-    [457] = 117026,
-    [458] = 117462,
-    [459] = 117503,
-    [460] = 117518,
-    [461] = 118364,
-    [462] = 118493,
-    [463] = 118527,
-    [464] = 118649,
-    [465] = 118814,
-    [466] = 118913,
-    [467] = 119405,
-    [468] = 119430,
-    [469] = 119815,
-    [470] = 120009,
-    [471] = 120049,
-    [472] = 124181,
-    [473] = 124210,
-    [474] = 124577,
-    [475] = 124701,
-    [476] = 124744,
-    [477] = 124925,
-    [478] = 124945,
-    [479] = 125337,
-    [480] = 125916,
-    [481] = 125941,
-    [482] = 126684,
-    [483] = 126726,
-    [484] = 126962,
-    [485] = 127323,
-    [487] = 127587,
-    [488] = 127602,
-    [489] = 127618,
-    [491] = 127630,
-    [492] = 127963,
-    [493] = 128211,
-    [494] = 128513,
-    [495] = 129886,
-    [496] = 129984,
-    [498] = 130260,
-    [499] = 130639,
-    [500] = 130816,
-    [501] = 130891,
-    [502] = 133010,
-    [503] = 133053,
-    [504] = 133139,
-    [505] = 133191,
-    [506] = 133799,
-    [507] = 133816,
-    [508] = 133833,
-    [509] = 133941,
-    [510] = 133965,
-    [511] = 134128,
-    [512] = 134470,
-    [536] = 137137,
-    [558] = 139047,
-    [557] = 138996,
-    [518] = 135487,
-    [577] = 139601,
-    [538] = 137264,
-    [537] = 137159,
-    [560] = 139108,
-    [567] = 139406,
-    [543] = 137745,
-    [520] = 135799,
-    [570] = 139447,
-    [547] = 138091,
-    [576] = 139547,
-    [515] = 135024,
-    [574] = 139502,
-    [519] = 135579,
-    [573] = 139483,
-    [545] = 137846,
-    [568] = 139428,
-    [572] = 139459,
-    [528] = 136600,
-    [571] = 139453,
-    [569] = 139437,
-    [529] = 136744,
-    [544] = 137791,
-    [530] = 136785,
-    [553] = 138642,
-    [566] = 139336,
-    [565] = 139297,
-    [531] = 136842,
-    [548] = 138131,
-    [563] = 139225,
-    [514] = 134662,
-    [540] = 137350,
-    [535] = 137116,
-    [561] = 139129,
-    [562] = 139188,
-    [559] = 139067,
-    [556] = 138971,
-    [542] = 137732,
-    [539] = 137294,
-    [516] = 135301,
-    [525] = 135955,
-    [555] = 138895,
-    [554] = 138678,
-    [552] = 138484,
-    [551] = 138449,
-    [550] = 138213,
-    [549] = 138194,
-    [564] = 139258,
-    [523] = 135874,
-    [527] = 136487,
-    [524] = 135931,
-    [546] = 137896,
-    [533] = 136917,
-    [517] = 135344,
-    [532] = 136880,
-    [534] = 137053,
-    [526] = 136436,
-    [522] = 135820,
-    [541] = 137463,
-    [575] = 139533
+    [307] = 84344,
+    [308] = 84394,
+    [310] = 84706,
+    [311] = 85037,
+    [312] = 85182,
+    [313] = 85246,
+    [314] = 85494,
+    [316] = 85571,
+    [317] = 85782,
+    [318] = 86571,
+    [319] = 86892,
+    [321] = 86993,
+    [323] = 87824,
+    [324] = 89894,
+    [328] = 90156,
+    [330] = 90182,
+    [331] = 90261,
+    [332] = 90577,
+    [336] = 90580,
+    [338] = 90606,
+    [339] = 90612,
+    [340] = 90622,
+    [341] = 90652,
+    [342] = 90684,
+    [343] = 90741,
+    [344] = 90787,
+    [345] = 90839,
+    [346] = 90857,
+    [347] = 90875,
+    [348] = 90911,
+    [349] = 90940,
+    [350] = 90983,
+    [351] = 91034,
+    [352] = 91070,
+    [353] = 91108,
+    [354] = 91143,
+    [355] = 91181,
+    [356] = 91193,
+    [357] = 91226,
+    [358] = 91259,
+    [359] = 91279,
+    [360] = 91326,
+    [361] = 91370,
+    [362] = 91389,
+    [363] = 91412,
+    [364] = 91459,
+    [365] = 91495,
+    [366] = 91531,
+    [367] = 91583,
+    [368] = 91610,
+    [369] = 91627,
+    [370] = 91816,
+    [371] = 91836,
+    [372] = 91863,
+    [373] = 91881,
+    [374] = 91893,
+    [375] = 91958,
+    [376] = 91988,
+    [377] = 92002,
+    [378] = 92013,
+    [379] = 92030,
+    [380] = 92070,
+    [381] = 92099,
+    [382] = 92113,
+    [383] = 92146,
+    [384] = 92297,
+    [385] = 92340,
+    [386] = 92572,
+    [387] = 92578,
+    [388] = 92678,
+    [389] = 92748,
+    [390] = 92753,
+    [391] = 92801,
+    [392] = 92863,
+    [393] = 92870,
+    [394] = 93454,
+    [395] = 93459,
+    [396] = 93547,
+    [397] = 93582,
+    [398] = 93628,
+    [399] = 93679,
+    [400] = 93685,
+    [401] = 93688,
+    [402] = 93701,
+    [403] = 93706,
+    [404] = 93711,
+    [405] = 93717,
+    [406] = 93724,
+    [407] = 93731,
+    [408] = 93741,
+    [409] = 93777,
+    [410] = 93862,
+    [411] = 93888,
+    [412] = 94062,
+    [413] = 94503,
+    [414] = 94738,
+    [415] = 95100,
+    [416] = 95228,
+    [417] = 95300,
+    [418] = 96030,
+    [419] = 96684,
+    [420] = 96805,
+    [421] = 97131,
+    [422] = 97328,
+    [423] = 97470,
+    [424] = 97509,
+    [425] = 97616,
+    [426] = 97709,
+    [427] = 97714,
+    [428] = 97815,
+    [429] = 97865,
+    [430] = 98153,
+    [431] = 98170,
+    [432] = 98208,
+    [433] = 99892,
+    [434] = 99991,
+    [435] = 101015,
+    [436] = 104655,
+    [437] = 106090,
+    [438] = 108432,
+    [439] = 110051,
+    [440] = 110158,
+    [441] = 110560,
+    [442] = 110732,
+    [443] = 110756,
+    [444] = 110891,
+    [445] = 110992,
+    [446] = 114282,
+    [447] = 114332,
+    [448] = 114460,
+    [449] = 114978,
+    [450] = 115502,
+    [451] = 116473,
+    [452] = 116508,
+    [453] = 116944,
+    [454] = 116985,
+    [455] = 117000,
+    [456] = 117846,
+    [457] = 117975,
+    [458] = 118009,
+    [459] = 118131,
+    [460] = 118296,
+    [461] = 118395,
+    [462] = 118887,
+    [463] = 118912,
+    [464] = 119297,
+    [465] = 119491,
+    [466] = 119531,
+    [467] = 123663,
+    [468] = 123692,
+    [469] = 124059,
+    [470] = 124183,
+    [471] = 124226,
+    [472] = 124407,
+    [473] = 124427,
+    [474] = 124819,
+    [475] = 125398,
+    [476] = 125423,
+    [477] = 126166,
+    [478] = 126208,
+    [479] = 126444,
+    [480] = 126805,
+    [482] = 127069,
+    [483] = 127084,
+    [484] = 127100,
+    [486] = 127112,
+    [487] = 127445,
+    [488] = 127693,
+    [489] = 127995,
+    [490] = 129368,
+    [491] = 129466,
+    [493] = 129742,
+    [494] = 130121,
+    [495] = 130298,
+    [496] = 130373,
+    [497] = 132492,
+    [498] = 132535,
+    [499] = 132621,
+    [500] = 132673,
+    [501] = 133281,
+    [502] = 133298,
+    [503] = 133315,
+    [504] = 133423,
+    [505] = 133447,
+    [506] = 133610,
+    [507] = 133952,
+    [509] = 134144,
+    [510] = 134506,
+    [511] = 134783,
+    [512] = 134826,
+    [513] = 134969,
+    [514] = 135061,
+    [515] = 135281,
+    [517] = 135302,
+    [518] = 135356,
+    [519] = 135413,
+    [520] = 135437,
+    [521] = 135918,
+    [522] = 135969,
+    [523] = 136082,
+    [524] = 136226,
+    [525] = 136267,
+    [526] = 136324,
+    [527] = 136362,
+    [528] = 136399,
+    [529] = 136535,
+    [530] = 136598,
+    [531] = 136619,
+    [532] = 136641,
+    [533] = 136746,
+    [534] = 136776,
+    [535] = 136832,
+    [536] = 136945,
+    [537] = 137214,
+    [538] = 137227,
+    [539] = 137273,
+    [540] = 137328,
+    [541] = 137378,
+    [542] = 137573,
+    [543] = 137613,
+    [544] = 137676,
+    [545] = 137695,
+    [546] = 137931,
+    [547] = 137966,
+    [548] = 138124,
+    [549] = 138160,
+    [550] = 138377,
+    [551] = 138453,
+    [552] = 138478,
+    [553] = 138529,
+    [554] = 138549,
+    [555] = 138590,
+    [556] = 138611,
+    [557] = 138670,
+    [558] = 138707,
+    [559] = 138740,
+    [560] = 138779,
+    [561] = 138818,
+    [562] = 138888,
+    [563] = 138910,
+    [564] = 138919,
+    [565] = 138929,
+    [566] = 138935,
+    [567] = 138941,
+    [568] = 138965,
+    [569] = 138984,
+    [570] = 139015,
+    [571] = 139029,
+    [572] = 139083
 }
 
 -- Misc AOT variable imports

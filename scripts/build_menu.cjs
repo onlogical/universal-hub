@@ -116,6 +116,7 @@ function main() {
 	const prismSourceRoot = path.join(generatedRoot, "prism-src");
 	fs.rmSync(prismSourceRoot, { recursive: true, force: true });
 	fs.cpSync(path.join(prismRoot, "src"), prismSourceRoot, { recursive: true });
+	fs.rmSync(path.join(prismSourceRoot, "playground"), { recursive: true, force: true });
 	const prismLib = posixRelative(path.join(uiRoot, "src"), path.join(prismSourceRoot, "lib"));
 	writeJson(path.join(uiRoot, "tsconfig.prism.json"), {
 		compilerOptions: {
@@ -193,6 +194,9 @@ function main() {
 	);
 
 	const bundled = fs.readFileSync(distLua, "utf8");
+	if (bundled.includes('ReplicatedStorage:WaitForChild("Prism")')) {
+		fail("Wax bundle includes Prism playground code that reads the live DataModel");
+	}
 	const entrypoint =
 		"return require(script.ReplicatedStorage.UniversalHubMenu.src.UniversalHubMenu)";
 	const entrypointPatched = bundled.includes(entrypoint)
