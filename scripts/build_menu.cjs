@@ -212,15 +212,13 @@ function main() {
 		fail("Wax bundle could not isolate roblox-ts imports in the virtual ReplicatedStorage");
 	}
 	const entrypoint =
-		"return require(script.ReplicatedStorage.UniversalHubMenu.src.UniversalHubMenu)";
-	const entrypointPatched = virtualImports.includes(entrypoint)
-		? virtualImports
-		: virtualImports.replace(
-				/(local ClosureBindings = \{\r?\n\s*function\(\)local wax,script,require=ImportGlobals\(1\)local ImportGlobals return \(function\(\.\.\.\))\r?\n(end\)\(\) end,)/,
-				`$1${entrypoint}\n$2`,
-			);
-	if (!entrypointPatched.includes(entrypoint)) {
-		fail("Wax bundle root closure is missing the UniversalHubMenu entrypoint");
+		"return LoadScript(RealObjectRoot:GetChildren()[1].ReplicatedStorage.UniversalHubMenu.src.UniversalHubMenu)";
+	const entrypointPatched = virtualImports.replace(
+		/return LoadScript\(RealObjectRoot:GetChildren\(\)\[1\]\)\s*$/,
+		entrypoint,
+	);
+	if (!entrypointPatched.endsWith(entrypoint)) {
+		fail("Wax bundle epilogue could not target the UniversalHubMenu entry module");
 	}
 	const schedulerPatched = entrypointPatched.replace(
 		/local function wrapPerformWorkWithCoroutine\(performWork\)[\s\S]*?\nend\r?\nperformWorkUntilDeadline = wrapPerformWorkWithCoroutine/,
