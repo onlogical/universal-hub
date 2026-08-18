@@ -1,8 +1,6 @@
 return {
     defaults = {
         autoParry = false,
-        autoParryDelay = 0.05,
-        autoParryRange = 25,
         wallPhase = false,
     },
     features = {
@@ -16,8 +14,6 @@ return {
             "names",
             "health",
             "autoParry",
-            "autoParryRange",
-            "autoParryDelay",
             "wallPhase",
         },
         cosmetics = false,

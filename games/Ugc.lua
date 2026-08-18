@@ -1,17 +1,14 @@
 local Ugc = {}
 
 local GUARD_KEY = 0x46
-local DEFAULT_PARRY_RANGE = 25
-local DEFAULT_PARRY_DELAY = 0.05
 local PARRY_COOLDOWN = 0.4
 local WALL_PHASE_COOLDOWN = 0.35
 
-local function isAttackTrack(track)
-    local priority = track.Priority
-    return priority == Enum.AnimationPriority.Action
-        or priority == Enum.AnimationPriority.Action2
-        or priority == Enum.AnimationPriority.Action3
-        or priority == Enum.AnimationPriority.Action4
+local function isParryableAction(action)
+    return action ~= nil
+        and (action.ActionType == "BasicAttack"
+            or action.ActionType == "CriticalStrike"
+            or action.ActionType == "UltimateAbility")
 end
 
 function Ugc.new(context)
@@ -22,53 +19,47 @@ function Ugc.new(context)
     assert(context.store, "Ugc requires a reactive store")
 
     local localPlayer = context.players.LocalPlayer
+    local GameManager = require(game:GetService("ReplicatedStorage").GameManager)
+    local characterController = GameManager:GetController("CharacterController")
+    local targetLockController = GameManager:GetController("TargetLockController")
+    local playerInputController = GameManager:GetController("PlayerInputController")
+    local guardAction = playerInputController.InputActions.CharacterGameplayContext
+        .EquippedWeaponContext.GuardAction
     local stopped = false
     local lastParryAt = -math.huge
     local lastWallPhaseAt = -math.huge
-    local seenTracks = setmetatable({}, { __mode = "k" })
+    local seenActions = setmetatable({}, { __mode = "k" })
 
     local function parry()
-        if type(context.keyPress) ~= "function" or type(context.keyRelease) ~= "function" then
-            return
-        end
-        context.keyPress(GUARD_KEY)
-        task.delay(0.04, function()
-            if not stopped then
+        if type(context.fireSignal) == "function" then
+            context.fireSignal(guardAction.Pressed)
+            task.delay(0.08, function()
+                context.fireSignal(guardAction.Released)
+            end)
+        elseif type(context.keyPress) == "function" and type(context.keyRelease) == "function" then
+            context.keyPress(GUARD_KEY)
+            task.delay(0.08, function()
                 context.keyRelease(GUARD_KEY)
-            end
-        end)
+            end)
+        end
     end
 
     local function updateAutoParry(settings)
         if settings.autoParry ~= true then
             return
         end
-        local localCharacter = localPlayer.Character
-        local localRoot = localCharacter and localCharacter:FindFirstChild("HumanoidRootPart")
-        if not localRoot or os.clock() - lastParryAt < PARRY_COOLDOWN then
+        if os.clock() - lastParryAt < PARRY_COOLDOWN then
             return
         end
-        local range = math.clamp(tonumber(settings.autoParryRange) or DEFAULT_PARRY_RANGE, 5, 60)
-        for _, player in ipairs(context.players:GetPlayers()) do
-            local character = player ~= localPlayer and player.Character or nil
-            local root = character and character:FindFirstChild("HumanoidRootPart")
-            local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-            local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
-            if root and animator and (root.Position - localRoot.Position).Magnitude <= range then
-                for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
-                    if isAttackTrack(track) and not seenTracks[track] then
-                        seenTracks[track] = true
-                        lastParryAt = os.clock()
-                        local delay = math.clamp(
-                            tonumber(settings.autoParryDelay) or DEFAULT_PARRY_DELAY,
-                            0,
-                            0.5
-                        )
-                        task.delay(delay, parry)
-                        return
-                    end
-                end
-            end
+        local target = targetLockController.Target
+        local model = target and target:FindFirstAncestorWhichIsA("Model")
+        local handler = model and characterController:GetCharacterHandler(model)
+        local actionManager = handler and handler.ActionManager
+        local action = actionManager and actionManager.CurrentAction
+        if isParryableAction(action) and not seenActions[action] then
+            seenActions[action] = true
+            lastParryAt = os.clock()
+            parry()
         end
     end
 
@@ -154,8 +145,6 @@ function Ugc.new(context)
             "names",
             "health",
             "autoParry",
-            "autoParryRange",
-            "autoParryDelay",
             "wallPhase",
         },
         isOpponent = function(player)

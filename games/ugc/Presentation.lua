@@ -36,22 +36,6 @@ function Presentation.mount(host)
 
     host:section("Combat", "defense", "DEFENSE", 70)
     host:option("defense", 1, "autoParry", "Auto Parry")
-    if type(host.slider) == "function" then
-        host:slider("defense", "autoParryRange", "Parry Range", {
-            min = 5,
-            max = 60,
-            step = 1,
-            unit = "studs",
-            parent = "autoParry",
-        })
-        host:slider("defense", "autoParryDelay", "Parry Delay", {
-            min = 0,
-            max = 0.5,
-            step = 0.01,
-            unit = "s",
-            parent = "autoParry",
-        })
-    end
 
     host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "wallPhase", "Wall Phase")
