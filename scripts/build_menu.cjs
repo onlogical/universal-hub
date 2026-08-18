@@ -193,7 +193,8 @@ function main() {
 	);
 
 	const bundled = fs.readFileSync(distLua, "utf8");
-	const entrypoint = "return require(script.ReplicatedStorage.UniversalHubMenu)";
+	const entrypoint =
+		"return require(script.ReplicatedStorage.UniversalHubMenu.src.UniversalHubMenu)";
 	const entrypointPatched = bundled.includes(entrypoint)
 		? bundled
 		: bundled.replace(
