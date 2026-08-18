@@ -1,6 +1,6 @@
 return {
     defaults = {
-        autoParry = false,
+        autoDodge = false,
         wallPhase = false,
     },
     features = {
@@ -13,7 +13,7 @@ return {
             "worldRenderer",
             "names",
             "health",
-            "autoParry",
+            "autoDodge",
             "wallPhase",
         },
         cosmetics = false,

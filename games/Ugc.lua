@@ -1,10 +1,9 @@
 local Ugc = {}
 
-local GUARD_KEY = 0x46
-local PARRY_COOLDOWN = 0.4
+local DODGE_COOLDOWN = 0.35
 local WALL_PHASE_COOLDOWN = 0.35
 
-local function isParryableAction(action)
+local function shouldDodgeAction(action)
     return action ~= nil
         and (action.ActionType == "BasicAttack"
             or action.ActionType == "CriticalStrike"
@@ -17,49 +16,60 @@ function Ugc.new(context)
     assert(context.players and context.players.LocalPlayer, "Ugc requires Players")
     assert(type(context.render) == "function", "Ugc requires a renderer")
     assert(context.store, "Ugc requires a reactive store")
+    assert(type(context.fireSignal) == "function", "Ugc Auto Dodge requires firesignal")
 
     local localPlayer = context.players.LocalPlayer
     local GameManager = require(game:GetService("ReplicatedStorage").GameManager)
     local characterController = GameManager:GetController("CharacterController")
     local targetLockController = GameManager:GetController("TargetLockController")
     local playerInputController = GameManager:GetController("PlayerInputController")
-    local guardAction = playerInputController.InputActions.CharacterGameplayContext
-        .EquippedWeaponContext.GuardAction
+    local dodgeAction = playerInputController.InputActions.CharacterGameplayContext.DodgeAction
     local stopped = false
-    local lastParryAt = -math.huge
+    local lastDodgeAt = -math.huge
     local lastWallPhaseAt = -math.huge
-    local seenActions = setmetatable({}, { __mode = "k" })
+    local boundTarget = nil
+    local targetActionConnection = nil
 
-    local function parry()
-        if type(context.fireSignal) == "function" then
-            context.fireSignal(guardAction.Pressed)
-            task.delay(0.08, function()
-                context.fireSignal(guardAction.Released)
-            end)
-        elseif type(context.keyPress) == "function" and type(context.keyRelease) == "function" then
-            context.keyPress(GUARD_KEY)
-            task.delay(0.08, function()
-                context.keyRelease(GUARD_KEY)
-            end)
+    local function dodge()
+        if os.clock() - lastDodgeAt < DODGE_COOLDOWN then
+            return
+        end
+        lastDodgeAt = os.clock()
+        context.fireSignal(dodgeAction.Pressed)
+    end
+
+    local function onTargetActionStarted(action)
+        if context.store:Get().settings.autoDodge ~= true or not shouldDodgeAction(action) then
+            return
+        end
+        dodge()
+    end
+
+    local function disconnectTargetAction()
+        if targetActionConnection then
+            targetActionConnection:Disconnect()
+            targetActionConnection = nil
         end
     end
 
-    local function updateAutoParry(settings)
-        if settings.autoParry ~= true then
-            return
-        end
-        if os.clock() - lastParryAt < PARRY_COOLDOWN then
-            return
-        end
+    local function updateAutoDodge(settings)
         local target = targetLockController.Target
+        if target ~= boundTarget then
+            disconnectTargetAction()
+            boundTarget = target
+        end
+        if not target or targetActionConnection then
+            return
+        end
         local model = target and target:FindFirstAncestorWhichIsA("Model")
         local handler = model and characterController:GetCharacterHandler(model)
         local actionManager = handler and handler.ActionManager
-        local action = actionManager and actionManager.CurrentAction
-        if isParryableAction(action) and not seenActions[action] then
-            seenActions[action] = true
-            lastParryAt = os.clock()
-            parry()
+        if not actionManager or not actionManager.ActionStarted then
+            return
+        end
+        targetActionConnection = actionManager.ActionStarted:Connect(onTargetActionStarted)
+        if settings.autoDodge == true and shouldDodgeAction(actionManager.CurrentAction) then
+            dodge()
         end
     end
 
@@ -110,7 +120,7 @@ function Ugc.new(context)
         end
 
         local settings = context.store:Get().settings or {}
-        updateAutoParry(settings)
+        updateAutoDodge(settings)
         updateWallPhase(settings)
         local observations = {}
         if settings.showEnemies ~= false then
@@ -146,7 +156,7 @@ function Ugc.new(context)
             "worldRenderer",
             "names",
             "health",
-            "autoParry",
+            "autoDodge",
             "wallPhase",
         },
         isOpponent = function(player)
@@ -157,9 +167,7 @@ function Ugc.new(context)
                 return
             end
             stopped = true
-            if type(context.keyRelease) == "function" then
-                context.keyRelease(GUARD_KEY)
-            end
+            disconnectTargetAction()
             connection:Disconnect()
         end,
     }
