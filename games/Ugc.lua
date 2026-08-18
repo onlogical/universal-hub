@@ -5,6 +5,7 @@ local FIGHT_RETRY_INTERVAL = 0.05
 local GUARANTEED_HIT_DISTANCE = 10
 local PARRY_COOLDOWN = 0.35
 local PARRY_HOLD_TIME = 0.12
+local TARGET_BACKSTEP_DISTANCE = 4
 local WALL_PHASE_COOLDOWN = 0.35
 
 local function isCombatAnimation(track)
@@ -273,6 +274,35 @@ function Ugc.new(context)
         lastWallPhaseAt = os.clock()
     end
 
+    local function updateTeleportBehind(settings)
+        if settings.teleportBehind ~= true then
+            return
+        end
+        local target = targetLockController.Target
+        local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
+        if not targetModel or targetModel:GetAttribute("IsDead") == true then
+            return
+        end
+        local targetRoot = targetModel:FindFirstChild("HumanoidRootPart") or target
+        local localHandler = characterController:GetLocalCharacterHandler()
+        local localRoot = localHandler and localHandler.Root
+        if not targetRoot or not targetRoot:IsA("BasePart") or not localRoot then
+            return
+        end
+
+        local targetLook = targetRoot.CFrame.LookVector
+        local flatLook = Vector3.new(targetLook.X, 0, targetLook.Z)
+        if flatLook.Magnitude <= 0.001 then
+            return
+        end
+        flatLook = flatLook.Unit
+        local destination = targetRoot.Position - flatLook * TARGET_BACKSTEP_DISTANCE
+        localRoot.CFrame = CFrame.lookAt(
+            destination,
+            Vector3.new(targetRoot.Position.X, destination.Y, targetRoot.Position.Z)
+        )
+    end
+
     local connection = game:GetService("RunService").RenderStepped:Connect(function()
         if stopped then
             return
@@ -280,6 +310,7 @@ function Ugc.new(context)
 
         local settings = context.store:Get().settings or {}
         updateAutoDodge(settings)
+        updateTeleportBehind(settings)
         updateAutoFight(settings)
         updateWallPhase(settings)
         local observations = {}
@@ -319,6 +350,7 @@ function Ugc.new(context)
             "autoFight",
             "autoDodge",
             "autoParry",
+            "teleportBehind",
             "wallPhase",
         },
         isOpponent = function(player)

@@ -3,6 +3,7 @@ return {
         autoDodge = false,
         autoFight = false,
         autoParry = false,
+        teleportBehind = false,
         wallPhase = false,
     },
     features = {
@@ -18,6 +19,7 @@ return {
             "autoFight",
             "autoDodge",
             "autoParry",
+            "teleportBehind",
             "wallPhase",
         },
         exclusiveOptions = {

@@ -43,6 +43,7 @@ function Presentation.mount(host)
 
     host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "wallPhase", "Wall Phase")
+    host:option("movement", 2, "teleportBehind", "Teleport Behind Target")
 end
 
 return Presentation
