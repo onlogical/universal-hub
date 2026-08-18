@@ -1,6 +1,7 @@
 return {
     defaults = {
         autoDodge = false,
+        autoFight = false,
         autoParry = false,
         wallPhase = false,
     },
@@ -14,6 +15,7 @@ return {
             "worldRenderer",
             "names",
             "health",
+            "autoFight",
             "autoDodge",
             "autoParry",
             "wallPhase",

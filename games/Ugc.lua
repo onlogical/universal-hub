@@ -1,6 +1,7 @@
 local Ugc = {}
 
 local DODGE_COOLDOWN = 0.35
+local FIGHT_RETRY_INTERVAL = 0.05
 local PARRY_COOLDOWN = 0.35
 local PARRY_HOLD_TIME = 0.12
 local WALL_PHASE_COOLDOWN = 0.35
@@ -26,6 +27,7 @@ function Ugc.new(context)
     local targetLockController = GameManager:GetController("TargetLockController")
     local stopped = false
     local lastDodgeAt = -math.huge
+    local nextFightAt = 0
     local pendingDodgeUntil = nil
     local lastParryAt = -math.huge
     local pendingParryUntil = nil
@@ -172,6 +174,24 @@ function Ugc.new(context)
         end
     end
 
+    local function updateAutoFight(settings)
+        if settings.autoFight ~= true or os.clock() < nextFightAt then
+            return
+        end
+        nextFightAt = os.clock() + FIGHT_RETRY_INTERVAL
+        local target = targetLockController.Target
+        local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
+        if not targetModel or targetModel:GetAttribute("IsDead") == true then
+            return
+        end
+        local localHandler = characterController:GetLocalCharacterHandler()
+        local actionManager = localHandler and localHandler.ActionManager
+        if not actionManager or not localHandler.EquippedWeapon then
+            return
+        end
+        actionManager:TryQueueBasicAttack("Light")
+    end
+
     local function updateWallPhase(settings)
         if settings.wallPhase ~= true or os.clock() - lastWallPhaseAt < WALL_PHASE_COOLDOWN then
             return
@@ -220,6 +240,7 @@ function Ugc.new(context)
 
         local settings = context.store:Get().settings or {}
         updateAutoDodge(settings)
+        updateAutoFight(settings)
         updateWallPhase(settings)
         local observations = {}
         if settings.showEnemies ~= false then
@@ -255,6 +276,7 @@ function Ugc.new(context)
             "worldRenderer",
             "names",
             "health",
+            "autoFight",
             "autoDodge",
             "autoParry",
             "wallPhase",
