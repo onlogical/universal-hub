@@ -1,6 +1,7 @@
 return {
     defaults = {
         autoDodge = false,
+        autoParry = false,
         wallPhase = false,
     },
     features = {
@@ -14,7 +15,12 @@ return {
             "names",
             "health",
             "autoDodge",
+            "autoParry",
             "wallPhase",
+        },
+        exclusiveOptions = {
+            autoDodge = { "autoParry" },
+            autoParry = { "autoDodge" },
         },
         cosmetics = false,
     },

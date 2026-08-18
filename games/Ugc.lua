@@ -1,6 +1,8 @@
 local Ugc = {}
 
 local DODGE_COOLDOWN = 0.35
+local PARRY_COOLDOWN = 0.35
+local PARRY_HOLD_TIME = 0.12
 local WALL_PHASE_COOLDOWN = 0.35
 
 local function isCombatAnimation(track)
@@ -25,6 +27,9 @@ function Ugc.new(context)
     local stopped = false
     local lastDodgeAt = -math.huge
     local pendingDodgeUntil = nil
+    local lastParryAt = -math.huge
+    local pendingParryUntil = nil
+    local activeParryBlock = nil
     local lastWallPhaseAt = -math.huge
     local boundTarget = nil
     local targetAnimationConnection = nil
@@ -67,11 +72,57 @@ function Ugc.new(context)
         tryDodge()
     end
 
-    local function onTargetAnimationPlayed(track)
-        if context.store:Get().settings.autoDodge ~= true or not isCombatAnimation(track) then
+    local function tryParry()
+        if not pendingParryUntil or os.clock() > pendingParryUntil then
+            pendingParryUntil = nil
             return
         end
-        queueDodge()
+        if os.clock() - lastParryAt < PARRY_COOLDOWN then
+            return
+        end
+        local localHandler = characterController:GetLocalCharacterHandler()
+        local actionManager = localHandler and localHandler.ActionManager
+        if not actionManager then
+            return
+        end
+        local canStart, replaceCurrent = actionManager:CanStartBlock()
+        if not canStart then
+            return
+        end
+        local currentAction = actionManager.CurrentAction
+        local block = actionManager:SwitchBlock(true, {
+            blockStrength = actionManager._blockStrength or 1,
+        })
+        if replaceCurrent and currentAction then
+            actionManager:_replaceActionWith(currentAction, block)
+            actionManager.CurrentAction = nil
+        end
+        activeParryBlock = block
+        pendingParryUntil = nil
+        lastParryAt = os.clock()
+        task.delay(PARRY_HOLD_TIME, function()
+            if activeParryBlock == block then
+                block._wantsToRelease = true
+                activeParryBlock = nil
+            end
+        end)
+    end
+
+    local function queueParry()
+        pendingParryUntil = os.clock() + 0.2
+        tryParry()
+    end
+
+    local function onTargetAnimationPlayed(track)
+        if not isCombatAnimation(track) then
+            return
+        end
+        local settings = context.store:Get().settings
+        if settings.autoDodge == true then
+            queueDodge()
+        elseif settings.autoParry == true then
+            queueParry()
+        end
     end
 
     local function disconnectTargetAnimation()
@@ -86,6 +137,11 @@ function Ugc.new(context)
             pendingDodgeUntil = nil
         else
             tryDodge()
+        end
+        if settings.autoParry ~= true then
+            pendingParryUntil = nil
+        else
+            tryParry()
         end
         local target = targetLockController.Target
         if target ~= boundTarget then
@@ -102,10 +158,14 @@ function Ugc.new(context)
             return
         end
         targetAnimationConnection = animator.AnimationPlayed:Connect(onTargetAnimationPlayed)
-        if settings.autoDodge == true then
+        if settings.autoDodge == true or settings.autoParry == true then
             for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
                 if isCombatAnimation(track) and track.TimePosition < 0.2 then
-                    queueDodge()
+                    if settings.autoDodge == true then
+                        queueDodge()
+                    else
+                        queueParry()
+                    end
                     break
                 end
             end
@@ -196,6 +256,7 @@ function Ugc.new(context)
             "names",
             "health",
             "autoDodge",
+            "autoParry",
             "wallPhase",
         },
         isOpponent = function(player)
@@ -207,6 +268,10 @@ function Ugc.new(context)
             end
             stopped = true
             disconnectTargetAnimation()
+            if activeParryBlock then
+                activeParryBlock._wantsToRelease = true
+                activeParryBlock = nil
+            end
             connection:Disconnect()
         end,
     }

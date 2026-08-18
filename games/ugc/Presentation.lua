@@ -36,6 +36,7 @@ function Presentation.mount(host)
 
     host:section("Combat", "defense", "DEFENSE", 70)
     host:option("defense", 1, "autoDodge", "Auto Dodge")
+    host:option("defense", 2, "autoParry", "Auto Parry")
 
     host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "wallPhase", "Wall Phase")
