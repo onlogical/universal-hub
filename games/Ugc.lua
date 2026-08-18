@@ -80,6 +80,8 @@ function Ugc.new(context)
             return
         end
         if os.clock() - lastParryAt < PARRY_COOLDOWN then
+            pendingParryUntil = nil
+            queueDodge()
             return
         end
         local localHandler = characterController:GetLocalCharacterHandler()
@@ -87,8 +89,15 @@ function Ugc.new(context)
         if not actionManager then
             return
         end
+        if (actionManager._blockStrength or 0) <= 0.01 then
+            pendingParryUntil = nil
+            queueDodge()
+            return
+        end
         local canStart, replaceCurrent = actionManager:CanStartBlock()
         if not canStart then
+            pendingParryUntil = nil
+            queueDodge()
             return
         end
         local currentAction = actionManager.CurrentAction
@@ -135,7 +144,7 @@ function Ugc.new(context)
     end
 
     local function updateAutoDodge(settings)
-        if settings.autoDodge ~= true then
+        if settings.autoDodge ~= true and settings.autoParry ~= true then
             pendingDodgeUntil = nil
         else
             tryDodge()
