@@ -17,33 +17,61 @@ function Ugc.new(context)
     assert(context.players and context.players.LocalPlayer, "Ugc requires Players")
     assert(type(context.render) == "function", "Ugc requires a renderer")
     assert(context.store, "Ugc requires a reactive store")
-    assert(type(context.fireSignal) == "function", "Ugc Auto Dodge requires firesignal")
 
     local localPlayer = context.players.LocalPlayer
     local GameManager = require(game:GetService("ReplicatedStorage").GameManager)
     local characterController = GameManager:GetController("CharacterController")
     local targetLockController = GameManager:GetController("TargetLockController")
-    local playerInputController = GameManager:GetController("PlayerInputController")
-    local dodgeAction = playerInputController.InputActions.CharacterGameplayContext.DodgeAction
     local stopped = false
     local lastDodgeAt = -math.huge
+    local pendingDodgeUntil = nil
     local lastWallPhaseAt = -math.huge
     local boundTarget = nil
     local targetAnimationConnection = nil
 
-    local function dodge()
+    local function tryDodge()
+        if not pendingDodgeUntil or os.clock() > pendingDodgeUntil then
+            pendingDodgeUntil = nil
+            return
+        end
         if os.clock() - lastDodgeAt < DODGE_COOLDOWN then
             return
         end
+        local localHandler = characterController:GetLocalCharacterHandler()
+        local actionManager = localHandler and localHandler.ActionManager
+        if not actionManager or not actionManager:CanStartDodge() then
+            return
+        end
+        local target = targetLockController.Target
+        local localRoot = localHandler.Root
+        local offset = target and localRoot and (localRoot.Position - target.Position) or Vector3.zero
+        local direction = Vector3.new(offset.X, 0, offset.Z)
+        if direction.Magnitude <= 0.001 then
+            local camera = context.workspace.CurrentCamera
+            local look = camera and camera.CFrame.LookVector or Vector3.zAxis
+            direction = Vector3.new(-look.X, 0, -look.Z)
+        end
+        direction = direction.Magnitude > 0 and direction.Unit or Vector3.zAxis
+        actionManager:_clearQueuedAction()
+        actionManager:SwitchToAction("Dodge", {
+            direction = direction,
+            isReverse = true,
+            dodgeStamina = actionManager._dodgeStamina,
+        })
+        pendingDodgeUntil = nil
         lastDodgeAt = os.clock()
-        context.fireSignal(dodgeAction.Pressed)
+    end
+
+    local function queueDodge()
+        pendingDodgeUntil = os.clock() + 0.3
+        tryDodge()
     end
 
     local function onTargetAnimationPlayed(track)
         if context.store:Get().settings.autoDodge ~= true or not isCombatAnimation(track) then
             return
         end
-        dodge()
+        queueDodge()
     end
 
     local function disconnectTargetAnimation()
@@ -54,6 +82,11 @@ function Ugc.new(context)
     end
 
     local function updateAutoDodge(settings)
+        if settings.autoDodge ~= true then
+            pendingDodgeUntil = nil
+        else
+            tryDodge()
+        end
         local target = targetLockController.Target
         if target ~= boundTarget then
             disconnectTargetAnimation()
@@ -72,7 +105,7 @@ function Ugc.new(context)
         if settings.autoDodge == true then
             for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
                 if isCombatAnimation(track) and track.TimePosition < 0.2 then
-                    dodge()
+                    queueDodge()
                     break
                 end
             end
