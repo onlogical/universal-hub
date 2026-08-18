@@ -2,6 +2,7 @@ local Ugc = {}
 
 local DODGE_COOLDOWN = 0.35
 local FIGHT_RETRY_INTERVAL = 0.05
+local GUARANTEED_HIT_DISTANCE = 10
 local PARRY_COOLDOWN = 0.35
 local PARRY_HOLD_TIME = 0.12
 local WALL_PHASE_COOLDOWN = 0.35
@@ -28,6 +29,7 @@ function Ugc.new(context)
     local stopped = false
     local lastDodgeAt = -math.huge
     local nextFightAt = 0
+    local nextFightAttack = "Heavy"
     local pendingDodgeUntil = nil
     local lastParryAt = -math.huge
     local pendingParryUntil = nil
@@ -198,7 +200,36 @@ function Ugc.new(context)
         if not actionManager or not localHandler.EquippedWeapon then
             return
         end
-        actionManager:TryQueueBasicAttack("Light")
+
+        local attack = nextFightAttack
+        local localRoot = localHandler.Root
+        local offset = localRoot and (target.Position - localRoot.Position) or Vector3.zero
+        local distance = offset.Magnitude
+        local facingTarget = distance > 0
+            and localRoot.CFrame.LookVector:Dot(offset.Unit) >= 0.5
+        local clearHit = false
+        if distance > 0 and distance <= GUARANTEED_HIT_DISTANCE and facingTarget then
+            local parameters = RaycastParams.new()
+            parameters.FilterType = Enum.RaycastFilterType.Exclude
+            local ignoredModels = {}
+            if localHandler.Model then
+                table.insert(ignoredModels, localHandler.Model)
+            end
+            if localHandler.OriginalModel then
+                table.insert(ignoredModels, localHandler.OriginalModel)
+            end
+            parameters.FilterDescendantsInstances = ignoredModels
+            parameters.IgnoreWater = true
+            local hit = context.workspace:Raycast(localRoot.Position, offset, parameters)
+            clearHit = hit ~= nil and hit.Instance:IsDescendantOf(targetModel)
+        end
+        if clearHit and localHandler:CanPerformUltimate() then
+            attack = "Ultimate"
+        end
+
+        if actionManager:TryQueueBasicAttack(attack) and attack ~= "Ultimate" then
+            nextFightAttack = attack == "Heavy" and "Light" or "Heavy"
+        end
     end
 
     local function updateWallPhase(settings)
