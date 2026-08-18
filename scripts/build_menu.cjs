@@ -212,7 +212,7 @@ function main() {
 		fail("Wax bundle could not isolate roblox-ts imports in the virtual ReplicatedStorage");
 	}
 	const entrypoint =
-		"return LoadScript(RealObjectRoot:GetChildren()[1].ReplicatedStorage.UniversalHubMenu.src.UniversalHubMenu)";
+		'local Menu = LoadScript(RealObjectRoot:GetChildren()[1].ReplicatedStorage.UniversalHubMenu.src)\nassert(type(Menu) == "table" and type(Menu.mountUniversalHubMenu) == "function", "Wax src entry did not return the Universal Hub menu")\nreturn Menu';
 	const entrypointPatched = virtualImports.replace(
 		/return LoadScript\(RealObjectRoot:GetChildren\(\)\[1\]\)\s*$/,
 		entrypoint,
