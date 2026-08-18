@@ -115,8 +115,10 @@ function Ugc.new(context)
         local observations = {}
         if settings.showEnemies ~= false then
             observations = context.oh.targeting.observePlayers({
-                isEligible = function(player)
+                isEligible = function(player, character)
                     return player ~= localPlayer
+                        and typeof(character) == "Instance"
+                        and character:IsA("Model")
                 end,
                 screenOrigin = Vector2.new(0, 0),
             })
