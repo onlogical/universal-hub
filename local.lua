@@ -42,7 +42,9 @@ local function loadWorkspaceModule(path, chunkName)
 end
 
 local function loadCompiledMenu()
-    local Menu = loadWorkspaceModule(configuration.MenuPath, "ui/dist/Menu.lua")
+    local source = readfile(configuration.MenuPath)
+    local chunk, compileError = loadstring(source, "ui/dist/Menu.lua")
+    local Menu = assert(chunk, compileError)()
     assert(
         type(Menu) == "table" and type(Menu.mountUniversalHubMenu) == "function",
         "Universal Hub requires the compiled Prism menu"

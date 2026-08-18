@@ -193,11 +193,21 @@ function main() {
 	);
 
 	const bundled = fs.readFileSync(distLua, "utf8");
-	const schedulerPatched = bundled.replace(
+	const entrypoint = "return require(script.ReplicatedStorage.UniversalHubMenu)";
+	const entrypointPatched = bundled.includes(entrypoint)
+		? bundled
+		: bundled.replace(
+				/(local ClosureBindings = \{\r?\n\s*function\(\)local wax,script,require=ImportGlobals\(1\)local ImportGlobals return \(function\(\.\.\.\))\r?\n(end\)\(\) end,)/,
+				`$1${entrypoint}\n$2`,
+			);
+	if (!entrypointPatched.includes(entrypoint)) {
+		fail("Wax bundle root closure is missing the UniversalHubMenu entrypoint");
+	}
+	const schedulerPatched = entrypointPatched.replace(
 		/local function wrapPerformWorkWithCoroutine\(performWork\)[\s\S]*?\nend\r?\nperformWorkUntilDeadline = wrapPerformWorkWithCoroutine/,
 		"local function wrapPerformWorkWithCoroutine(performWork)\n\treturn performWork\nend\nperformWorkUntilDeadline = wrapPerformWorkWithCoroutine",
 	);
-	if (schedulerPatched === bundled) {
+	if (schedulerPatched === entrypointPatched) {
 		fail("Wax bundle is missing wrapPerformWorkWithCoroutine; cannot keep Instance work on the executor thread");
 	}
 	fs.writeFileSync(distLua, schedulerPatched);
