@@ -3,11 +3,12 @@ local Ugc = {}
 local DODGE_COOLDOWN = 0.35
 local WALL_PHASE_COOLDOWN = 0.35
 
-local function shouldDodgeAction(action)
-    return action ~= nil
-        and (action.ActionType == "BasicAttack"
-            or action.ActionType == "CriticalStrike"
-            or action.ActionType == "UltimateAbility")
+local function isCombatAnimation(track)
+    local priority = track and track.Priority
+    return priority == Enum.AnimationPriority.Action
+        or priority == Enum.AnimationPriority.Action2
+        or priority == Enum.AnimationPriority.Action3
+        or priority == Enum.AnimationPriority.Action4
 end
 
 function Ugc.new(context)
@@ -28,7 +29,7 @@ function Ugc.new(context)
     local lastDodgeAt = -math.huge
     local lastWallPhaseAt = -math.huge
     local boundTarget = nil
-    local targetActionConnection = nil
+    local targetAnimationConnection = nil
 
     local function dodge()
         if os.clock() - lastDodgeAt < DODGE_COOLDOWN then
@@ -38,38 +39,43 @@ function Ugc.new(context)
         context.fireSignal(dodgeAction.Pressed)
     end
 
-    local function onTargetActionStarted(action)
-        if context.store:Get().settings.autoDodge ~= true or not shouldDodgeAction(action) then
+    local function onTargetAnimationPlayed(track)
+        if context.store:Get().settings.autoDodge ~= true or not isCombatAnimation(track) then
             return
         end
         dodge()
     end
 
-    local function disconnectTargetAction()
-        if targetActionConnection then
-            targetActionConnection:Disconnect()
-            targetActionConnection = nil
+    local function disconnectTargetAnimation()
+        if targetAnimationConnection then
+            targetAnimationConnection:Disconnect()
+            targetAnimationConnection = nil
         end
     end
 
     local function updateAutoDodge(settings)
         local target = targetLockController.Target
         if target ~= boundTarget then
-            disconnectTargetAction()
+            disconnectTargetAnimation()
             boundTarget = target
         end
-        if not target or targetActionConnection then
+        if not target or targetAnimationConnection then
             return
         end
         local model = target and target:FindFirstAncestorWhichIsA("Model")
         local handler = model and characterController:GetCharacterHandler(model)
-        local actionManager = handler and handler.ActionManager
-        if not actionManager or not actionManager.ActionStarted then
+        local animator = handler and handler.Animator
+        if not animator then
             return
         end
-        targetActionConnection = actionManager.ActionStarted:Connect(onTargetActionStarted)
-        if settings.autoDodge == true and shouldDodgeAction(actionManager.CurrentAction) then
-            dodge()
+        targetAnimationConnection = animator.AnimationPlayed:Connect(onTargetAnimationPlayed)
+        if settings.autoDodge == true then
+            for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
+                if isCombatAnimation(track) and track.TimePosition < 0.2 then
+                    dodge()
+                    break
+                end
+            end
         end
     end
 
@@ -167,7 +173,7 @@ function Ugc.new(context)
                 return
             end
             stopped = true
-            disconnectTargetAction()
+            disconnectTargetAnimation()
             connection:Disconnect()
         end,
     }
