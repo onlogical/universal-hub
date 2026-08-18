@@ -7,6 +7,7 @@ local expectedCatalog = {
     "games/rivals/Definition",
     "games/town/Definition",
     "games/bloxstrike/Definition",
+    "games/ugc/Definition",
 }
 local legacyIds = {
     counterblox = true,
@@ -324,6 +325,7 @@ assert(registry:Resolve({ gameId = 115797356, placeId = 301549746 }).id == "coun
 assert(registry:Resolve({ gameId = 6035872082, placeId = 17625359962 }).id == "rivals")
 assert(registry:Resolve({ gameId = 6035872082, placeId = 133215910299950 }).id == "rivals")
 assert(registry:Resolve({ gameId = 1718755273, placeId = 4991214437 }).id == "town")
+assert(registry:Resolve({ gameId = 9051406594, placeId = 94217045453265 }).id == "ugc")
 
 local counterCopy = Compatibility.Compose(rawDefinitions.counterblox)
 local rivalsCopy = Compatibility.Compose(rawDefinitions.rivals)
