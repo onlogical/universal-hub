@@ -8,120 +8,120 @@ local ClosureBindings = {
     function()local wax,script,require=ImportGlobals(1)local ImportGlobals return (function(...)return require(script.ReplicatedStorage.UniversalHubMenu.src.UniversalHubMenu)
 end)() end,
     [3] = function()local wax,script,require=ImportGlobals(3)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Box") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Box") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Text") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Text") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Stack") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Stack") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Divider") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Divider") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Button") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Button") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Pressable") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Pressable") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Draggable") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Draggable") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Icon") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Icon") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Image") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Image") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Avatar") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Avatar") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Input") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Input") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "KeybindInput") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "KeybindInput") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Card") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Card") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Checkbox") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Checkbox") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Progress") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Progress") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "CircularProgress") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "CircularProgress") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "WorldPortal") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "WorldPortal") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Switch") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Switch") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "SegmentedControl") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "SegmentedControl") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Tabs") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Tabs") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "StepperInput") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "StepperInput") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Popover") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Popover") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Menu") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Menu") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Select") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Select") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Modal") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Modal") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Slider") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Slider") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Tooltip") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Tooltip") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Backdrop") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Backdrop") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "ScrollArea") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "ScrollArea") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "bridge") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "bridge") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "utils") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "utils") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "icons") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "icons") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "styled") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "styled") or {} do
 	exports[_k] = _v
 end
 return exports
 
 end)() end,
     [4] = function()local wax,script,require=ImportGlobals(4)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local __ = TS.import(script, game:GetService("ReplicatedStorage"), "Prism")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local __ = TS.import(script, wax.shared.ReplicatedStorage, "Prism")
 local Button = __.Button
 local styled = __.styled
 local brandButtonRef = React.createRef()
@@ -159,41 +159,41 @@ return {
 
 end)() end,
     [5] = function()local wax,script,require=ImportGlobals(5)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.mountPrism = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "bridge", "LuauBridge").mountPrism
+exports.mountPrism = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "bridge", "LuauBridge").mountPrism
 return exports
 
 end)() end,
     [6] = function()local wax,script,require=ImportGlobals(6)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local ReactRoblox = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react-roblox")
-local Backdrop = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Backdrop").Backdrop
-local Box = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Box").Box
-local Button = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Button").Button
-local Card = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Card").Card
-local Divider = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Divider").Divider
-local Draggable = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Draggable").Draggable
-local Icon = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Icon").Icon
-local Image = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Image").Image
-local Input = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Input").Input
-local Modal = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Modal").Modal
-local Popover = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Popover").Popover
-local Pressable = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Pressable").Pressable
-local ScrollArea = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "ScrollArea").ScrollArea
-local SegmentedControl = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "SegmentedControl").SegmentedControl
-local Select = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Select").Select
-local Slider = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Slider").Slider
-local Stack = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Stack").Stack
-local StepperInput = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "StepperInput").StepperInput
-local Switch = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Switch").Switch
-local Text = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Text").Text
-local Tooltip = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Tooltip").Tooltip
-local _theme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local ReactRoblox = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react-roblox")
+local Backdrop = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Backdrop").Backdrop
+local Box = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Box").Box
+local Button = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Button").Button
+local Card = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Card").Card
+local Divider = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Divider").Divider
+local Draggable = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Draggable").Draggable
+local Icon = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Icon").Icon
+local Image = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Image").Image
+local Input = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Input").Input
+local Modal = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Modal").Modal
+local Popover = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Popover").Popover
+local Pressable = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Pressable").Pressable
+local ScrollArea = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "ScrollArea").ScrollArea
+local SegmentedControl = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "SegmentedControl").SegmentedControl
+local Select = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Select").Select
+local Slider = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Slider").Slider
+local Stack = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Stack").Stack
+local StepperInput = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "StepperInput").StepperInput
+local Switch = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Switch").Switch
+local Text = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Text").Text
+local Tooltip = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Tooltip").Tooltip
+local _theme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme")
 local ThemeProvider = _theme.ThemeProvider
 local themeRefs = _theme.theme
-local bridgeDiagnostics = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "utils", "diagnostics").bridgeDiagnostics
+local bridgeDiagnostics = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "utils", "diagnostics").bridgeDiagnostics
 local function readProps(node)
 	return node.props or {}
 end
@@ -1320,8 +1320,8 @@ return {
 
 end)() end,
     [7] = function()local wax,script,require=ImportGlobals(7)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local mountPrism = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "bridge", "LuauBridge").mountPrism
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local mountPrism = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "bridge", "LuauBridge").mountPrism
 local fragmentTree = {
 	component = "Fragment",
 	children = { {
@@ -1496,27 +1496,27 @@ return {
 
 end)() end,
     [9] = function()local wax,script,require=ImportGlobals(9)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Avatar = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Avatar", "Avatar").Avatar
+exports.Avatar = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Avatar", "Avatar").Avatar
 return exports
 
 end)() end,
     [10] = function()local wax,script,require=ImportGlobals(10)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local resolveColorSafe = _useResolvedStyleProps.resolveColorSafe
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveAvatarSize(theme, size)
 	if size == nil then
 		return 40
@@ -1759,10 +1759,10 @@ return {
 
 end)() end,
     [11] = function()local wax,script,require=ImportGlobals(11)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Avatar = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Avatar", "Avatar").Avatar
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Avatar = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Avatar", "Avatar").Avatar
 local avatarRef = React.createRef()
 local validAvatarProps = { {}, {
 	src = "rbxassetid://0",
@@ -1848,19 +1848,19 @@ return nil
 
 end)() end,
     [13] = function()local wax,script,require=ImportGlobals(13)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Backdrop = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Backdrop", "Backdrop").Backdrop
+exports.Backdrop = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Backdrop", "Backdrop").Backdrop
 return exports
 
 end)() end,
     [14] = function()local wax,script,require=ImportGlobals(14)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local isPressInput = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction").isPressInput
-local resolveColorSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveColorSafe
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local isPressInput = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction").isPressInput
+local resolveColorSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveColorSafe
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
 local function resolveBackdropColor(theme, color)
 	if color == nil then
 		return theme.colors.text.primary
@@ -2043,10 +2043,10 @@ return {
 
 end)() end,
     [15] = function()local wax,script,require=ImportGlobals(15)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Backdrop = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Backdrop", "Backdrop").Backdrop
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Backdrop = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Backdrop", "Backdrop").Backdrop
 local backdropRef = React.createRef()
 local validBackdropProps = { {}, {
 	visible = true,
@@ -2139,27 +2139,27 @@ return nil
 
 end)() end,
     [17] = function()local wax,script,require=ImportGlobals(17)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Box = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Box", "Box").Box
+exports.Box = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Box", "Box").Box
 return exports
 
 end)() end,
     [18] = function()local wax,script,require=ImportGlobals(18)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderAspectRatioDecorator = _foundationDecorators.renderAspectRatioDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local resolveColorSafe = _useResolvedStyleProps.resolveColorSafe
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
 local function resolveRadius(theme, value)
 	if value == nil then
 		return nil
@@ -2419,10 +2419,10 @@ return {
 
 end)() end,
     [19] = function()local wax,script,require=ImportGlobals(19)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Box = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Box", "Box").Box
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Box = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Box", "Box").Box
 local boxRef = React.createRef()
 local validBoxExamples = { React.createElement(Box, {
 	key = "size-offset",
@@ -2526,33 +2526,33 @@ return nil
 
 end)() end,
     [21] = function()local wax,script,require=ImportGlobals(21)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Button = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Button", "Button").Button
+exports.Button = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Button", "Button").Button
 return exports
 
 end)() end,
     [22] = function()local wax,script,require=ImportGlobals(22)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local resolveMinimumHeightConstraint = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "frameSize").resolveMinimumHeightConstraint
-local composeEventMaps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction").composeEventMaps
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local usePressInteraction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "usePressInteraction").usePressInteraction
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local resolveMinimumHeightConstraint = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "frameSize").resolveMinimumHeightConstraint
+local composeEventMaps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction").composeEventMaps
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local usePressInteraction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "usePressInteraction").usePressInteraction
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Button", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Button", "styles")
 local resolveButtonContentGap = _styles.resolveButtonContentGap
 local resolveButtonMotionTransition = _styles.resolveButtonMotionTransition
 local resolveButtonSizeStyles = _styles.resolveButtonSizeStyles
@@ -3163,9 +3163,9 @@ return {
 
 end)() end,
     [23] = function()local wax,script,require=ImportGlobals(23)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local Button = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Button", "Button").Button
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local Button = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Button", "Button").Button
 local buttonRef = React.createRef()
 local function ButtonAdornment()
 	return React.createElement("frame", {
@@ -3436,9 +3436,9 @@ return {
 
 end)() end,
     [24] = function()local wax,script,require=ImportGlobals(24)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local BUTTON_PRESS_SCALE = 0.965
 local function resolveButtonRadius(theme, size)
 	repeat
@@ -3727,30 +3727,30 @@ return nil
 
 end)() end,
     [26] = function()local wax,script,require=ImportGlobals(26)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Card = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Card", "Card").Card
+exports.Card = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Card", "Card").Card
 return exports
 
 end)() end,
     [27] = function()local wax,script,require=ImportGlobals(27)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local renderElevationShadow = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "elevation").renderElevationShadow
-local composeEventMaps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction").composeEventMaps
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local renderElevationShadow = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "elevation").renderElevationShadow
+local composeEventMaps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction").composeEventMaps
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveColorSafe = _useResolvedStyleProps.resolveColorSafe
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
 local function resolveRadius(theme, value)
 	if value == nil then
 		return nil
@@ -4112,10 +4112,10 @@ return {
 
 end)() end,
     [28] = function()local wax,script,require=ImportGlobals(28)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Card = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Card", "Card").Card
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Card = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Card", "Card").Card
 local cardRef = React.createRef()
 local function renderCard(props)
 	return Card(props)
@@ -4301,37 +4301,37 @@ return nil
 
 end)() end,
     [30] = function()local wax,script,require=ImportGlobals(30)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Checkbox = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Checkbox", "Checkbox").Checkbox
+exports.Checkbox = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Checkbox", "Checkbox").Checkbox
 return exports
 
 end)() end,
     [31] = function()local wax,script,require=ImportGlobals(31)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local getLucideIconAsset = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "icons", "lucide").getLucideIconAsset
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local getLucideIconAsset = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "icons", "lucide").getLucideIconAsset
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _frameSize = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "frameSize")
+local _frameSize = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "frameSize")
 local resolveFrameSizeProps = _frameSize.resolveFrameSizeProps
 local resolveMinimumHeightConstraint = _frameSize.resolveMinimumHeightConstraint
-local composeEventMaps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction").composeEventMaps
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
-local useControllableState = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useControllableState").useControllableState
-local usePressInteraction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "usePressInteraction").usePressInteraction
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local composeEventMaps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction").composeEventMaps
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local useControllableState = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useControllableState").useControllableState
+local usePressInteraction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "usePressInteraction").usePressInteraction
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Checkbox", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Checkbox", "styles")
 local resolveCheckboxMotionTransition = _styles.resolveCheckboxMotionTransition
 local resolveCheckboxSizeStyles = _styles.resolveCheckboxSizeStyles
 local resolveCheckboxVisualStyles = _styles.resolveCheckboxVisualStyles
@@ -4815,9 +4815,9 @@ return {
 
 end)() end,
     [32] = function()local wax,script,require=ImportGlobals(32)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local Checkbox = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Checkbox", "Checkbox").Checkbox
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local Checkbox = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Checkbox", "Checkbox").Checkbox
 local checkboxRef = React.createRef()
 local checkboxStyleOverride = function(_visualStyles, ctx)
 	if ctx.state == "hovered" then
@@ -5050,8 +5050,8 @@ return {
 
 end)() end,
     [33] = function()local wax,script,require=ImportGlobals(33)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveCheckboxSizeStyles(theme, size)
 	repeat
 		local _fallthrough = false
@@ -5266,29 +5266,29 @@ return nil
 
 end)() end,
     [35] = function()local wax,script,require=ImportGlobals(35)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.CircularProgress = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "CircularProgress", "CircularProgress").CircularProgress
+exports.CircularProgress = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "CircularProgress", "CircularProgress").CircularProgress
 return exports
 
 end)() end,
     [36] = function()local wax,script,require=ImportGlobals(36)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderAspectRatioDecorator = _foundationDecorators.renderAspectRatioDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "CircularProgress", "styles")
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "CircularProgress", "styles")
 local resolveCircularProgressMotionTransition = _styles.resolveCircularProgressMotionTransition
 local resolveCircularProgressSizeStyles = _styles.resolveCircularProgressSizeStyles
 local resolveCircularProgressVisualStyles = _styles.resolveCircularProgressVisualStyles
@@ -6071,9 +6071,9 @@ return {
 
 end)() end,
     [37] = function()local wax,script,require=ImportGlobals(37)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local CircularProgress = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "CircularProgress", "CircularProgress").CircularProgress
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local CircularProgress = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "CircularProgress", "CircularProgress").CircularProgress
 local circularProgressRef = React.createRef()
 local circularProgressStyleOverride = function(_visualStyles, ctx)
 	if ctx.variant == "subtle" then
@@ -6290,8 +6290,8 @@ return {
 
 end)() end,
     [38] = function()local wax,script,require=ImportGlobals(38)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveCircularProgressSizeStyles(theme, size)
 	repeat
 		local _fallthrough = false
@@ -6415,20 +6415,20 @@ return nil
 
 end)() end,
     [40] = function()local wax,script,require=ImportGlobals(40)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Divider = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Divider", "Divider").Divider
+exports.Divider = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Divider", "Divider").Divider
 return exports
 
 end)() end,
     [41] = function()local wax,script,require=ImportGlobals(41)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local resolveColorSafe = _useResolvedStyleProps.resolveColorSafe
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
 local DEFAULT_DIVIDER_THICKNESS = 1
 local function resolveDividerThickness(theme, value)
 	if value == nil then
@@ -6499,28 +6499,28 @@ return nil
 
 end)() end,
     [43] = function()local wax,script,require=ImportGlobals(43)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Draggable", "Draggable") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Draggable", "Draggable") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Draggable", "types") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Draggable", "types") or {} do
 	exports[_k] = _v
 end
 return exports
 
 end)() end,
     [44] = function()local wax,script,require=ImportGlobals(44)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local renderElevationShadow = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "elevation").renderElevationShadow
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local renderElevationShadow = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "elevation").renderElevationShadow
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction")
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
 local isPressInput = _interaction.isPressInput
@@ -6528,13 +6528,13 @@ local resolveDragInputKind = _interaction.resolveDragInputKind
 local shouldHandleDragEndInput = _interaction.shouldHandleDragEndInput
 local shouldHandleMouseDragMoveInput = _interaction.shouldHandleMouseDragMoveInput
 local shouldHandleTouchDragMoveInput = _interaction.shouldHandleTouchDragMoveInput
-local DRAG_OVERLAY_Z_INDEX = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "overlayLayerPolicy").DRAG_OVERLAY_Z_INDEX
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local DRAG_OVERLAY_Z_INDEX = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "overlayLayerPolicy").DRAG_OVERLAY_Z_INDEX
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -7623,12 +7623,12 @@ return {
 
 end)() end,
     [45] = function()local wax,script,require=ImportGlobals(45)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Box = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Box").Box
-local Text = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Text").Text
-local Draggable = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Draggable", "Draggable").Draggable
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Box = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Box").Box
+local Text = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Text").Text
+local Draggable = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Draggable", "Draggable").Draggable
 local draggableRef = React.createRef()
 local TypedDraggable = Draggable
 local demoItems = { {
@@ -7803,29 +7803,29 @@ return nil
 
 end)() end,
     [47] = function()local wax,script,require=ImportGlobals(47)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Icon", "Icon") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Icon", "Icon") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Icon", "types") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Icon", "types") or {} do
 	exports[_k] = _v
 end
 return exports
 
 end)() end,
     [48] = function()local wax,script,require=ImportGlobals(48)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local getLucideIconAsset = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "icons", "lucide").getLucideIconAsset
-local renderSizeConstraintDecorator = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators").renderSizeConstraintDecorator
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local getLucideIconAsset = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "icons", "lucide").getLucideIconAsset
+local renderSizeConstraintDecorator = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators").renderSizeConstraintDecorator
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local reportComponentFailure = _useResolvedStyleProps.reportComponentFailure
 local resolveColorSafe = _useResolvedStyleProps.resolveColorSafe
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
 local FALLBACK_ICON_NAME = "alert-circle"
 local function resolveIconDisplaySize(theme, size)
 	if size == nil then
@@ -7954,10 +7954,10 @@ return {
 
 end)() end,
     [49] = function()local wax,script,require=ImportGlobals(49)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Icon = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Icon", "Icon").Icon
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Icon = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Icon", "Icon").Icon
 local iconRef = React.createRef()
 local validIconProps = { {
 	name = "search",
@@ -8106,32 +8106,32 @@ return nil
 
 end)() end,
     [51] = function()local wax,script,require=ImportGlobals(51)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Image", "Image") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Image", "Image") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Image", "types") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Image", "types") or {} do
 	exports[_k] = _v
 end
 return exports
 
 end)() end,
     [52] = function()local wax,script,require=ImportGlobals(52)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderAspectRatioDecorator = _foundationDecorators.renderAspectRatioDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local resolveColorSafe = _useResolvedStyleProps.resolveColorSafe
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
 local function resolveRadius(theme, value)
 	if value == nil then
 		return nil
@@ -8350,11 +8350,11 @@ return {
 
 end)() end,
     [53] = function()local wax,script,require=ImportGlobals(53)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Text = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Text").Text
-local Image = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Image", "Image").Image
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Text = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Text").Text
+local Image = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Image", "Image").Image
 local imageRef = React.createRef()
 local validImageProps = { {
 	src = "rbxassetid://0",
@@ -8484,34 +8484,34 @@ return nil
 
 end)() end,
     [55] = function()local wax,script,require=ImportGlobals(55)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Input = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Input", "Input").Input
+exports.Input = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Input", "Input").Input
 return exports
 
 end)() end,
     [56] = function()local wax,script,require=ImportGlobals(56)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local resolveMinimumHeightConstraint = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "frameSize").resolveMinimumHeightConstraint
-local composeEventMaps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction").composeEventMaps
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local resolveMinimumHeightConstraint = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "frameSize").resolveMinimumHeightConstraint
+local composeEventMaps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction").composeEventMaps
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Input", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Input", "styles")
 local resolveInputMotionTransition = _styles.resolveInputMotionTransition
 local resolveInputVisualStyles = _styles.resolveInputVisualStyles
 local function resolveInputRadius(theme, size)
@@ -8976,9 +8976,9 @@ return {
 
 end)() end,
     [57] = function()local wax,script,require=ImportGlobals(57)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local Input = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Input", "Input").Input
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local Input = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Input", "Input").Input
 local inputRef = React.createRef()
 local function renderInput(props)
 	return Input(props)
@@ -9197,8 +9197,8 @@ return {
 
 end)() end,
     [58] = function()local wax,script,require=ImportGlobals(58)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveInputPlaceholderColor(base, focus, hover, state)
 	if state == "focused" then
 		return focus
@@ -9413,37 +9413,37 @@ return nil
 
 end)() end,
     [60] = function()local wax,script,require=ImportGlobals(60)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.KeybindInput = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "KeybindInput", "KeybindInput").KeybindInput
+exports.KeybindInput = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "KeybindInput", "KeybindInput").KeybindInput
 return exports
 
 end)() end,
     [61] = function()local wax,script,require=ImportGlobals(61)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local getLucideIconAsset = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "icons", "lucide").getLucideIconAsset
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local getLucideIconAsset = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "icons", "lucide").getLucideIconAsset
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction")
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
 local isPressInput = _interaction.isPressInput
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "KeybindInput", "styles")
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "KeybindInput", "styles")
 local resolveKeybindInputMotionTransition = _styles.resolveKeybindInputMotionTransition
 local resolveKeybindInputSizeStyles = _styles.resolveKeybindInputSizeStyles
 local resolveKeybindInputVisualStyles = _styles.resolveKeybindInputVisualStyles
@@ -11042,9 +11042,9 @@ return {
 
 end)() end,
     [62] = function()local wax,script,require=ImportGlobals(62)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local KeybindInput = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "KeybindInput", "KeybindInput").KeybindInput
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local KeybindInput = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "KeybindInput", "KeybindInput").KeybindInput
 local keybindRef = React.createRef()
 local function discriminateKeybindValue(value)
 	if value:IsA("KeyCode") then
@@ -11259,9 +11259,9 @@ return {
 
 end)() end,
     [63] = function()local wax,script,require=ImportGlobals(63)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveKeybindInputRadius(theme, size)
 	repeat
 		local _fallthrough = false
@@ -11589,35 +11589,35 @@ return nil
 
 end)() end,
     [65] = function()local wax,script,require=ImportGlobals(65)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Menu = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Menu", "Menu").Menu
+exports.Menu = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Menu", "Menu").Menu
 return exports
 
 end)() end,
     [66] = function()local wax,script,require=ImportGlobals(66)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local Icon = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Icon").Icon
-local Popover = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Popover").Popover
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local Icon = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Icon").Icon
+local Popover = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Popover").Popover
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction")
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local usePressInteraction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "usePressInteraction").usePressInteraction
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local usePressInteraction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "usePressInteraction").usePressInteraction
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local reportComponentFailure = _useResolvedStyleProps.reportComponentFailure
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Menu", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Menu", "styles")
 local resolveMenuItemMotionTransition = _styles.resolveMenuItemMotionTransition
 local resolveMenuItemVisualStyles = _styles.resolveMenuItemVisualStyles
 local resolveMenuPanelVisualStyles = _styles.resolveMenuPanelVisualStyles
@@ -12823,12 +12823,12 @@ return {
 
 end)() end,
     [67] = function()local wax,script,require=ImportGlobals(67)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Box = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Box").Box
-local Text = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Text").Text
-local Menu = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Menu", "Menu").Menu
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Box = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Box").Box
+local Text = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Text").Text
+local Menu = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Menu", "Menu").Menu
 local menuRef = React.createRef()
 local trigger = React.createElement(Box, {
 	width = 160,
@@ -13064,9 +13064,9 @@ return {
 
 end)() end,
     [68] = function()local wax,script,require=ImportGlobals(68)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveMenuRadius(theme, size)
 	repeat
 		local _fallthrough = false
@@ -13422,39 +13422,39 @@ return nil
 
 end)() end,
     [70] = function()local wax,script,require=ImportGlobals(70)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Modal = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Modal", "Modal").Modal
+exports.Modal = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Modal", "Modal").Modal
 return exports
 
 end)() end,
     [71] = function()local wax,script,require=ImportGlobals(71)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local _theme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local _theme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme")
 local useTheme = _theme.useTheme
 local themeRefs = _theme.theme
-local getLucideIconAsset = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "icons", "lucide").getLucideIconAsset
-local Backdrop = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Backdrop").Backdrop
-local ScreenOverlayLayer = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "layering").ScreenOverlayLayer
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local getLucideIconAsset = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "icons", "lucide").getLucideIconAsset
+local Backdrop = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Backdrop").Backdrop
+local ScreenOverlayLayer = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "layering").ScreenOverlayLayer
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local renderElevationShadow = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "elevation").renderElevationShadow
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction")
+local renderElevationShadow = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "elevation").renderElevationShadow
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local isPressInput = _interaction.isPressInput
-local _overlayLayerPolicy = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "overlayLayerPolicy")
+local _overlayLayerPolicy = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "overlayLayerPolicy")
 local DEFAULT_SCREEN_OVERLAY_BASE_Z_INDEX = _overlayLayerPolicy.DEFAULT_SCREEN_OVERLAY_BASE_Z_INDEX
 local incrementZIndex = _overlayLayerPolicy.incrementZIndex
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local usePresence = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "usePresence").usePresence
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local usePresence = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "usePresence").usePresence
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
 local DEFAULT_MODAL_BODY_HEIGHT = 160
 local DEFAULT_MODAL_MAX_HEIGHT = 480
 local MODAL_BACKDROP_ENTER_DURATION = 0.14
@@ -14273,12 +14273,12 @@ return {
 
 end)() end,
     [72] = function()local wax,script,require=ImportGlobals(72)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Box = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Box").Box
-local Text = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Text").Text
-local Modal = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Modal", "Modal").Modal
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Box = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Box").Box
+local Text = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Text").Text
+local Modal = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Modal", "Modal").Modal
 local modalRef = React.createRef()
 local validModalProps = { {
 	opened = true,
@@ -14560,33 +14560,33 @@ return nil
 
 end)() end,
     [74] = function()local wax,script,require=ImportGlobals(74)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Popover = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Popover", "Popover").Popover
+exports.Popover = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Popover", "Popover").Popover
 return exports
 
 end)() end,
     [75] = function()local wax,script,require=ImportGlobals(75)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local renderSizeConstraintDecorator = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators").renderSizeConstraintDecorator
-local resolveFrameSizeProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "frameSize").resolveFrameSizeProps
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local renderSizeConstraintDecorator = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators").renderSizeConstraintDecorator
+local resolveFrameSizeProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "frameSize").resolveFrameSizeProps
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
 local isPressInput = _interaction.isPressInput
-local TriggerOverlayLayer = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "TriggerOverlayLayer").TriggerOverlayLayer
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local useDelayedCallback = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useDelayedCallback").useDelayedCallback
-local useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local PopoverOverlayPanel = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Popover", "PopoverOverlayPanel").PopoverOverlayPanel
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Popover", "styles")
+local TriggerOverlayLayer = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "TriggerOverlayLayer").TriggerOverlayLayer
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local useDelayedCallback = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useDelayedCallback").useDelayedCallback
+local useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").useResolvedStyleProps
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local PopoverOverlayPanel = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Popover", "PopoverOverlayPanel").PopoverOverlayPanel
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Popover", "styles")
 local resolvePopoverSizeStyles = _styles.resolvePopoverSizeStyles
 local resolvePopoverVisualStyles = _styles.resolvePopoverVisualStyles
-local resolvePopoverPanelPlacement = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Popover", "utils").resolvePopoverPanelPlacement
+local resolvePopoverPanelPlacement = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Popover", "utils").resolvePopoverPanelPlacement
 local function isPrimitivePopoverContent(value)
 	local _value = value
 	local _condition = type(_value) == "string"
@@ -14874,17 +14874,17 @@ return {
 
 end)() end,
     [76] = function()local wax,script,require=ImportGlobals(76)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderInsetPaddingDecorator = _foundationDecorators.renderInsetPaddingDecorator
 local renderOverlayTextLabel = _foundationDecorators.renderOverlayTextLabel
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local renderElevationShadow = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "elevation").renderElevationShadow
-local Backdrop = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Backdrop").Backdrop
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local renderElevationShadow = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "elevation").renderElevationShadow
+local Backdrop = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Backdrop").Backdrop
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
 local function PopoverOverlayPanel(_param)
 	local localAnchorPosition = _param.localAnchorPosition
 	local panelPlacement = _param.panelPlacement
@@ -15136,12 +15136,12 @@ return {
 
 end)() end,
     [77] = function()local wax,script,require=ImportGlobals(77)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Box = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Box").Box
-local Text = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Text").Text
-local Popover = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Popover", "Popover").Popover
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Box = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Box").Box
+local Text = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Text").Text
+local Popover = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Popover", "Popover").Popover
 local popoverRef = React.createRef()
 local trigger = React.createElement(Box, {
 	width = 160,
@@ -15341,8 +15341,8 @@ return {
 
 end)() end,
     [78] = function()local wax,script,require=ImportGlobals(78)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
 local function resolvePopoverSizeStyles(theme, gap)
 	local _object = {
 		radius = UDim.new(0, resolveThemeSizeSafe(theme, "popover", "md", "radius", theme.radius.md)),
@@ -15474,25 +15474,25 @@ return {
 
 end)() end,
     [81] = function()local wax,script,require=ImportGlobals(81)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Pressable = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Pressable", "Pressable").Pressable
+exports.Pressable = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Pressable", "Pressable").Pressable
 return exports
 
 end)() end,
     [82] = function()local wax,script,require=ImportGlobals(82)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
-local composeEventMaps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction").composeEventMaps
-local usePressInteraction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "usePressInteraction").usePressInteraction
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local composeEventMaps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction").composeEventMaps
+local usePressInteraction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "usePressInteraction").usePressInteraction
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
 local Pressable = React.forwardRef(function(props, ref)
 	local _binding = props
 	local Event = _binding.Event
@@ -15635,11 +15635,11 @@ return {
 
 end)() end,
     [83] = function()local wax,script,require=ImportGlobals(83)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Box = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Box").Box
-local Pressable = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Pressable", "Pressable").Pressable
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Box = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Box").Box
+local Pressable = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Pressable", "Pressable").Pressable
 local pressableRef = React.createRef()
 local function PressableChild()
 	return React.createElement("frame", {
@@ -15762,30 +15762,30 @@ return nil
 
 end)() end,
     [85] = function()local wax,script,require=ImportGlobals(85)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Progress = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Progress", "Progress").Progress
+exports.Progress = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Progress", "Progress").Progress
 return exports
 
 end)() end,
     [86] = function()local wax,script,require=ImportGlobals(86)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Progress", "styles")
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Progress", "styles")
 local resolveProgressMotionTransition = _styles.resolveProgressMotionTransition
 local resolveProgressRadius = _styles.resolveProgressRadius
 local resolveProgressSizeStyles = _styles.resolveProgressSizeStyles
@@ -16459,9 +16459,9 @@ return {
 
 end)() end,
     [87] = function()local wax,script,require=ImportGlobals(87)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local Progress = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Progress", "Progress").Progress
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local Progress = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Progress", "Progress").Progress
 local progressRef = React.createRef()
 local progressStyleOverride = function(visualStyles, ctx)
 	if ctx.variant == "subtle" then
@@ -16681,9 +16681,9 @@ return {
 
 end)() end,
     [88] = function()local wax,script,require=ImportGlobals(88)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveProgressSizeStyles(theme, size)
 	repeat
 		local _fallthrough = false
@@ -16819,22 +16819,22 @@ return nil
 
 end)() end,
     [90] = function()local wax,script,require=ImportGlobals(90)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.ScrollArea = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "ScrollArea", "ScrollArea").ScrollArea
+exports.ScrollArea = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "ScrollArea", "ScrollArea").ScrollArea
 return exports
 
 end)() end,
     [91] = function()local wax,script,require=ImportGlobals(91)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local resolveColorSafe = _useResolvedStyleProps.resolveColorSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
 local function resolveScrollingDirection(direction)
 	repeat
 		local _fallthrough = false
@@ -17083,11 +17083,11 @@ return {
 
 end)() end,
     [92] = function()local wax,script,require=ImportGlobals(92)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Text = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Text").Text
-local ScrollArea = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "ScrollArea", "ScrollArea").ScrollArea
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Text = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Text").Text
+local ScrollArea = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "ScrollArea", "ScrollArea").ScrollArea
 local scrollAreaRef = React.createRef()
 local validScrollAreaProps = { {}, {
 	width = 240,
@@ -17182,34 +17182,34 @@ return nil
 
 end)() end,
     [94] = function()local wax,script,require=ImportGlobals(94)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.SegmentedControl = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "SegmentedControl", "SegmentedControl").SegmentedControl
+exports.SegmentedControl = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "SegmentedControl", "SegmentedControl").SegmentedControl
 return exports
 
 end)() end,
     [95] = function()local wax,script,require=ImportGlobals(95)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction")
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
 local isPressInput = _interaction.isPressInput
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "SegmentedControl", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "SegmentedControl", "styles")
 local resolveSegmentedControlFrameVisualStyles = _styles.resolveSegmentedControlFrameVisualStyles
 local resolveSegmentedControlIndicatorMotionTransition = _styles.resolveSegmentedControlIndicatorMotionTransition
 local resolveSegmentedControlIndicatorVisualStyles = _styles.resolveSegmentedControlIndicatorVisualStyles
@@ -17926,9 +17926,9 @@ return {
 
 end)() end,
     [96] = function()local wax,script,require=ImportGlobals(96)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local SegmentedControl = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "SegmentedControl", "SegmentedControl").SegmentedControl
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local SegmentedControl = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "SegmentedControl", "SegmentedControl").SegmentedControl
 local segmentedControlRef = React.createRef()
 local options = { {
 	value = "solo",
@@ -18169,9 +18169,9 @@ return {
 
 end)() end,
     [97] = function()local wax,script,require=ImportGlobals(97)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveControlRadius(theme, size)
 	repeat
 		local _fallthrough = false
@@ -18480,38 +18480,38 @@ return nil
 
 end)() end,
     [99] = function()local wax,script,require=ImportGlobals(99)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Select = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Select", "Select").Select
+exports.Select = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Select", "Select").Select
 return exports
 
 end)() end,
     [100] = function()local wax,script,require=ImportGlobals(100)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local getLucideIconAsset = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "icons", "lucide").getLucideIconAsset
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local getLucideIconAsset = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "icons", "lucide").getLucideIconAsset
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local resolveMinimumHeightConstraint = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "frameSize").resolveMinimumHeightConstraint
-local useTriggerOverlayLayout = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "layering").useTriggerOverlayLayout
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local usePressInteraction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "usePressInteraction").usePressInteraction
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local resolveMinimumHeightConstraint = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "frameSize").resolveMinimumHeightConstraint
+local useTriggerOverlayLayout = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "layering").useTriggerOverlayLayout
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local usePressInteraction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "usePressInteraction").usePressInteraction
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local SelectDropdown = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Select", "SelectDropdown").SelectDropdown
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Select", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local SelectDropdown = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Select", "SelectDropdown").SelectDropdown
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Select", "styles")
 local resolveSelectSizeStyles = _styles.resolveSelectSizeStyles
 local resolveSelectTriggerMotionTransition = _styles.resolveSelectTriggerMotionTransition
 local resolveSelectTriggerVisualStyles = _styles.resolveSelectTriggerVisualStyles
-local _utils = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Select", "utils")
+local _utils = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Select", "utils")
 local assignRef = _utils.assignRef
 local composeEventMaps = _utils.composeEventMaps
 local findSelectedOption = _utils.findSelectedOption
@@ -19124,22 +19124,22 @@ return {
 
 end)() end,
     [101] = function()local wax,script,require=ImportGlobals(101)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local renderElevationShadow = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "elevation").renderElevationShadow
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local renderElevationShadow = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "elevation").renderElevationShadow
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _layering = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "layering")
+local _layering = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "layering")
 local LayerPortal = _layering.LayerPortal
 local useOverlayLocalPosition = _layering.useOverlayLocalPosition
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local SelectOptionRow = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Select", "SelectOptionRow").SelectOptionRow
-local resolveSelectListVisualStyles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Select", "styles").resolveSelectListVisualStyles
-local _utils = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Select", "utils")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local SelectOptionRow = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Select", "SelectOptionRow").SelectOptionRow
+local resolveSelectListVisualStyles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Select", "styles").resolveSelectListVisualStyles
+local _utils = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Select", "utils")
 local incrementZIndex = _utils.incrementZIndex
 local resolveVisibleOptionCount = _utils.resolveVisibleOptionCount
 local function SelectDropdown(props)
@@ -19374,20 +19374,20 @@ return {
 
 end)() end,
     [102] = function()local wax,script,require=ImportGlobals(102)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Select", "styles")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Select", "styles")
 local resolveSelectOptionMotionTransition = _styles.resolveSelectOptionMotionTransition
 local resolveSelectOptionVisualStyles = _styles.resolveSelectOptionVisualStyles
-local _utils = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Select", "utils")
+local _utils = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Select", "utils")
 local composeEventMaps = _utils.composeEventMaps
 local resolveTextFontFace = _utils.resolveTextFontFace
 local function SelectOptionRow(props)
@@ -19680,9 +19680,9 @@ return {
 
 end)() end,
     [103] = function()local wax,script,require=ImportGlobals(103)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local Select = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Select", "Select").Select
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local Select = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Select", "Select").Select
 local selectRef = React.createRef()
 local options = { {
 	value = "aurora",
@@ -20033,9 +20033,9 @@ return {
 
 end)() end,
     [104] = function()local wax,script,require=ImportGlobals(104)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveSelectRadius(theme, size)
 	repeat
 		local _fallthrough = false
@@ -20609,13 +20609,13 @@ return nil
 
 end)() end,
     [106] = function()local wax,script,require=ImportGlobals(106)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction")
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction")
 exports.assignRef = _interaction.assignRef
 exports.composeEventMaps = _interaction.composeEventMaps
-exports.incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-exports.resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
+exports.incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+exports.resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
 local function findSelectedOption(options, value)
 	if value == nil then
 		return nil
@@ -20653,34 +20653,34 @@ return exports
 
 end)() end,
     [107] = function()local wax,script,require=ImportGlobals(107)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Slider = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Slider", "Slider").Slider
+exports.Slider = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Slider", "Slider").Slider
 return exports
 
 end)() end,
     [108] = function()local wax,script,require=ImportGlobals(108)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local _layering = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "layering")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local _layering = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "layering")
 local CaptureOverlay = _layering.CaptureOverlay
 local usePortalTarget = _layering.usePortalTarget
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local Tooltip = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Tooltip").Tooltip
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local Tooltip = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Tooltip").Tooltip
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
 local isMouseDragActive = _interaction.isMouseDragActive
@@ -20689,8 +20689,8 @@ local resolveDragInputKind = _interaction.resolveDragInputKind
 local shouldHandleDragEndInput = _interaction.shouldHandleDragEndInput
 local shouldHandleMouseDragMoveInput = _interaction.shouldHandleMouseDragMoveInput
 local shouldHandleTouchDragMoveInput = _interaction.shouldHandleTouchDragMoveInput
-local useSliderControllerInput = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Slider", "controllerInput").useSliderControllerInput
-local _utils = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Slider", "utils")
+local useSliderControllerInput = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Slider", "controllerInput").useSliderControllerInput
+local _utils = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Slider", "utils")
 local alphaToValue = _utils.alphaToValue
 local normalizeSliderValue = _utils.normalizeSliderValue
 local resolveAlphaFromPositionX = _utils.resolveAlphaFromPositionX
@@ -20699,7 +20699,7 @@ local resolveTextFontFace = _utils.resolveTextFontFace
 local resolveValidStep = _utils.resolveValidStep
 local stepSliderValue = _utils.stepSliderValue
 local valueToAlpha = _utils.valueToAlpha
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Slider", "styles")
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Slider", "styles")
 local resolveSliderSizeStyles = _styles.resolveSliderSizeStyles
 local resolveSliderVisualStyles = _styles.resolveSliderVisualStyles
 local UserInputService = game:GetService("UserInputService")
@@ -21611,9 +21611,9 @@ return {
 
 end)() end,
     [109] = function()local wax,script,require=ImportGlobals(109)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local Slider = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Slider", "Slider").Slider
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local Slider = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Slider", "Slider").Slider
 local sliderRef = React.createRef()
 local sliderStyleOverride = function(_visualStyles, ctx)
 	if ctx.state == "hovered" then
@@ -21942,8 +21942,8 @@ return {
 
 end)() end,
     [110] = function()local wax,script,require=ImportGlobals(110)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 local GuiService = game:GetService("GuiService")
 local UserInputService = game:GetService("UserInputService")
 local function useSliderControllerInput(config)
@@ -22002,8 +22002,8 @@ return {
 
 end)() end,
     [111] = function()local wax,script,require=ImportGlobals(111)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveSliderSizeStyles(theme, size)
 	repeat
 		local _fallthrough = false
@@ -22110,9 +22110,9 @@ return nil
 
 end)() end,
     [113] = function()local wax,script,require=ImportGlobals(113)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
+exports.resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
 local function isFiniteNumber(value)
 	return value ~= nil and value == value and value > -math.huge and value < math.huge
 end
@@ -22241,24 +22241,24 @@ return exports
 
 end)() end,
     [114] = function()local wax,script,require=ImportGlobals(114)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Stack = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Stack", "Stack").Stack
+exports.Stack = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Stack", "Stack").Stack
 return exports
 
 end)() end,
     [115] = function()local wax,script,require=ImportGlobals(115)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
 local function resolveGap(theme, value)
 	if value == nil then
 		return nil
@@ -22541,26 +22541,26 @@ return nil
 
 end)() end,
     [117] = function()local wax,script,require=ImportGlobals(117)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.StepperInput = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "StepperInput", "StepperInput").StepperInput
+exports.StepperInput = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "StepperInput", "StepperInput").StepperInput
 return exports
 
 end)() end,
     [118] = function()local wax,script,require=ImportGlobals(118)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local _layering = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "layering")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local _layering = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "layering")
 local CaptureOverlay = _layering.CaptureOverlay
 local usePortalTarget = _layering.usePortalTarget
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction")
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
 local isMouseDragActive = _interaction.isMouseDragActive
@@ -22569,21 +22569,21 @@ local resolveDragInputKind = _interaction.resolveDragInputKind
 local shouldHandleDragEndInput = _interaction.shouldHandleDragEndInput
 local shouldHandleMouseDragMoveInput = _interaction.shouldHandleMouseDragMoveInput
 local shouldHandleTouchDragMoveInput = _interaction.shouldHandleTouchDragMoveInput
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "StepperInput", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "StepperInput", "styles")
 local resolveStepperInputButtonMotionTransition = _styles.resolveStepperInputButtonMotionTransition
 local resolveStepperInputButtonVisualStyles = _styles.resolveStepperInputButtonVisualStyles
 local resolveStepperInputFrameMotionTransition = _styles.resolveStepperInputFrameMotionTransition
 local resolveStepperInputFrameVisualStyles = _styles.resolveStepperInputFrameVisualStyles
 local resolveStepperInputSizeStyles = _styles.resolveStepperInputSizeStyles
-local _utils = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "StepperInput", "utils")
+local _utils = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "StepperInput", "utils")
 local formatStepperInputValue = _utils.formatStepperInputValue
 local normalizeStepperInputValue = _utils.normalizeStepperInputValue
 local resolveStepperInputRailAlphaFromPositionX = _utils.resolveStepperInputRailAlphaFromPositionX
@@ -23759,9 +23759,9 @@ return {
 
 end)() end,
     [119] = function()local wax,script,require=ImportGlobals(119)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local StepperInput = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "StepperInput", "StepperInput").StepperInput
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local StepperInput = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "StepperInput", "StepperInput").StepperInput
 local stepperInputRef = React.createRef()
 local stepperInputStyleOverrides = {
 	frame = function(_visualStyles, ctx)
@@ -24068,9 +24068,9 @@ return {
 
 end)() end,
     [120] = function()local wax,script,require=ImportGlobals(120)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveControlRadius(theme, size)
 	repeat
 		local _fallthrough = false
@@ -24536,37 +24536,37 @@ return {
 
 end)() end,
     [123] = function()local wax,script,require=ImportGlobals(123)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Switch = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Switch", "Switch").Switch
+exports.Switch = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Switch", "Switch").Switch
 return exports
 
 end)() end,
     [124] = function()local wax,script,require=ImportGlobals(124)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local getLucideIconAsset = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "icons", "lucide").getLucideIconAsset
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local getLucideIconAsset = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "icons", "lucide").getLucideIconAsset
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _frameSize = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "frameSize")
+local _frameSize = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "frameSize")
 local resolveFrameSizeProps = _frameSize.resolveFrameSizeProps
 local resolveMinimumHeightConstraint = _frameSize.resolveMinimumHeightConstraint
-local composeEventMaps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction").composeEventMaps
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
-local useControllableState = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useControllableState").useControllableState
-local usePressInteraction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "usePressInteraction").usePressInteraction
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local composeEventMaps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction").composeEventMaps
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local useControllableState = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useControllableState").useControllableState
+local usePressInteraction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "usePressInteraction").usePressInteraction
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Switch", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Switch", "styles")
 local resolveSwitchMotionTransition = _styles.resolveSwitchMotionTransition
 local resolveSwitchSizeStyles = _styles.resolveSwitchSizeStyles
 local resolveSwitchVisualStyles = _styles.resolveSwitchVisualStyles
@@ -25110,9 +25110,9 @@ return {
 
 end)() end,
     [125] = function()local wax,script,require=ImportGlobals(125)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local Switch = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Switch", "Switch").Switch
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local Switch = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Switch", "Switch").Switch
 local switchRef = React.createRef()
 local switchStyleOverride = function(_visualStyles, ctx)
 	if ctx.state == "hovered" then
@@ -25429,8 +25429,8 @@ return {
 
 end)() end,
     [126] = function()local wax,script,require=ImportGlobals(126)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveSwitchSizeStyles(theme, size)
 	repeat
 		local _fallthrough = false
@@ -25734,34 +25734,34 @@ return nil
 
 end)() end,
     [128] = function()local wax,script,require=ImportGlobals(128)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Tabs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Tabs", "Tabs").Tabs
+exports.Tabs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Tabs", "Tabs").Tabs
 return exports
 
 end)() end,
     [129] = function()local wax,script,require=ImportGlobals(129)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction")
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
 local isPressInput = _interaction.isPressInput
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Tabs", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Tabs", "styles")
 local resolveTabsListVisualStyles = _styles.resolveTabsListVisualStyles
 local resolveTabsPanelVisualStyles = _styles.resolveTabsPanelVisualStyles
 local resolveTabsSizeStyles = _styles.resolveTabsSizeStyles
@@ -26674,9 +26674,9 @@ return {
 
 end)() end,
     [130] = function()local wax,script,require=ImportGlobals(130)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local Tabs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Tabs", "Tabs").Tabs
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local Tabs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Tabs", "Tabs").Tabs
 local tabsRef = React.createRef()
 local tabs = { {
 	value = "overview",
@@ -26917,9 +26917,9 @@ return {
 
 end)() end,
     [131] = function()local wax,script,require=ImportGlobals(131)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "visual").mixColor
 local function resolveTabsTabRadius(theme, size)
 	repeat
 		local _fallthrough = false
@@ -27190,25 +27190,25 @@ return nil
 
 end)() end,
     [133] = function()local wax,script,require=ImportGlobals(133)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Text = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Text", "Text").Text
+exports.Text = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Text", "Text").Text
 return exports
 
 end)() end,
     [134] = function()local wax,script,require=ImportGlobals(134)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps")
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps")
 local resolveColorSafe = _useResolvedStyleProps.resolveColorSafe
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
 local FONT_WEIGHT_LOOKUP = { {
 	value = 100,
 	weight = Enum.FontWeight.Thin,
@@ -27459,10 +27459,10 @@ return {
 
 end)() end,
     [135] = function()local wax,script,require=ImportGlobals(135)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Text = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Text", "Text").Text
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Text = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Text", "Text").Text
 local textRef = React.createRef()
 local validTextProps = { {
 	text = "Hello",
@@ -27692,29 +27692,29 @@ return nil
 
 end)() end,
     [137] = function()local wax,script,require=ImportGlobals(137)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Tooltip = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Tooltip", "Tooltip").Tooltip
+exports.Tooltip = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Tooltip", "Tooltip").Tooltip
 return exports
 
 end)() end,
     [138] = function()local wax,script,require=ImportGlobals(138)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").useTheme
-local renderSizeConstraintDecorator = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators").renderSizeConstraintDecorator
-local resolveFrameSizeProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "frameSize").resolveFrameSizeProps
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").useTheme
+local renderSizeConstraintDecorator = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators").renderSizeConstraintDecorator
+local resolveFrameSizeProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "frameSize").resolveFrameSizeProps
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
-local TriggerOverlayLayer = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "TriggerOverlayLayer").TriggerOverlayLayer
-local useDelayedCallback = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useDelayedCallback").useDelayedCallback
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "styleOverride").applyStyleOverride
-local useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
-local TooltipOverlayBubble = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Tooltip", "TooltipOverlayBubble").TooltipOverlayBubble
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Tooltip", "styles")
+local TriggerOverlayLayer = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "TriggerOverlayLayer").TriggerOverlayLayer
+local useDelayedCallback = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useDelayedCallback").useDelayedCallback
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "styleOverride").applyStyleOverride
+local useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").useResolvedStyleProps
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useRootCursor").useRootCursorEvent
+local TooltipOverlayBubble = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Tooltip", "TooltipOverlayBubble").TooltipOverlayBubble
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Tooltip", "styles")
 local resolveTooltipSizeStyles = _styles.resolveTooltipSizeStyles
 local resolveTooltipVisualStyles = _styles.resolveTooltipVisualStyles
 local DEFAULT_TOOLTIP_TAIL_IMAGE = "rbxassetid://10983945016"
@@ -27940,16 +27940,16 @@ return {
 
 end)() end,
     [139] = function()local wax,script,require=ImportGlobals(139)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderInsetPaddingDecorator = _foundationDecorators.renderInsetPaddingDecorator
 local renderOverlayTextLabel = _foundationDecorators.renderOverlayTextLabel
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local renderElevationShadow = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "elevation").renderElevationShadow
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "textFont").resolveTextFontFace
+local renderElevationShadow = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "elevation").renderElevationShadow
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "textFont").resolveTextFontFace
 local function TooltipOverlayBubble(_param)
 	local localAnchorPosition = _param.localAnchorPosition
 	local overlayZIndex = _param.overlayZIndex
@@ -28306,12 +28306,12 @@ return {
 
 end)() end,
     [140] = function()local wax,script,require=ImportGlobals(140)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme").theme
-local Button = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Button").Button
-local Box = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Box").Box
-local Tooltip = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "Tooltip", "Tooltip").Tooltip
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme").theme
+local Button = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Button").Button
+local Box = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Box").Box
+local Tooltip = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "Tooltip", "Tooltip").Tooltip
 local tooltipRef = React.createRef()
 local infoTarget = React.createElement(Box, {
 	width = 140,
@@ -28534,8 +28534,8 @@ return {
 
 end)() end,
     [141] = function()local wax,script,require=ImportGlobals(141)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
 local function resolveTooltipSizeStyles(theme, gap)
 	local _object = {
 		paddingX = theme.spacing.sm,
@@ -28581,17 +28581,17 @@ return nil
 
 end)() end,
     [143] = function()local wax,script,require=ImportGlobals(143)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.WorldPortal = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "WorldPortal", "WorldPortal").WorldPortal
+exports.WorldPortal = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "WorldPortal", "WorldPortal").WorldPortal
 return exports
 
 end)() end,
     [144] = function()local wax,script,require=ImportGlobals(144)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local ReactRoblox = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react-roblox")
-local assignRef = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction").assignRef
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local ReactRoblox = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react-roblox")
+local assignRef = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction").assignRef
 local DEFAULT_BILLBOARD_SIZE = UDim2.fromScale(4, 1.6)
 local DEFAULT_SURFACE_CANVAS_SIZE = Vector2.new(512, 256)
 local WorldPortalBase = React.forwardRef(function(props, ref)
@@ -28724,9 +28724,9 @@ return {
 
 end)() end,
     [145] = function()local wax,script,require=ImportGlobals(145)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local WorldPortal = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "WorldPortal", "WorldPortal").WorldPortal
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local WorldPortal = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "WorldPortal", "WorldPortal").WorldPortal
 local part = Instance.new("Part")
 local attachment = Instance.new("Attachment")
 local portalRef = React.createRef()
@@ -28810,9 +28810,9 @@ return nil
 
 end)() end,
     [148] = function()local wax,script,require=ImportGlobals(148)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _layering = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "layering")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _layering = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "layering")
 local LayerPortal = _layering.LayerPortal
 local useOverlayLocalPosition = _layering.useOverlayLocalPosition
 local useTriggerOverlayLayout = _layering.useTriggerOverlayLayout
@@ -28883,8 +28883,8 @@ return {
 
 end)() end,
     [149] = function()local wax,script,require=ImportGlobals(149)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 local SHADOW_RING_COUNT = 10
 local function resolveShadowRings(shadow)
 	-- Stacked strokes: ring i covers 0..t_i outward, so the cumulative
@@ -29034,8 +29034,8 @@ return {
 
 end)() end,
     [150] = function()local wax,script,require=ImportGlobals(150)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 local function renderPaddingDecorator(options)
 	if not options.enabled and options.slotProps == nil then
 		return nil
@@ -29442,10 +29442,10 @@ return {
 
 end)() end,
     [153] = function()local wax,script,require=ImportGlobals(153)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local ReactRoblox = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react-roblox")
-local CAPTURE_OVERLAY_Z_INDEX = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "overlayLayerPolicy").CAPTURE_OVERLAY_Z_INDEX
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local ReactRoblox = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react-roblox")
+local CAPTURE_OVERLAY_Z_INDEX = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "overlayLayerPolicy").CAPTURE_OVERLAY_Z_INDEX
 local function resolveLayerCollector(instance)
 	local _result = instance
 	if _result ~= nil then
@@ -30090,8 +30090,8 @@ return {
 
 end)() end,
     [159] = function()local wax,script,require=ImportGlobals(159)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 --[[
 	*
 	 * Shared controlled/uncontrolled value plumbing. The setter updates
@@ -30133,8 +30133,8 @@ return {
 
 end)() end,
     [160] = function()local wax,script,require=ImportGlobals(160)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 --[[
 	*
 	 * Shared delayed-invoke plumbing for hover-intent style interactions
@@ -30176,8 +30176,8 @@ return {
 
 end)() end,
     [161] = function()local wax,script,require=ImportGlobals(161)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 local function usePresence(present, options)
 	local shouldRender, setShouldRender = React.useState(present)
 	local visualPresent, setVisualPresent = React.useState(false)
@@ -30211,9 +30211,9 @@ return {
 
 end)() end,
     [162] = function()local wax,script,require=ImportGlobals(162)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local isPressInput = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction").isPressInput
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local isPressInput = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction").isPressInput
 local function resolveInteractionState(disabled, hovered, pressed)
 	if disabled then
 		return "disabled"
@@ -30298,17 +30298,17 @@ return {
 
 end)() end,
     [163] = function()local wax,script,require=ImportGlobals(163)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-local _theme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme")
+local _theme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme")
 local resolveColor = _theme.resolveColor
 local resolveSize = _theme.resolveSize
 local useTheme = _theme.useTheme
-local componentDiagnostics = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "utils", "diagnostics").componentDiagnostics
-local _utils = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "utils")
+local componentDiagnostics = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "utils", "diagnostics").componentDiagnostics
+local _utils = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "utils")
 local toUDim = _utils.toUDim
 local toUDim2 = _utils.toUDim2
-exports.mergeSharedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "mergeSharedStyleProps").mergeSharedStyleProps
+exports.mergeSharedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "mergeSharedStyleProps").mergeSharedStyleProps
 local function isThemeSize(value)
 	repeat
 		local _fallthrough = false
@@ -30547,9 +30547,9 @@ return exports
 
 end)() end,
     [164] = function()local wax,script,require=ImportGlobals(164)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local composeEventMaps = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "components", "_shared", "interaction").composeEventMaps
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local composeEventMaps = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "components", "_shared", "interaction").composeEventMaps
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 -- MouseIcon writes warn and no-op in Edit mode (plugin security), where
@@ -30736,9 +30736,9 @@ return {
 
 end)() end,
     [166] = function()local wax,script,require=ImportGlobals(166)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-local _lucide = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "icons", "lucide")
+local _lucide = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "icons", "lucide")
 exports.SUPPORTED_LUCIDE_ICON_NAMES = _lucide.SUPPORTED_LUCIDE_ICON_NAMES
 exports.getLucideIconAsset = _lucide.getLucideIconAsset
 exports.isLucideIconName = _lucide.isLucideIconName
@@ -48121,17 +48121,17 @@ return {
 
 end)() end,
     [168] = function()local wax,script,require=ImportGlobals(168)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion", "useMotion").useMotion
+exports.useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion", "useMotion").useMotion
 return exports
 
 end)() end,
     [169] = function()local wax,script,require=ImportGlobals(169)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion").useMotion
-local _theme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion").useMotion
+local _theme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme")
 local themeRefs = _theme.theme
 local useTheme = _theme.useTheme
 local defaultTransition = {
@@ -48378,16 +48378,16 @@ return nil
 
 end)() end,
     [173] = function()local wax,script,require=ImportGlobals(173)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _theme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _theme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme")
 local resolveColor = _theme.resolveColor
 local useTheme = _theme.useTheme
-local _signatures = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion", "signatures")
+local _signatures = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion", "signatures")
 local createMotionTransitionsSignature = _signatures.createMotionTransitionsSignature
 local createMotionValuesSignature = _signatures.createMotionValuesSignature
 local createThemeMotionSignature = _signatures.createThemeMotionSignature
-local _transitions = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "motion", "transitions")
+local _transitions = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "motion", "transitions")
 local areResolvedMotionTransitionMapsEqual = _transitions.areResolvedMotionTransitionMapsEqual
 local resolveMotionTransitions = _transitions.resolveMotionTransitions
 local RunService = game:GetService("RunService")
@@ -48592,8 +48592,8 @@ return {
 
 end)() end,
     [174] = function()local wax,script,require=ImportGlobals(174)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 --[[
 	*
 	 * Creates a preset component with a shallow prop merge where caller props win.
@@ -48626,23 +48626,23 @@ return nil
 
 end)() end,
     [177] = function()local wax,script,require=ImportGlobals(177)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.DEFAULT_THEME = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme", "defaults").DEFAULT_THEME
-exports.theme = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme", "refs").theme
-local _ThemeProvider = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme", "ThemeProvider")
+exports.DEFAULT_THEME = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme", "defaults").DEFAULT_THEME
+exports.theme = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme", "refs").theme
+local _ThemeProvider = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme", "ThemeProvider")
 exports.ThemeProvider = _ThemeProvider.ThemeProvider
 exports.useTheme = _ThemeProvider.useTheme
-local _resolveToken = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme", "resolveToken")
+local _resolveToken = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme", "resolveToken")
 exports.resolveColor = _resolveToken.resolveColor
 exports.resolveSize = _resolveToken.resolveSize
 return exports
 
 end)() end,
     [178] = function()local wax,script,require=ImportGlobals(178)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local DEFAULT_THEME = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "theme", "defaults").DEFAULT_THEME
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local DEFAULT_THEME = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "theme", "defaults").DEFAULT_THEME
 local ThemeContext = React.createContext(DEFAULT_THEME)
 local function mergeScale(base, override)
 	local _object = {}
@@ -49974,9 +49974,9 @@ return nil
 
 end)() end,
     [183] = function()local wax,script,require=ImportGlobals(183)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-local _units = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "utils", "units")
+local _units = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "utils", "units")
 exports.toUDim = _units.toUDim
 exports.toUDim2 = _units.toUDim2
 exports.toUDimAxis = _units.toUDimAxis
@@ -49984,8 +49984,8 @@ return exports
 
 end)() end,
     [184] = function()local wax,script,require=ImportGlobals(184)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local _units = TS.import(script, game:GetService("ReplicatedStorage"), "Prism", "utils", "units")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local _units = TS.import(script, wax.shared.ReplicatedStorage, "Prism", "utils", "units")
 local toUDim = _units.toUDim
 local toUDim2 = _units.toUDim2
 local toUDimAxis = _units.toUDimAxis
@@ -50263,19 +50263,19 @@ return {
 
 end)() end,
     [194] = function()local wax,script,require=ImportGlobals(194)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Backdrop = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Backdrop", "Backdrop").Backdrop
+exports.Backdrop = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Backdrop", "Backdrop").Backdrop
 return exports
 
 end)() end,
     [195] = function()local wax,script,require=ImportGlobals(195)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
-local isPressInput = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction").isPressInput
-local resolveColorSafe = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveColorSafe
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
+local isPressInput = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction").isPressInput
+local resolveColorSafe = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveColorSafe
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
 local function resolveBackdropColor(theme, color)
 	if color == nil then
 		return theme.colors.text.primary
@@ -50462,27 +50462,27 @@ return nil
 
 end)() end,
     [197] = function()local wax,script,require=ImportGlobals(197)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Box = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Box", "Box").Box
+exports.Box = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Box", "Box").Box
 return exports
 
 end)() end,
     [198] = function()local wax,script,require=ImportGlobals(198)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderAspectRatioDecorator = _foundationDecorators.renderAspectRatioDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local resolveColorSafe = _useResolvedStyleProps.resolveColorSafe
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
 local function resolveRadius(theme, value)
 	if value == nil then
 		return nil
@@ -50746,33 +50746,33 @@ return nil
 
 end)() end,
     [200] = function()local wax,script,require=ImportGlobals(200)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Button = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Button", "Button").Button
+exports.Button = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Button", "Button").Button
 return exports
 
 end)() end,
     [201] = function()local wax,script,require=ImportGlobals(201)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local resolveMinimumHeightConstraint = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "frameSize").resolveMinimumHeightConstraint
-local composeEventMaps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction").composeEventMaps
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
-local usePressInteraction = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "usePressInteraction").usePressInteraction
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local resolveMinimumHeightConstraint = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "frameSize").resolveMinimumHeightConstraint
+local composeEventMaps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction").composeEventMaps
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
+local usePressInteraction = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "usePressInteraction").usePressInteraction
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Button", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Button", "styles")
 local resolveButtonContentGap = _styles.resolveButtonContentGap
 local resolveButtonMotionTransition = _styles.resolveButtonMotionTransition
 local resolveButtonSizeStyles = _styles.resolveButtonSizeStyles
@@ -51383,9 +51383,9 @@ return {
 
 end)() end,
     [202] = function()local wax,script,require=ImportGlobals(202)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
 local BUTTON_PRESS_SCALE = 0.965
 local function resolveButtonRadius(theme, size)
 	repeat
@@ -51674,29 +51674,29 @@ return nil
 
 end)() end,
     [209] = function()local wax,script,require=ImportGlobals(209)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Icon", "Icon") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Icon", "Icon") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Icon", "types") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Icon", "types") or {} do
 	exports[_k] = _v
 end
 return exports
 
 end)() end,
     [210] = function()local wax,script,require=ImportGlobals(210)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
-local getLucideIconAsset = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "icons", "lucide").getLucideIconAsset
-local renderSizeConstraintDecorator = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators").renderSizeConstraintDecorator
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
+local getLucideIconAsset = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "icons", "lucide").getLucideIconAsset
+local renderSizeConstraintDecorator = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators").renderSizeConstraintDecorator
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local reportComponentFailure = _useResolvedStyleProps.reportComponentFailure
 local resolveColorSafe = _useResolvedStyleProps.resolveColorSafe
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
 local FALLBACK_ICON_NAME = "alert-circle"
 local function resolveIconDisplaySize(theme, size)
 	if size == nil then
@@ -51829,37 +51829,37 @@ return nil
 
 end)() end,
     [214] = function()local wax,script,require=ImportGlobals(214)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.KeybindInput = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "KeybindInput", "KeybindInput").KeybindInput
+exports.KeybindInput = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "KeybindInput", "KeybindInput").KeybindInput
 return exports
 
 end)() end,
     [215] = function()local wax,script,require=ImportGlobals(215)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
-local getLucideIconAsset = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "icons", "lucide").getLucideIconAsset
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
+local getLucideIconAsset = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "icons", "lucide").getLucideIconAsset
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
 local isPressInput = _interaction.isPressInput
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "KeybindInput", "styles")
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "KeybindInput", "styles")
 local resolveKeybindInputMotionTransition = _styles.resolveKeybindInputMotionTransition
 local resolveKeybindInputSizeStyles = _styles.resolveKeybindInputSizeStyles
 local resolveKeybindInputVisualStyles = _styles.resolveKeybindInputVisualStyles
@@ -53458,9 +53458,9 @@ return {
 
 end)() end,
     [216] = function()local wax,script,require=ImportGlobals(216)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
 local function resolveKeybindInputRadius(theme, size)
 	repeat
 		local _fallthrough = false
@@ -53788,39 +53788,39 @@ return nil
 
 end)() end,
     [219] = function()local wax,script,require=ImportGlobals(219)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Modal = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Modal", "Modal").Modal
+exports.Modal = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Modal", "Modal").Modal
 return exports
 
 end)() end,
     [220] = function()local wax,script,require=ImportGlobals(220)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
-local _theme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
+local _theme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme")
 local useTheme = _theme.useTheme
 local themeRefs = _theme.theme
-local getLucideIconAsset = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "icons", "lucide").getLucideIconAsset
-local Backdrop = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Backdrop").Backdrop
-local ScreenOverlayLayer = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "layering").ScreenOverlayLayer
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local getLucideIconAsset = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "icons", "lucide").getLucideIconAsset
+local Backdrop = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Backdrop").Backdrop
+local ScreenOverlayLayer = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "layering").ScreenOverlayLayer
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local renderElevationShadow = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "elevation").renderElevationShadow
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
+local renderElevationShadow = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "elevation").renderElevationShadow
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local isPressInput = _interaction.isPressInput
-local _overlayLayerPolicy = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy")
+local _overlayLayerPolicy = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy")
 local DEFAULT_SCREEN_OVERLAY_BASE_Z_INDEX = _overlayLayerPolicy.DEFAULT_SCREEN_OVERLAY_BASE_Z_INDEX
 local incrementZIndex = _overlayLayerPolicy.incrementZIndex
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local usePresence = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "usePresence").usePresence
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local usePresence = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "usePresence").usePresence
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
 local DEFAULT_MODAL_BODY_HEIGHT = 160
 local DEFAULT_MODAL_MAX_HEIGHT = 480
 local MODAL_BACKDROP_ENTER_DURATION = 0.14
@@ -54643,33 +54643,33 @@ return nil
 
 end)() end,
     [222] = function()local wax,script,require=ImportGlobals(222)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Popover = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Popover", "Popover").Popover
+exports.Popover = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Popover", "Popover").Popover
 return exports
 
 end)() end,
     [223] = function()local wax,script,require=ImportGlobals(223)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
-local renderSizeConstraintDecorator = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators").renderSizeConstraintDecorator
-local resolveFrameSizeProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "frameSize").resolveFrameSizeProps
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
+local renderSizeConstraintDecorator = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators").renderSizeConstraintDecorator
+local resolveFrameSizeProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "frameSize").resolveFrameSizeProps
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
 local isPressInput = _interaction.isPressInput
-local TriggerOverlayLayer = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "TriggerOverlayLayer").TriggerOverlayLayer
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
-local useDelayedCallback = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useDelayedCallback").useDelayedCallback
-local useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
-local PopoverOverlayPanel = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Popover", "PopoverOverlayPanel").PopoverOverlayPanel
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Popover", "styles")
+local TriggerOverlayLayer = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "TriggerOverlayLayer").TriggerOverlayLayer
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
+local useDelayedCallback = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useDelayedCallback").useDelayedCallback
+local useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").useResolvedStyleProps
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local PopoverOverlayPanel = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Popover", "PopoverOverlayPanel").PopoverOverlayPanel
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Popover", "styles")
 local resolvePopoverSizeStyles = _styles.resolvePopoverSizeStyles
 local resolvePopoverVisualStyles = _styles.resolvePopoverVisualStyles
-local resolvePopoverPanelPlacement = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Popover", "utils").resolvePopoverPanelPlacement
+local resolvePopoverPanelPlacement = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Popover", "utils").resolvePopoverPanelPlacement
 local function isPrimitivePopoverContent(value)
 	local _value = value
 	local _condition = type(_value) == "string"
@@ -54957,17 +54957,17 @@ return {
 
 end)() end,
     [224] = function()local wax,script,require=ImportGlobals(224)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderInsetPaddingDecorator = _foundationDecorators.renderInsetPaddingDecorator
 local renderOverlayTextLabel = _foundationDecorators.renderOverlayTextLabel
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local renderElevationShadow = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "elevation").renderElevationShadow
-local Backdrop = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Backdrop").Backdrop
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
+local renderElevationShadow = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "elevation").renderElevationShadow
+local Backdrop = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Backdrop").Backdrop
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
 local function PopoverOverlayPanel(_param)
 	local localAnchorPosition = _param.localAnchorPosition
 	local panelPlacement = _param.panelPlacement
@@ -55219,8 +55219,8 @@ return {
 
 end)() end,
     [225] = function()local wax,script,require=ImportGlobals(225)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
 local function resolvePopoverSizeStyles(theme, gap)
 	local _object = {
 		radius = UDim.new(0, resolveThemeSizeSafe(theme, "popover", "md", "radius", theme.radius.md)),
@@ -55352,22 +55352,22 @@ return {
 
 end)() end,
     [230] = function()local wax,script,require=ImportGlobals(230)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.ScrollArea = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "ScrollArea", "ScrollArea").ScrollArea
+exports.ScrollArea = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "ScrollArea", "ScrollArea").ScrollArea
 return exports
 
 end)() end,
     [231] = function()local wax,script,require=ImportGlobals(231)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local resolveColorSafe = _useResolvedStyleProps.resolveColorSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
 local function resolveScrollingDirection(direction)
 	repeat
 		local _fallthrough = false
@@ -55620,34 +55620,34 @@ return nil
 
 end)() end,
     [233] = function()local wax,script,require=ImportGlobals(233)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.SegmentedControl = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "SegmentedControl", "SegmentedControl").SegmentedControl
+exports.SegmentedControl = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "SegmentedControl", "SegmentedControl").SegmentedControl
 return exports
 
 end)() end,
     [234] = function()local wax,script,require=ImportGlobals(234)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
 local isPressInput = _interaction.isPressInput
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "SegmentedControl", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "SegmentedControl", "styles")
 local resolveSegmentedControlFrameVisualStyles = _styles.resolveSegmentedControlFrameVisualStyles
 local resolveSegmentedControlIndicatorMotionTransition = _styles.resolveSegmentedControlIndicatorMotionTransition
 local resolveSegmentedControlIndicatorVisualStyles = _styles.resolveSegmentedControlIndicatorVisualStyles
@@ -56364,9 +56364,9 @@ return {
 
 end)() end,
     [235] = function()local wax,script,require=ImportGlobals(235)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
 local function resolveControlRadius(theme, size)
 	repeat
 		local _fallthrough = false
@@ -56675,38 +56675,38 @@ return nil
 
 end)() end,
     [237] = function()local wax,script,require=ImportGlobals(237)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Select = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "Select").Select
+exports.Select = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "Select").Select
 return exports
 
 end)() end,
     [238] = function()local wax,script,require=ImportGlobals(238)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
-local getLucideIconAsset = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "icons", "lucide").getLucideIconAsset
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
+local getLucideIconAsset = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "icons", "lucide").getLucideIconAsset
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local resolveMinimumHeightConstraint = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "frameSize").resolveMinimumHeightConstraint
-local useTriggerOverlayLayout = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "layering").useTriggerOverlayLayout
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
-local usePressInteraction = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "usePressInteraction").usePressInteraction
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local resolveMinimumHeightConstraint = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "frameSize").resolveMinimumHeightConstraint
+local useTriggerOverlayLayout = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "layering").useTriggerOverlayLayout
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
+local usePressInteraction = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "usePressInteraction").usePressInteraction
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
-local SelectDropdown = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "SelectDropdown").SelectDropdown
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local SelectDropdown = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "SelectDropdown").SelectDropdown
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "styles")
 local resolveSelectSizeStyles = _styles.resolveSelectSizeStyles
 local resolveSelectTriggerMotionTransition = _styles.resolveSelectTriggerMotionTransition
 local resolveSelectTriggerVisualStyles = _styles.resolveSelectTriggerVisualStyles
-local _utils = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "utils")
+local _utils = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "utils")
 local assignRef = _utils.assignRef
 local composeEventMaps = _utils.composeEventMaps
 local findSelectedOption = _utils.findSelectedOption
@@ -57319,22 +57319,22 @@ return {
 
 end)() end,
     [239] = function()local wax,script,require=ImportGlobals(239)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
-local renderElevationShadow = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "elevation").renderElevationShadow
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
+local renderElevationShadow = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "elevation").renderElevationShadow
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _layering = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "layering")
+local _layering = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "layering")
 local LayerPortal = _layering.LayerPortal
 local useOverlayLocalPosition = _layering.useOverlayLocalPosition
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local SelectOptionRow = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "SelectOptionRow").SelectOptionRow
-local resolveSelectListVisualStyles = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "styles").resolveSelectListVisualStyles
-local _utils = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "utils")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local SelectOptionRow = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "SelectOptionRow").SelectOptionRow
+local resolveSelectListVisualStyles = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "styles").resolveSelectListVisualStyles
+local _utils = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "utils")
 local incrementZIndex = _utils.incrementZIndex
 local resolveVisibleOptionCount = _utils.resolveVisibleOptionCount
 local function SelectDropdown(props)
@@ -57569,20 +57569,20 @@ return {
 
 end)() end,
     [240] = function()local wax,script,require=ImportGlobals(240)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "styles")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "styles")
 local resolveSelectOptionMotionTransition = _styles.resolveSelectOptionMotionTransition
 local resolveSelectOptionVisualStyles = _styles.resolveSelectOptionVisualStyles
-local _utils = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "utils")
+local _utils = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select", "utils")
 local composeEventMaps = _utils.composeEventMaps
 local resolveTextFontFace = _utils.resolveTextFontFace
 local function SelectOptionRow(props)
@@ -57875,9 +57875,9 @@ return {
 
 end)() end,
     [241] = function()local wax,script,require=ImportGlobals(241)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
 local function resolveSelectRadius(theme, size)
 	repeat
 		local _fallthrough = false
@@ -58451,13 +58451,13 @@ return nil
 
 end)() end,
     [243] = function()local wax,script,require=ImportGlobals(243)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
 exports.assignRef = _interaction.assignRef
 exports.composeEventMaps = _interaction.composeEventMaps
-exports.incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-exports.resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
+exports.incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+exports.resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
 local function findSelectedOption(options, value)
 	if value == nil then
 		return nil
@@ -58495,34 +58495,34 @@ return exports
 
 end)() end,
     [244] = function()local wax,script,require=ImportGlobals(244)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Slider = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Slider", "Slider").Slider
+exports.Slider = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Slider", "Slider").Slider
 return exports
 
 end)() end,
     [245] = function()local wax,script,require=ImportGlobals(245)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
-local _layering = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "layering")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
+local _layering = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "layering")
 local CaptureOverlay = _layering.CaptureOverlay
 local usePortalTarget = _layering.usePortalTarget
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
-local Tooltip = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tooltip").Tooltip
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local Tooltip = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tooltip").Tooltip
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
 local isMouseDragActive = _interaction.isMouseDragActive
@@ -58531,8 +58531,8 @@ local resolveDragInputKind = _interaction.resolveDragInputKind
 local shouldHandleDragEndInput = _interaction.shouldHandleDragEndInput
 local shouldHandleMouseDragMoveInput = _interaction.shouldHandleMouseDragMoveInput
 local shouldHandleTouchDragMoveInput = _interaction.shouldHandleTouchDragMoveInput
-local useSliderControllerInput = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Slider", "controllerInput").useSliderControllerInput
-local _utils = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Slider", "utils")
+local useSliderControllerInput = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Slider", "controllerInput").useSliderControllerInput
+local _utils = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Slider", "utils")
 local alphaToValue = _utils.alphaToValue
 local normalizeSliderValue = _utils.normalizeSliderValue
 local resolveAlphaFromPositionX = _utils.resolveAlphaFromPositionX
@@ -58541,7 +58541,7 @@ local resolveTextFontFace = _utils.resolveTextFontFace
 local resolveValidStep = _utils.resolveValidStep
 local stepSliderValue = _utils.stepSliderValue
 local valueToAlpha = _utils.valueToAlpha
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Slider", "styles")
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Slider", "styles")
 local resolveSliderSizeStyles = _styles.resolveSliderSizeStyles
 local resolveSliderVisualStyles = _styles.resolveSliderVisualStyles
 local UserInputService = game:GetService("UserInputService")
@@ -59453,8 +59453,8 @@ return {
 
 end)() end,
     [246] = function()local wax,script,require=ImportGlobals(246)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 local GuiService = game:GetService("GuiService")
 local UserInputService = game:GetService("UserInputService")
 local function useSliderControllerInput(config)
@@ -59513,8 +59513,8 @@ return {
 
 end)() end,
     [247] = function()local wax,script,require=ImportGlobals(247)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
 local function resolveSliderSizeStyles(theme, size)
 	repeat
 		local _fallthrough = false
@@ -59621,9 +59621,9 @@ return nil
 
 end)() end,
     [249] = function()local wax,script,require=ImportGlobals(249)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
+exports.resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
 local function isFiniteNumber(value)
 	return value ~= nil and value == value and value > -math.huge and value < math.huge
 end
@@ -59752,24 +59752,24 @@ return exports
 
 end)() end,
     [250] = function()local wax,script,require=ImportGlobals(250)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Stack = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Stack", "Stack").Stack
+exports.Stack = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Stack", "Stack").Stack
 return exports
 
 end)() end,
     [251] = function()local wax,script,require=ImportGlobals(251)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local resolveUDimSafe = _useResolvedStyleProps.resolveUDimSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
 local function resolveGap(theme, value)
 	if value == nil then
 		return nil
@@ -60052,37 +60052,37 @@ return nil
 
 end)() end,
     [254] = function()local wax,script,require=ImportGlobals(254)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Switch = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Switch", "Switch").Switch
+exports.Switch = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Switch", "Switch").Switch
 return exports
 
 end)() end,
     [255] = function()local wax,script,require=ImportGlobals(255)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
-local getLucideIconAsset = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "icons", "lucide").getLucideIconAsset
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
+local getLucideIconAsset = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "icons", "lucide").getLucideIconAsset
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _frameSize = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "frameSize")
+local _frameSize = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "frameSize")
 local resolveFrameSizeProps = _frameSize.resolveFrameSizeProps
 local resolveMinimumHeightConstraint = _frameSize.resolveMinimumHeightConstraint
-local composeEventMaps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction").composeEventMaps
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
-local useControllableState = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useControllableState").useControllableState
-local usePressInteraction = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "usePressInteraction").usePressInteraction
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local composeEventMaps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction").composeEventMaps
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
+local useControllableState = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useControllableState").useControllableState
+local usePressInteraction = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "usePressInteraction").usePressInteraction
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Switch", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Switch", "styles")
 local resolveSwitchMotionTransition = _styles.resolveSwitchMotionTransition
 local resolveSwitchSizeStyles = _styles.resolveSwitchSizeStyles
 local resolveSwitchVisualStyles = _styles.resolveSwitchVisualStyles
@@ -60626,8 +60626,8 @@ return {
 
 end)() end,
     [256] = function()local wax,script,require=ImportGlobals(256)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
 local function resolveSwitchSizeStyles(theme, size)
 	repeat
 		local _fallthrough = false
@@ -60931,34 +60931,34 @@ return nil
 
 end)() end,
     [258] = function()local wax,script,require=ImportGlobals(258)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Tabs = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tabs", "Tabs").Tabs
+exports.Tabs = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tabs", "Tabs").Tabs
 return exports
 
 end)() end,
     [259] = function()local wax,script,require=ImportGlobals(259)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useMotion = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "motion").useMotion
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
 local isPressInput = _interaction.isPressInput
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local mergeSharedStyleProps = _useResolvedStyleProps.mergeSharedStyleProps
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tabs", "styles")
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tabs", "styles")
 local resolveTabsListVisualStyles = _styles.resolveTabsListVisualStyles
 local resolveTabsPanelVisualStyles = _styles.resolveTabsPanelVisualStyles
 local resolveTabsSizeStyles = _styles.resolveTabsSizeStyles
@@ -61871,9 +61871,9 @@ return {
 
 end)() end,
     [260] = function()local wax,script,require=ImportGlobals(260)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
-local mixColor = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local mixColor = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "visual").mixColor
 local function resolveTabsTabRadius(theme, size)
 	repeat
 		local _fallthrough = false
@@ -62144,25 +62144,25 @@ return nil
 
 end)() end,
     [262] = function()local wax,script,require=ImportGlobals(262)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Text = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Text", "Text").Text
+exports.Text = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Text", "Text").Text
 return exports
 
 end)() end,
     [263] = function()local wax,script,require=ImportGlobals(263)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local themeRefs = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local themeRefs = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local pushDecorator = _foundationDecorators.pushDecorator
 local renderPaddingDecorator = _foundationDecorators.renderPaddingDecorator
 local renderSizeConstraintDecorator = _foundationDecorators.renderSizeConstraintDecorator
-local _useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
+local _useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps")
 local resolveColorSafe = _useResolvedStyleProps.resolveColorSafe
 local resolveThemeSizeSafe = _useResolvedStyleProps.resolveThemeSizeSafe
 local useResolvedStyleProps = _useResolvedStyleProps.useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
 local FONT_WEIGHT_LOOKUP = { {
 	value = 100,
 	weight = Enum.FontWeight.Thin,
@@ -62417,29 +62417,29 @@ return nil
 
 end)() end,
     [265] = function()local wax,script,require=ImportGlobals(265)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.Tooltip = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tooltip", "Tooltip").Tooltip
+exports.Tooltip = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tooltip", "Tooltip").Tooltip
 return exports
 
 end)() end,
     [266] = function()local wax,script,require=ImportGlobals(266)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local useTheme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
-local renderSizeConstraintDecorator = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators").renderSizeConstraintDecorator
-local resolveFrameSizeProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "frameSize").resolveFrameSizeProps
-local _interaction = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local useTheme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").useTheme
+local renderSizeConstraintDecorator = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators").renderSizeConstraintDecorator
+local resolveFrameSizeProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "frameSize").resolveFrameSizeProps
+local _interaction = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction")
 local assignRef = _interaction.assignRef
 local composeEventMaps = _interaction.composeEventMaps
-local TriggerOverlayLayer = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "TriggerOverlayLayer").TriggerOverlayLayer
-local useDelayedCallback = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useDelayedCallback").useDelayedCallback
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local applyStyleOverride = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
-local useResolvedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").useResolvedStyleProps
-local useRootCursorEvent = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
-local TooltipOverlayBubble = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tooltip", "TooltipOverlayBubble").TooltipOverlayBubble
-local _styles = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tooltip", "styles")
+local TriggerOverlayLayer = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "TriggerOverlayLayer").TriggerOverlayLayer
+local useDelayedCallback = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useDelayedCallback").useDelayedCallback
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local applyStyleOverride = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "styleOverride").applyStyleOverride
+local useResolvedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").useResolvedStyleProps
+local useRootCursorEvent = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useRootCursor").useRootCursorEvent
+local TooltipOverlayBubble = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tooltip", "TooltipOverlayBubble").TooltipOverlayBubble
+local _styles = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tooltip", "styles")
 local resolveTooltipSizeStyles = _styles.resolveTooltipSizeStyles
 local resolveTooltipVisualStyles = _styles.resolveTooltipVisualStyles
 local DEFAULT_TOOLTIP_TAIL_IMAGE = "rbxassetid://10983945016"
@@ -62665,16 +62665,16 @@ return {
 
 end)() end,
     [267] = function()local wax,script,require=ImportGlobals(267)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _foundationDecorators = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _foundationDecorators = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "foundationDecorators")
 local renderCornerDecorator = _foundationDecorators.renderCornerDecorator
 local renderInsetPaddingDecorator = _foundationDecorators.renderInsetPaddingDecorator
 local renderOverlayTextLabel = _foundationDecorators.renderOverlayTextLabel
 local renderStrokeDecorator = _foundationDecorators.renderStrokeDecorator
-local renderElevationShadow = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "elevation").renderElevationShadow
-local incrementZIndex = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
-local resolveTextFontFace = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
+local renderElevationShadow = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "elevation").renderElevationShadow
+local incrementZIndex = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").incrementZIndex
+local resolveTextFontFace = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "textFont").resolveTextFontFace
 local function TooltipOverlayBubble(_param)
 	local localAnchorPosition = _param.localAnchorPosition
 	local overlayZIndex = _param.overlayZIndex
@@ -63031,8 +63031,8 @@ return {
 
 end)() end,
     [268] = function()local wax,script,require=ImportGlobals(268)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local resolveThemeSizeSafe = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local resolveThemeSizeSafe = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "useResolvedStyleProps").resolveThemeSizeSafe
 local function resolveTooltipSizeStyles(theme, gap)
 	local _object = {
 		paddingX = theme.spacing.sm,
@@ -63078,9 +63078,9 @@ return nil
 
 end)() end,
     [272] = function()local wax,script,require=ImportGlobals(272)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _layering = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "layering")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _layering = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "layering")
 local LayerPortal = _layering.LayerPortal
 local useOverlayLocalPosition = _layering.useOverlayLocalPosition
 local useTriggerOverlayLayout = _layering.useTriggerOverlayLayout
@@ -63151,8 +63151,8 @@ return {
 
 end)() end,
     [273] = function()local wax,script,require=ImportGlobals(273)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 local SHADOW_RING_COUNT = 10
 local function resolveShadowRings(shadow)
 	-- Stacked strokes: ring i covers 0..t_i outward, so the cumulative
@@ -63302,8 +63302,8 @@ return {
 
 end)() end,
     [274] = function()local wax,script,require=ImportGlobals(274)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 local function renderPaddingDecorator(options)
 	if not options.enabled and options.slotProps == nil then
 		return nil
@@ -63710,10 +63710,10 @@ return {
 
 end)() end,
     [277] = function()local wax,script,require=ImportGlobals(277)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local ReactRoblox = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react-roblox")
-local CAPTURE_OVERLAY_Z_INDEX = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").CAPTURE_OVERLAY_Z_INDEX
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local ReactRoblox = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react-roblox")
+local CAPTURE_OVERLAY_Z_INDEX = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "overlayLayerPolicy").CAPTURE_OVERLAY_Z_INDEX
 local function resolveLayerCollector(instance)
 	local _result = instance
 	if _result ~= nil then
@@ -64358,8 +64358,8 @@ return {
 
 end)() end,
     [283] = function()local wax,script,require=ImportGlobals(283)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 --[[
 	*
 	 * Shared controlled/uncontrolled value plumbing. The setter updates
@@ -64401,8 +64401,8 @@ return {
 
 end)() end,
     [284] = function()local wax,script,require=ImportGlobals(284)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 --[[
 	*
 	 * Shared delayed-invoke plumbing for hover-intent style interactions
@@ -64444,8 +64444,8 @@ return {
 
 end)() end,
     [285] = function()local wax,script,require=ImportGlobals(285)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
 local function usePresence(present, options)
 	local shouldRender, setShouldRender = React.useState(present)
 	local visualPresent, setVisualPresent = React.useState(false)
@@ -64479,9 +64479,9 @@ return {
 
 end)() end,
     [286] = function()local wax,script,require=ImportGlobals(286)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local isPressInput = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction").isPressInput
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local isPressInput = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction").isPressInput
 local function resolveInteractionState(disabled, hovered, pressed)
 	if disabled then
 		return "disabled"
@@ -64566,17 +64566,17 @@ return {
 
 end)() end,
     [287] = function()local wax,script,require=ImportGlobals(287)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-local _theme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme")
+local _theme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme")
 local resolveColor = _theme.resolveColor
 local resolveSize = _theme.resolveSize
 local useTheme = _theme.useTheme
-local componentDiagnostics = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "utils", "diagnostics").componentDiagnostics
-local _utils = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "utils")
+local componentDiagnostics = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "utils", "diagnostics").componentDiagnostics
+local _utils = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "utils")
 local toUDim = _utils.toUDim
 local toUDim2 = _utils.toUDim2
-exports.mergeSharedStyleProps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "mergeSharedStyleProps").mergeSharedStyleProps
+exports.mergeSharedStyleProps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "mergeSharedStyleProps").mergeSharedStyleProps
 local function isThemeSize(value)
 	repeat
 		local _fallthrough = false
@@ -64815,9 +64815,9 @@ return exports
 
 end)() end,
     [288] = function()local wax,script,require=ImportGlobals(288)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local composeEventMaps = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction").composeEventMaps
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local composeEventMaps = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "_shared", "interaction").composeEventMaps
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 -- MouseIcon writes warn and no-op in Edit mode (plugin security), where
@@ -82379,9 +82379,9 @@ return {
 
 end)() end,
     [292] = function()local wax,script,require=ImportGlobals(292)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.useMotion = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "motion", "useMotion").useMotion
+exports.useMotion = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "motion", "useMotion").useMotion
 return exports
 
 end)() end,
@@ -82548,16 +82548,16 @@ return nil
 
 end)() end,
     [296] = function()local wax,script,require=ImportGlobals(296)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local _theme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local _theme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme")
 local resolveColor = _theme.resolveColor
 local useTheme = _theme.useTheme
-local _signatures = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "motion", "signatures")
+local _signatures = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "motion", "signatures")
 local createMotionTransitionsSignature = _signatures.createMotionTransitionsSignature
 local createMotionValuesSignature = _signatures.createMotionValuesSignature
 local createThemeMotionSignature = _signatures.createThemeMotionSignature
-local _transitions = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "motion", "transitions")
+local _transitions = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "motion", "transitions")
 local areResolvedMotionTransitionMapsEqual = _transitions.areResolvedMotionTransitionMapsEqual
 local resolveMotionTransitions = _transitions.resolveMotionTransitions
 local RunService = game:GetService("RunService")
@@ -82762,23 +82762,23 @@ return {
 
 end)() end,
     [298] = function()local wax,script,require=ImportGlobals(298)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-exports.DEFAULT_THEME = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme", "defaults").DEFAULT_THEME
-exports.theme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme", "refs").theme
-local _ThemeProvider = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme", "ThemeProvider")
+exports.DEFAULT_THEME = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme", "defaults").DEFAULT_THEME
+exports.theme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme", "refs").theme
+local _ThemeProvider = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme", "ThemeProvider")
 exports.ThemeProvider = _ThemeProvider.ThemeProvider
 exports.useTheme = _ThemeProvider.useTheme
-local _resolveToken = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme", "resolveToken")
+local _resolveToken = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme", "resolveToken")
 exports.resolveColor = _resolveToken.resolveColor
 exports.resolveSize = _resolveToken.resolveSize
 return exports
 
 end)() end,
     [299] = function()local wax,script,require=ImportGlobals(299)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local DEFAULT_THEME = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme", "defaults").DEFAULT_THEME
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local DEFAULT_THEME = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme", "defaults").DEFAULT_THEME
 local ThemeContext = React.createContext(DEFAULT_THEME)
 local function mergeScale(base, override)
 	local _object = {}
@@ -84110,9 +84110,9 @@ return nil
 
 end)() end,
     [304] = function()local wax,script,require=ImportGlobals(304)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-local _units = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "utils", "units")
+local _units = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "utils", "units")
 exports.toUDim = _units.toUDim
 exports.toUDim2 = _units.toUDim2
 exports.toUDimAxis = _units.toUDimAxis
@@ -84342,11 +84342,11 @@ return {
 
 end)() end,
     [307] = function()local wax,script,require=ImportGlobals(307)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local ReactRoblox = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react-roblox")
-local validateModel = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "contracts").validateModel
-local UniversalHubMenu = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "UniversalHubMenu").UniversalHubMenu
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local ReactRoblox = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react-roblox")
+local validateModel = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "contracts").validateModel
+local UniversalHubMenu = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "UniversalHubMenu").UniversalHubMenu
 local function mountUniversalHubMenu(parent, initialModel)
 	validateModel(initialModel)
 	local root = ReactRoblox.createLegacyRoot(parent)
@@ -84392,19 +84392,19 @@ return {
 
 end)() end,
     [308] = function()local wax,script,require=ImportGlobals(308)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local __prism = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local __prism = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "prismCompat")
 local Box = __prism.Box
 local ScrollArea = __prism.ScrollArea
 local Tabs = __prism.Tabs
 local Text = __prism.Text
 local ThemeProvider = __prism.ThemeProvider
-local theme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
-local SectionList = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "components", "SectionList").SectionList
-local WhatsNewModal = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "components", "WhatsNewModal").WhatsNewModal
-local HUB_THEME = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "theme").HUB_THEME
-local VisualsPage = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "visuals", "VisualsPage").VisualsPage
+local theme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
+local SectionList = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "components", "SectionList").SectionList
+local WhatsNewModal = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "components", "WhatsNewModal").WhatsNewModal
+local HUB_THEME = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "theme").HUB_THEME
+local VisualsPage = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "visuals", "VisualsPage").VisualsPage
 local UserInputService = game:GetService("UserInputService")
 local function UniversalHubMenu(_param)
 	local model = _param.model
@@ -84704,9 +84704,9 @@ return {
 
 end)() end,
     [310] = function()local wax,script,require=ImportGlobals(310)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local __prism = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local __prism = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "prismCompat")
 local Button = __prism.Button
 local KeybindInput = __prism.KeybindInput
 local SegmentedControl = __prism.SegmentedControl
@@ -84714,9 +84714,9 @@ local Slider = __prism.Slider
 local Stack = __prism.Stack
 local Switch = __prism.Switch
 local Text = __prism.Text
-local theme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
-local HUB_THEME = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "theme").HUB_THEME
-local EditableKeycap = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "components", "Keycap").EditableKeycap
+local theme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
+local HUB_THEME = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "theme").HUB_THEME
+local EditableKeycap = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "components", "Keycap").EditableKeycap
 local function valueText(value, unit)
 	return `{math.round(value)}{if unit == nil then "" else ` {unit}`}`
 end
@@ -85035,12 +85035,12 @@ return {
 
 end)() end,
     [311] = function()local wax,script,require=ImportGlobals(311)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local __prism = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local __prism = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "prismCompat")
 local KeybindInput = __prism.KeybindInput
 local Text = __prism.Text
-local theme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
+local theme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
 local function keycapLabel(value)
 	if value == Enum.KeyCode.LeftShift or value == Enum.KeyCode.RightShift then
 		return "↑  Shift"
@@ -85180,13 +85180,13 @@ return {
 
 end)() end,
     [312] = function()local wax,script,require=ImportGlobals(312)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local __prism = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local __prism = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "prismCompat")
 local Box = __prism.Box
 local Stack = __prism.Stack
-local theme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
-local ControlView = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "components", "ControlView").ControlView
+local theme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
+local ControlView = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "components", "ControlView").ControlView
 local function SectionList(_param)
 	local page = _param.page
 	local model = _param.model
@@ -85244,15 +85244,15 @@ return {
 
 end)() end,
     [313] = function()local wax,script,require=ImportGlobals(313)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local __prism = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local __prism = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "prismCompat")
 local Button = __prism.Button
 local Modal = __prism.Modal
 local ScrollArea = __prism.ScrollArea
 local Stack = __prism.Stack
 local Text = __prism.Text
-local theme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
+local theme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
 local function WhatsNewModal(_param)
 	local notice = _param.notice
 	local onAction = _param.onAction
@@ -85569,10 +85569,10 @@ return {
 
 end)() end,
     [316] = function()local wax,script,require=ImportGlobals(316)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local Text = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat").Text
-local theme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local Text = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "prismCompat").Text
+local theme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
 local UserInputService = game:GetService("UserInputService")
 local function ModelViewer(_param)
 	local control = _param.control
@@ -85780,9 +85780,9 @@ return {
 
 end)() end,
     [317] = function()local wax,script,require=ImportGlobals(317)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local Text = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat").Text
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local Text = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "prismCompat").Text
 local UserInputService = game:GetService("UserInputService")
 local PART_CORNERS = { Vector3.new(-1, -1, -1), Vector3.new(1, -1, -1), Vector3.new(1, 1, -1), Vector3.new(-1, 1, -1), Vector3.new(-1, -1, 1), Vector3.new(1, -1, 1), Vector3.new(1, 1, 1), Vector3.new(-1, 1, 1) }
 local function accessoryOwned(part, dummy)
@@ -86569,53 +86569,53 @@ return {
 
 end)() end,
     [318] = function()local wax,script,require=ImportGlobals(318)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local exports = {}
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local Button = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Button").Button
-local Popover = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Popover").Popover
-local Slider = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Slider").Slider
-local Text = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Text").Text
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Box") or {} do
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local Button = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Button").Button
+local Popover = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Popover").Popover
+local Slider = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Slider").Slider
+local Text = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Text").Text
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Box") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Button") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Button") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "KeybindInput") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "KeybindInput") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Modal") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Modal") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Popover") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Popover") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "ScrollArea") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "ScrollArea") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Select") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "SegmentedControl") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "SegmentedControl") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Slider") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Slider") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Stack") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Stack") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Switch") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Switch") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tabs") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Tabs") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Text") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Text") or {} do
 	exports[_k] = _v
 end
-for _k, _v in TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme") or {} do
+for _k, _v in TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme") or {} do
 	exports[_k] = _v
 end
 local function contains(values, value)
@@ -86991,9 +86991,9 @@ return {
 
 end)() end,
     [321] = function()local wax,script,require=ImportGlobals(321)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
-local TS = require(game:GetService("ReplicatedStorage"):WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
-local React = TS.import(script, game:GetService("ReplicatedStorage"), "rbxts_include", "node_modules", "@rbxts", "react")
-local __prism = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "prismCompat")
+local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
+local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local __prism = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "prismCompat")
 local Box = __prism.Box
 local ColorPicker = __prism.ColorPicker
 local MultiSelect = __prism.MultiSelect
@@ -87002,10 +87002,10 @@ local Stack = __prism.Stack
 local Switch = __prism.Switch
 local Text = __prism.Text
 local colorToHex = __prism.colorToHex
-local theme = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
-local ControlView = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "components", "ControlView").ControlView
-local ModelViewer = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "preview", "ModelViewer").ModelViewer
-local ViewportDummy = TS.import(script, game:GetService("ReplicatedStorage"), "UniversalHubMenu", "src", "preview", "ViewportDummy").ViewportDummy
+local theme = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "theme").theme
+local ControlView = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "components", "ControlView").ControlView
+local ModelViewer = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "preview", "ModelViewer").ModelViewer
+local ViewportDummy = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", "src", "preview", "ViewportDummy").ViewportDummy
 local function Segments(_param)
 	local options = _param.options
 	local value = _param.value
@@ -139132,2375 +139132,6 @@ local ObjectTree = {
                 },
                 {
                     {
-                        3,
-                        2,
-                        {
-                            "Prism"
-                        },
-                        {
-                            {
-                                174,
-                                2,
-                                {
-                                    "styled"
-                                }
-                            },
-                            {
-                                183,
-                                2,
-                                {
-                                    "utils"
-                                },
-                                {
-                                    {
-                                        185,
-                                        2,
-                                        {
-                                            "diagnostics"
-                                        }
-                                    },
-                                    {
-                                        184,
-                                        2,
-                                        {
-                                            "__test__"
-                                        }
-                                    },
-                                    {
-                                        186,
-                                        2,
-                                        {
-                                            "units"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                166,
-                                2,
-                                {
-                                    "icons"
-                                },
-                                {
-                                    {
-                                        167,
-                                        2,
-                                        {
-                                            "lucide"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                168,
-                                2,
-                                {
-                                    "motion"
-                                },
-                                {
-                                    {
-                                        172,
-                                        2,
-                                        {
-                                            "types"
-                                        }
-                                    },
-                                    {
-                                        169,
-                                        2,
-                                        {
-                                            "__typecheck__"
-                                        }
-                                    },
-                                    {
-                                        170,
-                                        2,
-                                        {
-                                            "signatures"
-                                        }
-                                    },
-                                    {
-                                        173,
-                                        2,
-                                        {
-                                            "useMotion"
-                                        }
-                                    },
-                                    {
-                                        171,
-                                        2,
-                                        {
-                                            "transitions"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                5,
-                                2,
-                                {
-                                    "bridge"
-                                },
-                                {
-                                    {
-                                        7,
-                                        2,
-                                        {
-                                            "__typecheck__"
-                                        }
-                                    },
-                                    {
-                                        6,
-                                        2,
-                                        {
-                                            "LuauBridge"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                4,
-                                2,
-                                {
-                                    "__typecheck__"
-                                }
-                            },
-                            {
-                                8,
-                                1,
-                                {
-                                    "components"
-                                },
-                                {
-                                    {
-                                        51,
-                                        2,
-                                        {
-                                            "Image"
-                                        },
-                                        {
-                                            {
-                                                54,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                53,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                52,
-                                                2,
-                                                {
-                                                    "Image"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        147,
-                                        1,
-                                        {
-                                            "_shared"
-                                        },
-                                        {
-                                            {
-                                                158,
-                                                2,
-                                                {
-                                                    "textFont"
-                                                }
-                                            },
-                                            {
-                                                160,
-                                                2,
-                                                {
-                                                    "useDelayedCallback"
-                                                }
-                                            },
-                                            {
-                                                148,
-                                                2,
-                                                {
-                                                    "TriggerOverlayLayer"
-                                                }
-                                            },
-                                            {
-                                                150,
-                                                2,
-                                                {
-                                                    "foundationDecorators"
-                                                }
-                                            },
-                                            {
-                                                162,
-                                                2,
-                                                {
-                                                    "usePressInteraction"
-                                                }
-                                            },
-                                            {
-                                                151,
-                                                2,
-                                                {
-                                                    "frameSize"
-                                                }
-                                            },
-                                            {
-                                                152,
-                                                2,
-                                                {
-                                                    "interaction"
-                                                }
-                                            },
-                                            {
-                                                149,
-                                                2,
-                                                {
-                                                    "elevation"
-                                                }
-                                            },
-                                            {
-                                                155,
-                                                2,
-                                                {
-                                                    "overlayLayerPolicy"
-                                                }
-                                            },
-                                            {
-                                                156,
-                                                2,
-                                                {
-                                                    "slotProps"
-                                                }
-                                            },
-                                            {
-                                                163,
-                                                2,
-                                                {
-                                                    "useResolvedStyleProps"
-                                                }
-                                            },
-                                            {
-                                                154,
-                                                2,
-                                                {
-                                                    "mergeSharedStyleProps"
-                                                }
-                                            },
-                                            {
-                                                165,
-                                                2,
-                                                {
-                                                    "visual"
-                                                }
-                                            },
-                                            {
-                                                159,
-                                                2,
-                                                {
-                                                    "useControllableState"
-                                                }
-                                            },
-                                            {
-                                                153,
-                                                2,
-                                                {
-                                                    "layering"
-                                                }
-                                            },
-                                            {
-                                                164,
-                                                2,
-                                                {
-                                                    "useRootCursor"
-                                                }
-                                            },
-                                            {
-                                                161,
-                                                2,
-                                                {
-                                                    "usePresence"
-                                                }
-                                            },
-                                            {
-                                                157,
-                                                2,
-                                                {
-                                                    "styleOverride"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        94,
-                                        2,
-                                        {
-                                            "SegmentedControl"
-                                        },
-                                        {
-                                            {
-                                                96,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                97,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                98,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                95,
-                                                2,
-                                                {
-                                                    "SegmentedControl"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        9,
-                                        2,
-                                        {
-                                            "Avatar"
-                                        },
-                                        {
-                                            {
-                                                12,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                11,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                10,
-                                                2,
-                                                {
-                                                    "Avatar"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        35,
-                                        2,
-                                        {
-                                            "CircularProgress"
-                                        },
-                                        {
-                                            {
-                                                38,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                39,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                36,
-                                                2,
-                                                {
-                                                    "CircularProgress"
-                                                }
-                                            },
-                                            {
-                                                37,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        13,
-                                        2,
-                                        {
-                                            "Backdrop"
-                                        },
-                                        {
-                                            {
-                                                16,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                15,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                14,
-                                                2,
-                                                {
-                                                    "Backdrop"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        40,
-                                        2,
-                                        {
-                                            "Divider"
-                                        },
-                                        {
-                                            {
-                                                41,
-                                                2,
-                                                {
-                                                    "Divider"
-                                                }
-                                            },
-                                            {
-                                                42,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        43,
-                                        2,
-                                        {
-                                            "Draggable"
-                                        },
-                                        {
-                                            {
-                                                44,
-                                                2,
-                                                {
-                                                    "Draggable"
-                                                }
-                                            },
-                                            {
-                                                46,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                45,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        60,
-                                        2,
-                                        {
-                                            "KeybindInput"
-                                        },
-                                        {
-                                            {
-                                                63,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                64,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                62,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                61,
-                                                2,
-                                                {
-                                                    "KeybindInput"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        90,
-                                        2,
-                                        {
-                                            "ScrollArea"
-                                        },
-                                        {
-                                            {
-                                                93,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                91,
-                                                2,
-                                                {
-                                                    "ScrollArea"
-                                                }
-                                            },
-                                            {
-                                                92,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        55,
-                                        2,
-                                        {
-                                            "Input"
-                                        },
-                                        {
-                                            {
-                                                59,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                58,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                57,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                56,
-                                                2,
-                                                {
-                                                    "Input"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        114,
-                                        2,
-                                        {
-                                            "Stack"
-                                        },
-                                        {
-                                            {
-                                                116,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                115,
-                                                2,
-                                                {
-                                                    "Stack"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        137,
-                                        2,
-                                        {
-                                            "Tooltip"
-                                        },
-                                        {
-                                            {
-                                                138,
-                                                2,
-                                                {
-                                                    "Tooltip"
-                                                }
-                                            },
-                                            {
-                                                139,
-                                                2,
-                                                {
-                                                    "TooltipOverlayBubble"
-                                                }
-                                            },
-                                            {
-                                                140,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                142,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                141,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        74,
-                                        2,
-                                        {
-                                            "Popover"
-                                        },
-                                        {
-                                            {
-                                                76,
-                                                2,
-                                                {
-                                                    "PopoverOverlayPanel"
-                                                }
-                                            },
-                                            {
-                                                77,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                78,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                80,
-                                                2,
-                                                {
-                                                    "utils"
-                                                }
-                                            },
-                                            {
-                                                79,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                75,
-                                                2,
-                                                {
-                                                    "Popover"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        70,
-                                        2,
-                                        {
-                                            "Modal"
-                                        },
-                                        {
-                                            {
-                                                73,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                71,
-                                                2,
-                                                {
-                                                    "Modal"
-                                                }
-                                            },
-                                            {
-                                                72,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        123,
-                                        2,
-                                        {
-                                            "Switch"
-                                        },
-                                        {
-                                            {
-                                                125,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                124,
-                                                2,
-                                                {
-                                                    "Switch"
-                                                }
-                                            },
-                                            {
-                                                127,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                126,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        133,
-                                        2,
-                                        {
-                                            "Text"
-                                        },
-                                        {
-                                            {
-                                                136,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                135,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                134,
-                                                2,
-                                                {
-                                                    "Text"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        21,
-                                        2,
-                                        {
-                                            "Button"
-                                        },
-                                        {
-                                            {
-                                                22,
-                                                2,
-                                                {
-                                                    "Button"
-                                                }
-                                            },
-                                            {
-                                                24,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                25,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                23,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        81,
-                                        2,
-                                        {
-                                            "Pressable"
-                                        },
-                                        {
-                                            {
-                                                83,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                84,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                82,
-                                                2,
-                                                {
-                                                    "Pressable"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        143,
-                                        2,
-                                        {
-                                            "WorldPortal"
-                                        },
-                                        {
-                                            {
-                                                145,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                144,
-                                                2,
-                                                {
-                                                    "WorldPortal"
-                                                }
-                                            },
-                                            {
-                                                146,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        30,
-                                        2,
-                                        {
-                                            "Checkbox"
-                                        },
-                                        {
-                                            {
-                                                34,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                33,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                32,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                31,
-                                                2,
-                                                {
-                                                    "Checkbox"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        117,
-                                        2,
-                                        {
-                                            "StepperInput"
-                                        },
-                                        {
-                                            {
-                                                118,
-                                                2,
-                                                {
-                                                    "StepperInput"
-                                                }
-                                            },
-                                            {
-                                                122,
-                                                2,
-                                                {
-                                                    "utils"
-                                                }
-                                            },
-                                            {
-                                                119,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                120,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                121,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        65,
-                                        2,
-                                        {
-                                            "Menu"
-                                        },
-                                        {
-                                            {
-                                                69,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                66,
-                                                2,
-                                                {
-                                                    "Menu"
-                                                }
-                                            },
-                                            {
-                                                67,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                68,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        99,
-                                        2,
-                                        {
-                                            "Select"
-                                        },
-                                        {
-                                            {
-                                                100,
-                                                2,
-                                                {
-                                                    "Select"
-                                                }
-                                            },
-                                            {
-                                                101,
-                                                2,
-                                                {
-                                                    "SelectDropdown"
-                                                }
-                                            },
-                                            {
-                                                103,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                104,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                106,
-                                                2,
-                                                {
-                                                    "utils"
-                                                }
-                                            },
-                                            {
-                                                105,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                102,
-                                                2,
-                                                {
-                                                    "SelectOptionRow"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        47,
-                                        2,
-                                        {
-                                            "Icon"
-                                        },
-                                        {
-                                            {
-                                                48,
-                                                2,
-                                                {
-                                                    "Icon"
-                                                }
-                                            },
-                                            {
-                                                50,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                49,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        17,
-                                        2,
-                                        {
-                                            "Box"
-                                        },
-                                        {
-                                            {
-                                                19,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                18,
-                                                2,
-                                                {
-                                                    "Box"
-                                                }
-                                            },
-                                            {
-                                                20,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        128,
-                                        2,
-                                        {
-                                            "Tabs"
-                                        },
-                                        {
-                                            {
-                                                130,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                132,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                129,
-                                                2,
-                                                {
-                                                    "Tabs"
-                                                }
-                                            },
-                                            {
-                                                131,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        85,
-                                        2,
-                                        {
-                                            "Progress"
-                                        },
-                                        {
-                                            {
-                                                87,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                86,
-                                                2,
-                                                {
-                                                    "Progress"
-                                                }
-                                            },
-                                            {
-                                                88,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                89,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        26,
-                                        2,
-                                        {
-                                            "Card"
-                                        },
-                                        {
-                                            {
-                                                29,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                28,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                27,
-                                                2,
-                                                {
-                                                    "Card"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        107,
-                                        2,
-                                        {
-                                            "Slider"
-                                        },
-                                        {
-                                            {
-                                                109,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                110,
-                                                2,
-                                                {
-                                                    "controllerInput"
-                                                }
-                                            },
-                                            {
-                                                112,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                108,
-                                                2,
-                                                {
-                                                    "Slider"
-                                                }
-                                            },
-                                            {
-                                                111,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                113,
-                                                2,
-                                                {
-                                                    "utils"
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                175,
-                                1,
-                                {
-                                    "testing"
-                                },
-                                {
-                                    {
-                                        176,
-                                        2,
-                                        {
-                                            "typeContracts"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                177,
-                                2,
-                                {
-                                    "theme"
-                                },
-                                {
-                                    {
-                                        178,
-                                        2,
-                                        {
-                                            "ThemeProvider"
-                                        }
-                                    },
-                                    {
-                                        179,
-                                        2,
-                                        {
-                                            "defaults"
-                                        }
-                                    },
-                                    {
-                                        182,
-                                        2,
-                                        {
-                                            "types"
-                                        }
-                                    },
-                                    {
-                                        181,
-                                        2,
-                                        {
-                                            "resolveToken"
-                                        }
-                                    },
-                                    {
-                                        180,
-                                        2,
-                                        {
-                                            "refs"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    {
-                        187,
-                        1,
-                        {
-                            "UniversalHubMenu"
-                        },
-                        {
-                            {
-                                307,
-                                2,
-                                {
-                                    "src"
-                                },
-                                {
-                                    {
-                                        314,
-                                        2,
-                                        {
-                                            "contracts"
-                                        }
-                                    },
-                                    {
-                                        315,
-                                        1,
-                                        {
-                                            "preview"
-                                        },
-                                        {
-                                            {
-                                                317,
-                                                2,
-                                                {
-                                                    "ViewportDummy"
-                                                }
-                                            },
-                                            {
-                                                316,
-                                                2,
-                                                {
-                                                    "ModelViewer"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        320,
-                                        1,
-                                        {
-                                            "visuals"
-                                        },
-                                        {
-                                            {
-                                                321,
-                                                2,
-                                                {
-                                                    "VisualsPage"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        318,
-                                        2,
-                                        {
-                                            "prismCompat"
-                                        }
-                                    },
-                                    {
-                                        309,
-                                        1,
-                                        {
-                                            "components"
-                                        },
-                                        {
-                                            {
-                                                311,
-                                                2,
-                                                {
-                                                    "Keycap"
-                                                }
-                                            },
-                                            {
-                                                313,
-                                                2,
-                                                {
-                                                    "WhatsNewModal"
-                                                }
-                                            },
-                                            {
-                                                310,
-                                                2,
-                                                {
-                                                    "ControlView"
-                                                }
-                                            },
-                                            {
-                                                312,
-                                                2,
-                                                {
-                                                    "SectionList"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        308,
-                                        2,
-                                        {
-                                            "UniversalHubMenu"
-                                        }
-                                    },
-                                    {
-                                        319,
-                                        2,
-                                        {
-                                            "theme"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                188,
-                                1,
-                                {
-                                    ".generated"
-                                },
-                                {
-                                    {
-                                        189,
-                                        1,
-                                        {
-                                            "prism-src"
-                                        },
-                                        {
-                                            {
-                                                190,
-                                                1,
-                                                {
-                                                    "lib"
-                                                },
-                                                {
-                                                    {
-                                                        192,
-                                                        1,
-                                                        {
-                                                            "components"
-                                                        },
-                                                        {
-                                                            {
-                                                                212,
-                                                                1,
-                                                                {
-                                                                    "Image"
-                                                                }
-                                                            },
-                                                            {
-                                                                218,
-                                                                1,
-                                                                {
-                                                                    "Menu"
-                                                                }
-                                                            },
-                                                            {
-                                                                193,
-                                                                1,
-                                                                {
-                                                                    "Avatar"
-                                                                }
-                                                            },
-                                                            {
-                                                                207,
-                                                                1,
-                                                                {
-                                                                    "Divider"
-                                                                }
-                                                            },
-                                                            {
-                                                                250,
-                                                                2,
-                                                                {
-                                                                    "Stack"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        252,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        251,
-                                                                        2,
-                                                                        {
-                                                                            "Stack"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                204,
-                                                                1,
-                                                                {
-                                                                    "Card"
-                                                                }
-                                                            },
-                                                            {
-                                                                197,
-                                                                2,
-                                                                {
-                                                                    "Box"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        199,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        198,
-                                                                        2,
-                                                                        {
-                                                                            "Box"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                229,
-                                                                1,
-                                                                {
-                                                                    "Progress"
-                                                                }
-                                                            },
-                                                            {
-                                                                271,
-                                                                1,
-                                                                {
-                                                                    "_shared"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        283,
-                                                                        2,
-                                                                        {
-                                                                            "useControllableState"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        285,
-                                                                        2,
-                                                                        {
-                                                                            "usePresence"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        272,
-                                                                        2,
-                                                                        {
-                                                                            "TriggerOverlayLayer"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        280,
-                                                                        2,
-                                                                        {
-                                                                            "slotProps"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        279,
-                                                                        2,
-                                                                        {
-                                                                            "overlayLayerPolicy"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        277,
-                                                                        2,
-                                                                        {
-                                                                            "layering"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        276,
-                                                                        2,
-                                                                        {
-                                                                            "interaction"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        284,
-                                                                        2,
-                                                                        {
-                                                                            "useDelayedCallback"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        278,
-                                                                        2,
-                                                                        {
-                                                                            "mergeSharedStyleProps"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        275,
-                                                                        2,
-                                                                        {
-                                                                            "frameSize"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        286,
-                                                                        2,
-                                                                        {
-                                                                            "usePressInteraction"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        289,
-                                                                        2,
-                                                                        {
-                                                                            "visual"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        288,
-                                                                        2,
-                                                                        {
-                                                                            "useRootCursor"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        281,
-                                                                        2,
-                                                                        {
-                                                                            "styleOverride"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        287,
-                                                                        2,
-                                                                        {
-                                                                            "useResolvedStyleProps"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        282,
-                                                                        2,
-                                                                        {
-                                                                            "textFont"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        273,
-                                                                        2,
-                                                                        {
-                                                                            "elevation"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        274,
-                                                                        2,
-                                                                        {
-                                                                            "foundationDecorators"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                270,
-                                                                1,
-                                                                {
-                                                                    "WorldPortal"
-                                                                }
-                                                            },
-                                                            {
-                                                                194,
-                                                                2,
-                                                                {
-                                                                    "Backdrop"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        196,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        195,
-                                                                        2,
-                                                                        {
-                                                                            "Backdrop"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                208,
-                                                                1,
-                                                                {
-                                                                    "Draggable"
-                                                                }
-                                                            },
-                                                            {
-                                                                265,
-                                                                2,
-                                                                {
-                                                                    "Tooltip"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        267,
-                                                                        2,
-                                                                        {
-                                                                            "TooltipOverlayBubble"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        269,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        266,
-                                                                        2,
-                                                                        {
-                                                                            "Tooltip"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        268,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                244,
-                                                                2,
-                                                                {
-                                                                    "Slider"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        249,
-                                                                        2,
-                                                                        {
-                                                                            "utils"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        245,
-                                                                        2,
-                                                                        {
-                                                                            "Slider"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        247,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        248,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        246,
-                                                                        2,
-                                                                        {
-                                                                            "controllerInput"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                262,
-                                                                2,
-                                                                {
-                                                                    "Text"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        264,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        263,
-                                                                        2,
-                                                                        {
-                                                                            "Text"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                258,
-                                                                2,
-                                                                {
-                                                                    "Tabs"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        261,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        260,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        259,
-                                                                        2,
-                                                                        {
-                                                                            "Tabs"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                214,
-                                                                2,
-                                                                {
-                                                                    "KeybindInput"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        217,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        216,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        215,
-                                                                        2,
-                                                                        {
-                                                                            "KeybindInput"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                205,
-                                                                1,
-                                                                {
-                                                                    "Checkbox"
-                                                                }
-                                                            },
-                                                            {
-                                                                228,
-                                                                1,
-                                                                {
-                                                                    "Pressable"
-                                                                }
-                                                            },
-                                                            {
-                                                                254,
-                                                                2,
-                                                                {
-                                                                    "Switch"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        257,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        255,
-                                                                        2,
-                                                                        {
-                                                                            "Switch"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        256,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                219,
-                                                                2,
-                                                                {
-                                                                    "Modal"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        221,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        220,
-                                                                        2,
-                                                                        {
-                                                                            "Modal"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                253,
-                                                                1,
-                                                                {
-                                                                    "StepperInput"
-                                                                }
-                                                            },
-                                                            {
-                                                                206,
-                                                                1,
-                                                                {
-                                                                    "CircularProgress"
-                                                                }
-                                                            },
-                                                            {
-                                                                237,
-                                                                2,
-                                                                {
-                                                                    "Select"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        238,
-                                                                        2,
-                                                                        {
-                                                                            "Select"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        242,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        243,
-                                                                        2,
-                                                                        {
-                                                                            "utils"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        240,
-                                                                        2,
-                                                                        {
-                                                                            "SelectOptionRow"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        239,
-                                                                        2,
-                                                                        {
-                                                                            "SelectDropdown"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        241,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                233,
-                                                                2,
-                                                                {
-                                                                    "SegmentedControl"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        234,
-                                                                        2,
-                                                                        {
-                                                                            "SegmentedControl"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        235,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        236,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                200,
-                                                                2,
-                                                                {
-                                                                    "Button"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        202,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        201,
-                                                                        2,
-                                                                        {
-                                                                            "Button"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        203,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                230,
-                                                                2,
-                                                                {
-                                                                    "ScrollArea"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        232,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        231,
-                                                                        2,
-                                                                        {
-                                                                            "ScrollArea"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                209,
-                                                                2,
-                                                                {
-                                                                    "Icon"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        210,
-                                                                        2,
-                                                                        {
-                                                                            "Icon"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        211,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                222,
-                                                                2,
-                                                                {
-                                                                    "Popover"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        227,
-                                                                        2,
-                                                                        {
-                                                                            "utils"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        225,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        224,
-                                                                        2,
-                                                                        {
-                                                                            "PopoverOverlayPanel"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        226,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        223,
-                                                                        2,
-                                                                        {
-                                                                            "Popover"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                213,
-                                                                1,
-                                                                {
-                                                                    "Input"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        292,
-                                                        2,
-                                                        {
-                                                            "motion"
-                                                        },
-                                                        {
-                                                            {
-                                                                295,
-                                                                2,
-                                                                {
-                                                                    "types"
-                                                                }
-                                                            },
-                                                            {
-                                                                296,
-                                                                2,
-                                                                {
-                                                                    "useMotion"
-                                                                }
-                                                            },
-                                                            {
-                                                                294,
-                                                                2,
-                                                                {
-                                                                    "transitions"
-                                                                }
-                                                            },
-                                                            {
-                                                                293,
-                                                                2,
-                                                                {
-                                                                    "signatures"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        298,
-                                                        2,
-                                                        {
-                                                            "theme"
-                                                        },
-                                                        {
-                                                            {
-                                                                300,
-                                                                2,
-                                                                {
-                                                                    "defaults"
-                                                                }
-                                                            },
-                                                            {
-                                                                302,
-                                                                2,
-                                                                {
-                                                                    "resolveToken"
-                                                                }
-                                                            },
-                                                            {
-                                                                301,
-                                                                2,
-                                                                {
-                                                                    "refs"
-                                                                }
-                                                            },
-                                                            {
-                                                                299,
-                                                                2,
-                                                                {
-                                                                    "ThemeProvider"
-                                                                }
-                                                            },
-                                                            {
-                                                                303,
-                                                                2,
-                                                                {
-                                                                    "types"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        297,
-                                                        1,
-                                                        {
-                                                            "testing"
-                                                        }
-                                                    },
-                                                    {
-                                                        290,
-                                                        1,
-                                                        {
-                                                            "icons"
-                                                        },
-                                                        {
-                                                            {
-                                                                291,
-                                                                2,
-                                                                {
-                                                                    "lucide"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        304,
-                                                        2,
-                                                        {
-                                                            "utils"
-                                                        },
-                                                        {
-                                                            {
-                                                                306,
-                                                                2,
-                                                                {
-                                                                    "units"
-                                                                }
-                                                            },
-                                                            {
-                                                                305,
-                                                                2,
-                                                                {
-                                                                    "diagnostics"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        191,
-                                                        1,
-                                                        {
-                                                            "bridge"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    {
                         322,
                         1,
                         {
@@ -141515,1731 +139146,12 @@ local ObjectTree = {
                                 }
                             },
                             {
-                                323,
-                                2,
-                                {
-                                    "Promise"
-                                }
-                            },
-                            {
                                 325,
                                 1,
                                 {
                                     "node_modules"
                                 },
                                 {
-                                    {
-                                        337,
-                                        1,
-                                        {
-                                            "@rbxts-js"
-                                        },
-                                        {
-                                            {
-                                                512,
-                                                2,
-                                                {
-                                                    "Shared"
-                                                },
-                                                {
-                                                    {
-                                                        535,
-                                                        2,
-                                                        {
-                                                            "ReactSymbols"
-                                                        }
-                                                    },
-                                                    {
-                                                        528,
-                                                        2,
-                                                        {
-                                                            "ReactInstanceMap"
-                                                        }
-                                                    },
-                                                    {
-                                                        543,
-                                                        2,
-                                                        {
-                                                            "consoleWithStackDev"
-                                                        }
-                                                    },
-                                                    {
-                                                        516,
-                                                        1,
-                                                        {
-                                                            "PropMarkers"
-                                                        },
-                                                        {
-                                                            {
-                                                                518,
-                                                                2,
-                                                                {
-                                                                    "Event"
-                                                                }
-                                                            },
-                                                            {
-                                                                519,
-                                                                2,
-                                                                {
-                                                                    "Tag"
-                                                                }
-                                                            },
-                                                            {
-                                                                517,
-                                                                2,
-                                                                {
-                                                                    "Change"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        551,
-                                                        2,
-                                                        {
-                                                            "objectIs"
-                                                        }
-                                                    },
-                                                    {
-                                                        520,
-                                                        2,
-                                                        {
-                                                            "ReactComponentStackFrame"
-                                                        }
-                                                    },
-                                                    {
-                                                        524,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHostConfig"
-                                                        },
-                                                        {
-                                                            {
-                                                                527,
-                                                                2,
-                                                                {
-                                                                    "WithNoTestSelectors"
-                                                                }
-                                                            },
-                                                            {
-                                                                526,
-                                                                2,
-                                                                {
-                                                                    "WithNoPersistence"
-                                                                }
-                                                            },
-                                                            {
-                                                                525,
-                                                                2,
-                                                                {
-                                                                    "WithNoHydration"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        536,
-                                                        2,
-                                                        {
-                                                            "ReactTypes"
-                                                        }
-                                                    },
-                                                    {
-                                                        540,
-                                                        2,
-                                                        {
-                                                            "UninitializedState.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        522,
-                                                        2,
-                                                        {
-                                                            "ReactErrorUtils"
-                                                        }
-                                                    },
-                                                    {
-                                                        552,
-                                                        2,
-                                                        {
-                                                            "shallowEqual"
-                                                        }
-                                                    },
-                                                    {
-                                                        550,
-                                                        2,
-                                                        {
-                                                            "isValidElementType"
-                                                        }
-                                                    },
-                                                    {
-                                                        542,
-                                                        2,
-                                                        {
-                                                            "console"
-                                                        }
-                                                    },
-                                                    {
-                                                        549,
-                                                        2,
-                                                        {
-                                                            "invokeGuardedCallbackImpl"
-                                                        }
-                                                    },
-                                                    {
-                                                        547,
-                                                        2,
-                                                        {
-                                                            "getComponentName"
-                                                        }
-                                                    },
-                                                    {
-                                                        546,
-                                                        2,
-                                                        {
-                                                            "formatProdErrorMessage"
-                                                        }
-                                                    },
-                                                    {
-                                                        513,
-                                                        2,
-                                                        {
-                                                            "ConsolePatchingDev.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        529,
-                                                        2,
-                                                        {
-                                                            "ReactSharedInternals"
-                                                        },
-                                                        {
-                                                            {
-                                                                531,
-                                                                2,
-                                                                {
-                                                                    "ReactCurrentBatchConfig"
-                                                                }
-                                                            },
-                                                            {
-                                                                532,
-                                                                2,
-                                                                {
-                                                                    "ReactCurrentDispatcher"
-                                                                }
-                                                            },
-                                                            {
-                                                                530,
-                                                                2,
-                                                                {
-                                                                    "IsSomeRendererActing"
-                                                                }
-                                                            },
-                                                            {
-                                                                533,
-                                                                2,
-                                                                {
-                                                                    "ReactCurrentOwner"
-                                                                }
-                                                            },
-                                                            {
-                                                                534,
-                                                                2,
-                                                                {
-                                                                    "ReactDebugCurrentFrame"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        544,
-                                                        2,
-                                                        {
-                                                            "enqueueTask.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        545,
-                                                        2,
-                                                        {
-                                                            "flowtypes.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        521,
-                                                        2,
-                                                        {
-                                                            "ReactElementType"
-                                                        }
-                                                    },
-                                                    {
-                                                        548,
-                                                        2,
-                                                        {
-                                                            "invariant"
-                                                        }
-                                                    },
-                                                    {
-                                                        538,
-                                                        2,
-                                                        {
-                                                            "Symbol.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        541,
-                                                        2,
-                                                        {
-                                                            "checkPropTypes"
-                                                        }
-                                                    },
-                                                    {
-                                                        539,
-                                                        2,
-                                                        {
-                                                            "Type.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        537,
-                                                        2,
-                                                        {
-                                                            "ReactVersion"
-                                                        }
-                                                    },
-                                                    {
-                                                        514,
-                                                        2,
-                                                        {
-                                                            "ErrorHandling.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        515,
-                                                        2,
-                                                        {
-                                                            "ExecutionEnvironment"
-                                                        }
-                                                    },
-                                                    {
-                                                        523,
-                                                        2,
-                                                        {
-                                                            "ReactFeatureFlags"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                498,
-                                                2,
-                                                {
-                                                    "Scheduler"
-                                                },
-                                                {
-                                                    {
-                                                        508,
-                                                        1,
-                                                        {
-                                                            "forks"
-                                                        },
-                                                        {
-                                                            {
-                                                                509,
-                                                                2,
-                                                                {
-                                                                    "SchedulerHostConfig.default"
-                                                                }
-                                                            },
-                                                            {
-                                                                510,
-                                                                2,
-                                                                {
-                                                                    "SchedulerHostConfig.mock"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        505,
-                                                        2,
-                                                        {
-                                                            "SchedulerProfiling"
-                                                        }
-                                                    },
-                                                    {
-                                                        504,
-                                                        2,
-                                                        {
-                                                            "SchedulerPriorities"
-                                                        }
-                                                    },
-                                                    {
-                                                        502,
-                                                        2,
-                                                        {
-                                                            "SchedulerHostConfig"
-                                                        }
-                                                    },
-                                                    {
-                                                        511,
-                                                        2,
-                                                        {
-                                                            "unstable_mock"
-                                                        }
-                                                    },
-                                                    {
-                                                        499,
-                                                        2,
-                                                        {
-                                                            "NoYield"
-                                                        }
-                                                    },
-                                                    {
-                                                        507,
-                                                        2,
-                                                        {
-                                                            "TracingSubscriptions"
-                                                        }
-                                                    },
-                                                    {
-                                                        500,
-                                                        2,
-                                                        {
-                                                            "Scheduler"
-                                                        }
-                                                    },
-                                                    {
-                                                        506,
-                                                        2,
-                                                        {
-                                                            "Tracing"
-                                                        }
-                                                    },
-                                                    {
-                                                        501,
-                                                        2,
-                                                        {
-                                                            "SchedulerFeatureFlags"
-                                                        }
-                                                    },
-                                                    {
-                                                        503,
-                                                        2,
-                                                        {
-                                                            "SchedulerMinHeap"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                399,
-                                                2,
-                                                {
-                                                    "Math"
-                                                },
-                                                {
-                                                    {
-                                                        400,
-                                                        2,
-                                                        {
-                                                            "clz32"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                553,
-                                                2,
-                                                {
-                                                    "String"
-                                                },
-                                                {
-                                                    {
-                                                        557,
-                                                        2,
-                                                        {
-                                                            "includes"
-                                                        }
-                                                    },
-                                                    {
-                                                        564,
-                                                        2,
-                                                        {
-                                                            "trim"
-                                                        }
-                                                    },
-                                                    {
-                                                        566,
-                                                        2,
-                                                        {
-                                                            "trimStart"
-                                                        }
-                                                    },
-                                                    {
-                                                        555,
-                                                        2,
-                                                        {
-                                                            "endsWith"
-                                                        }
-                                                    },
-                                                    {
-                                                        561,
-                                                        2,
-                                                        {
-                                                            "split"
-                                                        }
-                                                    },
-                                                    {
-                                                        554,
-                                                        2,
-                                                        {
-                                                            "charCodeAt"
-                                                        }
-                                                    },
-                                                    {
-                                                        563,
-                                                        2,
-                                                        {
-                                                            "substr"
-                                                        }
-                                                    },
-                                                    {
-                                                        556,
-                                                        2,
-                                                        {
-                                                            "findOr"
-                                                        }
-                                                    },
-                                                    {
-                                                        559,
-                                                        2,
-                                                        {
-                                                            "lastIndexOf"
-                                                        }
-                                                    },
-                                                    {
-                                                        558,
-                                                        2,
-                                                        {
-                                                            "indexOf"
-                                                        }
-                                                    },
-                                                    {
-                                                        560,
-                                                        2,
-                                                        {
-                                                            "slice"
-                                                        }
-                                                    },
-                                                    {
-                                                        562,
-                                                        2,
-                                                        {
-                                                            "startsWith"
-                                                        }
-                                                    },
-                                                    {
-                                                        565,
-                                                        2,
-                                                        {
-                                                            "trimEnd"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                386,
-                                                2,
-                                                {
-                                                    "Console"
-                                                },
-                                                {
-                                                    {
-                                                        387,
-                                                        2,
-                                                        {
-                                                            "makeConsoleImpl"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                496,
-                                                2,
-                                                {
-                                                    "Promise"
-                                                }
-                                            },
-                                            {
-                                                483,
-                                                2,
-                                                {
-                                                    "ReactRoblox"
-                                                },
-                                                {
-                                                    {
-                                                        485,
-                                                        1,
-                                                        {
-                                                            "client"
-                                                        },
-                                                        {
-                                                            {
-                                                                490,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxHostTypes.roblox"
-                                                                }
-                                                            },
-                                                            {
-                                                                487,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxComponent"
-                                                                }
-                                                            },
-                                                            {
-                                                                491,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxRoot"
-                                                                }
-                                                            },
-                                                            {
-                                                                488,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxComponentTree"
-                                                                }
-                                                            },
-                                                            {
-                                                                492,
-                                                                1,
-                                                                {
-                                                                    "roblox"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        493,
-                                                                        2,
-                                                                        {
-                                                                            "RobloxComponentProps"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        495,
-                                                                        2,
-                                                                        {
-                                                                            "getDefaultInstanceProperty"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        494,
-                                                                        2,
-                                                                        {
-                                                                            "SingleEventManager"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                486,
-                                                                2,
-                                                                {
-                                                                    "ReactRoblox"
-                                                                }
-                                                            },
-                                                            {
-                                                                489,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxHostConfig"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        484,
-                                                        2,
-                                                        {
-                                                            "ReactReconciler.roblox"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                401,
-                                                2,
-                                                {
-                                                    "Number"
-                                                },
-                                                {
-                                                    {
-                                                        405,
-                                                        2,
-                                                        {
-                                                            "isInteger"
-                                                        }
-                                                    },
-                                                    {
-                                                        403,
-                                                        2,
-                                                        {
-                                                            "MIN_SAFE_INTEGER"
-                                                        }
-                                                    },
-                                                    {
-                                                        404,
-                                                        2,
-                                                        {
-                                                            "isFinite"
-                                                        }
-                                                    },
-                                                    {
-                                                        408,
-                                                        2,
-                                                        {
-                                                            "toExponential"
-                                                        }
-                                                    },
-                                                    {
-                                                        406,
-                                                        2,
-                                                        {
-                                                            "isNaN"
-                                                        }
-                                                    },
-                                                    {
-                                                        402,
-                                                        2,
-                                                        {
-                                                            "MAX_SAFE_INTEGER"
-                                                        }
-                                                    },
-                                                    {
-                                                        407,
-                                                        2,
-                                                        {
-                                                            "isSafeInteger"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                497,
-                                                2,
-                                                {
-                                                    "SafeFlags"
-                                                }
-                                            },
-                                            {
-                                                426,
-                                                2,
-                                                {
-                                                    "ReactGlobals"
-                                                },
-                                                {
-                                                    {
-                                                        427,
-                                                        2,
-                                                        {
-                                                            "ReactGlobals.global"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                428,
-                                                2,
-                                                {
-                                                    "ReactReconciler"
-                                                },
-                                                {
-                                                    {
-                                                        451,
-                                                        2,
-                                                        {
-                                                            "ReactFiberLazyComponent.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        446,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHostConfig"
-                                                        }
-                                                    },
-                                                    {
-                                                        445,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHooks.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        435,
-                                                        2,
-                                                        {
-                                                            "ReactFiberBeginWork.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        436,
-                                                        2,
-                                                        {
-                                                            "ReactFiberClassComponent.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        457,
-                                                        2,
-                                                        {
-                                                            "ReactFiberSchedulerPriorities.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        478,
-                                                        2,
-                                                        {
-                                                            "RobloxReactProfiling"
-                                                        }
-                                                    },
-                                                    {
-                                                        448,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHotReloading.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        481,
-                                                        1,
-                                                        {
-                                                            "forks"
-                                                        },
-                                                        {
-                                                            {
-                                                                482,
-                                                                2,
-                                                                {
-                                                                    "ReactFiberHostConfig.test"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        434,
-                                                        2,
-                                                        {
-                                                            "ReactFiber.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        480,
-                                                        2,
-                                                        {
-                                                            "SchedulingProfiler"
-                                                        }
-                                                    },
-                                                    {
-                                                        443,
-                                                        2,
-                                                        {
-                                                            "ReactFiberErrorLogger"
-                                                        }
-                                                    },
-                                                    {
-                                                        456,
-                                                        2,
-                                                        {
-                                                            "ReactFiberRoot.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        479,
-                                                        2,
-                                                        {
-                                                            "SchedulerWithReactIntegration.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        441,
-                                                        2,
-                                                        {
-                                                            "ReactFiberDevToolsHook.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        477,
-                                                        2,
-                                                        {
-                                                            "ReactWorkTags"
-                                                        }
-                                                    },
-                                                    {
-                                                        467,
-                                                        2,
-                                                        {
-                                                            "ReactHookEffectTags"
-                                                        }
-                                                    },
-                                                    {
-                                                        440,
-                                                        2,
-                                                        {
-                                                            "ReactFiberContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        460,
-                                                        2,
-                                                        {
-                                                            "ReactFiberSuspenseContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        476,
-                                                        2,
-                                                        {
-                                                            "ReactUpdateQueue.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        474,
-                                                        2,
-                                                        {
-                                                            "ReactTestSelectors"
-                                                        }
-                                                    },
-                                                    {
-                                                        475,
-                                                        2,
-                                                        {
-                                                            "ReactTypeOfMode"
-                                                        }
-                                                    },
-                                                    {
-                                                        473,
-                                                        2,
-                                                        {
-                                                            "ReactStrictModeWarnings.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        472,
-                                                        2,
-                                                        {
-                                                            "ReactRootTags"
-                                                        }
-                                                    },
-                                                    {
-                                                        438,
-                                                        2,
-                                                        {
-                                                            "ReactFiberCompleteWork.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        471,
-                                                        2,
-                                                        {
-                                                            "ReactProfilerTimer.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        470,
-                                                        2,
-                                                        {
-                                                            "ReactPortal"
-                                                        }
-                                                    },
-                                                    {
-                                                        466,
-                                                        2,
-                                                        {
-                                                            "ReactFiberWorkLoop.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        429,
-                                                        2,
-                                                        {
-                                                            "DebugTracing"
-                                                        }
-                                                    },
-                                                    {
-                                                        463,
-                                                        2,
-                                                        {
-                                                            "ReactFiberTreeReflection"
-                                                        }
-                                                    },
-                                                    {
-                                                        469,
-                                                        2,
-                                                        {
-                                                            "ReactMutableSource.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        449,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHydrationContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        453,
-                                                        2,
-                                                        {
-                                                            "ReactFiberOffscreenComponent"
-                                                        }
-                                                    },
-                                                    {
-                                                        439,
-                                                        2,
-                                                        {
-                                                            "ReactFiberComponentStack"
-                                                        }
-                                                    },
-                                                    {
-                                                        455,
-                                                        2,
-                                                        {
-                                                            "ReactFiberReconciler.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        464,
-                                                        2,
-                                                        {
-                                                            "ReactFiberUnwindWork.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        447,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHostContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        437,
-                                                        2,
-                                                        {
-                                                            "ReactFiberCommitWork.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        465,
-                                                        2,
-                                                        {
-                                                            "ReactFiberWorkInProgress"
-                                                        }
-                                                    },
-                                                    {
-                                                        468,
-                                                        2,
-                                                        {
-                                                            "ReactInternalTypes"
-                                                        }
-                                                    },
-                                                    {
-                                                        444,
-                                                        2,
-                                                        {
-                                                            "ReactFiberFlags"
-                                                        }
-                                                    },
-                                                    {
-                                                        462,
-                                                        2,
-                                                        {
-                                                            "ReactFiberTransition"
-                                                        }
-                                                    },
-                                                    {
-                                                        461,
-                                                        2,
-                                                        {
-                                                            "ReactFiberThrow.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        431,
-                                                        2,
-                                                        {
-                                                            "ReactCapturedValue"
-                                                        }
-                                                    },
-                                                    {
-                                                        458,
-                                                        2,
-                                                        {
-                                                            "ReactFiberStack.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        450,
-                                                        2,
-                                                        {
-                                                            "ReactFiberLane"
-                                                        }
-                                                    },
-                                                    {
-                                                        442,
-                                                        2,
-                                                        {
-                                                            "ReactFiberErrorDialog"
-                                                        }
-                                                    },
-                                                    {
-                                                        454,
-                                                        2,
-                                                        {
-                                                            "ReactFiberReconciler"
-                                                        }
-                                                    },
-                                                    {
-                                                        459,
-                                                        2,
-                                                        {
-                                                            "ReactFiberSuspenseComponent.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        430,
-                                                        2,
-                                                        {
-                                                            "MaxInts"
-                                                        }
-                                                    },
-                                                    {
-                                                        433,
-                                                        2,
-                                                        {
-                                                            "ReactCurrentFiber"
-                                                        }
-                                                    },
-                                                    {
-                                                        452,
-                                                        2,
-                                                        {
-                                                            "ReactFiberNewContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        432,
-                                                        2,
-                                                        {
-                                                            "ReactChildFiber.new"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                338,
-                                                2,
-                                                {
-                                                    "Boolean"
-                                                },
-                                                {
-                                                    {
-                                                        339,
-                                                        2,
-                                                        {
-                                                            "toJSBoolean"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                570,
-                                                2,
-                                                {
-                                                    "Timers"
-                                                },
-                                                {
-                                                    {
-                                                        572,
-                                                        2,
-                                                        {
-                                                            "makeTimerImpl"
-                                                        }
-                                                    },
-                                                    {
-                                                        571,
-                                                        2,
-                                                        {
-                                                            "makeIntervalImpl"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                567,
-                                                2,
-                                                {
-                                                    "Symbol"
-                                                },
-                                                {
-                                                    {
-                                                        568,
-                                                        2,
-                                                        {
-                                                            "Registry.global"
-                                                        }
-                                                    },
-                                                    {
-                                                        569,
-                                                        2,
-                                                        {
-                                                            "Symbol"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                391,
-                                                2,
-                                                {
-                                                    "LuauPolyfill"
-                                                },
-                                                {
-                                                    {
-                                                        394,
-                                                        2,
-                                                        {
-                                                            "Error"
-                                                        },
-                                                        {
-                                                            {
-                                                                395,
-                                                                2,
-                                                                {
-                                                                    "Error.global"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        397,
-                                                        2,
-                                                        {
-                                                            "encodeURIComponent"
-                                                        }
-                                                    },
-                                                    {
-                                                        396,
-                                                        2,
-                                                        {
-                                                            "Promise"
-                                                        }
-                                                    },
-                                                    {
-                                                        398,
-                                                        2,
-                                                        {
-                                                            "extends"
-                                                        }
-                                                    },
-                                                    {
-                                                        392,
-                                                        2,
-                                                        {
-                                                            "AssertionError"
-                                                        },
-                                                        {
-                                                            {
-                                                                393,
-                                                                2,
-                                                                {
-                                                                    "AssertionError.global"
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                340,
-                                                2,
-                                                {
-                                                    "Collections"
-                                                },
-                                                {
-                                                    {
-                                                        341,
-                                                        2,
-                                                        {
-                                                            "Array"
-                                                        },
-                                                        {
-                                                            {
-                                                                348,
-                                                                2,
-                                                                {
-                                                                    "flatMap"
-                                                                }
-                                                            },
-                                                            {
-                                                                346,
-                                                                2,
-                                                                {
-                                                                    "findIndex"
-                                                                }
-                                                            },
-                                                            {
-                                                                356,
-                                                                2,
-                                                                {
-                                                                    "indexOf"
-                                                                }
-                                                            },
-                                                            {
-                                                                367,
-                                                                2,
-                                                                {
-                                                                    "unshift"
-                                                                }
-                                                            },
-                                                            {
-                                                                350,
-                                                                2,
-                                                                {
-                                                                    "from"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        353,
-                                                                        2,
-                                                                        {
-                                                                            "fromSet"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        354,
-                                                                        2,
-                                                                        {
-                                                                            "fromString"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        351,
-                                                                        2,
-                                                                        {
-                                                                            "fromArray"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        352,
-                                                                        2,
-                                                                        {
-                                                                            "fromMap"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                344,
-                                                                2,
-                                                                {
-                                                                    "filter"
-                                                                }
-                                                            },
-                                                            {
-                                                                366,
-                                                                2,
-                                                                {
-                                                                    "splice"
-                                                                }
-                                                            },
-                                                            {
-                                                                362,
-                                                                2,
-                                                                {
-                                                                    "shift"
-                                                                }
-                                                            },
-                                                            {
-                                                                361,
-                                                                2,
-                                                                {
-                                                                    "reverse"
-                                                                }
-                                                            },
-                                                            {
-                                                                359,
-                                                                2,
-                                                                {
-                                                                    "map"
-                                                                }
-                                                            },
-                                                            {
-                                                                357,
-                                                                2,
-                                                                {
-                                                                    "isArray"
-                                                                }
-                                                            },
-                                                            {
-                                                                365,
-                                                                2,
-                                                                {
-                                                                    "sort"
-                                                                }
-                                                            },
-                                                            {
-                                                                347,
-                                                                2,
-                                                                {
-                                                                    "flat"
-                                                                }
-                                                            },
-                                                            {
-                                                                343,
-                                                                2,
-                                                                {
-                                                                    "every"
-                                                                }
-                                                            },
-                                                            {
-                                                                349,
-                                                                2,
-                                                                {
-                                                                    "forEach"
-                                                                }
-                                                            },
-                                                            {
-                                                                363,
-                                                                2,
-                                                                {
-                                                                    "slice"
-                                                                }
-                                                            },
-                                                            {
-                                                                364,
-                                                                2,
-                                                                {
-                                                                    "some"
-                                                                }
-                                                            },
-                                                            {
-                                                                345,
-                                                                2,
-                                                                {
-                                                                    "find"
-                                                                }
-                                                            },
-                                                            {
-                                                                342,
-                                                                2,
-                                                                {
-                                                                    "concat"
-                                                                }
-                                                            },
-                                                            {
-                                                                358,
-                                                                2,
-                                                                {
-                                                                    "join"
-                                                                }
-                                                            },
-                                                            {
-                                                                355,
-                                                                2,
-                                                                {
-                                                                    "includes"
-                                                                }
-                                                            },
-                                                            {
-                                                                360,
-                                                                2,
-                                                                {
-                                                                    "reduce"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        368,
-                                                        2,
-                                                        {
-                                                            "Map"
-                                                        },
-                                                        {
-                                                            {
-                                                                369,
-                                                                2,
-                                                                {
-                                                                    "Map"
-                                                                }
-                                                            },
-                                                            {
-                                                                370,
-                                                                2,
-                                                                {
-                                                                    "coerceToMap"
-                                                                }
-                                                            },
-                                                            {
-                                                                371,
-                                                                2,
-                                                                {
-                                                                    "coerceToTable"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        383,
-                                                        2,
-                                                        {
-                                                            "Set"
-                                                        }
-                                                    },
-                                                    {
-                                                        372,
-                                                        2,
-                                                        {
-                                                            "Object"
-                                                        },
-                                                        {
-                                                            {
-                                                                373,
-                                                                2,
-                                                                {
-                                                                    "None"
-                                                                }
-                                                            },
-                                                            {
-                                                                375,
-                                                                2,
-                                                                {
-                                                                    "entries"
-                                                                }
-                                                            },
-                                                            {
-                                                                376,
-                                                                2,
-                                                                {
-                                                                    "freeze"
-                                                                }
-                                                            },
-                                                            {
-                                                                382,
-                                                                2,
-                                                                {
-                                                                    "values"
-                                                                }
-                                                            },
-                                                            {
-                                                                381,
-                                                                2,
-                                                                {
-                                                                    "seal"
-                                                                }
-                                                            },
-                                                            {
-                                                                380,
-                                                                2,
-                                                                {
-                                                                    "preventExtensions"
-                                                                }
-                                                            },
-                                                            {
-                                                                374,
-                                                                2,
-                                                                {
-                                                                    "assign"
-                                                                }
-                                                            },
-                                                            {
-                                                                379,
-                                                                2,
-                                                                {
-                                                                    "keys"
-                                                                }
-                                                            },
-                                                            {
-                                                                377,
-                                                                2,
-                                                                {
-                                                                    "is"
-                                                                }
-                                                            },
-                                                            {
-                                                                378,
-                                                                2,
-                                                                {
-                                                                    "isFrozen"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        385,
-                                                        2,
-                                                        {
-                                                            "inspect"
-                                                        }
-                                                    },
-                                                    {
-                                                        384,
-                                                        2,
-                                                        {
-                                                            "WeakMap"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                409,
-                                                2,
-                                                {
-                                                    "React"
-                                                },
-                                                {
-                                                    {
-                                                        413,
-                                                        2,
-                                                        {
-                                                            "ReactBinding.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        420,
-                                                        2,
-                                                        {
-                                                            "ReactHooks"
-                                                        }
-                                                    },
-                                                    {
-                                                        419,
-                                                        2,
-                                                        {
-                                                            "ReactForwardRef"
-                                                        }
-                                                    },
-                                                    {
-                                                        411,
-                                                        2,
-                                                        {
-                                                            "React"
-                                                        }
-                                                    },
-                                                    {
-                                                        417,
-                                                        2,
-                                                        {
-                                                            "ReactElement"
-                                                        }
-                                                    },
-                                                    {
-                                                        412,
-                                                        2,
-                                                        {
-                                                            "ReactBaseClasses"
-                                                        }
-                                                    },
-                                                    {
-                                                        425,
-                                                        2,
-                                                        {
-                                                            "createSignal.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        415,
-                                                        2,
-                                                        {
-                                                            "ReactContext"
-                                                        }
-                                                    },
-                                                    {
-                                                        424,
-                                                        2,
-                                                        {
-                                                            "ReactNoopUpdateQueue"
-                                                        }
-                                                    },
-                                                    {
-                                                        410,
-                                                        2,
-                                                        {
-                                                            "None.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        414,
-                                                        2,
-                                                        {
-                                                            "ReactChildren"
-                                                        }
-                                                    },
-                                                    {
-                                                        423,
-                                                        2,
-                                                        {
-                                                            "ReactMutableSource"
-                                                        }
-                                                    },
-                                                    {
-                                                        422,
-                                                        2,
-                                                        {
-                                                            "ReactMemo"
-                                                        }
-                                                    },
-                                                    {
-                                                        421,
-                                                        2,
-                                                        {
-                                                            "ReactLazy"
-                                                        }
-                                                    },
-                                                    {
-                                                        418,
-                                                        2,
-                                                        {
-                                                            "ReactElementValidator"
-                                                        }
-                                                    },
-                                                    {
-                                                        416,
-                                                        2,
-                                                        {
-                                                            "ReactCreateRef"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                389,
-                                                2,
-                                                {
-                                                    "InstanceOf"
-                                                },
-                                                {
-                                                    {
-                                                        390,
-                                                        2,
-                                                        {
-                                                            "instanceof"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                388,
-                                                2,
-                                                {
-                                                    "ES7Types"
-                                                }
-                                            }
-                                        }
-                                    },
                                     {
                                         326,
                                         1,
@@ -143252,22 +139164,6 @@ local ObjectTree = {
                                                 2,
                                                 {
                                                     "react-roblox"
-                                                }
-                                            },
-                                            {
-                                                330,
-                                                2,
-                                                {
-                                                    "react"
-                                                },
-                                                {
-                                                    {
-                                                        331,
-                                                        2,
-                                                        {
-                                                            "tags"
-                                                        }
-                                                    }
                                                 }
                                             },
                                             {
@@ -143310,17 +139206,4121 @@ local ObjectTree = {
                                                 },
                                                 {
                                                     {
+                                                        328,
+                                                        2,
+                                                        {
+                                                            "package"
+                                                        }
+                                                    },
+                                                    {
                                                         329,
                                                         1,
                                                         {
                                                             "types"
                                                         }
-                                                    },
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                330,
+                                                2,
+                                                {
+                                                    "react"
+                                                },
+                                                {
                                                     {
-                                                        328,
+                                                        331,
                                                         2,
                                                         {
-                                                            "package"
+                                                            "tags"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        337,
+                                        1,
+                                        {
+                                            "@rbxts-js"
+                                        },
+                                        {
+                                            {
+                                                338,
+                                                2,
+                                                {
+                                                    "Boolean"
+                                                },
+                                                {
+                                                    {
+                                                        339,
+                                                        2,
+                                                        {
+                                                            "toJSBoolean"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                496,
+                                                2,
+                                                {
+                                                    "Promise"
+                                                }
+                                            },
+                                            {
+                                                483,
+                                                2,
+                                                {
+                                                    "ReactRoblox"
+                                                },
+                                                {
+                                                    {
+                                                        485,
+                                                        1,
+                                                        {
+                                                            "client"
+                                                        },
+                                                        {
+                                                            {
+                                                                492,
+                                                                1,
+                                                                {
+                                                                    "roblox"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        495,
+                                                                        2,
+                                                                        {
+                                                                            "getDefaultInstanceProperty"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        493,
+                                                                        2,
+                                                                        {
+                                                                            "RobloxComponentProps"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        494,
+                                                                        2,
+                                                                        {
+                                                                            "SingleEventManager"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                491,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxRoot"
+                                                                }
+                                                            },
+                                                            {
+                                                                490,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxHostTypes.roblox"
+                                                                }
+                                                            },
+                                                            {
+                                                                489,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxHostConfig"
+                                                                }
+                                                            },
+                                                            {
+                                                                487,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxComponent"
+                                                                }
+                                                            },
+                                                            {
+                                                                488,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxComponentTree"
+                                                                }
+                                                            },
+                                                            {
+                                                                486,
+                                                                2,
+                                                                {
+                                                                    "ReactRoblox"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        484,
+                                                        2,
+                                                        {
+                                                            "ReactReconciler.roblox"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                391,
+                                                2,
+                                                {
+                                                    "LuauPolyfill"
+                                                },
+                                                {
+                                                    {
+                                                        394,
+                                                        2,
+                                                        {
+                                                            "Error"
+                                                        },
+                                                        {
+                                                            {
+                                                                395,
+                                                                2,
+                                                                {
+                                                                    "Error.global"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        398,
+                                                        2,
+                                                        {
+                                                            "extends"
+                                                        }
+                                                    },
+                                                    {
+                                                        396,
+                                                        2,
+                                                        {
+                                                            "Promise"
+                                                        }
+                                                    },
+                                                    {
+                                                        397,
+                                                        2,
+                                                        {
+                                                            "encodeURIComponent"
+                                                        }
+                                                    },
+                                                    {
+                                                        392,
+                                                        2,
+                                                        {
+                                                            "AssertionError"
+                                                        },
+                                                        {
+                                                            {
+                                                                393,
+                                                                2,
+                                                                {
+                                                                    "AssertionError.global"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                399,
+                                                2,
+                                                {
+                                                    "Math"
+                                                },
+                                                {
+                                                    {
+                                                        400,
+                                                        2,
+                                                        {
+                                                            "clz32"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                553,
+                                                2,
+                                                {
+                                                    "String"
+                                                },
+                                                {
+                                                    {
+                                                        557,
+                                                        2,
+                                                        {
+                                                            "includes"
+                                                        }
+                                                    },
+                                                    {
+                                                        563,
+                                                        2,
+                                                        {
+                                                            "substr"
+                                                        }
+                                                    },
+                                                    {
+                                                        559,
+                                                        2,
+                                                        {
+                                                            "lastIndexOf"
+                                                        }
+                                                    },
+                                                    {
+                                                        565,
+                                                        2,
+                                                        {
+                                                            "trimEnd"
+                                                        }
+                                                    },
+                                                    {
+                                                        558,
+                                                        2,
+                                                        {
+                                                            "indexOf"
+                                                        }
+                                                    },
+                                                    {
+                                                        566,
+                                                        2,
+                                                        {
+                                                            "trimStart"
+                                                        }
+                                                    },
+                                                    {
+                                                        560,
+                                                        2,
+                                                        {
+                                                            "slice"
+                                                        }
+                                                    },
+                                                    {
+                                                        555,
+                                                        2,
+                                                        {
+                                                            "endsWith"
+                                                        }
+                                                    },
+                                                    {
+                                                        564,
+                                                        2,
+                                                        {
+                                                            "trim"
+                                                        }
+                                                    },
+                                                    {
+                                                        556,
+                                                        2,
+                                                        {
+                                                            "findOr"
+                                                        }
+                                                    },
+                                                    {
+                                                        562,
+                                                        2,
+                                                        {
+                                                            "startsWith"
+                                                        }
+                                                    },
+                                                    {
+                                                        561,
+                                                        2,
+                                                        {
+                                                            "split"
+                                                        }
+                                                    },
+                                                    {
+                                                        554,
+                                                        2,
+                                                        {
+                                                            "charCodeAt"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                401,
+                                                2,
+                                                {
+                                                    "Number"
+                                                },
+                                                {
+                                                    {
+                                                        402,
+                                                        2,
+                                                        {
+                                                            "MAX_SAFE_INTEGER"
+                                                        }
+                                                    },
+                                                    {
+                                                        404,
+                                                        2,
+                                                        {
+                                                            "isFinite"
+                                                        }
+                                                    },
+                                                    {
+                                                        406,
+                                                        2,
+                                                        {
+                                                            "isNaN"
+                                                        }
+                                                    },
+                                                    {
+                                                        405,
+                                                        2,
+                                                        {
+                                                            "isInteger"
+                                                        }
+                                                    },
+                                                    {
+                                                        408,
+                                                        2,
+                                                        {
+                                                            "toExponential"
+                                                        }
+                                                    },
+                                                    {
+                                                        407,
+                                                        2,
+                                                        {
+                                                            "isSafeInteger"
+                                                        }
+                                                    },
+                                                    {
+                                                        403,
+                                                        2,
+                                                        {
+                                                            "MIN_SAFE_INTEGER"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                426,
+                                                2,
+                                                {
+                                                    "ReactGlobals"
+                                                },
+                                                {
+                                                    {
+                                                        427,
+                                                        2,
+                                                        {
+                                                            "ReactGlobals.global"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                428,
+                                                2,
+                                                {
+                                                    "ReactReconciler"
+                                                },
+                                                {
+                                                    {
+                                                        441,
+                                                        2,
+                                                        {
+                                                            "ReactFiberDevToolsHook.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        448,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHotReloading.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        453,
+                                                        2,
+                                                        {
+                                                            "ReactFiberOffscreenComponent"
+                                                        }
+                                                    },
+                                                    {
+                                                        443,
+                                                        2,
+                                                        {
+                                                            "ReactFiberErrorLogger"
+                                                        }
+                                                    },
+                                                    {
+                                                        461,
+                                                        2,
+                                                        {
+                                                            "ReactFiberThrow.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        429,
+                                                        2,
+                                                        {
+                                                            "DebugTracing"
+                                                        }
+                                                    },
+                                                    {
+                                                        479,
+                                                        2,
+                                                        {
+                                                            "SchedulerWithReactIntegration.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        449,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHydrationContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        450,
+                                                        2,
+                                                        {
+                                                            "ReactFiberLane"
+                                                        }
+                                                    },
+                                                    {
+                                                        436,
+                                                        2,
+                                                        {
+                                                            "ReactFiberClassComponent.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        430,
+                                                        2,
+                                                        {
+                                                            "MaxInts"
+                                                        }
+                                                    },
+                                                    {
+                                                        480,
+                                                        2,
+                                                        {
+                                                            "SchedulingProfiler"
+                                                        }
+                                                    },
+                                                    {
+                                                        435,
+                                                        2,
+                                                        {
+                                                            "ReactFiberBeginWork.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        455,
+                                                        2,
+                                                        {
+                                                            "ReactFiberReconciler.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        478,
+                                                        2,
+                                                        {
+                                                            "RobloxReactProfiling"
+                                                        }
+                                                    },
+                                                    {
+                                                        477,
+                                                        2,
+                                                        {
+                                                            "ReactWorkTags"
+                                                        }
+                                                    },
+                                                    {
+                                                        431,
+                                                        2,
+                                                        {
+                                                            "ReactCapturedValue"
+                                                        }
+                                                    },
+                                                    {
+                                                        439,
+                                                        2,
+                                                        {
+                                                            "ReactFiberComponentStack"
+                                                        }
+                                                    },
+                                                    {
+                                                        444,
+                                                        2,
+                                                        {
+                                                            "ReactFiberFlags"
+                                                        }
+                                                    },
+                                                    {
+                                                        464,
+                                                        2,
+                                                        {
+                                                            "ReactFiberUnwindWork.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        476,
+                                                        2,
+                                                        {
+                                                            "ReactUpdateQueue.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        471,
+                                                        2,
+                                                        {
+                                                            "ReactProfilerTimer.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        445,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHooks.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        475,
+                                                        2,
+                                                        {
+                                                            "ReactTypeOfMode"
+                                                        }
+                                                    },
+                                                    {
+                                                        474,
+                                                        2,
+                                                        {
+                                                            "ReactTestSelectors"
+                                                        }
+                                                    },
+                                                    {
+                                                        438,
+                                                        2,
+                                                        {
+                                                            "ReactFiberCompleteWork.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        446,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHostConfig"
+                                                        }
+                                                    },
+                                                    {
+                                                        472,
+                                                        2,
+                                                        {
+                                                            "ReactRootTags"
+                                                        }
+                                                    },
+                                                    {
+                                                        433,
+                                                        2,
+                                                        {
+                                                            "ReactCurrentFiber"
+                                                        }
+                                                    },
+                                                    {
+                                                        452,
+                                                        2,
+                                                        {
+                                                            "ReactFiberNewContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        465,
+                                                        2,
+                                                        {
+                                                            "ReactFiberWorkInProgress"
+                                                        }
+                                                    },
+                                                    {
+                                                        466,
+                                                        2,
+                                                        {
+                                                            "ReactFiberWorkLoop.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        468,
+                                                        2,
+                                                        {
+                                                            "ReactInternalTypes"
+                                                        }
+                                                    },
+                                                    {
+                                                        469,
+                                                        2,
+                                                        {
+                                                            "ReactMutableSource.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        459,
+                                                        2,
+                                                        {
+                                                            "ReactFiberSuspenseComponent.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        437,
+                                                        2,
+                                                        {
+                                                            "ReactFiberCommitWork.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        451,
+                                                        2,
+                                                        {
+                                                            "ReactFiberLazyComponent.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        467,
+                                                        2,
+                                                        {
+                                                            "ReactHookEffectTags"
+                                                        }
+                                                    },
+                                                    {
+                                                        463,
+                                                        2,
+                                                        {
+                                                            "ReactFiberTreeReflection"
+                                                        }
+                                                    },
+                                                    {
+                                                        432,
+                                                        2,
+                                                        {
+                                                            "ReactChildFiber.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        462,
+                                                        2,
+                                                        {
+                                                            "ReactFiberTransition"
+                                                        }
+                                                    },
+                                                    {
+                                                        460,
+                                                        2,
+                                                        {
+                                                            "ReactFiberSuspenseContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        473,
+                                                        2,
+                                                        {
+                                                            "ReactStrictModeWarnings.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        457,
+                                                        2,
+                                                        {
+                                                            "ReactFiberSchedulerPriorities.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        481,
+                                                        1,
+                                                        {
+                                                            "forks"
+                                                        },
+                                                        {
+                                                            {
+                                                                482,
+                                                                2,
+                                                                {
+                                                                    "ReactFiberHostConfig.test"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        442,
+                                                        2,
+                                                        {
+                                                            "ReactFiberErrorDialog"
+                                                        }
+                                                    },
+                                                    {
+                                                        458,
+                                                        2,
+                                                        {
+                                                            "ReactFiberStack.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        456,
+                                                        2,
+                                                        {
+                                                            "ReactFiberRoot.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        434,
+                                                        2,
+                                                        {
+                                                            "ReactFiber.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        454,
+                                                        2,
+                                                        {
+                                                            "ReactFiberReconciler"
+                                                        }
+                                                    },
+                                                    {
+                                                        470,
+                                                        2,
+                                                        {
+                                                            "ReactPortal"
+                                                        }
+                                                    },
+                                                    {
+                                                        447,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHostContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        440,
+                                                        2,
+                                                        {
+                                                            "ReactFiberContext.new"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                498,
+                                                2,
+                                                {
+                                                    "Scheduler"
+                                                },
+                                                {
+                                                    {
+                                                        504,
+                                                        2,
+                                                        {
+                                                            "SchedulerPriorities"
+                                                        }
+                                                    },
+                                                    {
+                                                        499,
+                                                        2,
+                                                        {
+                                                            "NoYield"
+                                                        }
+                                                    },
+                                                    {
+                                                        503,
+                                                        2,
+                                                        {
+                                                            "SchedulerMinHeap"
+                                                        }
+                                                    },
+                                                    {
+                                                        511,
+                                                        2,
+                                                        {
+                                                            "unstable_mock"
+                                                        }
+                                                    },
+                                                    {
+                                                        500,
+                                                        2,
+                                                        {
+                                                            "Scheduler"
+                                                        }
+                                                    },
+                                                    {
+                                                        508,
+                                                        1,
+                                                        {
+                                                            "forks"
+                                                        },
+                                                        {
+                                                            {
+                                                                510,
+                                                                2,
+                                                                {
+                                                                    "SchedulerHostConfig.mock"
+                                                                }
+                                                            },
+                                                            {
+                                                                509,
+                                                                2,
+                                                                {
+                                                                    "SchedulerHostConfig.default"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        502,
+                                                        2,
+                                                        {
+                                                            "SchedulerHostConfig"
+                                                        }
+                                                    },
+                                                    {
+                                                        507,
+                                                        2,
+                                                        {
+                                                            "TracingSubscriptions"
+                                                        }
+                                                    },
+                                                    {
+                                                        501,
+                                                        2,
+                                                        {
+                                                            "SchedulerFeatureFlags"
+                                                        }
+                                                    },
+                                                    {
+                                                        506,
+                                                        2,
+                                                        {
+                                                            "Tracing"
+                                                        }
+                                                    },
+                                                    {
+                                                        505,
+                                                        2,
+                                                        {
+                                                            "SchedulerProfiling"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                388,
+                                                2,
+                                                {
+                                                    "ES7Types"
+                                                }
+                                            },
+                                            {
+                                                567,
+                                                2,
+                                                {
+                                                    "Symbol"
+                                                },
+                                                {
+                                                    {
+                                                        568,
+                                                        2,
+                                                        {
+                                                            "Registry.global"
+                                                        }
+                                                    },
+                                                    {
+                                                        569,
+                                                        2,
+                                                        {
+                                                            "Symbol"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                340,
+                                                2,
+                                                {
+                                                    "Collections"
+                                                },
+                                                {
+                                                    {
+                                                        341,
+                                                        2,
+                                                        {
+                                                            "Array"
+                                                        },
+                                                        {
+                                                            {
+                                                                367,
+                                                                2,
+                                                                {
+                                                                    "unshift"
+                                                                }
+                                                            },
+                                                            {
+                                                                363,
+                                                                2,
+                                                                {
+                                                                    "slice"
+                                                                }
+                                                            },
+                                                            {
+                                                                361,
+                                                                2,
+                                                                {
+                                                                    "reverse"
+                                                                }
+                                                            },
+                                                            {
+                                                                346,
+                                                                2,
+                                                                {
+                                                                    "findIndex"
+                                                                }
+                                                            },
+                                                            {
+                                                                344,
+                                                                2,
+                                                                {
+                                                                    "filter"
+                                                                }
+                                                            },
+                                                            {
+                                                                366,
+                                                                2,
+                                                                {
+                                                                    "splice"
+                                                                }
+                                                            },
+                                                            {
+                                                                349,
+                                                                2,
+                                                                {
+                                                                    "forEach"
+                                                                }
+                                                            },
+                                                            {
+                                                                345,
+                                                                2,
+                                                                {
+                                                                    "find"
+                                                                }
+                                                            },
+                                                            {
+                                                                365,
+                                                                2,
+                                                                {
+                                                                    "sort"
+                                                                }
+                                                            },
+                                                            {
+                                                                364,
+                                                                2,
+                                                                {
+                                                                    "some"
+                                                                }
+                                                            },
+                                                            {
+                                                                359,
+                                                                2,
+                                                                {
+                                                                    "map"
+                                                                }
+                                                            },
+                                                            {
+                                                                342,
+                                                                2,
+                                                                {
+                                                                    "concat"
+                                                                }
+                                                            },
+                                                            {
+                                                                362,
+                                                                2,
+                                                                {
+                                                                    "shift"
+                                                                }
+                                                            },
+                                                            {
+                                                                348,
+                                                                2,
+                                                                {
+                                                                    "flatMap"
+                                                                }
+                                                            },
+                                                            {
+                                                                357,
+                                                                2,
+                                                                {
+                                                                    "isArray"
+                                                                }
+                                                            },
+                                                            {
+                                                                356,
+                                                                2,
+                                                                {
+                                                                    "indexOf"
+                                                                }
+                                                            },
+                                                            {
+                                                                350,
+                                                                2,
+                                                                {
+                                                                    "from"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        351,
+                                                                        2,
+                                                                        {
+                                                                            "fromArray"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        353,
+                                                                        2,
+                                                                        {
+                                                                            "fromSet"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        352,
+                                                                        2,
+                                                                        {
+                                                                            "fromMap"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        354,
+                                                                        2,
+                                                                        {
+                                                                            "fromString"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                347,
+                                                                2,
+                                                                {
+                                                                    "flat"
+                                                                }
+                                                            },
+                                                            {
+                                                                355,
+                                                                2,
+                                                                {
+                                                                    "includes"
+                                                                }
+                                                            },
+                                                            {
+                                                                360,
+                                                                2,
+                                                                {
+                                                                    "reduce"
+                                                                }
+                                                            },
+                                                            {
+                                                                358,
+                                                                2,
+                                                                {
+                                                                    "join"
+                                                                }
+                                                            },
+                                                            {
+                                                                343,
+                                                                2,
+                                                                {
+                                                                    "every"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        385,
+                                                        2,
+                                                        {
+                                                            "inspect"
+                                                        }
+                                                    },
+                                                    {
+                                                        372,
+                                                        2,
+                                                        {
+                                                            "Object"
+                                                        },
+                                                        {
+                                                            {
+                                                                382,
+                                                                2,
+                                                                {
+                                                                    "values"
+                                                                }
+                                                            },
+                                                            {
+                                                                376,
+                                                                2,
+                                                                {
+                                                                    "freeze"
+                                                                }
+                                                            },
+                                                            {
+                                                                374,
+                                                                2,
+                                                                {
+                                                                    "assign"
+                                                                }
+                                                            },
+                                                            {
+                                                                377,
+                                                                2,
+                                                                {
+                                                                    "is"
+                                                                }
+                                                            },
+                                                            {
+                                                                378,
+                                                                2,
+                                                                {
+                                                                    "isFrozen"
+                                                                }
+                                                            },
+                                                            {
+                                                                373,
+                                                                2,
+                                                                {
+                                                                    "None"
+                                                                }
+                                                            },
+                                                            {
+                                                                381,
+                                                                2,
+                                                                {
+                                                                    "seal"
+                                                                }
+                                                            },
+                                                            {
+                                                                380,
+                                                                2,
+                                                                {
+                                                                    "preventExtensions"
+                                                                }
+                                                            },
+                                                            {
+                                                                379,
+                                                                2,
+                                                                {
+                                                                    "keys"
+                                                                }
+                                                            },
+                                                            {
+                                                                375,
+                                                                2,
+                                                                {
+                                                                    "entries"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        384,
+                                                        2,
+                                                        {
+                                                            "WeakMap"
+                                                        }
+                                                    },
+                                                    {
+                                                        383,
+                                                        2,
+                                                        {
+                                                            "Set"
+                                                        }
+                                                    },
+                                                    {
+                                                        368,
+                                                        2,
+                                                        {
+                                                            "Map"
+                                                        },
+                                                        {
+                                                            {
+                                                                369,
+                                                                2,
+                                                                {
+                                                                    "Map"
+                                                                }
+                                                            },
+                                                            {
+                                                                371,
+                                                                2,
+                                                                {
+                                                                    "coerceToTable"
+                                                                }
+                                                            },
+                                                            {
+                                                                370,
+                                                                2,
+                                                                {
+                                                                    "coerceToMap"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                386,
+                                                2,
+                                                {
+                                                    "Console"
+                                                },
+                                                {
+                                                    {
+                                                        387,
+                                                        2,
+                                                        {
+                                                            "makeConsoleImpl"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                497,
+                                                2,
+                                                {
+                                                    "SafeFlags"
+                                                }
+                                            },
+                                            {
+                                                512,
+                                                2,
+                                                {
+                                                    "Shared"
+                                                },
+                                                {
+                                                    {
+                                                        548,
+                                                        2,
+                                                        {
+                                                            "invariant"
+                                                        }
+                                                    },
+                                                    {
+                                                        550,
+                                                        2,
+                                                        {
+                                                            "isValidElementType"
+                                                        }
+                                                    },
+                                                    {
+                                                        549,
+                                                        2,
+                                                        {
+                                                            "invokeGuardedCallbackImpl"
+                                                        }
+                                                    },
+                                                    {
+                                                        535,
+                                                        2,
+                                                        {
+                                                            "ReactSymbols"
+                                                        }
+                                                    },
+                                                    {
+                                                        513,
+                                                        2,
+                                                        {
+                                                            "ConsolePatchingDev.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        542,
+                                                        2,
+                                                        {
+                                                            "console"
+                                                        }
+                                                    },
+                                                    {
+                                                        514,
+                                                        2,
+                                                        {
+                                                            "ErrorHandling.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        539,
+                                                        2,
+                                                        {
+                                                            "Type.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        545,
+                                                        2,
+                                                        {
+                                                            "flowtypes.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        546,
+                                                        2,
+                                                        {
+                                                            "formatProdErrorMessage"
+                                                        }
+                                                    },
+                                                    {
+                                                        544,
+                                                        2,
+                                                        {
+                                                            "enqueueTask.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        547,
+                                                        2,
+                                                        {
+                                                            "getComponentName"
+                                                        }
+                                                    },
+                                                    {
+                                                        529,
+                                                        2,
+                                                        {
+                                                            "ReactSharedInternals"
+                                                        },
+                                                        {
+                                                            {
+                                                                533,
+                                                                2,
+                                                                {
+                                                                    "ReactCurrentOwner"
+                                                                }
+                                                            },
+                                                            {
+                                                                534,
+                                                                2,
+                                                                {
+                                                                    "ReactDebugCurrentFrame"
+                                                                }
+                                                            },
+                                                            {
+                                                                530,
+                                                                2,
+                                                                {
+                                                                    "IsSomeRendererActing"
+                                                                }
+                                                            },
+                                                            {
+                                                                531,
+                                                                2,
+                                                                {
+                                                                    "ReactCurrentBatchConfig"
+                                                                }
+                                                            },
+                                                            {
+                                                                532,
+                                                                2,
+                                                                {
+                                                                    "ReactCurrentDispatcher"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        543,
+                                                        2,
+                                                        {
+                                                            "consoleWithStackDev"
+                                                        }
+                                                    },
+                                                    {
+                                                        551,
+                                                        2,
+                                                        {
+                                                            "objectIs"
+                                                        }
+                                                    },
+                                                    {
+                                                        520,
+                                                        2,
+                                                        {
+                                                            "ReactComponentStackFrame"
+                                                        }
+                                                    },
+                                                    {
+                                                        537,
+                                                        2,
+                                                        {
+                                                            "ReactVersion"
+                                                        }
+                                                    },
+                                                    {
+                                                        540,
+                                                        2,
+                                                        {
+                                                            "UninitializedState.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        524,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHostConfig"
+                                                        },
+                                                        {
+                                                            {
+                                                                525,
+                                                                2,
+                                                                {
+                                                                    "WithNoHydration"
+                                                                }
+                                                            },
+                                                            {
+                                                                526,
+                                                                2,
+                                                                {
+                                                                    "WithNoPersistence"
+                                                                }
+                                                            },
+                                                            {
+                                                                527,
+                                                                2,
+                                                                {
+                                                                    "WithNoTestSelectors"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        536,
+                                                        2,
+                                                        {
+                                                            "ReactTypes"
+                                                        }
+                                                    },
+                                                    {
+                                                        538,
+                                                        2,
+                                                        {
+                                                            "Symbol.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        521,
+                                                        2,
+                                                        {
+                                                            "ReactElementType"
+                                                        }
+                                                    },
+                                                    {
+                                                        528,
+                                                        2,
+                                                        {
+                                                            "ReactInstanceMap"
+                                                        }
+                                                    },
+                                                    {
+                                                        552,
+                                                        2,
+                                                        {
+                                                            "shallowEqual"
+                                                        }
+                                                    },
+                                                    {
+                                                        515,
+                                                        2,
+                                                        {
+                                                            "ExecutionEnvironment"
+                                                        }
+                                                    },
+                                                    {
+                                                        522,
+                                                        2,
+                                                        {
+                                                            "ReactErrorUtils"
+                                                        }
+                                                    },
+                                                    {
+                                                        541,
+                                                        2,
+                                                        {
+                                                            "checkPropTypes"
+                                                        }
+                                                    },
+                                                    {
+                                                        523,
+                                                        2,
+                                                        {
+                                                            "ReactFeatureFlags"
+                                                        }
+                                                    },
+                                                    {
+                                                        516,
+                                                        1,
+                                                        {
+                                                            "PropMarkers"
+                                                        },
+                                                        {
+                                                            {
+                                                                518,
+                                                                2,
+                                                                {
+                                                                    "Event"
+                                                                }
+                                                            },
+                                                            {
+                                                                517,
+                                                                2,
+                                                                {
+                                                                    "Change"
+                                                                }
+                                                            },
+                                                            {
+                                                                519,
+                                                                2,
+                                                                {
+                                                                    "Tag"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                570,
+                                                2,
+                                                {
+                                                    "Timers"
+                                                },
+                                                {
+                                                    {
+                                                        571,
+                                                        2,
+                                                        {
+                                                            "makeIntervalImpl"
+                                                        }
+                                                    },
+                                                    {
+                                                        572,
+                                                        2,
+                                                        {
+                                                            "makeTimerImpl"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                409,
+                                                2,
+                                                {
+                                                    "React"
+                                                },
+                                                {
+                                                    {
+                                                        425,
+                                                        2,
+                                                        {
+                                                            "createSignal.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        410,
+                                                        2,
+                                                        {
+                                                            "None.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        423,
+                                                        2,
+                                                        {
+                                                            "ReactMutableSource"
+                                                        }
+                                                    },
+                                                    {
+                                                        418,
+                                                        2,
+                                                        {
+                                                            "ReactElementValidator"
+                                                        }
+                                                    },
+                                                    {
+                                                        414,
+                                                        2,
+                                                        {
+                                                            "ReactChildren"
+                                                        }
+                                                    },
+                                                    {
+                                                        421,
+                                                        2,
+                                                        {
+                                                            "ReactLazy"
+                                                        }
+                                                    },
+                                                    {
+                                                        416,
+                                                        2,
+                                                        {
+                                                            "ReactCreateRef"
+                                                        }
+                                                    },
+                                                    {
+                                                        424,
+                                                        2,
+                                                        {
+                                                            "ReactNoopUpdateQueue"
+                                                        }
+                                                    },
+                                                    {
+                                                        411,
+                                                        2,
+                                                        {
+                                                            "React"
+                                                        }
+                                                    },
+                                                    {
+                                                        419,
+                                                        2,
+                                                        {
+                                                            "ReactForwardRef"
+                                                        }
+                                                    },
+                                                    {
+                                                        422,
+                                                        2,
+                                                        {
+                                                            "ReactMemo"
+                                                        }
+                                                    },
+                                                    {
+                                                        415,
+                                                        2,
+                                                        {
+                                                            "ReactContext"
+                                                        }
+                                                    },
+                                                    {
+                                                        420,
+                                                        2,
+                                                        {
+                                                            "ReactHooks"
+                                                        }
+                                                    },
+                                                    {
+                                                        412,
+                                                        2,
+                                                        {
+                                                            "ReactBaseClasses"
+                                                        }
+                                                    },
+                                                    {
+                                                        413,
+                                                        2,
+                                                        {
+                                                            "ReactBinding.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        417,
+                                                        2,
+                                                        {
+                                                            "ReactElement"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                389,
+                                                2,
+                                                {
+                                                    "InstanceOf"
+                                                },
+                                                {
+                                                    {
+                                                        390,
+                                                        2,
+                                                        {
+                                                            "instanceof"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                323,
+                                2,
+                                {
+                                    "Promise"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        3,
+                        2,
+                        {
+                            "Prism"
+                        },
+                        {
+                            {
+                                174,
+                                2,
+                                {
+                                    "styled"
+                                }
+                            },
+                            {
+                                166,
+                                2,
+                                {
+                                    "icons"
+                                },
+                                {
+                                    {
+                                        167,
+                                        2,
+                                        {
+                                            "lucide"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                177,
+                                2,
+                                {
+                                    "theme"
+                                },
+                                {
+                                    {
+                                        182,
+                                        2,
+                                        {
+                                            "types"
+                                        }
+                                    },
+                                    {
+                                        179,
+                                        2,
+                                        {
+                                            "defaults"
+                                        }
+                                    },
+                                    {
+                                        180,
+                                        2,
+                                        {
+                                            "refs"
+                                        }
+                                    },
+                                    {
+                                        181,
+                                        2,
+                                        {
+                                            "resolveToken"
+                                        }
+                                    },
+                                    {
+                                        178,
+                                        2,
+                                        {
+                                            "ThemeProvider"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                168,
+                                2,
+                                {
+                                    "motion"
+                                },
+                                {
+                                    {
+                                        170,
+                                        2,
+                                        {
+                                            "signatures"
+                                        }
+                                    },
+                                    {
+                                        172,
+                                        2,
+                                        {
+                                            "types"
+                                        }
+                                    },
+                                    {
+                                        169,
+                                        2,
+                                        {
+                                            "__typecheck__"
+                                        }
+                                    },
+                                    {
+                                        173,
+                                        2,
+                                        {
+                                            "useMotion"
+                                        }
+                                    },
+                                    {
+                                        171,
+                                        2,
+                                        {
+                                            "transitions"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                175,
+                                1,
+                                {
+                                    "testing"
+                                },
+                                {
+                                    {
+                                        176,
+                                        2,
+                                        {
+                                            "typeContracts"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                4,
+                                2,
+                                {
+                                    "__typecheck__"
+                                }
+                            },
+                            {
+                                183,
+                                2,
+                                {
+                                    "utils"
+                                },
+                                {
+                                    {
+                                        184,
+                                        2,
+                                        {
+                                            "__test__"
+                                        }
+                                    },
+                                    {
+                                        186,
+                                        2,
+                                        {
+                                            "units"
+                                        }
+                                    },
+                                    {
+                                        185,
+                                        2,
+                                        {
+                                            "diagnostics"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                8,
+                                1,
+                                {
+                                    "components"
+                                },
+                                {
+                                    {
+                                        65,
+                                        2,
+                                        {
+                                            "Menu"
+                                        },
+                                        {
+                                            {
+                                                69,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                66,
+                                                2,
+                                                {
+                                                    "Menu"
+                                                }
+                                            },
+                                            {
+                                                67,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                68,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        147,
+                                        1,
+                                        {
+                                            "_shared"
+                                        },
+                                        {
+                                            {
+                                                155,
+                                                2,
+                                                {
+                                                    "overlayLayerPolicy"
+                                                }
+                                            },
+                                            {
+                                                161,
+                                                2,
+                                                {
+                                                    "usePresence"
+                                                }
+                                            },
+                                            {
+                                                153,
+                                                2,
+                                                {
+                                                    "layering"
+                                                }
+                                            },
+                                            {
+                                                149,
+                                                2,
+                                                {
+                                                    "elevation"
+                                                }
+                                            },
+                                            {
+                                                150,
+                                                2,
+                                                {
+                                                    "foundationDecorators"
+                                                }
+                                            },
+                                            {
+                                                159,
+                                                2,
+                                                {
+                                                    "useControllableState"
+                                                }
+                                            },
+                                            {
+                                                160,
+                                                2,
+                                                {
+                                                    "useDelayedCallback"
+                                                }
+                                            },
+                                            {
+                                                148,
+                                                2,
+                                                {
+                                                    "TriggerOverlayLayer"
+                                                }
+                                            },
+                                            {
+                                                154,
+                                                2,
+                                                {
+                                                    "mergeSharedStyleProps"
+                                                }
+                                            },
+                                            {
+                                                158,
+                                                2,
+                                                {
+                                                    "textFont"
+                                                }
+                                            },
+                                            {
+                                                165,
+                                                2,
+                                                {
+                                                    "visual"
+                                                }
+                                            },
+                                            {
+                                                164,
+                                                2,
+                                                {
+                                                    "useRootCursor"
+                                                }
+                                            },
+                                            {
+                                                163,
+                                                2,
+                                                {
+                                                    "useResolvedStyleProps"
+                                                }
+                                            },
+                                            {
+                                                157,
+                                                2,
+                                                {
+                                                    "styleOverride"
+                                                }
+                                            },
+                                            {
+                                                151,
+                                                2,
+                                                {
+                                                    "frameSize"
+                                                }
+                                            },
+                                            {
+                                                152,
+                                                2,
+                                                {
+                                                    "interaction"
+                                                }
+                                            },
+                                            {
+                                                162,
+                                                2,
+                                                {
+                                                    "usePressInteraction"
+                                                }
+                                            },
+                                            {
+                                                156,
+                                                2,
+                                                {
+                                                    "slotProps"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        143,
+                                        2,
+                                        {
+                                            "WorldPortal"
+                                        },
+                                        {
+                                            {
+                                                144,
+                                                2,
+                                                {
+                                                    "WorldPortal"
+                                                }
+                                            },
+                                            {
+                                                146,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                145,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        30,
+                                        2,
+                                        {
+                                            "Checkbox"
+                                        },
+                                        {
+                                            {
+                                                31,
+                                                2,
+                                                {
+                                                    "Checkbox"
+                                                }
+                                            },
+                                            {
+                                                33,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                34,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                32,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        137,
+                                        2,
+                                        {
+                                            "Tooltip"
+                                        },
+                                        {
+                                            {
+                                                138,
+                                                2,
+                                                {
+                                                    "Tooltip"
+                                                }
+                                            },
+                                            {
+                                                141,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                142,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                140,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                139,
+                                                2,
+                                                {
+                                                    "TooltipOverlayBubble"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        128,
+                                        2,
+                                        {
+                                            "Tabs"
+                                        },
+                                        {
+                                            {
+                                                130,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                129,
+                                                2,
+                                                {
+                                                    "Tabs"
+                                                }
+                                            },
+                                            {
+                                                131,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                132,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        133,
+                                        2,
+                                        {
+                                            "Text"
+                                        },
+                                        {
+                                            {
+                                                135,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                134,
+                                                2,
+                                                {
+                                                    "Text"
+                                                }
+                                            },
+                                            {
+                                                136,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        47,
+                                        2,
+                                        {
+                                            "Icon"
+                                        },
+                                        {
+                                            {
+                                                49,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                48,
+                                                2,
+                                                {
+                                                    "Icon"
+                                                }
+                                            },
+                                            {
+                                                50,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        117,
+                                        2,
+                                        {
+                                            "StepperInput"
+                                        },
+                                        {
+                                            {
+                                                120,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                121,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                119,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                122,
+                                                2,
+                                                {
+                                                    "utils"
+                                                }
+                                            },
+                                            {
+                                                118,
+                                                2,
+                                                {
+                                                    "StepperInput"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        107,
+                                        2,
+                                        {
+                                            "Slider"
+                                        },
+                                        {
+                                            {
+                                                109,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                110,
+                                                2,
+                                                {
+                                                    "controllerInput"
+                                                }
+                                            },
+                                            {
+                                                113,
+                                                2,
+                                                {
+                                                    "utils"
+                                                }
+                                            },
+                                            {
+                                                111,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                108,
+                                                2,
+                                                {
+                                                    "Slider"
+                                                }
+                                            },
+                                            {
+                                                112,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        114,
+                                        2,
+                                        {
+                                            "Stack"
+                                        },
+                                        {
+                                            {
+                                                115,
+                                                2,
+                                                {
+                                                    "Stack"
+                                                }
+                                            },
+                                            {
+                                                116,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        99,
+                                        2,
+                                        {
+                                            "Select"
+                                        },
+                                        {
+                                            {
+                                                102,
+                                                2,
+                                                {
+                                                    "SelectOptionRow"
+                                                }
+                                            },
+                                            {
+                                                105,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                104,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                103,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                101,
+                                                2,
+                                                {
+                                                    "SelectDropdown"
+                                                }
+                                            },
+                                            {
+                                                100,
+                                                2,
+                                                {
+                                                    "Select"
+                                                }
+                                            },
+                                            {
+                                                106,
+                                                2,
+                                                {
+                                                    "utils"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        43,
+                                        2,
+                                        {
+                                            "Draggable"
+                                        },
+                                        {
+                                            {
+                                                44,
+                                                2,
+                                                {
+                                                    "Draggable"
+                                                }
+                                            },
+                                            {
+                                                45,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                46,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        26,
+                                        2,
+                                        {
+                                            "Card"
+                                        },
+                                        {
+                                            {
+                                                28,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                27,
+                                                2,
+                                                {
+                                                    "Card"
+                                                }
+                                            },
+                                            {
+                                                29,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        55,
+                                        2,
+                                        {
+                                            "Input"
+                                        },
+                                        {
+                                            {
+                                                56,
+                                                2,
+                                                {
+                                                    "Input"
+                                                }
+                                            },
+                                            {
+                                                59,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                57,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                58,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        13,
+                                        2,
+                                        {
+                                            "Backdrop"
+                                        },
+                                        {
+                                            {
+                                                14,
+                                                2,
+                                                {
+                                                    "Backdrop"
+                                                }
+                                            },
+                                            {
+                                                15,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                16,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        94,
+                                        2,
+                                        {
+                                            "SegmentedControl"
+                                        },
+                                        {
+                                            {
+                                                97,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                95,
+                                                2,
+                                                {
+                                                    "SegmentedControl"
+                                                }
+                                            },
+                                            {
+                                                98,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                96,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        90,
+                                        2,
+                                        {
+                                            "ScrollArea"
+                                        },
+                                        {
+                                            {
+                                                92,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                91,
+                                                2,
+                                                {
+                                                    "ScrollArea"
+                                                }
+                                            },
+                                            {
+                                                93,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        81,
+                                        2,
+                                        {
+                                            "Pressable"
+                                        },
+                                        {
+                                            {
+                                                82,
+                                                2,
+                                                {
+                                                    "Pressable"
+                                                }
+                                            },
+                                            {
+                                                83,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                84,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        17,
+                                        2,
+                                        {
+                                            "Box"
+                                        },
+                                        {
+                                            {
+                                                19,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                18,
+                                                2,
+                                                {
+                                                    "Box"
+                                                }
+                                            },
+                                            {
+                                                20,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        85,
+                                        2,
+                                        {
+                                            "Progress"
+                                        },
+                                        {
+                                            {
+                                                88,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                86,
+                                                2,
+                                                {
+                                                    "Progress"
+                                                }
+                                            },
+                                            {
+                                                87,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                89,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        74,
+                                        2,
+                                        {
+                                            "Popover"
+                                        },
+                                        {
+                                            {
+                                                79,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                77,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                78,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                80,
+                                                2,
+                                                {
+                                                    "utils"
+                                                }
+                                            },
+                                            {
+                                                76,
+                                                2,
+                                                {
+                                                    "PopoverOverlayPanel"
+                                                }
+                                            },
+                                            {
+                                                75,
+                                                2,
+                                                {
+                                                    "Popover"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        70,
+                                        2,
+                                        {
+                                            "Modal"
+                                        },
+                                        {
+                                            {
+                                                71,
+                                                2,
+                                                {
+                                                    "Modal"
+                                                }
+                                            },
+                                            {
+                                                73,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                72,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        9,
+                                        2,
+                                        {
+                                            "Avatar"
+                                        },
+                                        {
+                                            {
+                                                11,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                10,
+                                                2,
+                                                {
+                                                    "Avatar"
+                                                }
+                                            },
+                                            {
+                                                12,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        40,
+                                        2,
+                                        {
+                                            "Divider"
+                                        },
+                                        {
+                                            {
+                                                41,
+                                                2,
+                                                {
+                                                    "Divider"
+                                                }
+                                            },
+                                            {
+                                                42,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        21,
+                                        2,
+                                        {
+                                            "Button"
+                                        },
+                                        {
+                                            {
+                                                25,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                22,
+                                                2,
+                                                {
+                                                    "Button"
+                                                }
+                                            },
+                                            {
+                                                24,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                23,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        60,
+                                        2,
+                                        {
+                                            "KeybindInput"
+                                        },
+                                        {
+                                            {
+                                                62,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                64,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                61,
+                                                2,
+                                                {
+                                                    "KeybindInput"
+                                                }
+                                            },
+                                            {
+                                                63,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        35,
+                                        2,
+                                        {
+                                            "CircularProgress"
+                                        },
+                                        {
+                                            {
+                                                37,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                39,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                38,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                36,
+                                                2,
+                                                {
+                                                    "CircularProgress"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        51,
+                                        2,
+                                        {
+                                            "Image"
+                                        },
+                                        {
+                                            {
+                                                53,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                52,
+                                                2,
+                                                {
+                                                    "Image"
+                                                }
+                                            },
+                                            {
+                                                54,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        123,
+                                        2,
+                                        {
+                                            "Switch"
+                                        },
+                                        {
+                                            {
+                                                125,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                124,
+                                                2,
+                                                {
+                                                    "Switch"
+                                                }
+                                            },
+                                            {
+                                                126,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                127,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                5,
+                                2,
+                                {
+                                    "bridge"
+                                },
+                                {
+                                    {
+                                        6,
+                                        2,
+                                        {
+                                            "LuauBridge"
+                                        }
+                                    },
+                                    {
+                                        7,
+                                        2,
+                                        {
+                                            "__typecheck__"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    {
+                        187,
+                        1,
+                        {
+                            "UniversalHubMenu"
+                        },
+                        {
+                            {
+                                307,
+                                2,
+                                {
+                                    "src"
+                                },
+                                {
+                                    {
+                                        308,
+                                        2,
+                                        {
+                                            "UniversalHubMenu"
+                                        }
+                                    },
+                                    {
+                                        309,
+                                        1,
+                                        {
+                                            "components"
+                                        },
+                                        {
+                                            {
+                                                312,
+                                                2,
+                                                {
+                                                    "SectionList"
+                                                }
+                                            },
+                                            {
+                                                310,
+                                                2,
+                                                {
+                                                    "ControlView"
+                                                }
+                                            },
+                                            {
+                                                311,
+                                                2,
+                                                {
+                                                    "Keycap"
+                                                }
+                                            },
+                                            {
+                                                313,
+                                                2,
+                                                {
+                                                    "WhatsNewModal"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        318,
+                                        2,
+                                        {
+                                            "prismCompat"
+                                        }
+                                    },
+                                    {
+                                        315,
+                                        1,
+                                        {
+                                            "preview"
+                                        },
+                                        {
+                                            {
+                                                317,
+                                                2,
+                                                {
+                                                    "ViewportDummy"
+                                                }
+                                            },
+                                            {
+                                                316,
+                                                2,
+                                                {
+                                                    "ModelViewer"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        314,
+                                        2,
+                                        {
+                                            "contracts"
+                                        }
+                                    },
+                                    {
+                                        320,
+                                        1,
+                                        {
+                                            "visuals"
+                                        },
+                                        {
+                                            {
+                                                321,
+                                                2,
+                                                {
+                                                    "VisualsPage"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        319,
+                                        2,
+                                        {
+                                            "theme"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                188,
+                                1,
+                                {
+                                    ".generated"
+                                },
+                                {
+                                    {
+                                        189,
+                                        1,
+                                        {
+                                            "prism-src"
+                                        },
+                                        {
+                                            {
+                                                190,
+                                                1,
+                                                {
+                                                    "lib"
+                                                },
+                                                {
+                                                    {
+                                                        292,
+                                                        2,
+                                                        {
+                                                            "motion"
+                                                        },
+                                                        {
+                                                            {
+                                                                296,
+                                                                2,
+                                                                {
+                                                                    "useMotion"
+                                                                }
+                                                            },
+                                                            {
+                                                                293,
+                                                                2,
+                                                                {
+                                                                    "signatures"
+                                                                }
+                                                            },
+                                                            {
+                                                                295,
+                                                                2,
+                                                                {
+                                                                    "types"
+                                                                }
+                                                            },
+                                                            {
+                                                                294,
+                                                                2,
+                                                                {
+                                                                    "transitions"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        191,
+                                                        1,
+                                                        {
+                                                            "bridge"
+                                                        }
+                                                    },
+                                                    {
+                                                        297,
+                                                        1,
+                                                        {
+                                                            "testing"
+                                                        }
+                                                    },
+                                                    {
+                                                        298,
+                                                        2,
+                                                        {
+                                                            "theme"
+                                                        },
+                                                        {
+                                                            {
+                                                                303,
+                                                                2,
+                                                                {
+                                                                    "types"
+                                                                }
+                                                            },
+                                                            {
+                                                                302,
+                                                                2,
+                                                                {
+                                                                    "resolveToken"
+                                                                }
+                                                            },
+                                                            {
+                                                                300,
+                                                                2,
+                                                                {
+                                                                    "defaults"
+                                                                }
+                                                            },
+                                                            {
+                                                                301,
+                                                                2,
+                                                                {
+                                                                    "refs"
+                                                                }
+                                                            },
+                                                            {
+                                                                299,
+                                                                2,
+                                                                {
+                                                                    "ThemeProvider"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        304,
+                                                        2,
+                                                        {
+                                                            "utils"
+                                                        },
+                                                        {
+                                                            {
+                                                                305,
+                                                                2,
+                                                                {
+                                                                    "diagnostics"
+                                                                }
+                                                            },
+                                                            {
+                                                                306,
+                                                                2,
+                                                                {
+                                                                    "units"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        290,
+                                                        1,
+                                                        {
+                                                            "icons"
+                                                        },
+                                                        {
+                                                            {
+                                                                291,
+                                                                2,
+                                                                {
+                                                                    "lucide"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        192,
+                                                        1,
+                                                        {
+                                                            "components"
+                                                        },
+                                                        {
+                                                            {
+                                                                213,
+                                                                1,
+                                                                {
+                                                                    "Input"
+                                                                }
+                                                            },
+                                                            {
+                                                                222,
+                                                                2,
+                                                                {
+                                                                    "Popover"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        227,
+                                                                        2,
+                                                                        {
+                                                                            "utils"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        223,
+                                                                        2,
+                                                                        {
+                                                                            "Popover"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        226,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        224,
+                                                                        2,
+                                                                        {
+                                                                            "PopoverOverlayPanel"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        225,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                193,
+                                                                1,
+                                                                {
+                                                                    "Avatar"
+                                                                }
+                                                            },
+                                                            {
+                                                                212,
+                                                                1,
+                                                                {
+                                                                    "Image"
+                                                                }
+                                                            },
+                                                            {
+                                                                194,
+                                                                2,
+                                                                {
+                                                                    "Backdrop"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        195,
+                                                                        2,
+                                                                        {
+                                                                            "Backdrop"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        196,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                271,
+                                                                1,
+                                                                {
+                                                                    "_shared"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        286,
+                                                                        2,
+                                                                        {
+                                                                            "usePressInteraction"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        283,
+                                                                        2,
+                                                                        {
+                                                                            "useControllableState"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        289,
+                                                                        2,
+                                                                        {
+                                                                            "visual"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        275,
+                                                                        2,
+                                                                        {
+                                                                            "frameSize"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        280,
+                                                                        2,
+                                                                        {
+                                                                            "slotProps"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        278,
+                                                                        2,
+                                                                        {
+                                                                            "mergeSharedStyleProps"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        277,
+                                                                        2,
+                                                                        {
+                                                                            "layering"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        284,
+                                                                        2,
+                                                                        {
+                                                                            "useDelayedCallback"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        272,
+                                                                        2,
+                                                                        {
+                                                                            "TriggerOverlayLayer"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        288,
+                                                                        2,
+                                                                        {
+                                                                            "useRootCursor"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        285,
+                                                                        2,
+                                                                        {
+                                                                            "usePresence"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        287,
+                                                                        2,
+                                                                        {
+                                                                            "useResolvedStyleProps"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        279,
+                                                                        2,
+                                                                        {
+                                                                            "overlayLayerPolicy"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        281,
+                                                                        2,
+                                                                        {
+                                                                            "styleOverride"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        282,
+                                                                        2,
+                                                                        {
+                                                                            "textFont"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        273,
+                                                                        2,
+                                                                        {
+                                                                            "elevation"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        276,
+                                                                        2,
+                                                                        {
+                                                                            "interaction"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        274,
+                                                                        2,
+                                                                        {
+                                                                            "foundationDecorators"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                233,
+                                                                2,
+                                                                {
+                                                                    "SegmentedControl"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        236,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        235,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        234,
+                                                                        2,
+                                                                        {
+                                                                            "SegmentedControl"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                244,
+                                                                2,
+                                                                {
+                                                                    "Slider"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        248,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        245,
+                                                                        2,
+                                                                        {
+                                                                            "Slider"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        247,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        246,
+                                                                        2,
+                                                                        {
+                                                                            "controllerInput"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        249,
+                                                                        2,
+                                                                        {
+                                                                            "utils"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                204,
+                                                                1,
+                                                                {
+                                                                    "Card"
+                                                                }
+                                                            },
+                                                            {
+                                                                258,
+                                                                2,
+                                                                {
+                                                                    "Tabs"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        259,
+                                                                        2,
+                                                                        {
+                                                                            "Tabs"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        260,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        261,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                218,
+                                                                1,
+                                                                {
+                                                                    "Menu"
+                                                                }
+                                                            },
+                                                            {
+                                                                205,
+                                                                1,
+                                                                {
+                                                                    "Checkbox"
+                                                                }
+                                                            },
+                                                            {
+                                                                265,
+                                                                2,
+                                                                {
+                                                                    "Tooltip"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        268,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        266,
+                                                                        2,
+                                                                        {
+                                                                            "Tooltip"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        269,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        267,
+                                                                        2,
+                                                                        {
+                                                                            "TooltipOverlayBubble"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                262,
+                                                                2,
+                                                                {
+                                                                    "Text"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        263,
+                                                                        2,
+                                                                        {
+                                                                            "Text"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        264,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                270,
+                                                                1,
+                                                                {
+                                                                    "WorldPortal"
+                                                                }
+                                                            },
+                                                            {
+                                                                254,
+                                                                2,
+                                                                {
+                                                                    "Switch"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        255,
+                                                                        2,
+                                                                        {
+                                                                            "Switch"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        257,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        256,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                230,
+                                                                2,
+                                                                {
+                                                                    "ScrollArea"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        232,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        231,
+                                                                        2,
+                                                                        {
+                                                                            "ScrollArea"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                253,
+                                                                1,
+                                                                {
+                                                                    "StepperInput"
+                                                                }
+                                                            },
+                                                            {
+                                                                206,
+                                                                1,
+                                                                {
+                                                                    "CircularProgress"
+                                                                }
+                                                            },
+                                                            {
+                                                                209,
+                                                                2,
+                                                                {
+                                                                    "Icon"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        211,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        210,
+                                                                        2,
+                                                                        {
+                                                                            "Icon"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                219,
+                                                                2,
+                                                                {
+                                                                    "Modal"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        221,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        220,
+                                                                        2,
+                                                                        {
+                                                                            "Modal"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                208,
+                                                                1,
+                                                                {
+                                                                    "Draggable"
+                                                                }
+                                                            },
+                                                            {
+                                                                250,
+                                                                2,
+                                                                {
+                                                                    "Stack"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        252,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        251,
+                                                                        2,
+                                                                        {
+                                                                            "Stack"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                237,
+                                                                2,
+                                                                {
+                                                                    "Select"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        242,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        241,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        238,
+                                                                        2,
+                                                                        {
+                                                                            "Select"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        239,
+                                                                        2,
+                                                                        {
+                                                                            "SelectDropdown"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        243,
+                                                                        2,
+                                                                        {
+                                                                            "utils"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        240,
+                                                                        2,
+                                                                        {
+                                                                            "SelectOptionRow"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                214,
+                                                                2,
+                                                                {
+                                                                    "KeybindInput"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        215,
+                                                                        2,
+                                                                        {
+                                                                            "KeybindInput"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        217,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        216,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                200,
+                                                                2,
+                                                                {
+                                                                    "Button"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        202,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        203,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        201,
+                                                                        2,
+                                                                        {
+                                                                            "Button"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                228,
+                                                                1,
+                                                                {
+                                                                    "Pressable"
+                                                                }
+                                                            },
+                                                            {
+                                                                229,
+                                                                1,
+                                                                {
+                                                                    "Progress"
+                                                                }
+                                                            },
+                                                            {
+                                                                207,
+                                                                1,
+                                                                {
+                                                                    "Divider"
+                                                                }
+                                                            },
+                                                            {
+                                                                197,
+                                                                2,
+                                                                {
+                                                                    "Box"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        199,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        198,
+                                                                        2,
+                                                                        {
+                                                                            "Box"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -144171,6 +144171,7 @@ local RealObjectRoot = CreateRef("Folder", "[" .. EnvName .. "]")
 for _, Object in next, ObjectTree do
     CreateRefFromObject(Object, RealObjectRoot)
 end
+SharedEnvironment.ReplicatedStorage = RealObjectRoot:GetChildren()[1].ReplicatedStorage
 
 -- Now we'll set script closure refs and check if they should be ran as a BaseScript
 for RefId, Closure in next, ClosureBindings do

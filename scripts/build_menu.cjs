@@ -197,11 +197,25 @@ function main() {
 	if (bundled.includes('ReplicatedStorage:WaitForChild("Prism")')) {
 		fail("Wax bundle includes Prism playground code that reads the live DataModel");
 	}
+	const virtualImports = bundled
+		.replaceAll('game:GetService("ReplicatedStorage")', "wax.shared.ReplicatedStorage")
+		.replace(
+			/(for _, Object in next, ObjectTree do\r?\n\s*CreateRefFromObject\(Object, RealObjectRoot\)\r?\nend)/,
+			'$1\nSharedEnvironment.ReplicatedStorage = RealObjectRoot:GetChildren()[1].ReplicatedStorage',
+		);
+	if (
+		virtualImports.includes('game:GetService("ReplicatedStorage")') ||
+		!virtualImports.includes(
+			"SharedEnvironment.ReplicatedStorage = RealObjectRoot:GetChildren()[1].ReplicatedStorage",
+		)
+	) {
+		fail("Wax bundle could not isolate roblox-ts imports in the virtual ReplicatedStorage");
+	}
 	const entrypoint =
 		"return require(script.ReplicatedStorage.UniversalHubMenu.src.UniversalHubMenu)";
-	const entrypointPatched = bundled.includes(entrypoint)
-		? bundled
-		: bundled.replace(
+	const entrypointPatched = virtualImports.includes(entrypoint)
+		? virtualImports
+		: virtualImports.replace(
 				/(local ClosureBindings = \{\r?\n\s*function\(\)local wax,script,require=ImportGlobals\(1\)local ImportGlobals return \(function\(\.\.\.\))\r?\n(end\)\(\) end,)/,
 				`$1${entrypoint}\n$2`,
 			);
