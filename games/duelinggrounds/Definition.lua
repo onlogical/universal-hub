@@ -25,17 +25,17 @@ return {
         cosmetics = false,
     },
     hydroxide = { "targeting" },
-    id = "ugc",
+    id = "duelinggrounds",
     initialState = {},
     label = "Dueling Grounds ⚔️",
     manifest = {
         gameIds = { 9051406594 },
         placeIds = { 94217045453265 },
     },
-    module = "games/Ugc",
-    presentation = "games/ugc/Presentation",
+    module = "games/DuelingGrounds",
+    presentation = "games/duelinggrounds/Presentation",
     sources = {
-        "games/Ugc",
-        "games/ugc/Presentation",
+        "games/DuelingGrounds",
+        "games/duelinggrounds/Presentation",
     },
 }
