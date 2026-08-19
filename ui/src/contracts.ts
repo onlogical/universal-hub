@@ -182,9 +182,44 @@ export interface UniversalHubMenuModel {
 	readonly allyAudienceIcon?: string;
 	readonly visible: boolean;
 	readonly whatsNew?: WhatsNewModel;
+	readonly combatTelemetry?: CombatTelemetryModel;
 	readonly pages: readonly MenuPage[];
 	readonly onValueChange: (id: string, value: MenuValue, persist: boolean) => void;
 	readonly onAction?: (name: string) => void;
+}
+
+export interface CombatFrameData {
+	readonly attack?: string;
+	readonly phase?: string;
+	readonly startup?: number;
+	readonly recovery?: number;
+	readonly comboGap?: number;
+}
+
+export interface CombatReplayEntry {
+	readonly t: number;
+	readonly kind: string;
+	readonly title: string;
+	readonly detail: string;
+}
+
+export interface CombatReplay {
+	readonly id: number;
+	readonly target: string;
+	readonly duration: number;
+	readonly entries: readonly CombatReplayEntry[];
+	readonly counts: Readonly<Record<string, number>>;
+}
+
+export interface CombatTelemetryModel {
+	readonly frameDataVisible: boolean;
+	readonly replayVisible: boolean;
+	readonly frameData?: {
+		readonly self?: CombatFrameData;
+		readonly target?: CombatFrameData;
+		readonly punishWindow?: number;
+	};
+	readonly replay?: CombatReplay;
 }
 
 export interface UniversalHubMenuHandle {

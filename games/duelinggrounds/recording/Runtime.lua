@@ -13,6 +13,10 @@ local Sampler = importDependency(
     "games/duelinggrounds/recording/Sampler",
     "./Sampler"
 )
+local Replay = importDependency(
+    "games/duelinggrounds/recording/Replay",
+    "./Replay"
+)
 
 local Runtime = {}
 Runtime.__index = Runtime
@@ -59,6 +63,7 @@ function Runtime.new(dependencies)
         wallClock = dependencies.wallClock or os.time,
         persistence = dependencies.persistence,
         sample = dependencies.sample or Sampler.sample,
+        replay = dependencies.replay or Replay,
         telemetry = telemetry,
         lastStyle = nil,
         stopped = false,
@@ -89,7 +94,10 @@ function Runtime:recordEvent(kind, data, global)
         event.t = self.clock()
         table.insert(self.telemetry.events, event)
         trim(self.telemetry.events, MAX_GLOBAL_EVENTS)
-        self:_append("decision", event)
+        local matchEvent = {}
+        copyInto(matchEvent, event)
+        matchEvent.decisionKind = kind
+        self:_append("decision", matchEvent)
         return
     end
     self:_append(kind, data)
@@ -138,6 +146,15 @@ function Runtime:_finish(reason)
     match.startedClock = nil
     match.targetModelRef = nil
     match.lastSampleAt = nil
+    local replaySucceeded, timeline = pcall(self.replay.build, match)
+    match.timeline = replaySucceeded and timeline or {
+        id = match.metadata.id,
+        target = match.metadata.target,
+        duration = match.metadata.duration,
+        entries = {},
+        counts = {},
+        error = tostring(timeline),
+    }
     table.insert(self.telemetry.matches, match)
     trim(self.telemetry.matches, MAX_MATCHES)
     self.telemetry.current = nil
@@ -145,6 +162,14 @@ function Runtime:_finish(reason)
     if self.persistence then
         self.persistence:save(self.telemetry.version, match)
     end
+end
+
+function Runtime:getCurrentMatch()
+    return self.telemetry.current
+end
+
+function Runtime:getLatestMatch()
+    return self.telemetry.matches[#self.telemetry.matches]
 end
 
 function Runtime:update(frame, settings)

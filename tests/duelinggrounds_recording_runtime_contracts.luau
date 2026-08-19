@@ -58,10 +58,13 @@ local matchEvent = runtime.telemetry.current.events[3]
 assert(globalEvent.t == now, "Global compatibility events retain absolute clock timestamps")
 assert(matchEvent.kind == "decision" and math.abs(matchEvent.t - 0.1) < 0.000001)
 assert(matchEvent.winner == "parry")
+assert(matchEvent.decisionKind == "defenseSelected")
 
 now = 11
 runtime:update({ targetModel = targetB, metadata = { target = targetB.Name } }, settings)
 assert(saved[1].match.metadata.endReason == "targetChanged")
+assert(type(saved[1].match.timeline) == "table")
+assert(runtime:getLatestMatch() == saved[1].match)
 assert(runtime.telemetry.current.metadata.target == targetB.Name)
 assert(runtime.telemetry.current.samples[1].t == 0)
 

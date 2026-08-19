@@ -17,9 +17,9 @@ local TeleportBehind = importDependency(
     "games/duelinggrounds/features/TeleportBehind",
     "./duelinggrounds/features/TeleportBehind"
 )
-local AttackRange = importDependency(
-    "games/duelinggrounds/features/combat/AttackRange",
-    "./duelinggrounds/features/combat/AttackRange"
+local FrameData = importDependency(
+    "games/duelinggrounds/features/combat/FrameData",
+    "./duelinggrounds/features/combat/FrameData"
 )
 local Styles = importDependency(
     "games/duelinggrounds/features/combat/Styles",
@@ -267,22 +267,6 @@ local function offensiveAttackCanReach(attackerRoot, defenderRoot, attackInfo)
     return false
 end
 
-local function getAttackGeometricReach(attackInfo)
-    local maximumReach = 0
-    for _, impact in ipairs(attackInfo and attackInfo.impacts or {}) do
-        local impactInfo = impact.impactInfo
-        local hitboxCFrame = impactInfo and impactInfo.hitboxCFrame
-        local hitboxSize = impactInfo and impactInfo.hitboxSize
-        if typeof(hitboxCFrame) == "CFrame" and typeof(hitboxSize) == "Vector3" then
-            maximumReach = math.max(
-                maximumReach,
-                math.abs(hitboxCFrame.Position.Z) + hitboxSize.Z / 2
-            )
-        end
-    end
-    return maximumReach
-end
-
 local function getAttackMaximumReach(attackInfo)
     local maximumReach = 0
     for _, impact in ipairs(attackInfo and attackInfo.impacts or {}) do
@@ -348,10 +332,6 @@ function DuelingGrounds.new(context)
     local nextOrbitSwitchAt = 0
     local offenseRandom = Random.new()
     local skillRandom = Random.new()
-    local selectedAttackRangeMode = nil
-    local selectedAttackRangeTarget = nil
-    local selectedAttackRangeRandom = false
-    local selectedAttackRangeSetting = nil
     local ultimateReadyAt = nil
     local dynamicState = {
         mode = "offensive",
@@ -363,6 +343,8 @@ function DuelingGrounds.new(context)
     local boundLocalCombatWeapon = nil
     local localCombatConnection = nil
     local localDeflectAnimations = {}
+    local activeSelfAttacks = {}
+    local lastTelemetryPublishAt = -math.huge
     local lastCombatStyle = nil
     local environment = type(getgenv) == "function" and getgenv() or _G
     local recording = RecordingRuntime.new({
@@ -376,56 +358,6 @@ function DuelingGrounds.new(context)
             end,
         }),
     })
-
-    local function resolveAttackRangeMode(settings, targetModel, defenseReady)
-        local randomEnabled = settings.randomAttackRange == true
-        local configuredMode = AttackRange.normalize(settings.attackRange)
-        if selectedAttackRangeTarget ~= targetModel
-            or selectedAttackRangeRandom ~= randomEnabled
-            or selectedAttackRangeSetting ~= configuredMode
-        then
-            selectedAttackRangeMode = nil
-            selectedAttackRangeTarget = targetModel
-            selectedAttackRangeRandom = randomEnabled
-            selectedAttackRangeSetting = configuredMode
-        end
-        if randomEnabled then
-            if defenseReady == false then
-                selectedAttackRangeMode = "far"
-            elseif selectedAttackRangeMode == nil then
-                selectedAttackRangeMode = AttackRange.choose(offenseRandom, true)
-            end
-        else
-            selectedAttackRangeMode = configuredMode
-        end
-        return selectedAttackRangeMode
-    end
-
-    local function applyAttackRange(
-        profile,
-        settings,
-        targetModel,
-        localHandler,
-        actionManager
-    )
-        local weaponHandler = localHandler and localHandler:GetEquippedWeaponHandler()
-        local weaponInfo = weaponHandler and weaponHandler.WeaponInfo
-        local attackTypes = weaponInfo and weaponInfo.BasicAttackTypes
-        local attackName = actionManager and actionManager:_resolveAttackName(profile.neutralAttack)
-        local attackInfo = attackName and attackTypes and attackTypes[attackName]
-        local defenseReady = actionManager
-            and (actionManager._dodgeStamina or 0) >= 0.99
-            and (actionManager._blockStrength or 0) > 0.01
-        local mode = resolveAttackRangeMode(settings, targetModel, defenseReady)
-        return AttackRange.apply(profile, mode, getAttackGeometricReach(attackInfo))
-    end
-
-    local function rerollAttackRange(settings)
-        if settings.randomAttackRange == true then
-            selectedAttackRangeMode = nil
-        end
-    end
-
     local function appendCurrentMatchEvent(kind, data)
         recording:recordEvent(kind, data)
     end
@@ -434,11 +366,13 @@ function DuelingGrounds.new(context)
         recording:recordDecision(kind, data)
     end
 
-    local function updateMatchRecording(settings)
+    local function updateMatchRecording(settings, liveFrameData)
         local target = targetLockController.Target
         local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
         local localHandler = characterController:GetLocalCharacterHandler()
-        local targetHandler = characterController:GetCharacterHandler(targetModel)
+        local targetHandler = targetModel
+            and characterController:GetCharacterHandler(targetModel)
+            or nil
         local localWeapon = getWeaponInfo(localHandler)
         local targetWeapon = getWeaponInfo(targetHandler)
         local targetPlayer = targetModel and context.players:GetPlayerFromCharacter(targetModel)
@@ -450,6 +384,9 @@ function DuelingGrounds.new(context)
             dynamicMode = settings.combatStyle == "dynamic" and dynamicState.mode or nil,
             defense = defenseIntent and defenseIntent.kind or nil,
             critical = targetLockController.CriticalStrikeTarget ~= nil,
+            punishWindow = liveFrameData and liveFrameData.punishWindow or 0,
+            selfFrameData = liveFrameData and liveFrameData.self or nil,
+            targetFrameData = liveFrameData and liveFrameData.target or nil,
             metadata = {
                 gameId = game.GameId,
                 placeId = game.PlaceId,
@@ -560,6 +497,7 @@ function DuelingGrounds.new(context)
         boundLocalCombatHandler = nil
         boundLocalCombatWeapon = nil
         table.clear(localDeflectAnimations)
+        table.clear(activeSelfAttacks)
     end
 
     local function updateLocalCombatObservation()
@@ -585,10 +523,19 @@ function DuelingGrounds.new(context)
             local animation = track.Animation
             local animationId = animation and animation.AnimationId or ""
             local animationName = string.lower(animation and animation.Name or "")
+            local attackInfo, attackName = getAttackInfo(handler, track)
+            if attackInfo then
+                activeSelfAttacks[track] = {
+                    attackInfo = attackInfo,
+                    attackName = attackName,
+                    startedAt = os.clock(),
+                }
+            end
             appendCurrentMatchEvent("animation", {
                 side = "self",
                 id = animationId,
-                name = animation and animation.Name or "",
+                name = attackName or animation and animation.Name or "",
+                attack = attackName,
             })
             if localDeflectAnimations[animationId]
                 or string.find(animationName, "deflected", 1, true)
@@ -834,7 +781,6 @@ function DuelingGrounds.new(context)
             return true
         end
         if actionManager:TryQueueBasicAttack("Light") then
-            rerollAttackRange(context.store:Get().settings or {})
             pendingDodgeCounterAt = nil
             pendingDodgeCounterUntil = nil
             lastFightAttackAt = now
@@ -1001,6 +947,7 @@ function DuelingGrounds.new(context)
             isHeavy = isHeavyAttackInfo(attackName, attackInfo),
             handler = handler,
             reacted = {},
+            startedAt = os.clock(),
         }
         local localHandler = characterController:GetLocalCharacterHandler()
         local actionManager = localHandler and localHandler.ActionManager
@@ -1030,12 +977,13 @@ function DuelingGrounds.new(context)
 
     local function observeTargetTrack(handler, track, animationSets, observeCombatState)
         local animation = track.Animation
+        local attackInfo, attackName = getAttackInfo(handler, track)
         appendCurrentMatchEvent("animation", {
             side = "target",
             id = animation and animation.AnimationId or "",
-            name = animation and animation.Name or "",
+            name = attackName or animation and animation.Name or "",
+            attack = attackName,
         })
-        local attackInfo = getAttackInfo(handler, track)
         if attackInfo then
             observeThreatTrack(handler, track)
             return
@@ -1374,7 +1322,6 @@ function DuelingGrounds.new(context)
                 })
                 if queued then
                     ultimateReadyAt = nil
-                    rerollAttackRange(settings)
                     lastFightAttackAt = lastUltimateAttemptAt
                     local canCancel = getAttackMarker(ultimateInfo, "canCancel")
                         or getFirstImpactTime(ultimateInfo)
@@ -1460,7 +1407,6 @@ function DuelingGrounds.new(context)
                 if actionManager.CurrentAction.CanQueueBasicAttacks
                     and actionManager:TryQueueBasicAttack("JumpAttack")
                 then
-                    rerollAttackRange(settings)
                     pendingJumpAttackUntil = nil
                     lastFightAttackAt = os.clock()
                 end
@@ -1526,7 +1472,6 @@ function DuelingGrounds.new(context)
             if (stylePreferences.aggressiveCombos or Skill.shouldPunish(skill, skillRandom))
                 and actionManager:TryQueueBasicAttack("Light")
             then
-                rerollAttackRange(settings)
                 lastFightAttackAt = os.clock()
                 appendCurrentMatchEvent("comboAttack", {
                     result = "queued",
@@ -1578,13 +1523,6 @@ function DuelingGrounds.new(context)
                 maximumNeutralAttackDistance = profile.maximumNeutralAttackDistance,
             }
         end
-        profile = applyAttackRange(
-            profile,
-            settings,
-            targetModel,
-            localHandler,
-            actionManager
-        )
         local distance = (Vector3.new(targetRoot.Position.X, 0, targetRoot.Position.Z)
             - Vector3.new(localRoot.Position.X, 0, localRoot.Position.Z)).Magnitude
         local targetReach = getTargetGeometricReach(targetHandler)
@@ -1707,7 +1645,6 @@ function DuelingGrounds.new(context)
             })
         end
         if queued then
-            rerollAttackRange(settings)
             lastFightAttackAt = os.clock()
             local canCancel = getAttackMarker(attackInfo, "canCancel")
                 or getFirstImpactTime(attackInfo)
@@ -1768,13 +1705,6 @@ function DuelingGrounds.new(context)
                 maximumNeutralAttackDistance = profile.maximumNeutralAttackDistance,
             }
         end
-        profile = applyAttackRange(
-            profile,
-            settings,
-            targetModel,
-            localHandler,
-            actionManager
-        )
 
         local currentAction = actionManager.CurrentAction
         local canMoveAfterImpact = currentAction
@@ -1921,6 +1851,60 @@ function DuelingGrounds.new(context)
         playerInputController.CurrentInput.MoveDirection = direction
     end
 
+    local function newestFrameData(entries, requiredHandler)
+        local selected
+        for track, entry in pairs(entries) do
+            if not track.IsPlaying then
+                entries[track] = nil
+            elseif (not requiredHandler or entry.handler == requiredHandler)
+                and (not selected or (entry.startedAt or 0) > (selected.startedAt or 0))
+            then
+                selected = {
+                    track = track,
+                    attackInfo = entry.attackInfo,
+                    attackName = entry.attackName,
+                    startedAt = entry.startedAt,
+                }
+            end
+        end
+        return selected and FrameData.describe(
+            selected.track,
+            selected.attackInfo,
+            selected.attackName
+        ) or nil
+    end
+
+    local function getLiveFrameData()
+        local target = targetLockController.Target
+        local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
+        local targetHandler = targetModel
+            and characterController:GetCharacterHandler(targetModel)
+            or nil
+        return {
+            self = newestFrameData(activeSelfAttacks),
+            target = newestFrameData(activeThreats, targetHandler),
+            punishWindow = getTargetPunishWindow(),
+        }
+    end
+
+    local function updateCombatTelemetry(settings, liveFrameData)
+        if type(context.updateCombatTelemetry) ~= "function" then
+            return
+        end
+        local now = os.clock()
+        if now - lastTelemetryPublishAt < 0.05 then
+            return
+        end
+        lastTelemetryPublishAt = now
+        local latest = recording:getLatestMatch()
+        context.updateCombatTelemetry({
+            frameDataVisible = settings.frameDataHud == true,
+            replayVisible = settings.fightReplay == true,
+            frameData = liveFrameData,
+            replay = latest and latest.timeline or nil,
+        })
+    end
+
     local function updateTeleportBehind(settings)
         local target = targetLockController.Target
         local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
@@ -1941,9 +1925,11 @@ function DuelingGrounds.new(context)
         end
 
         local settings = context.store:Get().settings or {}
-        updateMatchRecording(settings)
         updateLocalCombatObservation()
         updateAutoDefense(settings)
+        local liveFrameData = getLiveFrameData()
+        updateMatchRecording(settings, liveFrameData)
+        updateCombatTelemetry(settings, liveFrameData)
         updateTeleportBehind(settings)
         updateAutoFight(settings)
         updateAutoMovement(settings)
@@ -1986,6 +1972,8 @@ function DuelingGrounds.new(context)
             "showWins",
             "autoFight",
             "autoMovement",
+            "frameDataHud",
+            "fightReplay",
             "combatStyle",
             "teleportBehind",
             "noclip",
@@ -1999,6 +1987,9 @@ function DuelingGrounds.new(context)
             end
             stopped = true
             recording:stop("sessionStopped")
+            if type(context.updateCombatTelemetry) == "function" then
+                context.updateCombatTelemetry(nil)
+            end
             disconnectEnemyAnimations()
             disconnectLocalCombatObservation()
             noclip:stop()

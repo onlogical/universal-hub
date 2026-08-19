@@ -7,6 +7,7 @@ import { ThemeProvider } from "@prism/theme";
 import { theme } from "@prism/theme";
 import type { UniversalHubMenuModel } from "./contracts";
 import { SectionList } from "./components/SectionList";
+import { CombatTelemetry } from "./components/CombatTelemetry";
 import { WhatsNewModal } from "./components/WhatsNewModal";
 import { HUB_THEME } from "./theme";
 import { VisualsPage } from "./visuals/VisualsPage";
@@ -113,6 +114,7 @@ export function UniversalHubMenu({
   return (
     <ThemeProvider theme={HUB_THEME}>
       <WhatsNewModal notice={model.whatsNew} onAction={model.onAction} />
+      <CombatTelemetry telemetry={model.combatTelemetry} />
       <frame
         key="shell"
         ref={shellRef}
