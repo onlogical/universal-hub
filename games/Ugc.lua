@@ -86,6 +86,17 @@ local function getImpactResultValue(attackInfo, resultName, valueName)
     return result and result[valueName] or 0
 end
 
+local function triggersUltimateDamage(attackInfo)
+    for _, impact in ipairs(attackInfo and attackInfo.impacts or {}) do
+        local impactInfo = impact.impactInfo
+        local results = impactInfo and impactInfo.impactResults
+        if results and results.GetHit and results.GetHit.triggerUltimate == true then
+            return true
+        end
+    end
+    return false
+end
+
 local function isHeavyAttackInfo(attackName, attackInfo)
     local normalizedName = string.lower(attackName or "")
     if string.find(normalizedName, "heavy", 1, true) then
@@ -1263,6 +1274,43 @@ function Ugc.new(context)
         if criticalModel
             and os.clock() - lastCriticalStrikeAt >= 0.25
         then
+            local criticalHandler = characterController:GetCharacterHandler(criticalModel)
+            local criticalRoot = criticalHandler and criticalHandler.Root
+                or criticalModel.PrimaryPart
+            local localRoot = localHandler.Root
+            local weaponHandler = localHandler:GetEquippedWeaponHandler()
+            local attackTypes = weaponHandler and weaponHandler.WeaponInfo.BasicAttackTypes
+            local ultimateInfo = attackTypes and attackTypes.Ultimate
+            local canUpgradeToUltimate = ultimateInfo ~= nil
+                and triggersUltimateDamage(ultimateInfo)
+                and localHandler:CanPerformUltimate()
+                and not actionManager.CurrentAction
+                and not actionManager._queuedActionType
+                and offensiveAttackCanReach(localRoot, criticalRoot, ultimateInfo)
+                and hasClearPath(
+                    localRoot,
+                    { localHandler.Model, localHandler.OriginalModel },
+                    criticalRoot,
+                    { criticalHandler and criticalHandler.Model, criticalModel }
+                )
+            if canUpgradeToUltimate then
+                local queued = actionManager:TryQueueBasicAttack("Ultimate")
+                lastUltimateAttemptAt = os.clock()
+                appendCurrentMatchEvent("criticalDecision", {
+                    choice = queued and "ultimate" or "criticalFallback",
+                    ultimateResult = queued and "queued" or "rejected",
+                })
+                if queued then
+                    lastFightAttackAt = lastUltimateAttemptAt
+                    local canCancel = getAttackMarker(ultimateInfo, "canCancel")
+                        or getFirstImpactTime(ultimateInfo)
+                        or 0.5
+                    nextNeutralAttackAt = lastFightAttackAt
+                        + canCancel
+                        + OFFENSIVE_RECOVERY_MIN
+                    return
+                end
+            end
             replicatedStorage.Remotes.PlayerCharacter.Request.CriticalStrike:FireServer(criticalModel)
             lastCriticalStrikeAt = os.clock()
             lastFightAttackAt = lastCriticalStrikeAt
