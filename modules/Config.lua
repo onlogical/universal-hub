@@ -48,6 +48,48 @@ local function omitKeys(settings, omittedKeys)
     return result
 end
 
+local function prettifyJson(source)
+    if type(source) ~= "string" or not source:match("^%s*[%[{]") then
+        return source
+    end
+
+    local result = {}
+    local depth = 0
+    local inString = false
+    local escaped = false
+
+    for index = 1, #source do
+        local character = source:sub(index, index)
+        if inString then
+            table.insert(result, character)
+            if escaped then
+                escaped = false
+            elseif character == "\\" then
+                escaped = true
+            elseif character == '"' then
+                inString = false
+            end
+        elseif character == '"' then
+            inString = true
+            table.insert(result, character)
+        elseif character == "{" or character == "[" then
+            depth += 1
+            table.insert(result, character .. "\n" .. string.rep("    ", depth))
+        elseif character == "}" or character == "]" then
+            depth -= 1
+            table.insert(result, "\n" .. string.rep("    ", depth) .. character)
+        elseif character == "," then
+            table.insert(result, ",\n" .. string.rep("    ", depth))
+        elseif character == ":" then
+            table.insert(result, ": ")
+        elseif not character:match("%s") then
+            table.insert(result, character)
+        end
+    end
+
+    return table.concat(result)
+end
+
 function Config.new(options)
     assert(options and options.path, "Config requires a workspace path")
     return setmetatable({
@@ -63,7 +105,8 @@ end
 
 function Config:load(defaults)
     local result = copy(defaults)
-    if type(self.isFile) ~= "function"
+    if
+        type(self.isFile) ~= "function"
         or type(self.readFile) ~= "function"
         or type(self.decode) ~= "function"
         or not self.isFile(self.path)
@@ -74,8 +117,12 @@ function Config:load(defaults)
     local success, decoded = pcall(self.decode, self.readFile(self.path))
     if success then
         if type(decoded) == "table" then
-            if decoded.cameraFov == nil then decoded.cameraFov = decoded.fov end
-            if decoded.shotFov == nil then decoded.shotFov = decoded.fov end
+            if decoded.cameraFov == nil then
+                decoded.cameraFov = decoded.fov
+            end
+            if decoded.shotFov == nil then
+                decoded.shotFov = decoded.fov
+            end
             if decoded.cameraFullScreenAim == nil then
                 decoded.cameraFullScreenAim = decoded.fullScreenAim
             end
@@ -93,7 +140,8 @@ function Config:save(settings)
         return false
     end
 
-    local success = pcall(self.writeFile, self.path, self.encode(omitKeys(settings, self.omittedKeys)))
+    local encoded = self.encode(omitKeys(settings, self.omittedKeys))
+    local success = pcall(self.writeFile, self.path, prettifyJson(encoded))
     return success
 end
 

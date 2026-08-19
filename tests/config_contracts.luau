@@ -103,4 +103,20 @@ loaded.teleportBehind = true
 loaded.worldRenderer = "native"
 config:save(loaded)
 assert(writes["universal-hub/configs/counterblox.json"] == "encoded")
+
+local prettyWrites = {}
+local prettyConfig = Config.new({
+    encode = function()
+        return '{"enabled":true,"label":"commas, braces { and escapes \\" stay intact","nested":{"value":3},"items":[1,2]}'
+    end,
+    path = "pretty.json",
+    writeFile = function(path, value)
+        prettyWrites[path] = value
+    end,
+})
+prettyConfig:save({})
+assert(
+    prettyWrites["pretty.json"]
+        == '{\n    "enabled": true,\n    "label": "commas, braces { and escapes \\" stay intact",\n    "nested": {\n        "value": 3\n    },\n    "items": [\n        1,\n        2\n    ]\n}'
+)
 print("config-contracts-ok")
