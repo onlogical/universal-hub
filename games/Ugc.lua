@@ -226,6 +226,8 @@ function Ugc.new(context)
     local lastCriticalStrikeAt = -math.huge
     local nextFightAt = 0
     local lastFightAttackAt = -math.huge
+    local pendingDodgeCounterAt = nil
+    local pendingDodgeCounterUntil = nil
     local pendingJumpAttackUntil = nil
     local pendingDodgeUntil = nil
     local lastParryAt = -math.huge
@@ -246,6 +248,7 @@ function Ugc.new(context)
     local orbitDirection = 1
     local lastMovementCheckAt = 0
     local lastMovementCheckPosition = nil
+    local dodgeCounterDirection = 1
 
     local function getInstances(value)
         if typeof(value) == "Instance" then
@@ -413,27 +416,120 @@ function Ugc.new(context)
         end
         local target = targetLockController.Target
         local localRoot = localHandler.Root
-        local offset = target and localRoot and (localRoot.Position - target.Position) or Vector3.zero
+        local offset = target and localRoot and (target.Position - localRoot.Position) or Vector3.zero
         local direction = Vector3.new(offset.X, 0, offset.Z)
+        local settings = context.store:Get().settings or {}
+        local offensiveStyle = settings.combatStyle ~= "defensive"
         if direction.Magnitude <= 0.001 then
             local camera = context.workspace.CurrentCamera
             local look = camera and camera.CFrame.LookVector or Vector3.zAxis
-            direction = Vector3.new(-look.X, 0, -look.Z)
+            direction = Vector3.new(look.X, 0, look.Z)
         end
         direction = direction.Magnitude > 0 and direction.Unit or Vector3.zAxis
+        local isReverse = true
+        if offensiveStyle and target and localRoot then
+            local distance = Vector3.new(offset.X, 0, offset.Z).Magnitude
+            if distance <= 8 then
+                direction = Vector3.new(-direction.Z, 0, direction.X) * dodgeCounterDirection
+                dodgeCounterDirection = -dodgeCounterDirection
+            end
+            isReverse = false
+        else
+            direction = -direction
+        end
         actionManager:_clearQueuedAction()
         actionManager:SwitchToAction("Dodge", {
             direction = direction,
-            isReverse = true,
+            isReverse = isReverse,
             dodgeStamina = actionManager._dodgeStamina,
         })
         pendingDodgeUntil = nil
         lastDodgeAt = os.clock()
+        if offensiveStyle then
+            pendingDodgeCounterAt = lastDodgeAt + 0.16
+            pendingDodgeCounterUntil = lastDodgeAt + 0.32
+        else
+            pendingDodgeCounterAt = nil
+            pendingDodgeCounterUntil = nil
+        end
     end
 
     local function queueDodge()
         pendingDodgeUntil = os.clock() + 0.3
         tryDodge()
+    end
+
+    local function tryDodgeCounter(localHandler, actionManager, targetHandler, targetRoot)
+        if not pendingDodgeCounterUntil then
+            return false
+        end
+        local now = os.clock()
+        if now > pendingDodgeCounterUntil then
+            pendingDodgeCounterAt = nil
+            pendingDodgeCounterUntil = nil
+            return false
+        end
+        if now < (pendingDodgeCounterAt or 0) then
+            return true
+        end
+        local currentAction = actionManager.CurrentAction
+        if not currentAction or currentAction.ActionType ~= "Dodge" then
+            return true
+        end
+        if targetIsDodging()
+            or targetIsParrying()
+            or (targetHandler and (targetHandler.IsDodging or targetHandler.IsParrying))
+        then
+            return true
+        end
+        local localRoot = localHandler.Root
+        local weaponHandler = localHandler:GetEquippedWeaponHandler()
+        local attackTypes = weaponHandler and weaponHandler.WeaponInfo.BasicAttackTypes
+        local attackName = actionManager:_resolveAttackName("Light")
+        local attackInfo = attackName and attackTypes and attackTypes[attackName]
+        local reach = getAttackGeometricReach(attackInfo) + 1
+        if not localRoot or not targetRoot or reach <= 1 then
+            return true
+        end
+        for track, threat in pairs(activeThreats) do
+            if track.IsPlaying then
+                local speed = math.max(math.abs(track.Speed), 0.05)
+                for index, impact in ipairs(threat.attackInfo.impacts or {}) do
+                    local timeUntilImpact = (impact.markerTime - track.TimePosition) / speed
+                    local threatRoot = threat.handler and threat.handler.Root
+                    if not threat.reacted[index]
+                        and timeUntilImpact >= -0.03
+                        and timeUntilImpact <= 0.6
+                        and attackCanReach(
+                            threatRoot,
+                            localRoot,
+                            { impacts = { impact } },
+                            false
+                        )
+                    then
+                        return true
+                    end
+                end
+            end
+        end
+        local offset = targetRoot.Position - localRoot.Position
+        local distance = Vector3.new(offset.X, 0, offset.Z).Magnitude
+        if distance > reach
+            or not hasClearPath(
+                localRoot,
+                { localHandler.Model, localHandler.OriginalModel },
+                targetRoot,
+                { targetHandler and targetHandler.Model }
+            )
+        then
+            return true
+        end
+        if actionManager:TryQueueBasicAttack("Light") then
+            pendingDodgeCounterAt = nil
+            pendingDodgeCounterUntil = nil
+            lastFightAttackAt = now
+        end
+        return true
     end
 
     local function tryParry()
@@ -654,6 +750,8 @@ function Ugc.new(context)
     local function updateAutoDefense(settings)
         if settings.autoFight ~= true then
             pendingDodgeUntil = nil
+            pendingDodgeCounterAt = nil
+            pendingDodgeCounterUntil = nil
             pendingParryUntil = nil
             pendingJumpAttackUntil = nil
             boundTarget = nil
@@ -716,6 +814,8 @@ function Ugc.new(context)
             return
         end
         if settings.combatStyle == "defensive" then
+            pendingDodgeCounterAt = nil
+            pendingDodgeCounterUntil = nil
             pendingJumpAttackUntil = nil
             if actionManager._queuedActionType == "Jump"
                 or actionManager._queuedActionType == "BasicAttack"
@@ -729,6 +829,9 @@ function Ugc.new(context)
             then
                 actionManager:SwitchToAction(nil)
             end
+            return
+        end
+        if tryDodgeCounter(localHandler, actionManager, targetHandler, targetRoot) then
             return
         end
         if targetIsDodging()
