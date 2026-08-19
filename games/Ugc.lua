@@ -1,10 +1,7 @@
 local Ugc = {}
 
-local AUTO_MOVE_APPROACH_DISTANCE = 7.25
 local AUTO_MOVE_DASH_EXTRA_REACH = 6
 local AUTO_MOVE_DASH_COOLDOWN = 0.75
-local AUTO_MOVE_ORBIT_DISTANCE = 5.25
-local AUTO_MOVE_RETREAT_DISTANCE = 3.25
 local DODGE_COOLDOWN = 0.35
 local FIGHT_RETRY_INTERVAL = 0.05
 local IMPACT_MARGIN = Vector3.new(2.5, 3, 2.5)
@@ -12,6 +9,76 @@ local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
 local WALL_PHASE_COOLDOWN = 0.35
+
+local DEFAULT_COMBAT_PROFILE = {
+    approachDistance = 7.25,
+    orbitDistance = 5.25,
+    retreatDistance = 3.25,
+    neutralAttack = "Light",
+    neutralCadence = 0.12,
+    safeRangeBuffer = 0.5,
+}
+
+local COMBAT_PROFILES = {
+    Kusarigama = {
+        approachDistance = 13.25,
+        orbitDistance = 12.5,
+        retreatDistance = 11.75,
+        neutralAttack = "Light",
+        neutralCadence = 0.22,
+        safeRangeBuffer = 0.85,
+    },
+}
+
+local function sameAnimation(left, right)
+    return left ~= nil
+        and right ~= nil
+        and (left == right or left.AnimationId == right.AnimationId)
+end
+
+local function getWeaponInfo(characterHandler)
+    local weaponHandler = characterHandler and characterHandler:GetEquippedWeaponHandler()
+    return weaponHandler and weaponHandler.WeaponInfo
+end
+
+local function getCombatProfile(characterHandler)
+    local weaponInfo = getWeaponInfo(characterHandler)
+    local weaponName = weaponInfo and weaponInfo.WeaponName
+    return COMBAT_PROFILES[weaponName] or DEFAULT_COMBAT_PROFILE
+end
+
+local function getFirstImpactTime(attackInfo)
+    local first = math.huge
+    for _, impact in ipairs(attackInfo and attackInfo.impacts or {}) do
+        if type(impact.markerTime) == "number" then
+            first = math.min(first, impact.markerTime)
+        end
+    end
+    return first < math.huge and first or nil
+end
+
+local function getLastImpactTime(attackInfo)
+    local last = 0
+    for _, impact in ipairs(attackInfo and attackInfo.impacts or {}) do
+        if type(impact.markerTime) == "number" then
+            last = math.max(last, impact.markerTime)
+        end
+    end
+    return last > 0 and last or nil
+end
+
+local function getAttackMarker(attackInfo, marker)
+    local timeMarkers = attackInfo and attackInfo.timeMarkers
+    return timeMarkers and timeMarkers[marker] or nil
+end
+
+local function getImpactResultValue(attackInfo, resultName, valueName)
+    local impact = attackInfo and attackInfo.impacts and attackInfo.impacts[1]
+    local impactInfo = impact and impact.impactInfo
+    local results = impactInfo and impactInfo.impactResults
+    local result = results and results[resultName]
+    return result and result[valueName] or 0
+end
 
 local function getAttackInfo(characterHandler, track)
     local weaponHandler = characterHandler and characterHandler:GetEquippedWeaponHandler()
@@ -21,9 +88,7 @@ local function getAttackInfo(characterHandler, track)
         return nil
     end
     for _, attackInfo in pairs(attackTypes) do
-        if attackInfo.animation == animation
-            or attackInfo.animation.AnimationId == animation.AnimationId
-        then
+        if sameAnimation(attackInfo.animation, animation) then
             return attackInfo
         end
     end
@@ -104,8 +169,10 @@ function Ugc.new(context)
     local stopped = false
     local lastDodgeAt = -math.huge
     local lastApproachDashAt = -math.huge
+    local lastJumpAttackAt = -math.huge
     local nextFightAt = 0
-    local nextFightAttack = "Heavy"
+    local lastFightAttackAt = -math.huge
+    local pendingJumpAttackUntil = nil
     local pendingDodgeUntil = nil
     local lastParryAt = -math.huge
     local pendingParryUntil = nil
@@ -114,6 +181,13 @@ function Ugc.new(context)
     local boundTarget = nil
     local targetAnimationConnection = nil
     local activeThreats = {}
+    local targetCombatState = {
+        blockTracks = {},
+        blockStartedAt = -math.huge,
+        dodgeUntil = -math.huge,
+        parryUntil = -math.huge,
+        staggerUntil = -math.huge,
+    }
     local autoMoveMode = nil
     local autoMoveTarget = nil
     local orbitDirection = 1
@@ -157,6 +231,116 @@ function Ugc.new(context)
             end
         end
         return false
+    end
+
+    local targetAnimationSets = {
+        block = {},
+        parry = {},
+        stagger = {},
+    }
+
+    local function addAnimation(set, animation)
+        if typeof(animation) == "Instance" and animation:IsA("Animation") then
+            set[animation.AnimationId] = true
+        end
+    end
+
+    local function collectAnimations(value, set, seen)
+        if typeof(value) == "Instance" then
+            addAnimation(set, value)
+            return
+        end
+        if type(value) ~= "table" or seen[value] then
+            return
+        end
+        seen[value] = true
+        for _, child in pairs(value) do
+            collectAnimations(child, set, seen)
+        end
+    end
+
+    local function rebuildTargetAnimationSets(handler)
+        targetAnimationSets = {
+            block = {},
+            parry = {},
+            stagger = {},
+        }
+        local weaponInfo = getWeaponInfo(handler)
+        if not weaponInfo then
+            return
+        end
+        addAnimation(targetAnimationSets.block, weaponInfo.BlockAnimation)
+        local animations = weaponInfo.Animations
+        addAnimation(targetAnimationSets.block, animations and animations.Block)
+        local staggerTypes = weaponInfo.StaggerTypes or {}
+        collectAnimations(staggerTypes.Parry, targetAnimationSets.parry, {})
+        collectAnimations(staggerTypes.PostureBreak, targetAnimationSets.stagger, {})
+        collectAnimations(staggerTypes.PostureParry, targetAnimationSets.stagger, {})
+        for _, attackInfo in pairs(weaponInfo.BasicAttackTypes or {}) do
+            collectAnimations(attackInfo.deflectStun, targetAnimationSets.stagger, {})
+        end
+    end
+
+    local function clearStoppedBlockTracks()
+        for track in pairs(targetCombatState.blockTracks) do
+            if not track.IsPlaying then
+                targetCombatState.blockTracks[track] = nil
+            end
+        end
+    end
+
+    local function targetIsBlocking()
+        clearStoppedBlockTracks()
+        return next(targetCombatState.blockTracks) ~= nil
+    end
+
+    local function getTargetBlockHeldTime()
+        if not targetIsBlocking() then
+            return 0
+        end
+        return math.max(os.clock() - targetCombatState.blockStartedAt, 0)
+    end
+
+    local function targetIsParrying()
+        return os.clock() <= targetCombatState.parryUntil
+    end
+
+    local function targetIsDodging()
+        return os.clock() <= targetCombatState.dodgeUntil
+    end
+
+    local function targetIsStaggered()
+        return os.clock() <= targetCombatState.staggerUntil
+    end
+
+    local function getTargetStaggerRemaining()
+        return math.max(targetCombatState.staggerUntil - os.clock(), 0)
+    end
+
+    local function getTargetPunishWindow()
+        local longest = 0
+        for track, threat in pairs(activeThreats) do
+            if track.IsPlaying then
+                local speed = math.max(math.abs(track.Speed), 0.05)
+                local lastImpact = getLastImpactTime(threat.attackInfo)
+                local canCancel = getAttackMarker(threat.attackInfo, "canCancel")
+                if lastImpact and canCancel and track.TimePosition >= lastImpact - 0.03 then
+                    longest = math.max(longest, (canCancel - track.TimePosition) / speed)
+                end
+            end
+        end
+        return math.max(longest, 0)
+    end
+
+    local function getTargetMaximumReach(handler)
+        local weaponInfo = getWeaponInfo(handler)
+        local maximumReach = 0
+        for name, attackInfo in pairs(weaponInfo and weaponInfo.BasicAttackTypes or {}) do
+            if string.match(name, "^Light") or string.match(name, "^Heavy") then
+                maximumReach = math.max(maximumReach, getAttackMaximumReach(attackInfo))
+            end
+        end
+        return maximumReach
     end
 
     local function tryDodge()
@@ -287,12 +471,61 @@ function Ugc.new(context)
         end
     end
 
+    local function getTrackRemaining(track, fallback)
+        local speed = math.max(math.abs(track.Speed), 0.05)
+        local length = track.Length
+        if type(length) ~= "number" or length <= 0 then
+            return fallback
+        end
+        return math.max((length - track.TimePosition) / speed, 0.05)
+    end
+
+    local function observeTargetTrack(handler, track)
+        local attackInfo = getAttackInfo(handler, track)
+        if attackInfo then
+            observeThreatTrack(handler, track)
+            return
+        end
+        local animation = track.Animation
+        local animationId = animation and animation.AnimationId or ""
+        local animationName = string.lower(animation and animation.Name or "")
+        local now = os.clock()
+        if targetAnimationSets.block[animationId] or animationName == "block" then
+            if not targetIsBlocking() then
+                targetCombatState.blockStartedAt = now
+            end
+            targetCombatState.blockTracks[track] = true
+        elseif targetAnimationSets.parry[animationId] then
+            targetCombatState.parryUntil = math.max(
+                targetCombatState.parryUntil,
+                now + getTrackRemaining(track, 0.45)
+            )
+        elseif string.find(animationName, "dodge", 1, true) then
+            targetCombatState.dodgeUntil = math.max(
+                targetCombatState.dodgeUntil,
+                now + getTrackRemaining(track, 0.65)
+            )
+        elseif targetAnimationSets.stagger[animationId]
+            or string.find(animationName, "posturebreak", 1, true)
+        then
+            targetCombatState.staggerUntil = math.max(
+                targetCombatState.staggerUntil,
+                now + getTrackRemaining(track, 0.5)
+            )
+        end
+    end
+
     local function disconnectTargetAnimation()
         if targetAnimationConnection then
             targetAnimationConnection:Disconnect()
             targetAnimationConnection = nil
         end
         table.clear(activeThreats)
+        table.clear(targetCombatState.blockTracks)
+        targetCombatState.blockStartedAt = -math.huge
+        targetCombatState.dodgeUntil = -math.huge
+        targetCombatState.parryUntil = -math.huge
+        targetCombatState.staggerUntil = -math.huge
     end
 
     local function updateIncomingThreats()
@@ -339,14 +572,25 @@ function Ugc.new(context)
         end
     end
 
-    local function hasIncomingThreat()
+    local function hasIncomingThreat(reachableOnly)
+        local localHandler = characterController:GetLocalCharacterHandler()
+        local localRoot = localHandler and localHandler.Root
         for track, threat in pairs(activeThreats) do
             if track.IsPlaying then
                 local speed = math.max(math.abs(track.Speed), 0.05)
                 for index, impact in ipairs(threat.attackInfo.impacts or {}) do
                     if not threat.reacted[index] then
                         local timeUntilImpact = (impact.markerTime - track.TimePosition) / speed
-                        if timeUntilImpact >= -0.08 then
+                        local targetRoot = threat.handler and threat.handler.Root
+                        if timeUntilImpact >= -0.08
+                            and (not reachableOnly
+                                or attackCanReach(
+                                    targetRoot,
+                                    localRoot,
+                                    { impacts = { impact } },
+                                    false
+                                ))
+                        then
                             return true
                         end
                     end
@@ -360,6 +604,7 @@ function Ugc.new(context)
         if settings.autoFight ~= true then
             pendingDodgeUntil = nil
             pendingParryUntil = nil
+            pendingJumpAttackUntil = nil
             boundTarget = nil
             disconnectTargetAnimation()
             return
@@ -381,11 +626,12 @@ function Ugc.new(context)
             if not animator then
                 return
             end
+            rebuildTargetAnimationSets(handler)
             targetAnimationConnection = animator.AnimationPlayed:Connect(function(track)
-                observeThreatTrack(handler, track)
+                observeTargetTrack(handler, track)
             end)
             for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
-                observeThreatTrack(handler, track)
+                observeTargetTrack(handler, track)
             end
         end
         updateIncomingThreats()
@@ -403,18 +649,48 @@ function Ugc.new(context)
         end
         local targetHandler = characterController:GetCharacterHandler(targetModel)
         local targetRoot = targetHandler and targetHandler.Root or target
-        if targetHandler and (targetHandler.IsDodging or targetHandler.IsParrying) then
-            return
-        end
         local localHandler = characterController:GetLocalCharacterHandler()
         local actionManager = localHandler and localHandler.ActionManager
         if not actionManager or not localHandler.EquippedWeapon then
             return
         end
+        if targetIsDodging()
+            or targetIsParrying()
+            or (targetHandler and (targetHandler.IsDodging or targetHandler.IsParrying))
+        then
+            pendingJumpAttackUntil = nil
+            if actionManager._queuedActionType == "Jump" then
+                actionManager:_clearQueuedAction()
+            end
+            return
+        end
         if pendingDodgeUntil or pendingParryUntil or localHandler.IsParrying or actionManager.BlockAction then
             return
         end
-        if hasIncomingThreat() then
+        if hasIncomingThreat(true) then
+            pendingJumpAttackUntil = nil
+            return
+        end
+        if pendingJumpAttackUntil then
+            if os.clock() > pendingJumpAttackUntil then
+                pendingJumpAttackUntil = nil
+            elseif actionManager.CurrentAction
+                and actionManager.CurrentAction.ActionType == "Jump"
+            then
+                if actionManager.CurrentAction.CanQueueBasicAttacks
+                    and actionManager:TryQueueBasicAttack("JumpAttack")
+                then
+                    pendingJumpAttackUntil = nil
+                    lastFightAttackAt = os.clock()
+                end
+                return
+            elseif actionManager._queuedActionType == "Jump" then
+                return
+            else
+                pendingJumpAttackUntil = nil
+            end
+        end
+        if actionManager.CurrentAction or actionManager._queuedActionType then
             return
         end
 
@@ -432,32 +708,103 @@ function Ugc.new(context)
             return
         end
 
-        local attack = nextFightAttack
+        local profile = getCombatProfile(localHandler)
+        local distance = (Vector3.new(targetRoot.Position.X, 0, targetRoot.Position.Z)
+            - Vector3.new(localRoot.Position.X, 0, localRoot.Position.Z)).Magnitude
+        local targetReach = getTargetMaximumReach(targetHandler)
+        local safelyOutsideCounterRange = targetReach <= 0
+            or distance >= targetReach + profile.safeRangeBuffer
+        local targetBlocking = targetIsBlocking()
+            or (targetHandler and targetHandler.IsBlocking)
+        local targetStaggered = targetIsStaggered()
+        local punishWindow = getTargetPunishWindow()
+
+        if not targetBlocking
+            and not targetStaggered
+            and punishWindow <= 0
+            and not safelyOutsideCounterRange
+        then
+            return
+        end
+        if os.clock() - lastFightAttackAt < profile.neutralCadence then
+            return
+        end
+
+        local attack = (targetBlocking or targetStaggered) and "Heavy" or profile.neutralAttack
         local resolvedName = actionManager:_resolveAttackName(attack)
         local attackInfo = resolvedName and attackTypes[resolvedName]
+        local attackImpactTime = getFirstImpactTime(attackInfo) or math.huge
+        local networkMargin = math.clamp((pingController:GetPing() or 0) + 0.05, 0.08, 0.18)
+
+        if punishWindow > 0
+            and not targetStaggered
+            and attackImpactTime + networkMargin >= punishWindow
+        then
+            return
+        end
+
         local ultimateInfo = attackTypes.Ultimate
+        local ultimateImpactTime = getFirstImpactTime(ultimateInfo) or math.huge
+        local confirmedUltimateOpening = getTargetStaggerRemaining()
+            >= ultimateImpactTime + networkMargin
+            or punishWindow >= ultimateImpactTime + networkMargin
         if ultimateInfo
             and localHandler:CanPerformUltimate()
+            and confirmedUltimateOpening
             and attackCanReach(localRoot, targetRoot, ultimateInfo, true)
         then
             attack = "Ultimate"
             attackInfo = ultimateInfo
-        elseif targetHandler and targetHandler.IsBlocking then
-            attack = "Heavy"
-            attackInfo = attackTypes[actionManager:_resolveAttackName(attack)]
+        end
+
+        local jumpInfo = attackTypes.JumpAttack
+        local heavyInfo = attackTypes[actionManager:_resolveAttackName("Heavy")]
+        local jumpBlockPosture = getImpactResultValue(jumpInfo, "Block", "postureDamage")
+        local heavyBlockPosture = getImpactResultValue(heavyInfo, "Block", "postureDamage")
+        local jumpHealthDamage = getImpactResultValue(jumpInfo, "GetHit", "healthDamage")
+        local heavyHealthDamage = getImpactResultValue(heavyInfo, "GetHit", "healthDamage")
+        local jumpDominatesBlock = targetBlocking
+            and jumpBlockPosture > 0
+            and jumpBlockPosture >= heavyBlockPosture * 1.5
+        local jumpDominatesHit = targetStaggered
+            and jumpHealthDamage > 0
+            and jumpHealthDamage >= heavyHealthDamage
+        local shouldJumpAttack = attack ~= "Ultimate"
+            and jumpInfo ~= nil
+            and getFirstImpactTime(jumpInfo) ~= nil
+            and getFirstImpactTime(jumpInfo) <= 0.15
+            and (actionManager._jumpStamina or 0) >= 0.9
+            and os.clock() - lastJumpAttackAt >= 2.5
+            and (jumpDominatesBlock and getTargetBlockHeldTime() >= 0.15
+                or jumpDominatesHit and getTargetStaggerRemaining() >= 0.4)
+            and attackCanReach(localRoot, targetRoot, jumpInfo, true)
+            and actionManager:CanQueueJump()
+        if shouldJumpAttack then
+            local offset = targetRoot.Position - localRoot.Position
+            local direction = Vector3.new(offset.X, 0, offset.Z)
+            direction = direction.Magnitude > 0 and direction.Unit or Vector3.zero
+            if actionManager:TryQueueJump(direction) then
+                pendingJumpAttackUntil = os.clock() + 0.65
+                lastJumpAttackAt = os.clock()
+                lastFightAttackAt = lastJumpAttackAt
+            end
+            return
         end
 
         if not attackCanReach(localRoot, targetRoot, attackInfo, false) then
-            local alternate = attack == "Heavy" and "Light" or "Heavy"
+            local alternate = "Light"
             local alternateInfo = attackTypes[actionManager:_resolveAttackName(alternate)]
-            if attack == "Ultimate" or not attackCanReach(localRoot, targetRoot, alternateInfo, false) then
+            if attack == "Ultimate"
+                or targetBlocking
+                or not attackCanReach(localRoot, targetRoot, alternateInfo, false)
+            then
                 return
             end
             attack = alternate
         end
 
-        if actionManager:TryQueueBasicAttack(attack) and attack ~= "Ultimate" then
-            nextFightAttack = attack == "Heavy" and "Light" or "Heavy"
+        if actionManager:TryQueueBasicAttack(attack) then
+            lastFightAttackAt = os.clock()
         end
     end
 
@@ -484,11 +831,12 @@ function Ugc.new(context)
         if not actionManager or not localRoot or not targetRoot then
             return
         end
+        local profile = getCombatProfile(localHandler)
 
         local currentAction = actionManager.CurrentAction
         if pendingDodgeUntil
             or pendingParryUntil
-            or hasIncomingThreat()
+            or hasIncomingThreat(true)
             or actionManager._queuedActionType
             or actionManager.BlockAction
             or currentAction
@@ -518,7 +866,7 @@ function Ugc.new(context)
 
         local weaponHandler = localHandler:GetEquippedWeaponHandler()
         local attackTypes = weaponHandler and weaponHandler.WeaponInfo.BasicAttackTypes
-        local attackName = actionManager:_resolveAttackName(nextFightAttack)
+        local attackName = actionManager:_resolveAttackName(profile.neutralAttack)
         local attackInfo = attackName and attackTypes and attackTypes[attackName]
         local attackReach = getAttackMaximumReach(attackInfo)
         if attackReach > 0
@@ -548,16 +896,16 @@ function Ugc.new(context)
         end
 
         if autoMoveMode == "approach" then
-            if distance <= AUTO_MOVE_ORBIT_DISTANCE + 0.5 then
+            if distance <= profile.orbitDistance + 0.5 then
                 autoMoveMode = "orbit"
             end
         elseif autoMoveMode == "retreat" then
-            if distance >= AUTO_MOVE_ORBIT_DISTANCE - 0.75 then
+            if distance >= profile.orbitDistance - 0.5 then
                 autoMoveMode = "orbit"
             end
-        elseif distance > AUTO_MOVE_APPROACH_DISTANCE then
+        elseif distance > profile.approachDistance then
             autoMoveMode = "approach"
-        elseif distance < AUTO_MOVE_RETREAT_DISTANCE then
+        elseif distance < profile.retreatDistance then
             autoMoveMode = "retreat"
         else
             autoMoveMode = "orbit"
@@ -571,7 +919,7 @@ function Ugc.new(context)
         else
             local tangent = Vector3.new(-toward.Z, 0, toward.X) * orbitDirection
             local radialCorrection = math.clamp(
-                (distance - AUTO_MOVE_ORBIT_DISTANCE) / 2,
+                (distance - profile.orbitDistance) / 2,
                 -0.6,
                 0.6
             )
