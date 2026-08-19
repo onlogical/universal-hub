@@ -338,6 +338,20 @@ local function selectedSegmentValue(segment, settings)
     return selected
 end
 
+local function settingsMatch(expected, settings)
+    if type(expected) ~= "table" then
+        return false
+    end
+    local hasExpectation = false
+    for id, value in pairs(expected) do
+        hasExpectation = true
+        if settings[id] ~= value then
+            return false
+        end
+    end
+    return hasExpectation
+end
+
 function Catalog:model(state)
     self:finalize()
     state = state or self.context.store:Get()
@@ -356,6 +370,7 @@ function Catalog:model(state)
                 label = segment.label,
                 value = selected,
                 emphasis = segment.emphasis,
+                disabled = settingsMatch(segment.disabledWhen, settings),
                 options = segment.options,
             },
         }

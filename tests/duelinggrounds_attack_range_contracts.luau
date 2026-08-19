@@ -58,5 +58,16 @@ assert(source:find("ULTIMATE_SHIELD_BREAK_RESERVE", 1, true))
 local presentation = fs.readFile("games/duelinggrounds/Presentation.lua")
 assert(presentation:find('id = "attackRange"', 1, true))
 assert(presentation:find('"randomAttackRange", "Random Range"', 1, true))
+assert(
+    presentation:find("disabledWhen = { randomAttackRange = true }", 1, true),
+    "Random Range must disable the fixed range selector"
+)
+
+local catalog = fs.readFile("ui/presentation/Catalog.lua")
+assert(catalog:find("disabled = settingsMatch(segment.disabledWhen, settings)", 1, true))
+assert(
+    source:find("predictedDistance <= maximumReach", 1, true),
+    "Locked-target attacks must use predicted weapon reach without requiring pre-attack facing"
+)
 
 print("duelinggrounds-attack-range-contracts-ok")

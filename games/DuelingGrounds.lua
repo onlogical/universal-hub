@@ -243,6 +243,26 @@ local function offensiveAttackCanReach(attackerRoot, defenderRoot, attackInfo)
         ) then
             return true
         end
+        -- Target lock turns the attack toward its target when the action starts.
+        -- Requiring the character's pre-attack facing to already overlap the
+        -- hitbox suppresses every neutral attack while auto movement is orbiting.
+        local impactInfo = impact.impactInfo
+        local hitboxCFrame = impactInfo and impactInfo.hitboxCFrame
+        local hitboxSize = impactInfo and impactInfo.hitboxSize
+        if typeof(hitboxCFrame) == "CFrame" and typeof(hitboxSize) == "Vector3" then
+            local predictedOffset = predictedPoint - attackerRoot.Position
+            local predictedDistance = Vector3.new(
+                predictedOffset.X,
+                0,
+                predictedOffset.Z
+            ).Magnitude
+            local maximumReach = math.abs(hitboxCFrame.Position.Z)
+                + hitboxSize.Z / 2
+                + OFFENSIVE_IMPACT_MARGIN.Z
+            if predictedDistance <= maximumReach then
+                return true
+            end
+        end
     end
     return false
 end

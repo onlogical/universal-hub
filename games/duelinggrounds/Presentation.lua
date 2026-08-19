@@ -52,6 +52,7 @@ function Presentation.mount(host)
         label = "Attack Range",
         parent = "autoFight",
         emphasis = "row",
+        disabledWhen = { randomAttackRange = true },
         options = {
             {
                 label = "Close",
