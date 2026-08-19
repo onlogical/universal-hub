@@ -6,6 +6,8 @@ local DODGE_COOLDOWN = 0.35
 local FIGHT_RETRY_INTERVAL = 0.05
 local IMPACT_MARGIN = Vector3.new(2.5, 3, 2.5)
 local OFFENSIVE_IMPACT_MARGIN = Vector3.new(1.5, 2.5, 0.75)
+local OFFENSIVE_RECOVERY_MAX = 0.65
+local OFFENSIVE_RECOVERY_MIN = 0.18
 local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
@@ -226,6 +228,7 @@ function Ugc.new(context)
     local lastCriticalStrikeAt = -math.huge
     local nextFightAt = 0
     local lastFightAttackAt = -math.huge
+    local nextNeutralAttackAt = -math.huge
     local pendingDodgeCounterAt = nil
     local pendingDodgeCounterUntil = nil
     local pendingJumpAttackUntil = nil
@@ -249,6 +252,8 @@ function Ugc.new(context)
     local lastMovementCheckAt = 0
     local lastMovementCheckPosition = nil
     local dodgeCounterDirection = 1
+    local nextOrbitSwitchAt = 0
+    local offenseRandom = Random.new()
 
     local function getInstances(value)
         if typeof(value) == "Instance" then
@@ -528,6 +533,9 @@ function Ugc.new(context)
             pendingDodgeCounterAt = nil
             pendingDodgeCounterUntil = nil
             lastFightAttackAt = now
+            local canCancel = getAttackMarker(attackInfo, "canCancel") or 0.5
+            nextNeutralAttackAt = now + canCancel
+                + offenseRandom:NextNumber(OFFENSIVE_RECOVERY_MIN, OFFENSIVE_RECOVERY_MAX)
         end
         return true
     end
@@ -873,6 +881,9 @@ function Ugc.new(context)
         if actionManager.CurrentAction or actionManager._queuedActionType then
             return
         end
+        if os.clock() < nextNeutralAttackAt then
+            return
+        end
 
         local localRoot = localHandler.Root
         local weaponHandler = localHandler:GetEquippedWeaponHandler()
@@ -982,10 +993,18 @@ function Ugc.new(context)
                 return
             end
             attack = alternate
+            attackInfo = alternateInfo
         end
 
         if actionManager:TryQueueBasicAttack(attack) then
             lastFightAttackAt = os.clock()
+            local canCancel = getAttackMarker(attackInfo, "canCancel")
+                or getFirstImpactTime(attackInfo)
+                or 0.5
+            local recoveryDelay = (targetBlocking or targetStaggered or punishWindow > 0)
+                and OFFENSIVE_RECOVERY_MIN
+                or offenseRandom:NextNumber(OFFENSIVE_RECOVERY_MIN, OFFENSIVE_RECOVERY_MAX)
+            nextNeutralAttackAt = lastFightAttackAt + canCancel + recoveryDelay
         end
     end
 
@@ -1015,12 +1034,16 @@ function Ugc.new(context)
         local profile = getCombatProfile(localHandler)
 
         local currentAction = actionManager.CurrentAction
+        local canMoveAfterImpact = currentAction
+            and currentAction.ActionType == "BasicAttack"
+            and currentAction.CanCancel
+            and not actionManager._queuedActionType
         if pendingDodgeUntil
             or pendingParryUntil
             or hasIncomingThreat(true)
             or actionManager._queuedActionType
             or actionManager.BlockAction
-            or currentAction
+            or (currentAction and not canMoveAfterImpact)
             or localHandler.IsDodging
             or localHandler.IsParrying
         then
@@ -1034,6 +1057,8 @@ function Ugc.new(context)
             orbitDirection = 1
             lastMovementCheckPosition = localRoot.Position
             lastMovementCheckAt = os.clock()
+            nextOrbitSwitchAt = os.clock()
+                + offenseRandom:NextNumber(1.2, 2.6)
         end
 
         local offset = targetRoot.Position - localRoot.Position
@@ -1098,6 +1123,11 @@ function Ugc.new(context)
         elseif autoMoveMode == "retreat" then
             direction = -toward
         else
+            if os.clock() >= nextOrbitSwitchAt then
+                orbitDirection = -orbitDirection
+                nextOrbitSwitchAt = os.clock()
+                    + offenseRandom:NextNumber(1.2, 2.6)
+            end
             local tangent = Vector3.new(-toward.Z, 0, toward.X) * orbitDirection
             local radialCorrection = math.clamp(
                 (distance - profile.orbitDistance) / 2,
