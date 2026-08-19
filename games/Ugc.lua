@@ -1000,6 +1000,8 @@ function Ugc.new(context)
         return true
     end
 
+    local updateIncomingThreats
+
     local function observeThreatTrack(handler, track)
         if activeThreats[track] then
             return
@@ -1015,6 +1017,9 @@ function Ugc.new(context)
             handler = handler,
             reacted = {},
         }
+        if attackName == "JumpAttack" and updateIncomingThreats then
+            updateIncomingThreats()
+        end
         local settings = context.store:Get().settings or {}
         if settings.autoFight == true then
             local localHandler = characterController:GetLocalCharacterHandler()
@@ -1090,7 +1095,7 @@ function Ugc.new(context)
         targetCombatState.staggerUntil = -math.huge
     end
 
-    local function updateIncomingThreats()
+    updateIncomingThreats = function()
         local localHandler = characterController:GetLocalCharacterHandler()
         local localRoot = localHandler and localHandler.Root
         if not localRoot then
@@ -1396,10 +1401,35 @@ function Ugc.new(context)
                 pendingJumpAttackUntil = nil
             end
         end
+        local priorityWeaponHandler = localHandler:GetEquippedWeaponHandler()
+        local priorityAttackTypes = priorityWeaponHandler
+            and priorityWeaponHandler.WeaponInfo.BasicAttackTypes
+        local priorityUltimateInfo = priorityAttackTypes and priorityAttackTypes.Ultimate
+        local priorityUltimateInRange = priorityUltimateInfo ~= nil
+            and localHandler:CanPerformUltimate()
+            and offensiveAttackCanReach(localHandler.Root, targetRoot, priorityUltimateInfo)
+            and hasClearPath(
+                localHandler.Root,
+                { localHandler.Model, localHandler.OriginalModel },
+                targetRoot,
+                { targetHandler and targetHandler.Model, targetModel }
+            )
+        if priorityUltimateInRange then
+            if actionManager._queuedActionType == "BasicAttack" then
+                actionManager:_clearQueuedAction()
+            end
+            local currentAction = actionManager.CurrentAction
+            if currentAction
+                and currentAction.ActionType == "BasicAttack"
+                and currentAction.CanCancel
+            then
+                actionManager:SwitchToAction(nil)
+            end
+        end
         if actionManager.CurrentAction or actionManager._queuedActionType then
             return
         end
-        if os.clock() < nextNeutralAttackAt then
+        if os.clock() < nextNeutralAttackAt and not priorityUltimateInRange then
             return
         end
 
@@ -1428,7 +1458,9 @@ function Ugc.new(context)
         local targetStaggered = targetIsStaggered()
         local punishWindow = getTargetPunishWindow()
 
-        if os.clock() - lastFightAttackAt < profile.neutralCadence then
+        if not priorityUltimateInRange
+            and os.clock() - lastFightAttackAt < profile.neutralCadence
+        then
             return
         end
 
@@ -1518,7 +1550,7 @@ function Ugc.new(context)
         if attack == "Ultimate" then
             lastUltimateAttemptAt = os.clock()
             appendCurrentMatchEvent("ultimateAttempt", {
-                result = queued and "queued" or "rejected",
+                result = queued and "queueAccepted" or "rejected",
                 distance = distance,
                 targetBlocking = targetBlocking,
                 targetDodging = targetIsDodging()
