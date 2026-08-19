@@ -27,7 +27,7 @@ return {
     hydroxide = { "targeting" },
     id = "ugc",
     initialState = {},
-    label = "Ugc",
+    label = "Dueling Grounds ⚔️",
     manifest = {
         gameIds = { 9051406594 },
         placeIds = { 94217045453265 },
