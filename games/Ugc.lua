@@ -171,8 +171,10 @@ function Ugc.new(context)
     assert(context.store, "Ugc requires a reactive store")
 
     local localPlayer = context.players.LocalPlayer
-    local GameManager = require(game:GetService("ReplicatedStorage").GameManager)
+    local replicatedStorage = game:GetService("ReplicatedStorage")
+    local GameManager = require(replicatedStorage.GameManager)
     local characterController = GameManager:GetController("CharacterController")
+    local combatController = GameManager:GetController("CombatController")
     local pingController = GameManager:GetController("PingController")
     local playerInputController = GameManager:GetController("PlayerInputController")
     local targetLockController = GameManager:GetController("TargetLockController")
@@ -180,6 +182,7 @@ function Ugc.new(context)
     local lastDodgeAt = -math.huge
     local lastApproachDashAt = -math.huge
     local lastJumpAttackAt = -math.huge
+    local lastCriticalStrikeAt = -math.huge
     local nextFightAt = 0
     local lastFightAttackAt = -math.huge
     local pendingJumpAttackUntil = nil
@@ -650,6 +653,17 @@ function Ugc.new(context)
         local localHandler = characterController:GetLocalCharacterHandler()
         local actionManager = localHandler and localHandler.ActionManager
         if not actionManager or not localHandler.EquippedWeapon then
+            return
+        end
+        local criticalTarget = combatController.CriticalStrikeTarget
+        local criticalModel = criticalTarget and criticalTarget.Parent
+        if criticalModel
+            and (criticalModel == targetModel or criticalTarget:IsDescendantOf(targetModel))
+            and os.clock() - lastCriticalStrikeAt >= 0.25
+        then
+            replicatedStorage.Remotes.PlayerCharacter.Request.CriticalStrike:FireServer(criticalModel)
+            lastCriticalStrikeAt = os.clock()
+            lastFightAttackAt = lastCriticalStrikeAt
             return
         end
         if targetIsDodging()
