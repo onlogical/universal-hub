@@ -11,6 +11,7 @@ local OFFENSIVE_RECOVERY_MIN = 0.18
 local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
+local ULTIMATE_RETRY_INTERVAL = 0.2
 local UNKNOWN_ATTACK_REACH = 12
 local WALL_PHASE_COOLDOWN = 0.35
 
@@ -236,6 +237,7 @@ function Ugc.new(context)
     local lastApproachDashAt = -math.huge
     local lastJumpAttackAt = -math.huge
     local lastCriticalStrikeAt = -math.huge
+    local lastUltimateAttemptAt = -math.huge
     local nextFightAt = 0
     local lastFightAttackAt = -math.huge
     local nextNeutralAttackAt = -math.huge
@@ -1309,10 +1311,10 @@ function Ugc.new(context)
                 dynamicState.probeUntil = nil
             end
         end
-        if targetIsDodging()
+        local targetAvoidingAttack = targetIsDodging()
             or targetIsParrying()
             or (targetHandler and (targetHandler.IsDodging or targetHandler.IsParrying))
-        then
+        if targetAvoidingAttack and not localHandler:CanPerformUltimate() then
             pendingJumpAttackUntil = nil
             if actionManager._queuedActionType == "Jump" then
                 actionManager:_clearQueuedAction()
@@ -1383,10 +1385,20 @@ function Ugc.new(context)
 
         local lightInfo = attackTypes[actionManager:_resolveAttackName("Light")]
         local heavyInfo = attackTypes[actionManager:_resolveAttackName("Heavy")]
+        local ultimateInfo = attackTypes.Ultimate
+        local ultimateReady = ultimateInfo ~= nil
+            and localHandler:CanPerformUltimate()
+            and os.clock() - lastUltimateAttemptAt >= ULTIMATE_RETRY_INTERVAL
+        local ultimateCanHit = ultimateReady
+            and offensiveAttackCanReach(localRoot, targetRoot, ultimateInfo)
         local lightCanHit = offensiveAttackCanReach(localRoot, targetRoot, lightInfo)
         local heavyCanHit = offensiveAttackCanReach(localRoot, targetRoot, heavyInfo)
         local attack
-        if targetBlocking or targetStaggered then
+        if ultimateCanHit then
+            attack = "Ultimate"
+        elseif targetAvoidingAttack then
+            return
+        elseif targetBlocking or targetStaggered then
             attack = "Heavy"
         elseif lightCanHit then
             attack = "Light"
@@ -1400,26 +1412,12 @@ function Ugc.new(context)
         local attackImpactTime = getFirstImpactTime(attackInfo) or math.huge
         local networkMargin = math.clamp((pingController:GetPing() or 0) + 0.05, 0.08, 0.18)
 
-        if punishWindow > 0
+        if attack ~= "Ultimate"
+            and punishWindow > 0
             and not targetStaggered
             and attackImpactTime + networkMargin >= punishWindow
         then
             return
-        end
-
-        local ultimateInfo = attackTypes.Ultimate
-        local ultimateImpactTime = getFirstImpactTime(ultimateInfo) or math.huge
-        local confirmedUltimateOpening = getTargetStaggerRemaining()
-            >= math.max(ultimateImpactTime - 0.2, 0.35)
-            or punishWindow >= ultimateImpactTime + networkMargin
-            or (targetBlocking and getTargetBlockHeldTime() >= 0.18)
-        if ultimateInfo
-            and localHandler:CanPerformUltimate()
-            and confirmedUltimateOpening
-            and offensiveAttackCanReach(localRoot, targetRoot, ultimateInfo)
-        then
-            attack = "Ultimate"
-            attackInfo = ultimateInfo
         end
 
         local jumpInfo = attackTypes.JumpAttack
@@ -1463,7 +1461,22 @@ function Ugc.new(context)
             attackInfo = alternateInfo
         end
 
-        if actionManager:TryQueueBasicAttack(attack) then
+        local queued = actionManager:TryQueueBasicAttack(attack)
+        if attack == "Ultimate" then
+            lastUltimateAttemptAt = os.clock()
+            appendCurrentMatchEvent("ultimateAttempt", {
+                result = queued and "queued" or "rejected",
+                distance = distance,
+                targetBlocking = targetBlocking,
+                targetDodging = targetIsDodging()
+                    or (targetHandler and targetHandler.IsDodging)
+                    or false,
+                targetParrying = targetIsParrying()
+                    or (targetHandler and targetHandler.IsParrying)
+                    or false,
+            })
+        end
+        if queued then
             lastFightAttackAt = os.clock()
             local canCancel = getAttackMarker(attackInfo, "canCancel")
                 or getFirstImpactTime(attackInfo)
