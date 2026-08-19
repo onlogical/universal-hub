@@ -6,6 +6,7 @@ local DODGE_COOLDOWN = 0.35
 local FIGHT_RETRY_INTERVAL = 0.05
 local IMPACT_MARGIN = Vector3.new(2.5, 3, 2.5)
 local OFFENSIVE_IMPACT_MARGIN = Vector3.new(1.5, 2.5, 0.75)
+local OFFENSIVE_PREDICTION_MAX = 0.65
 local OFFENSIVE_RECOVERY_MAX = 0.65
 local OFFENSIVE_RECOVERY_MIN = 0.18
 local PARRY_COOLDOWN = 0.05
@@ -26,10 +27,10 @@ local DEFAULT_COMBAT_PROFILE = {
 
 local COMBAT_PROFILES = {
     Kusarigama = {
-        approachDistance = 11.5,
-        orbitDistance = 10.75,
-        retreatDistance = 9.75,
-        maximumNeutralAttackDistance = 11.5,
+        approachDistance = 9.25,
+        orbitDistance = 8.25,
+        retreatDistance = 7.25,
+        maximumNeutralAttackDistance = 9.25,
         neutralAttack = "Light",
         neutralCadence = 0.22,
         safeRangeBuffer = 0.85,
@@ -177,15 +178,19 @@ local function offensiveAttackCanReach(attackerRoot, defenderRoot, attackInfo)
     if not attackerRoot or not defenderRoot or not attackInfo then
         return false
     end
-    local impactTime = getFirstImpactTime(attackInfo) or 0
     local velocity = defenderRoot.AssemblyLinearVelocity or Vector3.zero
     local horizontalVelocity = Vector3.new(velocity.X, 0, velocity.Z)
     if horizontalVelocity.Magnitude > 18 then
         horizontalVelocity = horizontalVelocity.Unit * 18
     end
-    local predictedPoint = defenderRoot.Position
-        + horizontalVelocity * math.clamp(impactTime, 0, 0.2)
     for _, impact in ipairs(attackInfo.impacts or {}) do
+        local impactTime = type(impact.markerTime) == "number" and impact.markerTime or 0
+        local predictedPoint = defenderRoot.Position
+            + horizontalVelocity * math.clamp(
+                impactTime,
+                0,
+                OFFENSIVE_PREDICTION_MAX
+            )
         if impactContainsPoint(
             attackerRoot,
             predictedPoint,
