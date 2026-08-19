@@ -8,6 +8,7 @@ local IMPACT_MARGIN = Vector3.new(2.5, 3, 2.5)
 local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
+local UNKNOWN_ATTACK_REACH = 12
 local WALL_PHASE_COOLDOWN = 0.35
 
 local DEFAULT_COMBAT_PROFILE = {
@@ -131,6 +132,15 @@ local function attackCanReach(attackerRoot, defenderRoot, attackInfo, strict)
                 then
                     return true
                 end
+            else
+                local offset = defenderRoot.Position - attackerRoot.Position
+                local flatOffset = Vector3.new(offset.X, 0, offset.Z)
+                if flatOffset.Magnitude <= UNKNOWN_ATTACK_REACH
+                    and flatOffset.Magnitude > 0
+                    and attackerRoot.CFrame.LookVector:Dot(flatOffset.Unit) >= 0
+                then
+                    return true
+                end
             end
         end
     end
@@ -183,7 +193,6 @@ function Ugc.new(context)
     local activeThreats = {}
     local targetCombatState = {
         blockTracks = {},
-        blockStartedAt = -math.huge,
         dodgeUntil = -math.huge,
         parryUntil = -math.huge,
         staggerUntil = -math.huge,
@@ -292,13 +301,6 @@ function Ugc.new(context)
     local function targetIsBlocking()
         clearStoppedBlockTracks()
         return next(targetCombatState.blockTracks) ~= nil
-    end
-
-    local function getTargetBlockHeldTime()
-        if not targetIsBlocking() then
-            return 0
-        end
-        return math.max(os.clock() - targetCombatState.blockStartedAt, 0)
     end
 
     local function targetIsParrying()
@@ -491,9 +493,6 @@ function Ugc.new(context)
         local animationName = string.lower(animation and animation.Name or "")
         local now = os.clock()
         if targetAnimationSets.block[animationId] or animationName == "block" then
-            if not targetIsBlocking() then
-                targetCombatState.blockStartedAt = now
-            end
             targetCombatState.blockTracks[track] = true
         elseif targetAnimationSets.parry[animationId] then
             targetCombatState.parryUntil = math.max(
@@ -522,7 +521,6 @@ function Ugc.new(context)
         end
         table.clear(activeThreats)
         table.clear(targetCombatState.blockTracks)
-        targetCombatState.blockStartedAt = -math.huge
         targetCombatState.dodgeUntil = -math.huge
         targetCombatState.parryUntil = -math.huge
         targetCombatState.staggerUntil = -math.huge
@@ -759,13 +757,8 @@ function Ugc.new(context)
 
         local jumpInfo = attackTypes.JumpAttack
         local heavyInfo = attackTypes[actionManager:_resolveAttackName("Heavy")]
-        local jumpBlockPosture = getImpactResultValue(jumpInfo, "Block", "postureDamage")
-        local heavyBlockPosture = getImpactResultValue(heavyInfo, "Block", "postureDamage")
         local jumpHealthDamage = getImpactResultValue(jumpInfo, "GetHit", "healthDamage")
         local heavyHealthDamage = getImpactResultValue(heavyInfo, "GetHit", "healthDamage")
-        local jumpDominatesBlock = targetBlocking
-            and jumpBlockPosture > 0
-            and jumpBlockPosture >= heavyBlockPosture * 1.5
         local jumpDominatesHit = targetStaggered
             and jumpHealthDamage > 0
             and jumpHealthDamage >= heavyHealthDamage
@@ -775,8 +768,8 @@ function Ugc.new(context)
             and getFirstImpactTime(jumpInfo) <= 0.15
             and (actionManager._jumpStamina or 0) >= 0.9
             and os.clock() - lastJumpAttackAt >= 2.5
-            and (jumpDominatesBlock and getTargetBlockHeldTime() >= 0.15
-                or jumpDominatesHit and getTargetStaggerRemaining() >= 0.4)
+            and jumpDominatesHit
+            and getTargetStaggerRemaining() >= 0.9
             and attackCanReach(localRoot, targetRoot, jumpInfo, true)
             and actionManager:CanQueueJump()
         if shouldJumpAttack then
