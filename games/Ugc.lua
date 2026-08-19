@@ -84,6 +84,16 @@ local function getImpactResultValue(attackInfo, resultName, valueName)
     return result and result[valueName] or 0
 end
 
+local function isHeavyAttackInfo(attackName, attackInfo)
+    local normalizedName = string.lower(attackName or "")
+    if string.find(normalizedName, "heavy", 1, true) then
+        return true
+    end
+    local healthDamage = getImpactResultValue(attackInfo, "GetHit", "healthDamage")
+    local postureDamage = getImpactResultValue(attackInfo, "Block", "postureDamage")
+    return healthDamage >= 50 or postureDamage >= 30
+end
+
 local function getAttackInfo(characterHandler, track)
     local weaponHandler = characterHandler and characterHandler:GetEquippedWeaponHandler()
     local attackTypes = weaponHandler and weaponHandler.WeaponInfo.BasicAttackTypes
@@ -706,6 +716,7 @@ function Ugc.new(context)
         activeThreats[track] = {
             attackInfo = attackInfo,
             attackName = attackName,
+            isHeavy = isHeavyAttackInfo(attackName, attackInfo),
             handler = handler,
             reacted = {},
         }
@@ -795,9 +806,7 @@ function Ugc.new(context)
             local targetRoot = targetHandler and targetHandler.Root
             local targetModel = targetHandler and targetHandler.OriginalModel
             local speed = math.max(math.abs(track.Speed), 0.05)
-            local attackName = threat.attackName or ""
-            local isHeavyAttack = string.match(attackName, "^Heavy") ~= nil
-                or attackName == "DashHeavy"
+            local isHeavyAttack = threat.isHeavy == true
             local reactionLead = isHeavyAttack and math.max(leadTime, 0.2) or leadTime
             for index, impact in ipairs(threat.attackInfo.impacts or {}) do
                 if threat.reacted[index] then
@@ -818,6 +827,11 @@ function Ugc.new(context)
                     threat.reacted[index] = true
                     local impactResults = impact.impactInfo and impact.impactInfo.impactResults
                     if isHeavyAttack then
+                        pendingParryUntil = nil
+                        if activeParryBlock then
+                            activeParryBlock._wantsToRelease = true
+                            activeParryBlock = nil
+                        end
                         queueDodge("heavy")
                     elseif impactResults and impactResults.Parry == nil then
                         queueDodge()
@@ -1211,6 +1225,7 @@ function Ugc.new(context)
         local attackInfo = attackName and attackTypes and attackTypes[attackName]
         local attackReach = getAttackMaximumReach(attackInfo)
         if attackReach > 0
+            and settings.combatStyle == "offensive"
             and distance > attackReach + 0.25
             and distance <= attackReach + AUTO_MOVE_DASH_EXTRA_REACH
             and os.clock() - lastApproachDashAt >= AUTO_MOVE_DASH_COOLDOWN
