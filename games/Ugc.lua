@@ -715,6 +715,22 @@ function Ugc.new(context)
             lastFightAttackAt = lastCriticalStrikeAt
             return
         end
+        if settings.combatStyle == "defensive" then
+            pendingJumpAttackUntil = nil
+            if actionManager._queuedActionType == "Jump"
+                or actionManager._queuedActionType == "BasicAttack"
+            then
+                actionManager:_clearQueuedAction()
+            end
+            local currentAction = actionManager.CurrentAction
+            if currentAction
+                and currentAction.ActionType == "BasicAttack"
+                and currentAction.CanCancel
+            then
+                actionManager:SwitchToAction(nil)
+            end
+            return
+        end
         if targetIsDodging()
             or targetIsParrying()
             or (targetHandler and (targetHandler.IsDodging or targetHandler.IsParrying))
@@ -780,13 +796,6 @@ function Ugc.new(context)
         local targetStaggered = targetIsStaggered()
         local punishWindow = getTargetPunishWindow()
 
-        if not targetBlocking
-            and not targetStaggered
-            and punishWindow <= 0
-            and not safelyOutsideCounterRange
-        then
-            return
-        end
         if os.clock() - lastFightAttackAt < profile.neutralCadence then
             return
         end
@@ -1146,6 +1155,7 @@ function Ugc.new(context)
             "health",
             "autoFight",
             "autoMovement",
+            "combatStyle",
             "teleportBehind",
             "wallPhase",
         },

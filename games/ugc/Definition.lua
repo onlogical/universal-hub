@@ -2,6 +2,7 @@ return {
     defaults = {
         autoFight = false,
         autoMovement = false,
+        combatStyle = "offensive",
         teleportBehind = false,
         wallPhase = false,
     },
@@ -17,6 +18,7 @@ return {
             "health",
             "autoFight",
             "autoMovement",
+            "combatStyle",
             "teleportBehind",
             "wallPhase",
         },

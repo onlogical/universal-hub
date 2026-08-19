@@ -35,8 +35,27 @@ function Presentation.mount(host)
     host:option("visuals", 20, "showEnemies", "Players", "audience")
 
     host:section("Combat", "offense", "OFFENSE", 70)
-    host:option("offense", 1, "autoFight", "Auto Fight + Defense")
+    host:option("offense", 1, "autoFight", "Auto Fight")
     host:option("offense", 2, "autoMovement", "Auto Movement", "autoFight")
+    host:segmented("Combat", {
+        id = "combatStyle",
+        label = "Fight Style",
+        emphasis = "prominent",
+        options = {
+            {
+                label = "Offensive",
+                value = "offensive",
+                when = { combatStyle = "offensive" },
+                patch = { { "combatStyle", "offensive" } },
+            },
+            {
+                label = "Defensive",
+                value = "defensive",
+                when = { combatStyle = "defensive" },
+                patch = { { "combatStyle", "defensive" } },
+            },
+        },
+    })
 
     host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "wallPhase", "Wall Phase")
