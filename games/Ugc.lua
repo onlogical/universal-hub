@@ -5,6 +5,7 @@ local AUTO_MOVE_DASH_COOLDOWN = 0.75
 local DODGE_COOLDOWN = 0.35
 local FIGHT_RETRY_INTERVAL = 0.05
 local IMPACT_MARGIN = Vector3.new(2.5, 3, 2.5)
+local OFFENSIVE_IMPACT_MARGIN = Vector3.new(1.5, 2.5, 0.75)
 local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
@@ -145,6 +146,47 @@ local function attackCanReach(attackerRoot, defenderRoot, attackInfo, strict)
         end
     end
     return false
+end
+
+local function offensiveAttackCanReach(attackerRoot, defenderRoot, attackInfo)
+    if not attackerRoot or not defenderRoot or not attackInfo then
+        return false
+    end
+    local impactTime = getFirstImpactTime(attackInfo) or 0
+    local velocity = defenderRoot.AssemblyLinearVelocity or Vector3.zero
+    local horizontalVelocity = Vector3.new(velocity.X, 0, velocity.Z)
+    if horizontalVelocity.Magnitude > 18 then
+        horizontalVelocity = horizontalVelocity.Unit * 18
+    end
+    local predictedPoint = defenderRoot.Position
+        + horizontalVelocity * math.clamp(impactTime, 0, 0.2)
+    for _, impact in ipairs(attackInfo.impacts or {}) do
+        if impactContainsPoint(
+            attackerRoot,
+            predictedPoint,
+            impact,
+            OFFENSIVE_IMPACT_MARGIN
+        ) then
+            return true
+        end
+    end
+    return false
+end
+
+local function getAttackGeometricReach(attackInfo)
+    local maximumReach = 0
+    for _, impact in ipairs(attackInfo and attackInfo.impacts or {}) do
+        local impactInfo = impact.impactInfo
+        local hitboxCFrame = impactInfo and impactInfo.hitboxCFrame
+        local hitboxSize = impactInfo and impactInfo.hitboxSize
+        if typeof(hitboxCFrame) == "CFrame" and typeof(hitboxSize) == "Vector3" then
+            maximumReach = math.max(
+                maximumReach,
+                math.abs(hitboxCFrame.Position.Z) + hitboxSize.Z / 2
+            )
+        end
+    end
+    return maximumReach
 end
 
 local function getAttackMaximumReach(attackInfo)
@@ -305,6 +347,15 @@ function Ugc.new(context)
         return next(targetCombatState.blockTracks) ~= nil
     end
 
+    local function getTargetBlockHeldTime()
+        clearStoppedBlockTracks()
+        local earliest = math.huge
+        for _, startedAt in pairs(targetCombatState.blockTracks) do
+            earliest = math.min(earliest, startedAt)
+        end
+        return earliest < math.huge and os.clock() - earliest or 0
+    end
+
     local function targetIsParrying()
         return os.clock() <= targetCombatState.parryUntil
     end
@@ -336,12 +387,12 @@ function Ugc.new(context)
         return math.max(longest, 0)
     end
 
-    local function getTargetMaximumReach(handler)
+    local function getTargetGeometricReach(handler)
         local weaponInfo = getWeaponInfo(handler)
         local maximumReach = 0
         for name, attackInfo in pairs(weaponInfo and weaponInfo.BasicAttackTypes or {}) do
             if string.match(name, "^Light") or string.match(name, "^Heavy") then
-                maximumReach = math.max(maximumReach, getAttackMaximumReach(attackInfo))
+                maximumReach = math.max(maximumReach, getAttackGeometricReach(attackInfo))
             end
         end
         return maximumReach
@@ -495,7 +546,7 @@ function Ugc.new(context)
         local animationName = string.lower(animation and animation.Name or "")
         local now = os.clock()
         if targetAnimationSets.block[animationId] or animationName == "block" then
-            targetCombatState.blockTracks[track] = true
+            targetCombatState.blockTracks[track] = now
         elseif targetAnimationSets.parry[animationId] then
             targetCombatState.parryUntil = math.max(
                 targetCombatState.parryUntil,
@@ -721,7 +772,7 @@ function Ugc.new(context)
         local profile = getCombatProfile(localHandler)
         local distance = (Vector3.new(targetRoot.Position.X, 0, targetRoot.Position.Z)
             - Vector3.new(localRoot.Position.X, 0, localRoot.Position.Z)).Magnitude
-        local targetReach = getTargetMaximumReach(targetHandler)
+        local targetReach = getTargetGeometricReach(targetHandler)
         local safelyOutsideCounterRange = targetReach <= 0
             or distance >= targetReach + profile.safeRangeBuffer
         local targetBlocking = targetIsBlocking()
@@ -740,7 +791,20 @@ function Ugc.new(context)
             return
         end
 
-        local attack = (targetBlocking or targetStaggered) and "Heavy" or profile.neutralAttack
+        local lightInfo = attackTypes[actionManager:_resolveAttackName("Light")]
+        local heavyInfo = attackTypes[actionManager:_resolveAttackName("Heavy")]
+        local lightCanHit = offensiveAttackCanReach(localRoot, targetRoot, lightInfo)
+        local heavyCanHit = offensiveAttackCanReach(localRoot, targetRoot, heavyInfo)
+        local attack
+        if targetBlocking or targetStaggered then
+            attack = "Heavy"
+        elseif lightCanHit then
+            attack = "Light"
+        elseif heavyCanHit and safelyOutsideCounterRange then
+            attack = "Heavy"
+        else
+            return
+        end
         local resolvedName = actionManager:_resolveAttackName(attack)
         local attackInfo = resolvedName and attackTypes[resolvedName]
         local attackImpactTime = getFirstImpactTime(attackInfo) or math.huge
@@ -756,19 +820,19 @@ function Ugc.new(context)
         local ultimateInfo = attackTypes.Ultimate
         local ultimateImpactTime = getFirstImpactTime(ultimateInfo) or math.huge
         local confirmedUltimateOpening = getTargetStaggerRemaining()
-            >= ultimateImpactTime + networkMargin
+            >= math.max(ultimateImpactTime - 0.2, 0.35)
             or punishWindow >= ultimateImpactTime + networkMargin
+            or (targetBlocking and getTargetBlockHeldTime() >= 0.18)
         if ultimateInfo
             and localHandler:CanPerformUltimate()
             and confirmedUltimateOpening
-            and attackCanReach(localRoot, targetRoot, ultimateInfo, true)
+            and offensiveAttackCanReach(localRoot, targetRoot, ultimateInfo)
         then
             attack = "Ultimate"
             attackInfo = ultimateInfo
         end
 
         local jumpInfo = attackTypes.JumpAttack
-        local heavyInfo = attackTypes[actionManager:_resolveAttackName("Heavy")]
         local jumpHealthDamage = getImpactResultValue(jumpInfo, "GetHit", "healthDamage")
         local heavyHealthDamage = getImpactResultValue(heavyInfo, "GetHit", "healthDamage")
         local jumpDominatesHit = targetStaggered
@@ -796,12 +860,12 @@ function Ugc.new(context)
             return
         end
 
-        if not attackCanReach(localRoot, targetRoot, attackInfo, false) then
+        if not offensiveAttackCanReach(localRoot, targetRoot, attackInfo) then
             local alternate = "Light"
             local alternateInfo = attackTypes[actionManager:_resolveAttackName(alternate)]
             if attack == "Ultimate"
                 or targetBlocking
-                or not attackCanReach(localRoot, targetRoot, alternateInfo, false)
+                or not offensiveAttackCanReach(localRoot, targetRoot, alternateInfo)
             then
                 return
             end
