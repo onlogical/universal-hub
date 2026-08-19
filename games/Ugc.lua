@@ -215,6 +215,21 @@ function Ugc.new(context)
             handler = handler,
             reacted = {},
         }
+        local settings = context.store:Get().settings or {}
+        if settings.autoFight == true then
+            local localHandler = characterController:GetLocalCharacterHandler()
+            local actionManager = localHandler and localHandler.ActionManager
+            if actionManager then
+                actionManager:_clearQueuedAction()
+                local currentAction = actionManager.CurrentAction
+                if currentAction
+                    and currentAction.ActionType == "BasicAttack"
+                    and currentAction.CanCancel
+                then
+                    actionManager:SwitchToAction(nil)
+                end
+            end
+        end
     end
 
     local function disconnectTargetAnimation()
@@ -249,24 +264,29 @@ function Ugc.new(context)
                 if timeUntilImpact < -0.08 then
                     threat.reacted[index] = true
                 elseif timeUntilImpact <= leadTime
-                    and attackCanReach(targetRoot, localRoot, { impacts = { impact } }, true)
+                    and attackCanReach(targetRoot, localRoot, { impacts = { impact } }, false)
                     and hasClearPath(targetRoot, targetModel, localRoot, localHandler.OriginalModel)
                 then
                     threat.reacted[index] = true
-                    queueParry()
+                    local impactResults = impact.impactInfo and impact.impactInfo.impactResults
+                    if impactResults and impactResults.Parry == nil then
+                        queueDodge()
+                    else
+                        queueParry()
+                    end
                 end
             end
         end
     end
 
-    local function hasIncomingThreat(window)
+    local function hasIncomingThreat()
         for track, threat in pairs(activeThreats) do
             if track.IsPlaying then
                 local speed = math.max(math.abs(track.Speed), 0.05)
                 for index, impact in ipairs(threat.attackInfo.impacts or {}) do
                     if not threat.reacted[index] then
                         local timeUntilImpact = (impact.markerTime - track.TimePosition) / speed
-                        if timeUntilImpact >= 0 and timeUntilImpact <= window then
+                        if timeUntilImpact >= -0.08 then
                             return true
                         end
                     end
@@ -334,7 +354,7 @@ function Ugc.new(context)
         if pendingDodgeUntil or pendingParryUntil or localHandler.IsParrying or actionManager.BlockAction then
             return
         end
-        if hasIncomingThreat(0.4) then
+        if hasIncomingThreat() then
             return
         end
 
