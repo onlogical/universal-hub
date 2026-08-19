@@ -48,6 +48,7 @@ return {
         "games/duelinggrounds/features/TeleportBehind",
         "games/duelinggrounds/features/WinTitles",
         "games/duelinggrounds/features/combat/Attacks",
+        "games/duelinggrounds/features/combat/BabyStyle",
         "games/duelinggrounds/features/combat/DefensiveStyle",
         "games/duelinggrounds/features/combat/DynamicStyle",
         "games/duelinggrounds/features/combat/EnemyPolicy",

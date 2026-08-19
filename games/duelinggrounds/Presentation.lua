@@ -65,6 +65,12 @@ function Presentation.mount(host)
                 patch = { { "combatStyle", "defensive" } },
             },
             {
+                label = "Baby",
+                value = "baby",
+                when = { combatStyle = "baby" },
+                patch = { { "combatStyle", "baby" } },
+            },
+            {
                 label = "Dynamic",
                 value = "dynamic",
                 when = { combatStyle = "dynamic" },

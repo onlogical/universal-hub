@@ -1259,6 +1259,24 @@ function DuelingGrounds.new(context)
         if not actionManager or not localHandler.EquippedWeapon then
             return
         end
+        if settings.combatStyle == "baby" then
+            pendingDodgeCounterAt = nil
+            pendingDodgeCounterUntil = nil
+            pendingJumpAttackUntil = nil
+            if actionManager._queuedActionType == "Jump"
+                or actionManager._queuedActionType == "BasicAttack"
+            then
+                actionManager:_clearQueuedAction()
+            end
+            local currentAction = actionManager.CurrentAction
+            if currentAction
+                and currentAction.ActionType == "BasicAttack"
+                and currentAction.CanCancel
+            then
+                actionManager:SwitchToAction(nil)
+            end
+            return
+        end
         local now = os.clock()
         local ultimateAvailable = localHandler:CanPerformUltimate()
         if ultimateAvailable then
@@ -1501,11 +1519,15 @@ function DuelingGrounds.new(context)
                 and (actionManager._blockStrength or 0) > 0.01,
         }, dynamicState)
         if stylePreferences.movement then
+            local movement = stylePreferences.movement
             profile = {
-                approachDistance = profile.approachDistance,
-                orbitDistance = profile.orbitDistance
-                    * (stylePreferences.movement.orbitDistanceScale or 1),
-                retreatDistance = profile.retreatDistance,
+                approachDistance = movement.approachDistance
+                    or profile.approachDistance,
+                orbitDistance = movement.orbitDistance
+                    or profile.orbitDistance
+                        * (movement.orbitDistanceScale or 1),
+                retreatDistance = movement.retreatDistance
+                    or profile.retreatDistance,
                 neutralAttack = profile.neutralAttack,
                 neutralCadence = profile.neutralCadence,
                 safeRangeBuffer = profile.safeRangeBuffer,
@@ -1683,11 +1705,15 @@ function DuelingGrounds.new(context)
                 and (actionManager._blockStrength or 0) > 0.01,
         }, dynamicState)
         if stylePreferences.movement then
+            local movement = stylePreferences.movement
             profile = {
-                approachDistance = profile.approachDistance,
-                orbitDistance = profile.orbitDistance
-                    * (stylePreferences.movement.orbitDistanceScale or 1),
-                retreatDistance = profile.retreatDistance,
+                approachDistance = movement.approachDistance
+                    or profile.approachDistance,
+                orbitDistance = movement.orbitDistance
+                    or profile.orbitDistance
+                        * (movement.orbitDistanceScale or 1),
+                retreatDistance = movement.retreatDistance
+                    or profile.retreatDistance,
                 neutralAttack = profile.neutralAttack,
                 neutralCadence = profile.neutralCadence,
                 safeRangeBuffer = profile.safeRangeBuffer,
