@@ -4,6 +4,7 @@ function BabyStyle.preferences()
     return {
         allowOffense = false,
         counterAllowed = false,
+        escapeCorners = true,
         movement = {
             approachDistance = 22,
             orbitDistance = 20,

@@ -21,6 +21,10 @@ local Styles = importDependency(
     "games/duelinggrounds/features/combat/Styles",
     "./duelinggrounds/features/combat/Styles"
 )
+local WallEscape = importDependency(
+    "games/duelinggrounds/features/combat/WallEscape",
+    "./duelinggrounds/features/combat/WallEscape"
+)
 local Skill = importDependency(
     "games/duelinggrounds/features/combat/Skill",
     "./duelinggrounds/features/combat/Skill"
@@ -342,6 +346,8 @@ function DuelingGrounds.new(context)
     local lastMovementCheckPosition = nil
     local dodgeCounterDirection = 1
     local nextOrbitSwitchAt = 0
+    local wallEscapeDirection = nil
+    local wallEscapeUntil = -math.huge
     local offenseRandom = Random.new()
     local skillRandom = Random.new()
     local ultimateReadyAt = nil
@@ -1746,6 +1752,8 @@ function DuelingGrounds.new(context)
             lastMovementCheckAt = os.clock()
             nextOrbitSwitchAt = os.clock()
                 + offenseRandom:NextNumber(1.2, 2.6)
+            wallEscapeDirection = nil
+            wallEscapeUntil = -math.huge
         end
 
         local offset = targetRoot.Position - localRoot.Position
@@ -1842,15 +1850,38 @@ function DuelingGrounds.new(context)
             targetModel,
         })
         parameters.IgnoreWater = true
-        local obstacle = context.workspace:Raycast(
-            localRoot.Position + Vector3.new(0, 0.5, 0),
-            direction * 3,
-            parameters
-        )
+        local rayOrigin = localRoot.Position + Vector3.new(0, 0.5, 0)
+        local function castObstacle(castDirection, castDistance)
+            local result = context.workspace:Raycast(
+                rayOrigin,
+                castDirection * castDistance,
+                parameters
+            )
+            return result and result.Instance.CanCollide and result or nil
+        end
+        local obstacle = castObstacle(direction, 3)
         if obstacle and obstacle.Instance.CanCollide then
-            orbitDirection = -orbitDirection
-            direction = Vector3.new(-toward.Z, 0, toward.X) * orbitDirection
+            if stylePreferences.escapeCorners == true then
+                local now = os.clock()
+                if not wallEscapeDirection or now >= wallEscapeUntil then
+                    direction, orbitDirection = WallEscape.choose(
+                        toward,
+                        castObstacle,
+                        6,
+                        orbitDirection
+                    )
+                    wallEscapeDirection = direction
+                    wallEscapeUntil = now + 0.6
+                else
+                    direction = wallEscapeDirection
+                end
+            else
+                orbitDirection = -orbitDirection
+                direction = Vector3.new(-toward.Z, 0, toward.X) * orbitDirection
+            end
             autoMoveMode = "orbit"
+        elseif os.clock() >= wallEscapeUntil then
+            wallEscapeDirection = nil
         end
 
         local now = os.clock()

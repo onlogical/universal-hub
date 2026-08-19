@@ -7,6 +7,7 @@ assert(Styles.preferences("defensive").counterAllowed == false)
 local baby = Styles.preferences("baby")
 assert(baby.allowOffense == false, "Baby mode must not initiate attacks")
 assert(baby.counterAllowed == false, "Baby mode must not convert dodges into counters")
+assert(baby.escapeCorners == true, "Baby mode must escape laterally when retreat is blocked")
 assert(
     baby.movement.retreatDistance >= 18
         and baby.movement.orbitDistance > baby.movement.retreatDistance
