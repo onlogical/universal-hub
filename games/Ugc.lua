@@ -658,7 +658,6 @@ function Ugc.new(context)
         local criticalTarget = combatController.CriticalStrikeTarget
         local criticalModel = criticalTarget and criticalTarget.Parent
         if criticalModel
-            and (criticalModel == targetModel or criticalTarget:IsDescendantOf(targetModel))
             and os.clock() - lastCriticalStrikeAt >= 0.25
         then
             replicatedStorage.Remotes.PlayerCharacter.Request.CriticalStrike:FireServer(criticalModel)
