@@ -1,8 +1,6 @@
 return {
     defaults = {
-        autoDodge = false,
         autoFight = false,
-        autoParry = false,
         teleportBehind = false,
         wallPhase = false,
     },
@@ -17,14 +15,8 @@ return {
             "names",
             "health",
             "autoFight",
-            "autoDodge",
-            "autoParry",
             "teleportBehind",
             "wallPhase",
-        },
-        exclusiveOptions = {
-            autoDodge = { "autoParry" },
-            autoParry = { "autoDodge" },
         },
         cosmetics = false,
     },

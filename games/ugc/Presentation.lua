@@ -34,12 +34,8 @@ function Presentation.mount(host)
     host:option("visuals", 3, "health", "Health")
     host:option("visuals", 20, "showEnemies", "Players", "audience")
 
-    host:section("Combat", "defense", "DEFENSE", 70)
-    host:option("defense", 1, "autoDodge", "Auto Dodge")
-    host:option("defense", 2, "autoParry", "Auto Parry")
-
     host:section("Combat", "offense", "OFFENSE", 70)
-    host:option("offense", 1, "autoFight", "Auto Fight")
+    host:option("offense", 1, "autoFight", "Auto Fight + Defense")
 
     host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "wallPhase", "Wall Phase")

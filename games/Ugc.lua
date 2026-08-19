@@ -225,10 +225,7 @@ function Ugc.new(context)
         table.clear(activeThreats)
     end
 
-    local function updateIncomingThreats(settings)
-        if settings.autoDodge ~= true and settings.autoParry ~= true then
-            return
-        end
+    local function updateIncomingThreats()
         local localHandler = characterController:GetLocalCharacterHandler()
         local localRoot = localHandler and localHandler.Root
         if not localRoot then
@@ -256,11 +253,7 @@ function Ugc.new(context)
                     and hasClearPath(targetRoot, targetModel, localRoot, localHandler.OriginalModel)
                 then
                     threat.reacted[index] = true
-                    if settings.autoDodge == true then
-                        queueDodge()
-                    else
-                        queueParry()
-                    end
+                    queueParry()
                 end
             end
         end
@@ -283,17 +276,16 @@ function Ugc.new(context)
         return false
     end
 
-    local function updateAutoDodge(settings)
-        if settings.autoDodge ~= true and settings.autoParry ~= true then
+    local function updateAutoDefense(settings)
+        if settings.autoFight ~= true then
             pendingDodgeUntil = nil
-        else
-            tryDodge()
-        end
-        if settings.autoParry ~= true then
             pendingParryUntil = nil
-        else
-            tryParry()
+            boundTarget = nil
+            disconnectTargetAnimation()
+            return
         end
+        tryDodge()
+        tryParry()
         local target = targetLockController.Target
         if target ~= boundTarget then
             disconnectTargetAnimation()
@@ -316,7 +308,7 @@ function Ugc.new(context)
                 observeThreatTrack(handler, track)
             end
         end
-        updateIncomingThreats(settings)
+        updateIncomingThreats()
     end
 
     local function updateAutoFight(settings)
@@ -342,7 +334,7 @@ function Ugc.new(context)
         if pendingDodgeUntil or pendingParryUntil or localHandler.IsParrying or actionManager.BlockAction then
             return
         end
-        if settings.autoParry == true and hasIncomingThreat(0.4) then
+        if hasIncomingThreat(0.4) then
             return
         end
 
@@ -460,7 +452,7 @@ function Ugc.new(context)
         end
 
         local settings = context.store:Get().settings or {}
-        updateAutoDodge(settings)
+        updateAutoDefense(settings)
         updateTeleportBehind(settings)
         updateAutoFight(settings)
         updateWallPhase(settings)
@@ -499,8 +491,6 @@ function Ugc.new(context)
             "names",
             "health",
             "autoFight",
-            "autoDodge",
-            "autoParry",
             "teleportBehind",
             "wallPhase",
         },
