@@ -1,4 +1,4 @@
-local Ugc = {}
+local DuelingGrounds = {}
 
 local AUTO_MOVE_DASH_EXTRA_REACH = 6
 local AUTO_MOVE_DASH_COOLDOWN = 0.75
@@ -235,12 +235,12 @@ local function getAttackMaximumReach(attackInfo)
     return maximumReach
 end
 
-function Ugc.new(context)
-    assert(type(context) == "table", "Ugc adapter requires context")
-    assert(context.oh and context.oh.targeting, "Ugc requires Hydroxide Targeting")
-    assert(context.players and context.players.LocalPlayer, "Ugc requires Players")
-    assert(type(context.render) == "function", "Ugc requires a renderer")
-    assert(context.store, "Ugc requires a reactive store")
+function DuelingGrounds.new(context)
+    assert(type(context) == "table", "DuelingGrounds adapter requires context")
+    assert(context.oh and context.oh.targeting, "DuelingGrounds requires Hydroxide Targeting")
+    assert(context.players and context.players.LocalPlayer, "DuelingGrounds requires Players")
+    assert(type(context.render) == "function", "DuelingGrounds requires a renderer")
+    assert(context.store, "DuelingGrounds requires a reactive store")
 
     local localPlayer = context.players.LocalPlayer
     local replicatedStorage = game:GetService("ReplicatedStorage")
@@ -294,10 +294,10 @@ function Ugc.new(context)
     local localDeflectAnimations = {}
     local lastCombatStyle = nil
     local environment = type(getgenv) == "function" and getgenv() or _G
-    local combatTelemetry = environment.__UgcCombatTelemetry
+    local combatTelemetry = environment.__DuelingGroundsCombatTelemetry
     if type(combatTelemetry) ~= "table" or combatTelemetry.version ~= 1 then
         combatTelemetry = { version = 1, events = {} }
-        environment.__UgcCombatTelemetry = combatTelemetry
+        environment.__DuelingGroundsCombatTelemetry = combatTelemetry
     end
     combatTelemetry.events = combatTelemetry.events or {}
     combatTelemetry.matches = combatTelemetry.matches or {}
@@ -341,7 +341,7 @@ function Ugc.new(context)
             then
                 makefolder(rootFolder)
             end
-            local folder = rootFolder .. "/ugc_1v1s"
+            local folder = rootFolder .. "/duelinggrounds_1v1s"
             if type(makefolder) == "function"
                 and (type(isfolder) ~= "function" or not isfolder(folder))
             then
@@ -1888,4 +1888,4 @@ function Ugc.new(context)
     }
 end
 
-return Ugc
+return DuelingGrounds
