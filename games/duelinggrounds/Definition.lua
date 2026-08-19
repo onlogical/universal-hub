@@ -2,7 +2,6 @@ return {
     defaults = {
         autoFight = false,
         autoMovement = false,
-        frameDataHud = false,
         fightReplay = false,
         botSkill = 85,
         combatStyle = "offensive",
@@ -23,7 +22,6 @@ return {
             "showWins",
             "autoFight",
             "autoMovement",
-            "frameDataHud",
             "fightReplay",
             "botSkill",
             "combatStyle",
@@ -53,7 +51,6 @@ return {
         "games/duelinggrounds/features/combat/DefensiveStyle",
         "games/duelinggrounds/features/combat/DynamicStyle",
         "games/duelinggrounds/features/combat/EnemyPolicy",
-        "games/duelinggrounds/features/combat/FrameData",
         "games/duelinggrounds/features/combat/FlashyStyle",
         "games/duelinggrounds/features/combat/OffensiveStyle",
         "games/duelinggrounds/features/combat/Skill",

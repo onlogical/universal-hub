@@ -69,14 +69,6 @@ function Sampler.sample(frame, settings, elapsed)
         defense = frame.defense,
         critical = frame.critical == true,
         punishWindow = frame.punishWindow,
-        selfAttack = frame.selfFrameData and frame.selfFrameData.attack or nil,
-        selfStartup = frame.selfFrameData and frame.selfFrameData.startup or nil,
-        selfRecovery = frame.selfFrameData and frame.selfFrameData.recovery or nil,
-        selfComboGap = frame.selfFrameData and frame.selfFrameData.comboGap or nil,
-        targetAttack = frame.targetFrameData and frame.targetFrameData.attack or nil,
-        targetStartup = frame.targetFrameData and frame.targetFrameData.startup or nil,
-        targetRecovery = frame.targetFrameData and frame.targetFrameData.recovery or nil,
-        targetComboGap = frame.targetFrameData and frame.targetFrameData.comboGap or nil,
     }
 end
 

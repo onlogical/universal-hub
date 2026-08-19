@@ -188,14 +188,6 @@ export interface UniversalHubMenuModel {
 	readonly onAction?: (name: string) => void;
 }
 
-export interface CombatFrameData {
-	readonly attack?: string;
-	readonly phase?: string;
-	readonly startup?: number;
-	readonly recovery?: number;
-	readonly comboGap?: number;
-}
-
 export interface CombatReplayEntry {
 	readonly t: number;
 	readonly kind: string;
@@ -212,13 +204,7 @@ export interface CombatReplay {
 }
 
 export interface CombatTelemetryModel {
-	readonly frameDataVisible: boolean;
 	readonly replayVisible: boolean;
-	readonly frameData?: {
-		readonly self?: CombatFrameData;
-		readonly target?: CombatFrameData;
-		readonly punishWindow?: number;
-	};
 	readonly replay?: CombatReplay;
 }
 

@@ -17,10 +17,6 @@ local TeleportBehind = importDependency(
     "games/duelinggrounds/features/TeleportBehind",
     "./duelinggrounds/features/TeleportBehind"
 )
-local FrameData = importDependency(
-    "games/duelinggrounds/features/combat/FrameData",
-    "./duelinggrounds/features/combat/FrameData"
-)
 local Styles = importDependency(
     "games/duelinggrounds/features/combat/Styles",
     "./duelinggrounds/features/combat/Styles"
@@ -343,7 +339,6 @@ function DuelingGrounds.new(context)
     local boundLocalCombatWeapon = nil
     local localCombatConnection = nil
     local localDeflectAnimations = {}
-    local activeSelfAttacks = {}
     local lastTelemetryPublishAt = -math.huge
     local lastCombatStyle = nil
     local environment = type(getgenv) == "function" and getgenv() or _G
@@ -366,7 +361,7 @@ function DuelingGrounds.new(context)
         recording:recordDecision(kind, data)
     end
 
-    local function updateMatchRecording(settings, liveFrameData)
+    local function updateMatchRecording(settings, punishWindow)
         local target = targetLockController.Target
         local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
         local localHandler = characterController:GetLocalCharacterHandler()
@@ -384,9 +379,7 @@ function DuelingGrounds.new(context)
             dynamicMode = settings.combatStyle == "dynamic" and dynamicState.mode or nil,
             defense = defenseIntent and defenseIntent.kind or nil,
             critical = targetLockController.CriticalStrikeTarget ~= nil,
-            punishWindow = liveFrameData and liveFrameData.punishWindow or 0,
-            selfFrameData = liveFrameData and liveFrameData.self or nil,
-            targetFrameData = liveFrameData and liveFrameData.target or nil,
+            punishWindow = punishWindow or 0,
             metadata = {
                 gameId = game.GameId,
                 placeId = game.PlaceId,
@@ -497,7 +490,6 @@ function DuelingGrounds.new(context)
         boundLocalCombatHandler = nil
         boundLocalCombatWeapon = nil
         table.clear(localDeflectAnimations)
-        table.clear(activeSelfAttacks)
     end
 
     local function updateLocalCombatObservation()
@@ -523,14 +515,7 @@ function DuelingGrounds.new(context)
             local animation = track.Animation
             local animationId = animation and animation.AnimationId or ""
             local animationName = string.lower(animation and animation.Name or "")
-            local attackInfo, attackName = getAttackInfo(handler, track)
-            if attackInfo then
-                activeSelfAttacks[track] = {
-                    attackInfo = attackInfo,
-                    attackName = attackName,
-                    startedAt = os.clock(),
-                }
-            end
+            local _, attackName = getAttackInfo(handler, track)
             appendCurrentMatchEvent("animation", {
                 side = "self",
                 id = animationId,
@@ -934,7 +919,7 @@ function DuelingGrounds.new(context)
     local updateIncomingThreats
 
     local function observeThreatTrack(handler, track)
-        if activeThreats[track] then
+        if activeThreats[track] or track.Looped then
             return
         end
         local attackInfo, attackName = getAttackInfo(handler, track)
@@ -949,18 +934,6 @@ function DuelingGrounds.new(context)
             reacted = {},
             startedAt = os.clock(),
         }
-        local localHandler = characterController:GetLocalCharacterHandler()
-        local actionManager = localHandler and localHandler.ActionManager
-        if actionManager then
-            actionManager:_clearQueuedAction()
-            local currentAction = actionManager.CurrentAction
-            if currentAction
-                and currentAction.ActionType == "BasicAttack"
-                and currentAction.CanCancel
-            then
-                actionManager:SwitchToAction(nil)
-            end
-        end
         if attackName == "JumpAttack" and updateIncomingThreats then
             updateIncomingThreats()
         end
@@ -1851,43 +1824,7 @@ function DuelingGrounds.new(context)
         playerInputController.CurrentInput.MoveDirection = direction
     end
 
-    local function newestFrameData(entries, requiredHandler)
-        local selected
-        for track, entry in pairs(entries) do
-            if not track.IsPlaying then
-                entries[track] = nil
-            elseif (not requiredHandler or entry.handler == requiredHandler)
-                and (not selected or (entry.startedAt or 0) > (selected.startedAt or 0))
-            then
-                selected = {
-                    track = track,
-                    attackInfo = entry.attackInfo,
-                    attackName = entry.attackName,
-                    startedAt = entry.startedAt,
-                }
-            end
-        end
-        return selected and FrameData.describe(
-            selected.track,
-            selected.attackInfo,
-            selected.attackName
-        ) or nil
-    end
-
-    local function getLiveFrameData()
-        local target = targetLockController.Target
-        local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
-        local targetHandler = targetModel
-            and characterController:GetCharacterHandler(targetModel)
-            or nil
-        return {
-            self = newestFrameData(activeSelfAttacks),
-            target = newestFrameData(activeThreats, targetHandler),
-            punishWindow = getTargetPunishWindow(),
-        }
-    end
-
-    local function updateCombatTelemetry(settings, liveFrameData)
+    local function updateCombatTelemetry(settings)
         if type(context.updateCombatTelemetry) ~= "function" then
             return
         end
@@ -1898,9 +1835,7 @@ function DuelingGrounds.new(context)
         lastTelemetryPublishAt = now
         local latest = recording:getLatestMatch()
         context.updateCombatTelemetry({
-            frameDataVisible = settings.frameDataHud == true,
             replayVisible = settings.fightReplay == true,
-            frameData = liveFrameData,
             replay = latest and latest.timeline or nil,
         })
     end
@@ -1927,9 +1862,8 @@ function DuelingGrounds.new(context)
         local settings = context.store:Get().settings or {}
         updateLocalCombatObservation()
         updateAutoDefense(settings)
-        local liveFrameData = getLiveFrameData()
-        updateMatchRecording(settings, liveFrameData)
-        updateCombatTelemetry(settings, liveFrameData)
+        updateMatchRecording(settings, getTargetPunishWindow())
+        updateCombatTelemetry(settings)
         updateTeleportBehind(settings)
         updateAutoFight(settings)
         updateAutoMovement(settings)
@@ -1972,7 +1906,6 @@ function DuelingGrounds.new(context)
             "showWins",
             "autoFight",
             "autoMovement",
-            "frameDataHud",
             "fightReplay",
             "combatStyle",
             "teleportBehind",

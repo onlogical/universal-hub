@@ -80,8 +80,7 @@ function Presentation.mount(host)
     })
 
     host:section("Combat", "fightData", "FIGHT DATA", 70)
-    host:option("fightData", 1, "frameDataHud", "Live Frame Data HUD")
-    host:option("fightData", 2, "fightReplay", "Fight Replay Timeline")
+    host:option("fightData", 1, "fightReplay", "Fight Replay Timeline")
 
     host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "noclip", "Noclip")

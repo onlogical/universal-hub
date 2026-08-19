@@ -127,7 +127,6 @@ local expectedExtractedSources = {
     "games/duelinggrounds/features/Noclip",
     "games/duelinggrounds/features/WinTitles",
     "games/duelinggrounds/features/combat/EnemyPolicy",
-    "games/duelinggrounds/features/combat/FrameData",
     "games/duelinggrounds/recording/Replay",
     "games/duelinggrounds/recording/Sampler",
 }
