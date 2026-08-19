@@ -263,6 +263,22 @@ local function offensiveAttackCanReach(attackerRoot, defenderRoot, attackInfo)
     return false
 end
 
+local function getAttackGeometricReach(attackInfo)
+    local maximumReach = 0
+    for _, impact in ipairs(attackInfo and attackInfo.impacts or {}) do
+        local impactInfo = impact.impactInfo
+        local hitboxCFrame = impactInfo and impactInfo.hitboxCFrame
+        local hitboxSize = impactInfo and impactInfo.hitboxSize
+        if typeof(hitboxCFrame) == "CFrame" and typeof(hitboxSize) == "Vector3" then
+            maximumReach = math.max(
+                maximumReach,
+                math.abs(hitboxCFrame.Position.Z) + hitboxSize.Z / 2
+            )
+        end
+    end
+    return maximumReach
+end
+
 local function getAttackMaximumReach(attackInfo)
     local maximumReach = 0
     for _, impact in ipairs(attackInfo and attackInfo.impacts or {}) do
