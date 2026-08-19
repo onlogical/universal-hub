@@ -311,21 +311,36 @@ function Ugc.new(context)
         appendCurrentMatchEvent("decision", event)
     end
 
-    local function persistCompletedMatches()
+    local function persistCompletedMatch(match)
         if type(writefile) ~= "function" then
             return
         end
         pcall(function()
-            local folder = "universal-hub/beta/logs"
+            local rootFolder = "universal-hub/beta/logs"
+            if type(makefolder) == "function"
+                and (type(isfolder) ~= "function" or not isfolder(rootFolder))
+            then
+                makefolder(rootFolder)
+            end
+            local folder = rootFolder .. "/ugc_1v1s"
             if type(makefolder) == "function"
                 and (type(isfolder) ~= "function" or not isfolder(folder))
             then
                 makefolder(folder)
             end
             local httpService = game:GetService("HttpService")
-            writefile(folder .. "/ugc_1v1s.json", httpService:JSONEncode({
+            local safeTarget = string.gsub(match.metadata.target or "opponent", "[^%w_%-]", "_")
+            local fileName = ("match_%d_%04d_%s.json"):format(
+                match.metadata.startedAt,
+                match.metadata.id,
+                safeTarget
+            )
+            match.metadata.file = folder .. "/" .. fileName
+            writefile(match.metadata.file, httpService:JSONEncode({
                 version = combatTelemetry.version,
-                matches = combatTelemetry.matches,
+                metadata = match.metadata,
+                events = match.events,
+                samples = match.samples,
             }))
         end)
     end
@@ -335,28 +350,47 @@ function Ugc.new(context)
         if not match then
             return
         end
-        match.duration = os.clock() - match.startedClock
-        match.endedAt = os.time()
-        match.endReason = reason
+        match.metadata.duration = os.clock() - match.startedClock
+        match.metadata.endedAt = os.time()
+        match.metadata.endReason = reason
+        match.metadata.eventCount = #match.events
+        match.metadata.sampleCount = #match.samples
         match.startedClock = nil
         match.targetModelRef = nil
+        match.lastSampleAt = nil
         table.insert(combatTelemetry.matches, match)
         while #combatTelemetry.matches > 25 do
             table.remove(combatTelemetry.matches, 1)
         end
         combatTelemetry.current = nil
-        persistCompletedMatches()
+        persistCompletedMatch(match)
     end
 
     local function startMatchRecording(targetModel, settings)
         combatTelemetry.nextMatchId += 1
+        local localHandler = characterController:GetLocalCharacterHandler()
+        local targetHandler = characterController:GetCharacterHandler(targetModel)
+        local localWeapon = getWeaponInfo(localHandler)
+        local targetWeapon = getWeaponInfo(targetHandler)
+        local targetPlayer = context.players:GetPlayerFromCharacter(targetModel)
         combatTelemetry.current = {
-            id = combatTelemetry.nextMatchId,
-            startedAt = os.time(),
             startedClock = os.clock(),
-            target = targetModel.Name,
             targetModelRef = targetModel,
-            style = settings.combatStyle,
+            metadata = {
+                id = combatTelemetry.nextMatchId,
+                startedAt = os.time(),
+                gameId = game.GameId,
+                placeId = game.PlaceId,
+                jobId = game.JobId,
+                localPlayer = localPlayer.Name,
+                localUserId = localPlayer.UserId,
+                target = targetPlayer and targetPlayer.Name or targetModel.Name,
+                targetUserId = targetPlayer and targetPlayer.UserId or nil,
+                selfWeapon = localWeapon and localWeapon.WeaponName or nil,
+                targetWeapon = targetWeapon and targetWeapon.WeaponName or nil,
+                style = settings.combatStyle,
+                autoMovement = settings.autoMovement == true,
+            },
             events = {},
             samples = {},
             lastSampleAt = -math.huge,
