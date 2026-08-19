@@ -242,10 +242,8 @@ function Ugc.new(context)
     local pendingDodgeCounterAt = nil
     local pendingDodgeCounterUntil = nil
     local pendingJumpAttackUntil = nil
-    local pendingDodgeUntil = nil
-    local pendingDodgeMode = nil
+    local defenseIntent = nil
     local lastParryAt = -math.huge
-    local pendingParryUntil = nil
     local activeParryBlock = nil
     local lastWallPhaseAt = -math.huge
     local boundTarget = nil
@@ -276,6 +274,178 @@ function Ugc.new(context)
     local localCombatConnection = nil
     local localDeflectAnimations = {}
     local lastCombatStyle = nil
+    local environment = type(getgenv) == "function" and getgenv() or _G
+    local combatTelemetry = environment.__UgcCombatTelemetry
+    if type(combatTelemetry) ~= "table" or combatTelemetry.version ~= 1 then
+        combatTelemetry = { version = 1, events = {} }
+        environment.__UgcCombatTelemetry = combatTelemetry
+    end
+    combatTelemetry.events = combatTelemetry.events or {}
+    combatTelemetry.matches = combatTelemetry.matches or {}
+    combatTelemetry.nextMatchId = combatTelemetry.nextMatchId or 0
+    combatTelemetry.current = nil
+
+    local function appendCurrentMatchEvent(kind, data)
+        local match = combatTelemetry.current
+        if not match then
+            return
+        end
+        local event = { kind = kind, t = os.clock() - match.startedClock }
+        for key, value in pairs(data or {}) do
+            event[key] = value
+        end
+        table.insert(match.events, event)
+        if #match.events > 5000 then
+            table.remove(match.events, 1)
+        end
+    end
+
+    local function logCombatDecision(kind, data)
+        local event = data or {}
+        event.t = os.clock()
+        event.kind = kind
+        table.insert(combatTelemetry.events, event)
+        if #combatTelemetry.events > 4000 then
+            table.remove(combatTelemetry.events, 1)
+        end
+        appendCurrentMatchEvent("decision", event)
+    end
+
+    local function persistCompletedMatches()
+        if type(writefile) ~= "function" then
+            return
+        end
+        pcall(function()
+            local folder = "universal-hub/beta/logs"
+            if type(makefolder) == "function"
+                and (type(isfolder) ~= "function" or not isfolder(folder))
+            then
+                makefolder(folder)
+            end
+            local httpService = game:GetService("HttpService")
+            writefile(folder .. "/ugc_1v1s.json", httpService:JSONEncode({
+                version = combatTelemetry.version,
+                matches = combatTelemetry.matches,
+            }))
+        end)
+    end
+
+    local function finishMatchRecording(reason)
+        local match = combatTelemetry.current
+        if not match then
+            return
+        end
+        match.duration = os.clock() - match.startedClock
+        match.endedAt = os.time()
+        match.endReason = reason
+        match.startedClock = nil
+        match.targetModelRef = nil
+        table.insert(combatTelemetry.matches, match)
+        while #combatTelemetry.matches > 25 do
+            table.remove(combatTelemetry.matches, 1)
+        end
+        combatTelemetry.current = nil
+        persistCompletedMatches()
+    end
+
+    local function startMatchRecording(targetModel, settings)
+        combatTelemetry.nextMatchId += 1
+        combatTelemetry.current = {
+            id = combatTelemetry.nextMatchId,
+            startedAt = os.time(),
+            startedClock = os.clock(),
+            target = targetModel.Name,
+            targetModelRef = targetModel,
+            style = settings.combatStyle,
+            events = {},
+            samples = {},
+            lastSampleAt = -math.huge,
+        }
+        appendCurrentMatchEvent("matchStarted", {
+            autoMovement = settings.autoMovement == true,
+            style = settings.combatStyle,
+        })
+    end
+
+    local function updateMatchRecording(settings)
+        local target = targetLockController.Target
+        local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
+        local match = combatTelemetry.current
+        if settings.autoFight ~= true or not targetModel then
+            finishMatchRecording(settings.autoFight == true and "targetLost" or "autoFightOff")
+            return
+        end
+        if targetModel:GetAttribute("IsDead") == true then
+            finishMatchRecording("targetDead")
+            return
+        end
+        local currentLocalHandler = characterController:GetLocalCharacterHandler()
+        local currentLocalAction = currentLocalHandler
+            and currentLocalHandler.ActionManager
+            and currentLocalHandler.ActionManager.CurrentAction
+        if currentLocalHandler
+            and ((currentLocalHandler.Model
+                    and currentLocalHandler.Model:GetAttribute("IsDead") == true)
+                or (currentLocalAction and currentLocalAction.ActionType == "Death"))
+        then
+            finishMatchRecording("selfDead")
+            return
+        end
+        if match and match.targetModelRef ~= targetModel then
+            finishMatchRecording("targetChanged")
+            match = nil
+        end
+        if not match then
+            startMatchRecording(targetModel, settings)
+            match = combatTelemetry.current
+        end
+        local now = os.clock()
+        if now - match.lastSampleAt < 0.05 then
+            return
+        end
+        match.lastSampleAt = now
+        local localHandler = characterController:GetLocalCharacterHandler()
+        local targetHandler = characterController:GetCharacterHandler(targetModel)
+        local localRoot = localHandler and localHandler.Root
+        local targetRoot = targetHandler and targetHandler.Root or target
+        local localManager = localHandler and localHandler.ActionManager
+        local targetManager = targetHandler and targetHandler.ActionManager
+        local localAction = localManager and localManager.CurrentAction
+        local targetAction = targetManager and targetManager.CurrentAction
+        local localHumanoid = localHandler and localHandler.Model
+            and localHandler.Model:FindFirstChildOfClass("Humanoid")
+        local targetHumanoid = targetModel:FindFirstChildOfClass("Humanoid")
+        local distance
+        if localRoot and targetRoot then
+            local offset = targetRoot.Position - localRoot.Position
+            distance = Vector3.new(offset.X, 0, offset.Z).Magnitude
+        end
+        table.insert(match.samples, {
+            t = now - match.startedClock,
+            distance = distance,
+            style = settings.combatStyle,
+            dynamicMode = settings.combatStyle == "dynamic" and dynamicState.mode or nil,
+            selfAction = localAction and localAction.ActionType or nil,
+            selfCanCancel = localAction and localAction.CanCancel or nil,
+            selfHealth = localHumanoid and localHumanoid.Health or nil,
+            selfBlocking = localHandler and localHandler.IsBlocking or false,
+            selfParrying = localHandler and localHandler.IsParrying or false,
+            selfDodging = localHandler and localHandler.IsDodging or false,
+            selfCanUltimate = localHandler and localHandler:CanPerformUltimate() or false,
+            targetAction = targetAction and targetAction.ActionType or nil,
+            targetHealth = targetHumanoid and targetHumanoid.Health or nil,
+            targetBlocking = targetHandler and targetHandler.IsBlocking or false,
+            targetParrying = targetHandler and targetHandler.IsParrying or false,
+            targetDodging = targetHandler and targetHandler.IsDodging or false,
+            dodgeStamina = localManager and localManager._dodgeStamina or nil,
+            blockStrength = localManager and localManager._blockStrength or nil,
+            defense = defenseIntent and defenseIntent.kind or nil,
+            critical = targetLockController.CriticalStrikeTarget ~= nil,
+        })
+        if #match.samples > 8000 then
+            table.remove(match.samples, 1)
+        end
+    end
 
     local function getInstances(value)
         if typeof(value) == "Instance" then
@@ -404,6 +574,11 @@ function Ugc.new(context)
             local animation = track.Animation
             local animationId = animation and animation.AnimationId or ""
             local animationName = string.lower(animation and animation.Name or "")
+            appendCurrentMatchEvent("animation", {
+                side = "self",
+                id = animationId,
+                name = animation and animation.Name or "",
+            })
             if localDeflectAnimations[animationId]
                 or string.find(animationName, "deflected", 1, true)
             then
@@ -498,19 +673,18 @@ function Ugc.new(context)
         return maximumReach
     end
 
-    local function tryDodge()
-        if not pendingDodgeUntil or os.clock() > pendingDodgeUntil then
-            pendingDodgeUntil = nil
-            pendingDodgeMode = nil
-            return
-        end
+    local function executeDodge(intent)
         if os.clock() - lastDodgeAt < DODGE_COOLDOWN then
-            return
+            return false, "dodge cooldown"
         end
         local localHandler = characterController:GetLocalCharacterHandler()
         local actionManager = localHandler and localHandler.ActionManager
-        if not actionManager or not actionManager:CanStartDodge() then
-            return
+        if not actionManager then
+            return false, "action manager unavailable"
+        end
+        if not actionManager:CanStartDodge() then
+            local currentAction = actionManager.CurrentAction
+            return false, currentAction and "current action locked" or "dodge unavailable"
         end
         local target = targetLockController.Target
         local localRoot = localHandler.Root
@@ -519,7 +693,7 @@ function Ugc.new(context)
         local settings = context.store:Get().settings or {}
         local counterAllowed = settings.combatStyle == "offensive"
             or (settings.combatStyle == "dynamic" and dynamicState.mode ~= "defensive")
-        local dodgeMode = pendingDodgeMode
+        local dodgeMode = intent.mode
         if direction.Magnitude <= 0.001 then
             local camera = context.workspace.CurrentCamera
             local look = camera and camera.CFrame.LookVector or Vector3.zAxis
@@ -550,8 +724,6 @@ function Ugc.new(context)
             isReverse = isReverse,
             dodgeStamina = actionManager._dodgeStamina,
         })
-        pendingDodgeUntil = nil
-        pendingDodgeMode = nil
         lastDodgeAt = os.clock()
         if counterAllowed then
             pendingDodgeCounterAt = dodgeMode == "heavy" and lastDodgeAt
@@ -561,12 +733,7 @@ function Ugc.new(context)
             pendingDodgeCounterAt = nil
             pendingDodgeCounterUntil = nil
         end
-    end
-
-    local function queueDodge(mode)
-        pendingDodgeUntil = os.clock() + 0.3
-        pendingDodgeMode = mode
-        tryDodge()
+        return true
     end
 
     local function tryDodgeCounter(localHandler, actionManager, targetHandler, targetRoot)
@@ -575,6 +742,7 @@ function Ugc.new(context)
         end
         local now = os.clock()
         if now > pendingDodgeCounterUntil then
+            appendCurrentMatchEvent("dodgeCounter", { result = "expired" })
             pendingDodgeCounterAt = nil
             pendingDodgeCounterUntil = nil
             return false
@@ -590,6 +758,7 @@ function Ugc.new(context)
             or targetIsParrying()
             or (targetHandler and (targetHandler.IsDodging or targetHandler.IsParrying))
         then
+            appendCurrentMatchEvent("dodgeCounter", { result = "targetInvulnerable" })
             return true
         end
         local localRoot = localHandler.Root
@@ -617,6 +786,10 @@ function Ugc.new(context)
                             false
                         )
                     then
+                        appendCurrentMatchEvent("dodgeCounter", {
+                            result = "multiHitPending",
+                            timeUntilImpact = timeUntilImpact,
+                        })
                         return true
                     end
                 end
@@ -632,6 +805,11 @@ function Ugc.new(context)
                 { targetHandler and targetHandler.Model }
             )
         then
+            appendCurrentMatchEvent("dodgeCounter", {
+                result = distance > reach and "outOfRange" or "pathBlocked",
+                distance = distance,
+                reach = reach,
+            })
             return true
         end
         if actionManager:TryQueueBasicAttack("Light") then
@@ -641,44 +819,40 @@ function Ugc.new(context)
             local canCancel = getAttackMarker(attackInfo, "canCancel") or 0.5
             nextNeutralAttackAt = now + canCancel
                 + offenseRandom:NextNumber(OFFENSIVE_RECOVERY_MIN, OFFENSIVE_RECOVERY_MAX)
+            appendCurrentMatchEvent("dodgeCounter", {
+                result = "queued",
+                attack = attackName,
+                distance = distance,
+            })
+        else
+            appendCurrentMatchEvent("dodgeCounter", {
+                result = "queueRejected",
+                attack = attackName,
+                distance = distance,
+            })
         end
         return true
     end
 
-    local function tryParry()
-        if not pendingParryUntil or os.clock() > pendingParryUntil then
-            pendingParryUntil = nil
-            return
-        end
+    local function executeParry()
         local localHandler = characterController:GetLocalCharacterHandler()
         local actionManager = localHandler and localHandler.ActionManager
         if not actionManager then
-            return
+            return false, "action manager unavailable"
         end
         if actionManager.BlockAction then
-            pendingParryUntil = nil
-            if not localHandler.IsParrying then
-                queueDodge()
-            end
-            return
+            return false, "block action active"
         end
         if os.clock() - lastParryAt < PARRY_COOLDOWN then
-            return
+            return false, "parry cooldown"
         end
         if (actionManager._blockStrength or 0) <= 0.01 then
-            pendingParryUntil = nil
-            queueDodge()
-            return
+            return false, "block strength depleted"
         end
         local canStart, replaceCurrent = actionManager:CanStartBlock()
         if not canStart then
             local currentAction = actionManager.CurrentAction
-            if currentAction and currentAction.ActionType == "Dodge" then
-                return
-            end
-            pendingParryUntil = nil
-            queueDodge()
-            return
+            return false, currentAction and "current action locked" or "parry unavailable"
         end
         local currentAction = actionManager.CurrentAction
         actionManager:_clearQueuedAction()
@@ -690,7 +864,6 @@ function Ugc.new(context)
             actionManager.CurrentAction = nil
         end
         activeParryBlock = block
-        pendingParryUntil = nil
         lastParryAt = os.clock()
         task.delay(PARRY_HOLD_TIME, function()
             if activeParryBlock == block then
@@ -698,11 +871,85 @@ function Ugc.new(context)
                 activeParryBlock = nil
             end
         end)
+        return true
     end
 
-    local function queueParry()
-        pendingParryUntil = os.clock() + 0.2
-        tryParry()
+    local function executeDefenseIntent()
+        local intent = defenseIntent
+        if not intent then
+            return
+        end
+        local now = os.clock()
+        if now > intent.expiresAt then
+            logCombatDecision("defenseExpired", {
+                attack = intent.attackName,
+                winner = intent.kind,
+                reason = intent.lastFailure,
+            })
+            defenseIntent = nil
+            return
+        end
+        local succeeded, reason
+        if intent.kind == "dodge" then
+            succeeded, reason = executeDodge(intent)
+        else
+            succeeded, reason = executeParry()
+        end
+        if not succeeded then
+            intent.lastFailure = reason
+            if now >= intent.impactAt - 0.04 then
+                local fallbackKind = intent.kind == "dodge" and "parry" or "dodge"
+                local fallbackSucceeded, fallbackReason
+                if fallbackKind == "parry" and intent.parryable then
+                    fallbackSucceeded, fallbackReason = executeParry()
+                elseif fallbackKind == "dodge" then
+                    fallbackSucceeded, fallbackReason = executeDodge({ mode = intent.mode })
+                end
+                if fallbackSucceeded then
+                    logCombatDecision("defenseFallback", {
+                        attack = intent.attackName,
+                        winner = fallbackKind,
+                        replaced = intent.kind,
+                        reason = reason,
+                    })
+                    defenseIntent = nil
+                elseif fallbackReason then
+                    intent.lastFailure = reason .. "; fallback: " .. fallbackReason
+                end
+            end
+            return
+        end
+        logCombatDecision("defenseExecuted", {
+            attack = intent.attackName,
+            winner = intent.kind,
+            reason = intent.reason,
+            mode = intent.mode,
+            timeUntilImpact = intent.impactAt - now,
+        })
+        defenseIntent = nil
+    end
+
+    local function queueDefenseIntent(intent)
+        if defenseIntent
+            and defenseIntent.impactAt <= intent.impactAt
+        then
+            return false
+        end
+        defenseIntent = intent
+        logCombatDecision("defenseSelected", {
+            attack = intent.attackName,
+            winner = intent.kind,
+            reason = intent.reason,
+            mode = intent.mode,
+            canDodge = intent.canDodge,
+            canParry = intent.canParry,
+            dodgeStamina = intent.dodgeStamina,
+            currentAction = intent.currentAction,
+            currentCanCancel = intent.currentCanCancel,
+            timeUntilImpact = intent.impactAt - os.clock(),
+        })
+        executeDefenseIntent()
+        return true
     end
 
     local function observeThreatTrack(handler, track)
@@ -747,12 +994,17 @@ function Ugc.new(context)
     end
 
     local function observeTargetTrack(handler, track)
+        local animation = track.Animation
+        appendCurrentMatchEvent("animation", {
+            side = "target",
+            id = animation and animation.AnimationId or "",
+            name = animation and animation.Name or "",
+        })
         local attackInfo = getAttackInfo(handler, track)
         if attackInfo then
             observeThreatTrack(handler, track)
             return
         end
-        local animation = track.Animation
         local animationId = animation and animation.AnimationId or ""
         local animationName = string.lower(animation and animation.Name or "")
         local now = os.clock()
@@ -824,19 +1076,59 @@ function Ugc.new(context)
                         { localHandler.Model, localHandler.OriginalModel }
                     )
                 then
-                    threat.reacted[index] = true
                     local impactResults = impact.impactInfo and impact.impactInfo.impactResults
-                    if isHeavyAttack then
-                        pendingParryUntil = nil
-                        if activeParryBlock then
-                            activeParryBlock._wantsToRelease = true
-                            activeParryBlock = nil
-                        end
-                        queueDodge("heavy")
-                    elseif impactResults and impactResults.Parry == nil then
-                        queueDodge()
+                    local actionManager = localHandler.ActionManager
+                    local currentAction = actionManager and actionManager.CurrentAction
+                    local dodgeStamina = actionManager and actionManager._dodgeStamina or 0
+                    local dodgeReady = actionManager ~= nil
+                        and dodgeStamina >= 0.99
+                        and os.clock() - lastDodgeAt >= DODGE_COOLDOWN
+                    local canDodge = dodgeReady and actionManager:CanStartDodge()
+                    local canStartBlock = false
+                    if actionManager
+                        and not actionManager.BlockAction
+                        and (actionManager._blockStrength or 0) > 0.01
+                        and os.clock() - lastParryAt >= PARRY_COOLDOWN
+                    then
+                        canStartBlock = actionManager:CanStartBlock()
+                    end
+                    local parryable = impactResults ~= nil
+                        and impactResults.Parry ~= nil
+                    local winner
+                    local reason
+                    if isHeavyAttack and dodgeReady then
+                        winner = "dodge"
+                        reason = "heavy counter"
+                    elseif not parryable then
+                        winner = "dodge"
+                        reason = "unparryable impact"
+                    elseif canStartBlock then
+                        winner = "parry"
+                        reason = isHeavyAttack and "dodge unavailable" or "parryable impact"
+                    elseif dodgeReady then
+                        winner = "dodge"
+                        reason = "parry unavailable"
                     else
-                        queueParry()
+                        winner = "parry"
+                        reason = "no ready defense; parry fallback"
+                    end
+                    local now = os.clock()
+                    local selected = queueDefenseIntent({
+                        kind = winner,
+                        mode = isHeavyAttack and "heavy" or nil,
+                        attackName = threat.attackName,
+                        reason = reason,
+                        canDodge = canDodge,
+                        canParry = canStartBlock,
+                        dodgeStamina = dodgeStamina,
+                        parryable = parryable,
+                        currentAction = currentAction and currentAction.ActionType or nil,
+                        currentCanCancel = currentAction and currentAction.CanCancel or nil,
+                        impactAt = now + timeUntilImpact,
+                        expiresAt = now + timeUntilImpact + 0.08,
+                    })
+                    if selected then
+                        threat.reacted[index] = true
                     end
                 end
             end
@@ -877,18 +1169,15 @@ function Ugc.new(context)
             lastCombatStyle = settings.combatStyle
         end
         if settings.autoFight ~= true then
-            pendingDodgeUntil = nil
-            pendingDodgeMode = nil
+            defenseIntent = nil
             pendingDodgeCounterAt = nil
             pendingDodgeCounterUntil = nil
-            pendingParryUntil = nil
             pendingJumpAttackUntil = nil
             boundTarget = nil
             disconnectTargetAnimation()
             return
         end
-        tryDodge()
-        tryParry()
+        executeDefenseIntent()
         local target = targetLockController.Target
         if target ~= boundTarget then
             disconnectTargetAnimation()
@@ -996,7 +1285,7 @@ function Ugc.new(context)
             end
             return
         end
-        if pendingDodgeUntil or pendingParryUntil or localHandler.IsParrying or actionManager.BlockAction then
+        if defenseIntent or localHandler.IsParrying or actionManager.BlockAction then
             return
         end
         if hasIncomingThreat(true) then
@@ -1187,8 +1476,7 @@ function Ugc.new(context)
             and currentAction.ActionType == "BasicAttack"
             and currentAction.CanCancel
             and not actionManager._queuedActionType
-        if pendingDodgeUntil
-            or pendingParryUntil
+        if defenseIntent
             or hasIncomingThreat(true)
             or actionManager._queuedActionType
             or actionManager.BlockAction
@@ -1244,7 +1532,6 @@ function Ugc.new(context)
                 isReverse = false,
                 dodgeStamina = actionManager._dodgeStamina,
             })
-            pendingDodgeUntil = nil
             lastDodgeAt = os.clock()
             lastApproachDashAt = lastDodgeAt
             playerInputController.CurrentInput.MoveDirection = Vector3.zero
@@ -1397,6 +1684,7 @@ function Ugc.new(context)
         end
 
         local settings = context.store:Get().settings or {}
+        updateMatchRecording(settings)
         updateLocalCombatObservation()
         updateAutoDefense(settings)
         updateTeleportBehind(settings)
@@ -1451,6 +1739,7 @@ function Ugc.new(context)
                 return
             end
             stopped = true
+            finishMatchRecording("sessionStopped")
             disconnectTargetAnimation()
             disconnectLocalCombatObservation()
             if activeParryBlock then
