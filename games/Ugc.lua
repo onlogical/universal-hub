@@ -174,7 +174,6 @@ function Ugc.new(context)
     local replicatedStorage = game:GetService("ReplicatedStorage")
     local GameManager = require(replicatedStorage.GameManager)
     local characterController = GameManager:GetController("CharacterController")
-    local combatController = GameManager:GetController("CombatController")
     local pingController = GameManager:GetController("PingController")
     local playerInputController = GameManager:GetController("PlayerInputController")
     local targetLockController = GameManager:GetController("TargetLockController")
@@ -655,7 +654,7 @@ function Ugc.new(context)
         if not actionManager or not localHandler.EquippedWeapon then
             return
         end
-        local criticalTarget = combatController.CriticalStrikeTarget
+        local criticalTarget = targetLockController.CriticalStrikeTarget
         local criticalModel = criticalTarget and criticalTarget.Parent
         if criticalModel
             and os.clock() - lastCriticalStrikeAt >= 0.25
