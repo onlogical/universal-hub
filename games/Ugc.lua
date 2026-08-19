@@ -2,18 +2,69 @@ local Ugc = {}
 
 local DODGE_COOLDOWN = 0.35
 local FIGHT_RETRY_INTERVAL = 0.05
-local GUARANTEED_HIT_DISTANCE = 10
-local PARRY_COOLDOWN = 0.35
+local IMPACT_MARGIN = Vector3.new(2.5, 3, 2.5)
+local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
 local WALL_PHASE_COOLDOWN = 0.35
 
-local function isCombatAnimation(track)
-    local priority = track and track.Priority
-    return priority == Enum.AnimationPriority.Action
-        or priority == Enum.AnimationPriority.Action2
-        or priority == Enum.AnimationPriority.Action3
-        or priority == Enum.AnimationPriority.Action4
+local function getAttackInfo(characterHandler, track)
+    local weaponHandler = characterHandler and characterHandler:GetEquippedWeaponHandler()
+    local attackTypes = weaponHandler and weaponHandler.WeaponInfo.BasicAttackTypes
+    local animation = track and track.Animation
+    if not attackTypes or not animation then
+        return nil
+    end
+    for _, attackInfo in pairs(attackTypes) do
+        if attackInfo.animation == animation
+            or attackInfo.animation.AnimationId == animation.AnimationId
+        then
+            return attackInfo
+        end
+    end
+    return nil
+end
+
+local function impactContainsPoint(attackerRoot, point, impact, margin)
+    local impactInfo = impact and impact.impactInfo
+    local hitboxCFrame = impactInfo and impactInfo.hitboxCFrame
+    local hitboxSize = impactInfo and impactInfo.hitboxSize
+    if typeof(hitboxCFrame) ~= "CFrame" or typeof(hitboxSize) ~= "Vector3" then
+        return false
+    end
+    local localPoint = (attackerRoot.CFrame * hitboxCFrame):PointToObjectSpace(point)
+    local allowance = hitboxSize / 2 + (margin or Vector3.zero)
+    return math.abs(localPoint.X) <= allowance.X
+        and math.abs(localPoint.Y) <= allowance.Y
+        and math.abs(localPoint.Z) <= allowance.Z
+end
+
+local function attackCanReach(attackerRoot, defenderRoot, attackInfo, strict)
+    if not attackerRoot or not defenderRoot or not attackInfo then
+        return false
+    end
+    for _, impact in ipairs(attackInfo.impacts or {}) do
+        if impactContainsPoint(attackerRoot, defenderRoot.Position, impact, IMPACT_MARGIN) then
+            return true
+        end
+        if not strict then
+            local hitbox = impact.impactInfo
+            local hitboxCFrame = hitbox and hitbox.hitboxCFrame
+            local hitboxSize = hitbox and hitbox.hitboxSize
+            if typeof(hitboxCFrame) == "CFrame" and typeof(hitboxSize) == "Vector3" then
+                local offset = defenderRoot.Position - attackerRoot.Position
+                local flatOffset = Vector3.new(offset.X, 0, offset.Z)
+                local maximumReach = math.abs(hitboxCFrame.Position.Z) + hitboxSize.Z / 2 + 4
+                if flatOffset.Magnitude <= maximumReach
+                    and flatOffset.Magnitude > 0
+                    and attackerRoot.CFrame.LookVector:Dot(flatOffset.Unit) >= 0.15
+                then
+                    return true
+                end
+            end
+        end
+    end
+    return false
 end
 
 function Ugc.new(context)
@@ -26,6 +77,7 @@ function Ugc.new(context)
     local localPlayer = context.players.LocalPlayer
     local GameManager = require(game:GetService("ReplicatedStorage").GameManager)
     local characterController = GameManager:GetController("CharacterController")
+    local pingController = GameManager:GetController("PingController")
     local targetLockController = GameManager:GetController("TargetLockController")
     local stopped = false
     local lastDodgeAt = -math.huge
@@ -38,6 +90,23 @@ function Ugc.new(context)
     local lastWallPhaseAt = -math.huge
     local boundTarget = nil
     local targetAnimationConnection = nil
+    local activeThreats = {}
+
+    local function hasClearPath(fromRoot, fromModel, targetRoot, targetModel)
+        if not fromRoot or not targetRoot then
+            return false
+        end
+        local offset = targetRoot.Position - fromRoot.Position
+        if offset.Magnitude <= 0.001 then
+            return true
+        end
+        local parameters = RaycastParams.new()
+        parameters.FilterType = Enum.RaycastFilterType.Exclude
+        parameters.FilterDescendantsInstances = fromModel and { fromModel } or {}
+        parameters.IgnoreWater = true
+        local hit = context.workspace:Raycast(fromRoot.Position, offset, parameters)
+        return hit == nil or (targetModel and hit.Instance:IsDescendantOf(targetModel))
+    end
 
     local function tryDodge()
         if not pendingDodgeUntil or os.clock() > pendingDodgeUntil then
@@ -82,14 +151,19 @@ function Ugc.new(context)
             pendingParryUntil = nil
             return
         end
-        if os.clock() - lastParryAt < PARRY_COOLDOWN then
-            pendingParryUntil = nil
-            queueDodge()
-            return
-        end
         local localHandler = characterController:GetLocalCharacterHandler()
         local actionManager = localHandler and localHandler.ActionManager
         if not actionManager then
+            return
+        end
+        if actionManager.BlockAction then
+            pendingParryUntil = nil
+            if not localHandler.IsParrying then
+                queueDodge()
+            end
+            return
+        end
+        if os.clock() - lastParryAt < PARRY_COOLDOWN then
             return
         end
         if (actionManager._blockStrength or 0) <= 0.01 then
@@ -104,6 +178,7 @@ function Ugc.new(context)
             return
         end
         local currentAction = actionManager.CurrentAction
+        actionManager:_clearQueuedAction()
         local block = actionManager:SwitchBlock(true, {
             blockStrength = actionManager._blockStrength or 1,
         })
@@ -127,16 +202,19 @@ function Ugc.new(context)
         tryParry()
     end
 
-    local function onTargetAnimationPlayed(track)
-        if not isCombatAnimation(track) then
+    local function observeThreatTrack(handler, track)
+        if activeThreats[track] then
             return
         end
-        local settings = context.store:Get().settings
-        if settings.autoDodge == true then
-            queueDodge()
-        elseif settings.autoParry == true then
-            queueParry()
+        local attackInfo = getAttackInfo(handler, track)
+        if not attackInfo then
+            return
         end
+        activeThreats[track] = {
+            attackInfo = attackInfo,
+            handler = handler,
+            reacted = {},
+        }
     end
 
     local function disconnectTargetAnimation()
@@ -144,6 +222,65 @@ function Ugc.new(context)
             targetAnimationConnection:Disconnect()
             targetAnimationConnection = nil
         end
+        table.clear(activeThreats)
+    end
+
+    local function updateIncomingThreats(settings)
+        if settings.autoDodge ~= true and settings.autoParry ~= true then
+            return
+        end
+        local localHandler = characterController:GetLocalCharacterHandler()
+        local localRoot = localHandler and localHandler.Root
+        if not localRoot then
+            return
+        end
+        local leadTime = math.clamp((pingController:GetPing() or 0) + 0.04, 0.08, 0.16)
+        for track, threat in pairs(activeThreats) do
+            if not track.IsPlaying then
+                activeThreats[track] = nil
+                continue
+            end
+            local targetHandler = threat.handler
+            local targetRoot = targetHandler and targetHandler.Root
+            local targetModel = targetHandler and targetHandler.OriginalModel
+            local speed = math.max(math.abs(track.Speed), 0.05)
+            for index, impact in ipairs(threat.attackInfo.impacts or {}) do
+                if threat.reacted[index] then
+                    continue
+                end
+                local timeUntilImpact = (impact.markerTime - track.TimePosition) / speed
+                if timeUntilImpact < -0.08 then
+                    threat.reacted[index] = true
+                elseif timeUntilImpact <= leadTime
+                    and attackCanReach(targetRoot, localRoot, { impacts = { impact } }, true)
+                    and hasClearPath(targetRoot, targetModel, localRoot, localHandler.OriginalModel)
+                then
+                    threat.reacted[index] = true
+                    if settings.autoDodge == true then
+                        queueDodge()
+                    else
+                        queueParry()
+                    end
+                end
+            end
+        end
+    end
+
+    local function hasIncomingThreat(window)
+        for track, threat in pairs(activeThreats) do
+            if track.IsPlaying then
+                local speed = math.max(math.abs(track.Speed), 0.05)
+                for index, impact in ipairs(threat.attackInfo.impacts or {}) do
+                    if not threat.reacted[index] then
+                        local timeUntilImpact = (impact.markerTime - track.TimePosition) / speed
+                        if timeUntilImpact >= 0 and timeUntilImpact <= window then
+                            return true
+                        end
+                    end
+                end
+            end
+        end
+        return false
     end
 
     local function updateAutoDodge(settings)
@@ -162,28 +299,24 @@ function Ugc.new(context)
             disconnectTargetAnimation()
             boundTarget = target
         end
-        if not target or targetAnimationConnection then
+        if not target then
             return
         end
-        local model = target and target:FindFirstAncestorWhichIsA("Model")
-        local handler = model and characterController:GetCharacterHandler(model)
-        local animator = handler and handler.Animator
-        if not animator then
-            return
-        end
-        targetAnimationConnection = animator.AnimationPlayed:Connect(onTargetAnimationPlayed)
-        if settings.autoDodge == true or settings.autoParry == true then
+        if not targetAnimationConnection then
+            local model = target:FindFirstAncestorWhichIsA("Model")
+            local handler = model and characterController:GetCharacterHandler(model)
+            local animator = handler and handler.Animator
+            if not animator then
+                return
+            end
+            targetAnimationConnection = animator.AnimationPlayed:Connect(function(track)
+                observeThreatTrack(handler, track)
+            end)
             for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
-                if isCombatAnimation(track) and track.TimePosition < 0.2 then
-                    if settings.autoDodge == true then
-                        queueDodge()
-                    else
-                        queueParry()
-                    end
-                    break
-                end
+                observeThreatTrack(handler, track)
             end
         end
+        updateIncomingThreats(settings)
     end
 
     local function updateAutoFight(settings)
@@ -196,36 +329,54 @@ function Ugc.new(context)
         if not targetModel or targetModel:GetAttribute("IsDead") == true then
             return
         end
+        local targetHandler = characterController:GetCharacterHandler(targetModel)
+        local targetRoot = targetHandler and targetHandler.Root or target
+        if targetHandler and (targetHandler.IsDodging or targetHandler.IsParrying) then
+            return
+        end
         local localHandler = characterController:GetLocalCharacterHandler()
         local actionManager = localHandler and localHandler.ActionManager
         if not actionManager or not localHandler.EquippedWeapon then
             return
         end
+        if pendingDodgeUntil or pendingParryUntil or localHandler.IsParrying or actionManager.BlockAction then
+            return
+        end
+        if settings.autoParry == true and hasIncomingThreat(0.4) then
+            return
+        end
+
+        local localRoot = localHandler.Root
+        local weaponHandler = localHandler:GetEquippedWeaponHandler()
+        local attackTypes = weaponHandler and weaponHandler.WeaponInfo.BasicAttackTypes
+        if not localRoot or not targetRoot or not attackTypes
+            or not hasClearPath(localRoot, localHandler.OriginalModel, targetRoot, targetModel)
+        then
+            return
+        end
 
         local attack = nextFightAttack
-        local localRoot = localHandler.Root
-        local offset = localRoot and (target.Position - localRoot.Position) or Vector3.zero
-        local distance = offset.Magnitude
-        local facingTarget = distance > 0
-            and localRoot.CFrame.LookVector:Dot(offset.Unit) >= 0.5
-        local clearHit = false
-        if distance > 0 and distance <= GUARANTEED_HIT_DISTANCE and facingTarget then
-            local parameters = RaycastParams.new()
-            parameters.FilterType = Enum.RaycastFilterType.Exclude
-            local ignoredModels = {}
-            if localHandler.Model then
-                table.insert(ignoredModels, localHandler.Model)
-            end
-            if localHandler.OriginalModel then
-                table.insert(ignoredModels, localHandler.OriginalModel)
-            end
-            parameters.FilterDescendantsInstances = ignoredModels
-            parameters.IgnoreWater = true
-            local hit = context.workspace:Raycast(localRoot.Position, offset, parameters)
-            clearHit = hit ~= nil and hit.Instance:IsDescendantOf(targetModel)
-        end
-        if clearHit and localHandler:CanPerformUltimate() then
+        local resolvedName = actionManager:_resolveAttackName(attack)
+        local attackInfo = resolvedName and attackTypes[resolvedName]
+        local ultimateInfo = attackTypes.Ultimate
+        if ultimateInfo
+            and localHandler:CanPerformUltimate()
+            and attackCanReach(localRoot, targetRoot, ultimateInfo, true)
+        then
             attack = "Ultimate"
+            attackInfo = ultimateInfo
+        elseif targetHandler and targetHandler.IsBlocking then
+            attack = "Heavy"
+            attackInfo = attackTypes[actionManager:_resolveAttackName(attack)]
+        end
+
+        if not attackCanReach(localRoot, targetRoot, attackInfo, false) then
+            local alternate = attack == "Heavy" and "Light" or "Heavy"
+            local alternateInfo = attackTypes[actionManager:_resolveAttackName(alternate)]
+            if attack == "Ultimate" or not attackCanReach(localRoot, targetRoot, alternateInfo, false) then
+                return
+            end
+            attack = alternate
         end
 
         if actionManager:TryQueueBasicAttack(attack) and attack ~= "Ultimate" then
