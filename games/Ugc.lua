@@ -26,9 +26,10 @@ local DEFAULT_COMBAT_PROFILE = {
 
 local COMBAT_PROFILES = {
     Kusarigama = {
-        approachDistance = 13.25,
-        orbitDistance = 12.5,
-        retreatDistance = 11.75,
+        approachDistance = 11.5,
+        orbitDistance = 10.75,
+        retreatDistance = 9.75,
+        maximumNeutralAttackDistance = 11.5,
         neutralAttack = "Light",
         neutralCadence = 0.22,
         safeRangeBuffer = 0.85,
@@ -1391,8 +1392,12 @@ function Ugc.new(context)
             and os.clock() - lastUltimateAttemptAt >= ULTIMATE_RETRY_INTERVAL
         local ultimateCanHit = ultimateReady
             and offensiveAttackCanReach(localRoot, targetRoot, ultimateInfo)
-        local lightCanHit = offensiveAttackCanReach(localRoot, targetRoot, lightInfo)
-        local heavyCanHit = offensiveAttackCanReach(localRoot, targetRoot, heavyInfo)
+        local normalAttackWithinRange = profile.maximumNeutralAttackDistance == nil
+            or distance <= profile.maximumNeutralAttackDistance
+        local lightCanHit = normalAttackWithinRange
+            and offensiveAttackCanReach(localRoot, targetRoot, lightInfo)
+        local heavyCanHit = normalAttackWithinRange
+            and offensiveAttackCanReach(localRoot, targetRoot, heavyInfo)
         local attack
         if ultimateCanHit then
             attack = "Ultimate"
