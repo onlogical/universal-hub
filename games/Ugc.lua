@@ -92,7 +92,22 @@ function Ugc.new(context)
     local targetAnimationConnection = nil
     local activeThreats = {}
 
-    local function hasClearPath(fromRoot, fromModel, targetRoot, targetModel)
+    local function getInstances(value)
+        if typeof(value) == "Instance" then
+            return { value }
+        end
+        local instances = {}
+        if type(value) == "table" then
+            for _, candidate in pairs(value) do
+                if typeof(candidate) == "Instance" then
+                    table.insert(instances, candidate)
+                end
+            end
+        end
+        return instances
+    end
+
+    local function hasClearPath(fromRoot, fromModels, targetRoot, targetModels)
         if not fromRoot or not targetRoot then
             return false
         end
@@ -102,10 +117,18 @@ function Ugc.new(context)
         end
         local parameters = RaycastParams.new()
         parameters.FilterType = Enum.RaycastFilterType.Exclude
-        parameters.FilterDescendantsInstances = fromModel and { fromModel } or {}
+        parameters.FilterDescendantsInstances = getInstances(fromModels)
         parameters.IgnoreWater = true
         local hit = context.workspace:Raycast(fromRoot.Position, offset, parameters)
-        return hit == nil or (targetModel and hit.Instance:IsDescendantOf(targetModel))
+        if hit == nil then
+            return true
+        end
+        for _, targetModel in ipairs(getInstances(targetModels)) do
+            if hit.Instance:IsDescendantOf(targetModel) then
+                return true
+            end
+        end
+        return false
     end
 
     local function tryDodge()
@@ -265,7 +288,12 @@ function Ugc.new(context)
                     threat.reacted[index] = true
                 elseif timeUntilImpact <= leadTime
                     and attackCanReach(targetRoot, localRoot, { impacts = { impact } }, false)
-                    and hasClearPath(targetRoot, targetModel, localRoot, localHandler.OriginalModel)
+                    and hasClearPath(
+                        targetRoot,
+                        { targetHandler.Model, targetModel },
+                        localRoot,
+                        { localHandler.Model, localHandler.OriginalModel }
+                    )
                 then
                     threat.reacted[index] = true
                     local impactResults = impact.impactInfo and impact.impactInfo.impactResults
@@ -362,7 +390,12 @@ function Ugc.new(context)
         local weaponHandler = localHandler:GetEquippedWeaponHandler()
         local attackTypes = weaponHandler and weaponHandler.WeaponInfo.BasicAttackTypes
         if not localRoot or not targetRoot or not attackTypes
-            or not hasClearPath(localRoot, localHandler.OriginalModel, targetRoot, targetModel)
+            or not hasClearPath(
+                localRoot,
+                { localHandler.Model, localHandler.OriginalModel },
+                targetRoot,
+                { targetHandler and targetHandler.Model, targetModel }
+            )
         then
             return
         end
