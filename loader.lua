@@ -44,27 +44,18 @@ local function releaseFlight()
     end
 end
 
-local function queueNextPlace()
-    local synapse = environment.syn
-    local queue = type(environment.queue_on_teleport) == "function"
-            and environment.queue_on_teleport
-        or type(environment.queueonteleport) == "function" and environment.queueonteleport
-        or type(synapse) == "table" and type(synapse.queue_on_teleport) == "function"
-            and synapse.queue_on_teleport
-    if not queue then
-        return
-    end
-
+local function configureNextPlace()
     if sourceRoot ~= officialSourceRoot then
         return
     end
 
-    queue(([[
+    configuration.TeleportBootstrapSource = ([[
 local environment = getgenv()
+environment.UniversalHubTeleportQueueOwned = nil
 environment.UniversalHubConfig = environment.UniversalHubConfig or {}
 environment.UniversalHubConfig.SourceBaseUrl = %q
 loadstring(game:HttpGet(%q, true), "universal-hub/loader.lua")()
-]]):format(sourceRoot, sourceRoot .. "loader.lua"))
+]]):format(sourceRoot, sourceRoot .. "loader.lua")
 end
 
 local function loadHub()
@@ -93,7 +84,7 @@ local function completeBootstrap()
 end
 
 local function startBootstrap()
-    queueNextPlace()
+    configureNextPlace()
     if not game:IsLoaded() then
         task.spawn(function()
             local succeeded, result = pcall(function()

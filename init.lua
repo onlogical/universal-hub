@@ -83,7 +83,19 @@ assert(
 )
 local adapterModule = import(adapterDefinition.module)
 assert(type(adapterModule) == "table" and type(adapterModule.new) == "function", "Invalid game adapter module")
-local presentation = import(adapterDefinition.presentation)
+local gamePresentation = import(adapterDefinition.presentation)
+local presentation = setmetatable({
+    mount = function(host)
+        gamePresentation.mount(host)
+        host:section("Settings", "universalHub", "HUB", 70)
+        host:option(
+            "universalHub",
+            1,
+            "autoExecuteOnTeleport",
+            "Auto Execute on Teleport"
+        )
+    end,
+}, { __index = gamePresentation })
 local features = adapterDefinition.features
 local compositionModule
 local compositionDependencies = {}
@@ -163,12 +175,64 @@ local configStore = Config.new({
     readFile = type(readfile) == "function" and readfile or nil,
     writeFile = type(writefile) == "function" and writefile or nil,
 })
-local settings = configStore:load(copyData(adapterDefinition.defaults))
+local configDefaults = copyData(adapterDefinition.defaults)
+configDefaults.autoExecuteOnTeleport = false
+local settings = configStore:load(configDefaults)
 local hasPersistedConfig = type(isfile) == "function" and isfile(configPath)
 if not hasPersistedConfig then
     for name, value in pairs(environment.UniversalHubSettings or {}) do
         if settings[name] ~= nil and not ephemeralSettings[name] then
             settings[name] = value
+        end
+    end
+end
+
+local function teleportQueueFunction()
+    local synapse = environment.syn
+    return type(environment.queue_on_teleport) == "function"
+            and environment.queue_on_teleport
+        or type(environment.queueonteleport) == "function" and environment.queueonteleport
+        or type(synapse) == "table" and type(synapse.queue_on_teleport) == "function"
+            and synapse.queue_on_teleport
+end
+
+local function teleportQueueClearFunction()
+    return type(environment.clearteleportqueue) == "function"
+            and environment.clearteleportqueue
+        or type(environment.clear_on_teleport) == "function" and environment.clear_on_teleport
+        or type(environment.clearonteleport) == "function" and environment.clearonteleport
+        or type(environment.cancel_on_teleport) == "function" and environment.cancel_on_teleport
+        or type(environment.cancelonteleport) == "function" and environment.cancelonteleport
+end
+
+local lastTeleportQueueSetting
+local function syncTeleportQueue(enabled)
+    enabled = enabled == true
+    if lastTeleportQueueSetting == enabled then
+        return
+    end
+    lastTeleportQueueSetting = enabled
+
+    local owned = environment.UniversalHubTeleportQueueOwned == true
+    if enabled then
+        if owned then
+            return
+        end
+        local queue = teleportQueueFunction()
+        local source = configuration.TeleportBootstrapSource
+        if queue and type(source) == "string" and source ~= "" then
+            local succeeded = pcall(queue, source)
+            if succeeded then
+                environment.UniversalHubTeleportQueueOwned = true
+            end
+        end
+        return
+    end
+
+    if owned then
+        local clear = teleportQueueClearFunction()
+        if clear and pcall(clear) then
+            environment.UniversalHubTeleportQueueOwned = nil
         end
     end
 end
@@ -314,6 +378,10 @@ end
 local adapterCapabilities = type(adapterModule.capabilitiesFor) == "function"
         and adapterModule.capabilitiesFor(adapterCapabilityContext, features.capabilities)
     or features.capabilities
+adapterCapabilities = copyData(adapterCapabilities)
+if not table.find(adapterCapabilities, "autoExecuteOnTeleport") then
+    table.insert(adapterCapabilities, "autoExecuteOnTeleport")
+end
 local function customAsset(path)
     if type(getcustomasset) ~= "function" or type(isfile) ~= "function" or not isfile(path) then
         return nil
@@ -581,6 +649,11 @@ local finalized, finalError = pcall(function()
     session.registry = registry
     session.state = store:Get()
     session.store = store
+    syncTeleportQueue(store:Get().settings.autoExecuteOnTeleport)
+    local unsubscribeTeleportQueue = store:Subscribe(function(state)
+        syncTeleportQueue(state.settings.autoExecuteOnTeleport)
+    end, false)
+    session:Add(unsubscribeTeleportQueue)
     local menuToggleConnection = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
         local bindingSettled = os.clock() - (session.menuKeyChangedAt or -math.huge) > 0.2
         if bindingSettled and MenuToggle.shouldToggle(

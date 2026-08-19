@@ -52,17 +52,8 @@ local duplicateEarlyChunk, duplicateEarlyCompileError = loadstring(source, "load
 local duplicateEarlyResult = assert(duplicateEarlyChunk, duplicateEarlyCompileError)()
 assert(duplicateEarlyResult == nil, "A duplicate early remote bootstrap in the same job must coalesce")
 assert(spawnCount == 1, "A duplicate early remote bootstrap must not schedule a second deferred task")
-assert(queueCount == 1, "A duplicate early remote bootstrap must queue teleport code once")
-assert(
-    type(queuedTeleportSource) == "string"
-        and string.find(queuedTeleportSource, "universal%-hub/loader%.lua") ~= nil
-        and string.find(queuedTeleportSource, ", true)", 1, true) ~= nil
-        and string.find(
-            queuedTeleportSource,
-            "https://raw%.githubusercontent%.com/3xjn/universal%-hub/refs/heads/main/"
-        ) ~= nil,
-    "Remote loader must queue itself so game-to-game teleports refresh the selected adapter"
-)
+assert(queueCount == 0, "The remote loader must leave teleport persistence to the saved hub option")
+assert(queuedTeleportSource == nil)
 local deferredResult = pendingBootstrap()
 assert(deferredResult == "remote-loader-ok")
 assert(waitedForLoad, "Remote loader must yield to Roblox startup when launched from autoexec")
