@@ -72,7 +72,7 @@ assert(
 )
 
 local hubSource = fs.readFile("hub.lua")
-assert(hubSource:find("c0bcd94dd43b84eaf4f0a9f87daab86b701a3682", 1, true))
+assert(hubSource:find("38778f8a78762d48fba916cade6eb93399e7c404", 1, true))
 assert(not hubSource:find("8e2d4a84ddb4b7ef901af170966a43b3b35fbaa7", 1, true))
 for _, forbidden in ipairs({
     "modules/Drawing.lua",
