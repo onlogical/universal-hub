@@ -36,11 +36,11 @@ function Presentation.mount(host)
 
     host:section("Combat", "offense", "OFFENSE", 70)
     host:option("offense", 1, "autoFight", "Auto Fight + Defense")
+    host:option("offense", 2, "autoMovement", "Auto Movement", "autoFight")
 
     host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "wallPhase", "Wall Phase")
     host:option("movement", 2, "teleportBehind", "Teleport Behind Target")
-    host:option("movement", 3, "autoMovement", "Auto Movement")
 end
 
 return Presentation

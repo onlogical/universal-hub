@@ -1,6 +1,8 @@
 local Ugc = {}
 
 local AUTO_MOVE_APPROACH_DISTANCE = 7.25
+local AUTO_MOVE_DASH_EXTRA_REACH = 6
+local AUTO_MOVE_DASH_COOLDOWN = 0.75
 local AUTO_MOVE_ORBIT_DISTANCE = 5.25
 local AUTO_MOVE_RETREAT_DISTANCE = 3.25
 local DODGE_COOLDOWN = 0.35
@@ -70,6 +72,22 @@ local function attackCanReach(attackerRoot, defenderRoot, attackInfo, strict)
     return false
 end
 
+local function getAttackMaximumReach(attackInfo)
+    local maximumReach = 0
+    for _, impact in ipairs(attackInfo and attackInfo.impacts or {}) do
+        local impactInfo = impact.impactInfo
+        local hitboxCFrame = impactInfo and impactInfo.hitboxCFrame
+        local hitboxSize = impactInfo and impactInfo.hitboxSize
+        if typeof(hitboxCFrame) == "CFrame" and typeof(hitboxSize) == "Vector3" then
+            maximumReach = math.max(
+                maximumReach,
+                math.abs(hitboxCFrame.Position.Z) + hitboxSize.Z / 2 + 4
+            )
+        end
+    end
+    return maximumReach
+end
+
 function Ugc.new(context)
     assert(type(context) == "table", "Ugc adapter requires context")
     assert(context.oh and context.oh.targeting, "Ugc requires Hydroxide Targeting")
@@ -85,6 +103,7 @@ function Ugc.new(context)
     local targetLockController = GameManager:GetController("TargetLockController")
     local stopped = false
     local lastDodgeAt = -math.huge
+    local lastApproachDashAt = -math.huge
     local nextFightAt = 0
     local nextFightAttack = "Heavy"
     local pendingDodgeUntil = nil
@@ -205,6 +224,10 @@ function Ugc.new(context)
         end
         local canStart, replaceCurrent = actionManager:CanStartBlock()
         if not canStart then
+            local currentAction = actionManager.CurrentAction
+            if currentAction and currentAction.ActionType == "Dodge" then
+                return
+            end
             pendingParryUntil = nil
             queueDodge()
             return
@@ -439,7 +462,7 @@ function Ugc.new(context)
     end
 
     local function updateAutoMovement(settings)
-        if settings.autoMovement ~= true then
+        if settings.autoMovement ~= true or settings.autoFight ~= true then
             autoMoveMode = nil
             autoMoveTarget = nil
             lastMovementCheckPosition = nil
@@ -492,6 +515,38 @@ function Ugc.new(context)
             return
         end
         local toward = flatOffset.Unit
+
+        local weaponHandler = localHandler:GetEquippedWeaponHandler()
+        local attackTypes = weaponHandler and weaponHandler.WeaponInfo.BasicAttackTypes
+        local attackName = actionManager:_resolveAttackName(nextFightAttack)
+        local attackInfo = attackName and attackTypes and attackTypes[attackName]
+        local attackReach = getAttackMaximumReach(attackInfo)
+        if attackReach > 0
+            and distance > attackReach + 0.25
+            and distance <= attackReach + AUTO_MOVE_DASH_EXTRA_REACH
+            and os.clock() - lastApproachDashAt >= AUTO_MOVE_DASH_COOLDOWN
+            and (actionManager._blockStrength or 0) >= 0.99
+            and actionManager:CanStartDodge()
+            and hasClearPath(
+                localRoot,
+                { localHandler.Model, localHandler.OriginalModel },
+                targetRoot,
+                { targetHandler and targetHandler.Model, targetModel }
+            )
+        then
+            actionManager:_clearQueuedAction()
+            actionManager:SwitchToAction("Dodge", {
+                direction = toward,
+                isReverse = false,
+                dodgeStamina = actionManager._dodgeStamina,
+            })
+            pendingDodgeUntil = nil
+            lastDodgeAt = os.clock()
+            lastApproachDashAt = lastDodgeAt
+            playerInputController.CurrentInput.MoveDirection = Vector3.zero
+            return
+        end
+
         if autoMoveMode == "approach" then
             if distance <= AUTO_MOVE_ORBIT_DISTANCE + 0.5 then
                 autoMoveMode = "orbit"
