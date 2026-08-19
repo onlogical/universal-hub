@@ -91,9 +91,9 @@ local function getAttackInfo(characterHandler, track)
     if not attackTypes or not animation then
         return nil
     end
-    for _, attackInfo in pairs(attackTypes) do
+    for attackName, attackInfo in pairs(attackTypes) do
         if sameAnimation(attackInfo.animation, animation) then
-            return attackInfo
+            return attackInfo, attackName
         end
     end
     return nil
@@ -233,6 +233,7 @@ function Ugc.new(context)
     local pendingDodgeCounterUntil = nil
     local pendingJumpAttackUntil = nil
     local pendingDodgeUntil = nil
+    local pendingDodgeMode = nil
     local lastParryAt = -math.huge
     local pendingParryUntil = nil
     local activeParryBlock = nil
@@ -254,6 +255,17 @@ function Ugc.new(context)
     local dodgeCounterDirection = 1
     local nextOrbitSwitchAt = 0
     local offenseRandom = Random.new()
+    local dynamicState = {
+        mode = "offensive",
+        deflectTimes = {},
+        defensiveUntil = -math.huge,
+        probeUntil = nil,
+    }
+    local boundLocalCombatHandler = nil
+    local boundLocalCombatWeapon = nil
+    local localCombatConnection = nil
+    local localDeflectAnimations = {}
+    local lastCombatStyle = nil
 
     local function getInstances(value)
         if typeof(value) == "Instance" then
@@ -318,6 +330,76 @@ function Ugc.new(context)
         for _, child in pairs(value) do
             collectAnimations(child, set, seen)
         end
+    end
+
+    local function resetDynamicState()
+        dynamicState.mode = "offensive"
+        table.clear(dynamicState.deflectTimes)
+        dynamicState.defensiveUntil = -math.huge
+        dynamicState.probeUntil = nil
+    end
+
+    local function recordDynamicDeflect()
+        local settings = context.store:Get().settings or {}
+        if settings.combatStyle ~= "dynamic"
+            or os.clock() - lastFightAttackAt > 1.2
+        then
+            return
+        end
+        local now = os.clock()
+        table.insert(dynamicState.deflectTimes, now)
+        while dynamicState.deflectTimes[1]
+            and now - dynamicState.deflectTimes[1] > 8
+        do
+            table.remove(dynamicState.deflectTimes, 1)
+        end
+        if #dynamicState.deflectTimes >= 3 or dynamicState.mode == "probing" then
+            dynamicState.mode = "defensive"
+            dynamicState.probeUntil = nil
+            dynamicState.defensiveUntil = now
+                + math.min(2.5 + #dynamicState.deflectTimes * 0.5, 5)
+        end
+    end
+
+    local function disconnectLocalCombatObservation()
+        if localCombatConnection then
+            localCombatConnection:Disconnect()
+            localCombatConnection = nil
+        end
+        boundLocalCombatHandler = nil
+        boundLocalCombatWeapon = nil
+        table.clear(localDeflectAnimations)
+    end
+
+    local function updateLocalCombatObservation()
+        local handler = characterController:GetLocalCharacterHandler()
+        local weaponHandler = handler and handler:GetEquippedWeaponHandler()
+        if handler == boundLocalCombatHandler
+            and weaponHandler == boundLocalCombatWeapon
+        then
+            return
+        end
+        disconnectLocalCombatObservation()
+        boundLocalCombatHandler = handler
+        boundLocalCombatWeapon = weaponHandler
+        local animator = handler and handler.Animator
+        local weaponInfo = weaponHandler and weaponHandler.WeaponInfo
+        if not animator or not weaponInfo then
+            return
+        end
+        for _, attackInfo in pairs(weaponInfo.BasicAttackTypes or {}) do
+            collectAnimations(attackInfo.deflectStun, localDeflectAnimations, {})
+        end
+        localCombatConnection = animator.AnimationPlayed:Connect(function(track)
+            local animation = track.Animation
+            local animationId = animation and animation.AnimationId or ""
+            local animationName = string.lower(animation and animation.Name or "")
+            if localDeflectAnimations[animationId]
+                or string.find(animationName, "deflected", 1, true)
+            then
+                recordDynamicDeflect()
+            end
+        end)
     end
 
     local function rebuildTargetAnimationSets(handler)
@@ -409,6 +491,7 @@ function Ugc.new(context)
     local function tryDodge()
         if not pendingDodgeUntil or os.clock() > pendingDodgeUntil then
             pendingDodgeUntil = nil
+            pendingDodgeMode = nil
             return
         end
         if os.clock() - lastDodgeAt < DODGE_COOLDOWN then
@@ -424,7 +507,9 @@ function Ugc.new(context)
         local offset = target and localRoot and (target.Position - localRoot.Position) or Vector3.zero
         local direction = Vector3.new(offset.X, 0, offset.Z)
         local settings = context.store:Get().settings or {}
-        local offensiveStyle = settings.combatStyle ~= "defensive"
+        local counterAllowed = settings.combatStyle == "offensive"
+            or (settings.combatStyle == "dynamic" and dynamicState.mode ~= "defensive")
+        local dodgeMode = pendingDodgeMode
         if direction.Magnitude <= 0.001 then
             local camera = context.workspace.CurrentCamera
             local look = camera and camera.CFrame.LookVector or Vector3.zAxis
@@ -432,7 +517,14 @@ function Ugc.new(context)
         end
         direction = direction.Magnitude > 0 and direction.Unit or Vector3.zAxis
         local isReverse = true
-        if offensiveStyle and target and localRoot then
+        if dodgeMode == "heavy" and target and localRoot then
+            local toward = direction
+            local lateral = Vector3.new(-toward.Z, 0, toward.X) * dodgeCounterDirection
+            local distance = Vector3.new(offset.X, 0, offset.Z).Magnitude
+            direction = distance > 9 and (lateral * 0.8 + toward * 0.6).Unit or lateral
+            dodgeCounterDirection = -dodgeCounterDirection
+            isReverse = false
+        elseif counterAllowed and target and localRoot then
             local distance = Vector3.new(offset.X, 0, offset.Z).Magnitude
             if distance <= 8 then
                 direction = Vector3.new(-direction.Z, 0, direction.X) * dodgeCounterDirection
@@ -449,9 +541,11 @@ function Ugc.new(context)
             dodgeStamina = actionManager._dodgeStamina,
         })
         pendingDodgeUntil = nil
+        pendingDodgeMode = nil
         lastDodgeAt = os.clock()
-        if offensiveStyle then
-            pendingDodgeCounterAt = lastDodgeAt + 0.16
+        if counterAllowed then
+            pendingDodgeCounterAt = dodgeMode == "heavy" and lastDodgeAt
+                or lastDodgeAt + 0.16
             pendingDodgeCounterUntil = lastDodgeAt + 0.32
         else
             pendingDodgeCounterAt = nil
@@ -459,8 +553,9 @@ function Ugc.new(context)
         end
     end
 
-    local function queueDodge()
+    local function queueDodge(mode)
         pendingDodgeUntil = os.clock() + 0.3
+        pendingDodgeMode = mode
         tryDodge()
     end
 
@@ -604,12 +699,13 @@ function Ugc.new(context)
         if activeThreats[track] then
             return
         end
-        local attackInfo = getAttackInfo(handler, track)
+        local attackInfo, attackName = getAttackInfo(handler, track)
         if not attackInfo then
             return
         end
         activeThreats[track] = {
             attackInfo = attackInfo,
+            attackName = attackName,
             handler = handler,
             reacted = {},
         }
@@ -699,6 +795,10 @@ function Ugc.new(context)
             local targetRoot = targetHandler and targetHandler.Root
             local targetModel = targetHandler and targetHandler.OriginalModel
             local speed = math.max(math.abs(track.Speed), 0.05)
+            local attackName = threat.attackName or ""
+            local isHeavyAttack = string.match(attackName, "^Heavy") ~= nil
+                or attackName == "DashHeavy"
+            local reactionLead = isHeavyAttack and math.max(leadTime, 0.2) or leadTime
             for index, impact in ipairs(threat.attackInfo.impacts or {}) do
                 if threat.reacted[index] then
                     continue
@@ -706,7 +806,7 @@ function Ugc.new(context)
                 local timeUntilImpact = (impact.markerTime - track.TimePosition) / speed
                 if timeUntilImpact < -0.08 then
                     threat.reacted[index] = true
-                elseif timeUntilImpact <= leadTime
+                elseif timeUntilImpact <= reactionLead
                     and attackCanReach(targetRoot, localRoot, { impacts = { impact } }, false)
                     and hasClearPath(
                         targetRoot,
@@ -717,7 +817,9 @@ function Ugc.new(context)
                 then
                     threat.reacted[index] = true
                     local impactResults = impact.impactInfo and impact.impactInfo.impactResults
-                    if impactResults and impactResults.Parry == nil then
+                    if isHeavyAttack then
+                        queueDodge("heavy")
+                    elseif impactResults and impactResults.Parry == nil then
                         queueDodge()
                     else
                         queueParry()
@@ -756,8 +858,13 @@ function Ugc.new(context)
     end
 
     local function updateAutoDefense(settings)
+        if settings.combatStyle ~= lastCombatStyle then
+            resetDynamicState()
+            lastCombatStyle = settings.combatStyle
+        end
         if settings.autoFight ~= true then
             pendingDodgeUntil = nil
+            pendingDodgeMode = nil
             pendingDodgeCounterAt = nil
             pendingDodgeCounterUntil = nil
             pendingParryUntil = nil
@@ -841,6 +948,29 @@ function Ugc.new(context)
         end
         if tryDodgeCounter(localHandler, actionManager, targetHandler, targetRoot) then
             return
+        end
+        if settings.combatStyle == "dynamic" then
+            local now = os.clock()
+            if dynamicState.mode == "probing" and dynamicState.probeUntil then
+                if now < dynamicState.probeUntil then
+                    return
+                end
+                resetDynamicState()
+            elseif dynamicState.mode == "defensive" then
+                local viablePunish = targetIsStaggered()
+                    or getTargetPunishWindow() >= 0.35
+                if now < dynamicState.defensiveUntil and not viablePunish then
+                    pendingJumpAttackUntil = nil
+                    if actionManager._queuedActionType == "BasicAttack"
+                        or actionManager._queuedActionType == "Jump"
+                    then
+                        actionManager:_clearQueuedAction()
+                    end
+                    return
+                end
+                dynamicState.mode = "probing"
+                dynamicState.probeUntil = nil
+            end
         end
         if targetIsDodging()
             or targetIsParrying()
@@ -1005,6 +1135,11 @@ function Ugc.new(context)
                 and OFFENSIVE_RECOVERY_MIN
                 or offenseRandom:NextNumber(OFFENSIVE_RECOVERY_MIN, OFFENSIVE_RECOVERY_MAX)
             nextNeutralAttackAt = lastFightAttackAt + canCancel + recoveryDelay
+            if settings.combatStyle == "dynamic"
+                and dynamicState.mode == "probing"
+            then
+                dynamicState.probeUntil = lastFightAttackAt + 1.25
+            end
         end
     end
 
@@ -1247,6 +1382,7 @@ function Ugc.new(context)
         end
 
         local settings = context.store:Get().settings or {}
+        updateLocalCombatObservation()
         updateAutoDefense(settings)
         updateTeleportBehind(settings)
         updateAutoFight(settings)
@@ -1301,6 +1437,7 @@ function Ugc.new(context)
             end
             stopped = true
             disconnectTargetAnimation()
+            disconnectLocalCombatObservation()
             if activeParryBlock then
                 activeParryBlock._wantsToRelease = true
                 activeParryBlock = nil
