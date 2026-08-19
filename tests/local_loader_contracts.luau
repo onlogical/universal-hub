@@ -191,8 +191,13 @@ local duplicateEarlyChunk, duplicateEarlyCompileError = loadstring(source, "loca
 local duplicateEarlyResult = assert(duplicateEarlyChunk, duplicateEarlyCompileError)()
 assert(duplicateEarlyResult == nil, "A duplicate early local bootstrap in the same job must coalesce")
 assert(spawnCount == 1, "A duplicate early local bootstrap must not schedule a second deferred task")
-assert(queueCount == 0, "The local loader must leave teleport persistence to the saved hub option")
-assert(queuedTeleportSource == nil)
+assert(queueCount == 1, "The local loader must automatically persist across teleports")
+assert(
+    queuedTeleportSource
+        and queuedTeleportSource:find("UniversalHubTeleportBootstrap = true", 1, true)
+        and queuedTeleportSource:find("universal-hub/local/local.lua", 1, true),
+    "The queued local bootstrap must preserve the selected local root"
+)
 local deferredResult = pendingBootstrap()
 assert(deferredResult == "local-loader-ok")
 assert(waitedForLoad, "Local loader must yield to Roblox startup when launched from autoexec")
@@ -250,7 +255,7 @@ local immediateChunk, immediateCompileError = loadstring(source, "local.lua")
 local immediateResult = assert(immediateChunk, immediateCompileError)()
 assert(immediateResult == "local-loader-ok")
 assert(not waitedForLoad, "Manual execution in a loaded game must start immediately")
-assert(queueCount == 0, "Manual reexecution must not enable teleport persistence implicitly")
+assert(queueCount == 2, "Manual reexecution must refresh the inherent teleport bootstrap")
 
 game.JobId = "local-error-job"
 failHelpers = true

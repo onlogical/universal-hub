@@ -32,11 +32,21 @@ function Presentation.mount(host)
     })
     host:option("visuals", 3, "names", "Names")
     host:option("visuals", 3, "health", "Health")
+    host:option("visuals", 4, "showWins", "Show Wins", "names")
     host:option("visuals", 20, "showEnemies", "Players", "audience")
 
     host:section("Combat", "offense", "OFFENSE", 70)
     host:option("offense", 1, "autoFight", "Auto Fight")
     host:option("offense", 2, "autoMovement", "Auto Movement", "autoFight")
+    if type(host.slider) == "function" then
+        host:slider("offense", "botSkill", "Bot Skill", {
+            min = 0,
+            max = 100,
+            step = 1,
+            unit = "%",
+            parent = "autoFight",
+        })
+    end
     host:segmented("Combat", {
         id = "combatStyle",
         label = "Fight Style",
@@ -60,11 +70,17 @@ function Presentation.mount(host)
                 when = { combatStyle = "dynamic" },
                 patch = { { "combatStyle", "dynamic" } },
             },
+            {
+                label = "Flashy",
+                value = "flashy",
+                when = { combatStyle = "flashy" },
+                patch = { { "combatStyle", "flashy" } },
+            },
         },
     })
 
     host:section("Movement", "movement", "MOVEMENT", 70)
-    host:option("movement", 1, "wallPhase", "Wall Phase")
+    host:option("movement", 1, "noclip", "Noclip")
     host:option("movement", 2, "teleportBehind", "Teleport Behind Target")
 end
 

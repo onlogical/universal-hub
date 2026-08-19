@@ -1,3 +1,43 @@
+local function importDependency(path, relativePath)
+    if type(getgenv) == "function" then
+        local environment = getgenv()
+        local configuration = environment and environment.UniversalHubConfig
+        if configuration and type(configuration.Import) == "function" then
+            return configuration.Import(path)
+        end
+    end
+    return require(relativePath)
+end
+
+local Noclip = importDependency(
+    "games/duelinggrounds/features/Noclip",
+    "./duelinggrounds/features/Noclip"
+)
+local TeleportBehind = importDependency(
+    "games/duelinggrounds/features/TeleportBehind",
+    "./duelinggrounds/features/TeleportBehind"
+)
+local Styles = importDependency(
+    "games/duelinggrounds/features/combat/Styles",
+    "./duelinggrounds/features/combat/Styles"
+)
+local Skill = importDependency(
+    "games/duelinggrounds/features/combat/Skill",
+    "./duelinggrounds/features/combat/Skill"
+)
+local WinTitles = importDependency(
+    "games/duelinggrounds/features/WinTitles",
+    "./duelinggrounds/features/WinTitles"
+)
+local RecordingPersistence = importDependency(
+    "games/duelinggrounds/recording/Persistence",
+    "./duelinggrounds/recording/Persistence"
+)
+local RecordingRuntime = importDependency(
+    "games/duelinggrounds/recording/Runtime",
+    "./duelinggrounds/recording/Runtime"
+)
+
 local DuelingGrounds = {}
 
 local AUTO_MOVE_DASH_EXTRA_REACH = 6
@@ -14,7 +54,6 @@ local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
 local ULTIMATE_RETRY_INTERVAL = 0.2
 local UNKNOWN_ATTACK_REACH = 12
-local WALL_PHASE_COOLDOWN = 0.35
 
 local DEFAULT_COMBAT_PROFILE = {
     approachDistance = 7.25,
@@ -264,9 +303,10 @@ function DuelingGrounds.new(context)
     local defenseIntent = nil
     local lastParryAt = -math.huge
     local activeParryBlock = nil
-    local lastWallPhaseAt = -math.huge
     local boundTarget = nil
-    local targetAnimationConnection = nil
+    local observedEnemies = {}
+    local noclip = Noclip.new()
+    local winTitles = WinTitles.new()
     local activeThreats = {}
     local targetCombatState = {
         blockTracks = {},
@@ -282,6 +322,7 @@ function DuelingGrounds.new(context)
     local dodgeCounterDirection = 1
     local nextOrbitSwitchAt = 0
     local offenseRandom = Random.new()
+    local skillRandom = Random.new()
     local dynamicState = {
         mode = "offensive",
         deflectTimes = {},
@@ -294,210 +335,54 @@ function DuelingGrounds.new(context)
     local localDeflectAnimations = {}
     local lastCombatStyle = nil
     local environment = type(getgenv) == "function" and getgenv() or _G
-    local combatTelemetry = environment.__DuelingGroundsCombatTelemetry
-    if type(combatTelemetry) ~= "table" or combatTelemetry.version ~= 1 then
-        combatTelemetry = { version = 1, events = {} }
-        environment.__DuelingGroundsCombatTelemetry = combatTelemetry
-    end
-    combatTelemetry.events = combatTelemetry.events or {}
-    combatTelemetry.matches = combatTelemetry.matches or {}
-    combatTelemetry.nextMatchId = combatTelemetry.nextMatchId or 0
-    combatTelemetry.current = nil
+    local recording = RecordingRuntime.new({
+        environment = environment,
+        persistence = RecordingPersistence.new({
+            writefile = type(writefile) == "function" and writefile or nil,
+            makefolder = type(makefolder) == "function" and makefolder or nil,
+            isfolder = type(isfolder) == "function" and isfolder or nil,
+            jsonEncode = function(value)
+                return game:GetService("HttpService"):JSONEncode(value)
+            end,
+        }),
+    })
 
     local function appendCurrentMatchEvent(kind, data)
-        local match = combatTelemetry.current
-        if not match then
-            return
-        end
-        local event = { kind = kind, t = os.clock() - match.startedClock }
-        for key, value in pairs(data or {}) do
-            event[key] = value
-        end
-        table.insert(match.events, event)
-        if #match.events > 5000 then
-            table.remove(match.events, 1)
-        end
+        recording:recordEvent(kind, data)
     end
 
     local function logCombatDecision(kind, data)
-        local event = data or {}
-        event.t = os.clock()
-        event.kind = kind
-        table.insert(combatTelemetry.events, event)
-        if #combatTelemetry.events > 4000 then
-            table.remove(combatTelemetry.events, 1)
-        end
-        appendCurrentMatchEvent("decision", event)
-    end
-
-    local function persistCompletedMatch(match)
-        if type(writefile) ~= "function" then
-            return
-        end
-        pcall(function()
-            local rootFolder = "universal-hub/beta/logs"
-            if type(makefolder) == "function"
-                and (type(isfolder) ~= "function" or not isfolder(rootFolder))
-            then
-                makefolder(rootFolder)
-            end
-            local folder = rootFolder .. "/duelinggrounds_1v1s"
-            if type(makefolder) == "function"
-                and (type(isfolder) ~= "function" or not isfolder(folder))
-            then
-                makefolder(folder)
-            end
-            local httpService = game:GetService("HttpService")
-            local safeTarget = string.gsub(match.metadata.target or "opponent", "[^%w_%-]", "_")
-            local fileName = ("match_%d_%04d_%s.json"):format(
-                match.metadata.startedAt,
-                match.metadata.id,
-                safeTarget
-            )
-            match.metadata.file = folder .. "/" .. fileName
-            writefile(match.metadata.file, httpService:JSONEncode({
-                version = combatTelemetry.version,
-                metadata = match.metadata,
-                events = match.events,
-                samples = match.samples,
-            }))
-        end)
-    end
-
-    local function finishMatchRecording(reason)
-        local match = combatTelemetry.current
-        if not match then
-            return
-        end
-        match.metadata.duration = os.clock() - match.startedClock
-        match.metadata.endedAt = os.time()
-        match.metadata.endReason = reason
-        match.metadata.eventCount = #match.events
-        match.metadata.sampleCount = #match.samples
-        match.startedClock = nil
-        match.targetModelRef = nil
-        match.lastSampleAt = nil
-        table.insert(combatTelemetry.matches, match)
-        while #combatTelemetry.matches > 25 do
-            table.remove(combatTelemetry.matches, 1)
-        end
-        combatTelemetry.current = nil
-        persistCompletedMatch(match)
-    end
-
-    local function startMatchRecording(targetModel, settings)
-        combatTelemetry.nextMatchId += 1
-        local localHandler = characterController:GetLocalCharacterHandler()
-        local targetHandler = characterController:GetCharacterHandler(targetModel)
-        local localWeapon = getWeaponInfo(localHandler)
-        local targetWeapon = getWeaponInfo(targetHandler)
-        local targetPlayer = context.players:GetPlayerFromCharacter(targetModel)
-        combatTelemetry.current = {
-            startedClock = os.clock(),
-            targetModelRef = targetModel,
-            metadata = {
-                id = combatTelemetry.nextMatchId,
-                startedAt = os.time(),
-                gameId = game.GameId,
-                placeId = game.PlaceId,
-                jobId = game.JobId,
-                localPlayer = localPlayer.Name,
-                localUserId = localPlayer.UserId,
-                target = targetPlayer and targetPlayer.Name or targetModel.Name,
-                targetUserId = targetPlayer and targetPlayer.UserId or nil,
-                selfWeapon = localWeapon and localWeapon.WeaponName or nil,
-                targetWeapon = targetWeapon and targetWeapon.WeaponName or nil,
-                style = settings.combatStyle,
-                autoMovement = settings.autoMovement == true,
-            },
-            events = {},
-            samples = {},
-            lastSampleAt = -math.huge,
-        }
-        appendCurrentMatchEvent("matchStarted", {
-            autoMovement = settings.autoMovement == true,
-            style = settings.combatStyle,
-        })
+        recording:recordDecision(kind, data)
     end
 
     local function updateMatchRecording(settings)
         local target = targetLockController.Target
         local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
-        local match = combatTelemetry.current
-        if settings.autoFight ~= true or not targetModel then
-            finishMatchRecording(settings.autoFight == true and "targetLost" or "autoFightOff")
-            return
-        end
-        if targetModel:GetAttribute("IsDead") == true then
-            finishMatchRecording("targetDead")
-            return
-        end
-        local currentLocalHandler = characterController:GetLocalCharacterHandler()
-        local currentLocalAction = currentLocalHandler
-            and currentLocalHandler.ActionManager
-            and currentLocalHandler.ActionManager.CurrentAction
-        if currentLocalHandler
-            and ((currentLocalHandler.Model
-                    and currentLocalHandler.Model:GetAttribute("IsDead") == true)
-                or (currentLocalAction and currentLocalAction.ActionType == "Death"))
-        then
-            finishMatchRecording("selfDead")
-            return
-        end
-        if match and match.targetModelRef ~= targetModel then
-            finishMatchRecording("targetChanged")
-            match = nil
-        end
-        if not match then
-            startMatchRecording(targetModel, settings)
-            match = combatTelemetry.current
-        end
-        local now = os.clock()
-        if now - match.lastSampleAt < 0.05 then
-            return
-        end
-        match.lastSampleAt = now
         local localHandler = characterController:GetLocalCharacterHandler()
         local targetHandler = characterController:GetCharacterHandler(targetModel)
-        local localRoot = localHandler and localHandler.Root
-        local targetRoot = targetHandler and targetHandler.Root or target
-        local localManager = localHandler and localHandler.ActionManager
-        local targetManager = targetHandler and targetHandler.ActionManager
-        local localAction = localManager and localManager.CurrentAction
-        local targetAction = targetManager and targetManager.CurrentAction
-        local localHumanoid = localHandler and localHandler.Model
-            and localHandler.Model:FindFirstChildOfClass("Humanoid")
-        local targetHumanoid = targetModel:FindFirstChildOfClass("Humanoid")
-        local distance
-        if localRoot and targetRoot then
-            local offset = targetRoot.Position - localRoot.Position
-            distance = Vector3.new(offset.X, 0, offset.Z).Magnitude
-        end
-        table.insert(match.samples, {
-            t = now - match.startedClock,
-            distance = distance,
-            style = settings.combatStyle,
+        local localWeapon = getWeaponInfo(localHandler)
+        local targetWeapon = getWeaponInfo(targetHandler)
+        local targetPlayer = targetModel and context.players:GetPlayerFromCharacter(targetModel)
+        recording:update({
+            target = target,
+            targetModel = targetModel,
+            targetHandler = targetHandler,
+            localHandler = localHandler,
             dynamicMode = settings.combatStyle == "dynamic" and dynamicState.mode or nil,
-            selfAction = localAction and localAction.ActionType or nil,
-            selfCanCancel = localAction and localAction.CanCancel or nil,
-            selfHealth = localHumanoid and localHumanoid.Health or nil,
-            selfBlocking = localHandler and localHandler.IsBlocking or false,
-            selfParrying = localHandler and localHandler.IsParrying or false,
-            selfDodging = localHandler and localHandler.IsDodging or false,
-            selfCanUltimate = localHandler and localHandler:CanPerformUltimate() or false,
-            targetAction = targetAction and targetAction.ActionType or nil,
-            targetHealth = targetHumanoid and targetHumanoid.Health or nil,
-            targetBlocking = targetHandler and targetHandler.IsBlocking or false,
-            targetParrying = targetHandler and targetHandler.IsParrying or false,
-            targetDodging = targetHandler and targetHandler.IsDodging or false,
-            dodgeStamina = localManager and localManager._dodgeStamina or nil,
-            blockStrength = localManager and localManager._blockStrength or nil,
             defense = defenseIntent and defenseIntent.kind or nil,
             critical = targetLockController.CriticalStrikeTarget ~= nil,
-        })
-        if #match.samples > 8000 then
-            table.remove(match.samples, 1)
-        end
+            metadata = {
+                gameId = game.GameId,
+                placeId = game.PlaceId,
+                jobId = game.JobId,
+                localPlayer = localPlayer.Name,
+                localUserId = localPlayer.UserId,
+                target = targetPlayer and targetPlayer.Name or targetModel and targetModel.Name,
+                targetUserId = targetPlayer and targetPlayer.UserId or nil,
+                selfWeapon = localWeapon and localWeapon.WeaponName or nil,
+                targetWeapon = targetWeapon and targetWeapon.WeaponName or nil,
+            },
+        }, settings)
     end
 
     local function getInstances(value)
@@ -538,12 +423,6 @@ function DuelingGrounds.new(context)
         end
         return false
     end
-
-    local targetAnimationSets = {
-        block = {},
-        parry = {},
-        stagger = {},
-    }
 
     local function addAnimation(set, animation)
         if typeof(animation) == "Instance" and animation:IsA("Animation") then
@@ -641,25 +520,26 @@ function DuelingGrounds.new(context)
     end
 
     local function rebuildTargetAnimationSets(handler)
-        targetAnimationSets = {
+        local animationSets = {
             block = {},
             parry = {},
             stagger = {},
         }
         local weaponInfo = getWeaponInfo(handler)
         if not weaponInfo then
-            return
+            return animationSets
         end
-        addAnimation(targetAnimationSets.block, weaponInfo.BlockAnimation)
+        addAnimation(animationSets.block, weaponInfo.BlockAnimation)
         local animations = weaponInfo.Animations
-        addAnimation(targetAnimationSets.block, animations and animations.Block)
+        addAnimation(animationSets.block, animations and animations.Block)
         local staggerTypes = weaponInfo.StaggerTypes or {}
-        collectAnimations(staggerTypes.Parry, targetAnimationSets.parry, {})
-        collectAnimations(staggerTypes.PostureBreak, targetAnimationSets.stagger, {})
-        collectAnimations(staggerTypes.PostureParry, targetAnimationSets.stagger, {})
+        collectAnimations(staggerTypes.Parry, animationSets.parry, {})
+        collectAnimations(staggerTypes.PostureBreak, animationSets.stagger, {})
+        collectAnimations(staggerTypes.PostureParry, animationSets.stagger, {})
         for _, attackInfo in pairs(weaponInfo.BasicAttackTypes or {}) do
-            collectAnimations(attackInfo.deflectStun, targetAnimationSets.stagger, {})
+            collectAnimations(attackInfo.deflectStun, animationSets.stagger, {})
         end
+        return animationSets
     end
 
     local function clearStoppedBlockTracks()
@@ -744,8 +624,17 @@ function DuelingGrounds.new(context)
         local offset = target and localRoot and (target.Position - localRoot.Position) or Vector3.zero
         local direction = Vector3.new(offset.X, 0, offset.Z)
         local settings = context.store:Get().settings or {}
-        local counterAllowed = settings.combatStyle == "offensive"
-            or (settings.combatStyle == "dynamic" and dynamicState.mode ~= "defensive")
+        local localModel = localHandler and (localHandler.OriginalModel or localHandler.Model)
+        local stylePreferences = Styles.preferences(settings.combatStyle, {
+            health = localModel and localModel:GetAttribute("Health"),
+            maximumHealth = localModel and localModel:GetAttribute("MaxHealth"),
+            posture = localModel and localModel:GetAttribute("Posture"),
+            maximumPosture = localModel and localModel:GetAttribute("MaxPosture"),
+            defenseReady = actionManager
+                and (actionManager._dodgeStamina or 0) >= 0.99
+                and (actionManager._blockStrength or 0) > 0.01,
+        }, dynamicState)
+        local counterAllowed = stylePreferences.counterAllowed
         local dodgeMode = intent.mode
         if direction.Magnitude <= 0.001 then
             local camera = context.workspace.CurrentCamera
@@ -936,6 +825,8 @@ function DuelingGrounds.new(context)
         if now > intent.expiresAt then
             logCombatDecision("defenseExpired", {
                 attack = intent.attackName,
+                impactIndex = intent.impactIndex,
+                impactCount = intent.impactCount,
                 winner = intent.kind,
                 reason = intent.lastFailure,
             })
@@ -953,7 +844,10 @@ function DuelingGrounds.new(context)
             if now >= intent.impactAt - 0.04 then
                 local fallbackKind = intent.kind == "dodge" and "parry" or "dodge"
                 local fallbackSucceeded, fallbackReason
-                if fallbackKind == "parry" and intent.parryable then
+                local localHandler = characterController:GetLocalCharacterHandler()
+                if localHandler and localHandler.IsDodging then
+                    fallbackReason = "dodge action active"
+                elseif fallbackKind == "parry" and intent.parryable then
                     fallbackSucceeded, fallbackReason = executeParry()
                 elseif fallbackKind == "dodge" then
                     fallbackSucceeded, fallbackReason = executeDodge({ mode = intent.mode })
@@ -961,6 +855,8 @@ function DuelingGrounds.new(context)
                 if fallbackSucceeded then
                     logCombatDecision("defenseFallback", {
                         attack = intent.attackName,
+                        impactIndex = intent.impactIndex,
+                        impactCount = intent.impactCount,
                         winner = fallbackKind,
                         replaced = intent.kind,
                         reason = reason,
@@ -974,6 +870,8 @@ function DuelingGrounds.new(context)
         end
         logCombatDecision("defenseExecuted", {
             attack = intent.attackName,
+            impactIndex = intent.impactIndex,
+            impactCount = intent.impactCount,
             winner = intent.kind,
             reason = intent.reason,
             mode = intent.mode,
@@ -991,6 +889,8 @@ function DuelingGrounds.new(context)
         defenseIntent = intent
         logCombatDecision("defenseSelected", {
             attack = intent.attackName,
+            impactIndex = intent.impactIndex,
+            impactCount = intent.impactCount,
             winner = intent.kind,
             reason = intent.reason,
             mode = intent.mode,
@@ -1022,23 +922,20 @@ function DuelingGrounds.new(context)
             handler = handler,
             reacted = {},
         }
+        local localHandler = characterController:GetLocalCharacterHandler()
+        local actionManager = localHandler and localHandler.ActionManager
+        if actionManager then
+            actionManager:_clearQueuedAction()
+            local currentAction = actionManager.CurrentAction
+            if currentAction
+                and currentAction.ActionType == "BasicAttack"
+                and currentAction.CanCancel
+            then
+                actionManager:SwitchToAction(nil)
+            end
+        end
         if attackName == "JumpAttack" and updateIncomingThreats then
             updateIncomingThreats()
-        end
-        local settings = context.store:Get().settings or {}
-        if settings.autoFight == true then
-            local localHandler = characterController:GetLocalCharacterHandler()
-            local actionManager = localHandler and localHandler.ActionManager
-            if actionManager then
-                actionManager:_clearQueuedAction()
-                local currentAction = actionManager.CurrentAction
-                if currentAction
-                    and currentAction.ActionType == "BasicAttack"
-                    and currentAction.CanCancel
-                then
-                    actionManager:SwitchToAction(nil)
-                end
-            end
         end
     end
 
@@ -1051,7 +948,7 @@ function DuelingGrounds.new(context)
         return math.max((length - track.TimePosition) / speed, 0.05)
     end
 
-    local function observeTargetTrack(handler, track)
+    local function observeTargetTrack(handler, track, animationSets, observeCombatState)
         local animation = track.Animation
         appendCurrentMatchEvent("animation", {
             side = "target",
@@ -1063,12 +960,15 @@ function DuelingGrounds.new(context)
             observeThreatTrack(handler, track)
             return
         end
+        if not observeCombatState then
+            return
+        end
         local animationId = animation and animation.AnimationId or ""
         local animationName = string.lower(animation and animation.Name or "")
         local now = os.clock()
-        if targetAnimationSets.block[animationId] or animationName == "block" then
+        if animationSets.block[animationId] or animationName == "block" then
             targetCombatState.blockTracks[track] = now
-        elseif targetAnimationSets.parry[animationId] then
+        elseif animationSets.parry[animationId] then
             targetCombatState.parryUntil = math.max(
                 targetCombatState.parryUntil,
                 now + getTrackRemaining(track, 0.45)
@@ -1078,7 +978,7 @@ function DuelingGrounds.new(context)
                 targetCombatState.dodgeUntil,
                 now + getTrackRemaining(track, 0.65)
             )
-        elseif targetAnimationSets.stagger[animationId]
+        elseif animationSets.stagger[animationId]
             or string.find(animationName, "posturebreak", 1, true)
         then
             targetCombatState.staggerUntil = math.max(
@@ -1088,16 +988,69 @@ function DuelingGrounds.new(context)
         end
     end
 
-    local function disconnectTargetAnimation()
-        if targetAnimationConnection then
-            targetAnimationConnection:Disconnect()
-            targetAnimationConnection = nil
+    local function disconnectEnemyAnimations()
+        for _, observation in pairs(observedEnemies) do
+            observation.connection:Disconnect()
         end
+        table.clear(observedEnemies)
+        boundTarget = nil
         table.clear(activeThreats)
         table.clear(targetCombatState.blockTracks)
         targetCombatState.dodgeUntil = -math.huge
         targetCombatState.parryUntil = -math.huge
         targetCombatState.staggerUntil = -math.huge
+    end
+
+    local function refreshEnemyAnimations()
+        local localCharacter = localPlayer.Character
+        local localTeamGroup = localCharacter and localCharacter:GetAttribute("TeamGroup")
+        local lockedTarget = targetLockController.Target
+        local lockedModel = lockedTarget and lockedTarget:FindFirstAncestorWhichIsA("Model")
+        local currentModels = {}
+        for _, player in ipairs(context.players:GetPlayers()) do
+            local model = player.Character
+            local teamGroup = model and model:GetAttribute("TeamGroup")
+            if player ~= localPlayer
+                and model
+                and model:GetAttribute("IsDead") ~= true
+                and (model == lockedModel
+                    or (localTeamGroup ~= nil
+                        and teamGroup ~= nil
+                        and teamGroup ~= localTeamGroup))
+            then
+                currentModels[model] = true
+                if not observedEnemies[model] then
+                    local handler = characterController:GetCharacterHandler(model)
+                    local animator = handler and handler.Animator
+                    if animator then
+                        local animationSets = rebuildTargetAnimationSets(handler)
+                        local function observe(track)
+                            local target = targetLockController.Target
+                            local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
+                            observeTargetTrack(handler, track, animationSets, targetModel == model)
+                        end
+                        observedEnemies[model] = {
+                            connection = animator.AnimationPlayed:Connect(observe),
+                            handler = handler,
+                        }
+                        for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
+                            observe(track)
+                        end
+                    end
+                end
+            end
+        end
+        for model, observation in pairs(observedEnemies) do
+            if not currentModels[model] then
+                observation.connection:Disconnect()
+                observedEnemies[model] = nil
+                for track, threat in pairs(activeThreats) do
+                    if threat.handler == observation.handler then
+                        activeThreats[track] = nil
+                    end
+                end
+            end
+        end
     end
 
     updateIncomingThreats = function()
@@ -1106,7 +1059,15 @@ function DuelingGrounds.new(context)
         if not localRoot then
             return
         end
-        local leadTime = math.clamp((pingController:GetPing() or 0) + 0.04, 0.08, 0.16)
+        local settings = context.store:Get().settings or {}
+        local skill = Skill.profile(settings.botSkill)
+        local leadTime = math.clamp(
+            (pingController:GetPing() or 0)
+                + 0.04
+                - Skill.reactionDelay(skill, skillRandom),
+            0.01,
+            0.16
+        )
         for track, threat in pairs(activeThreats) do
             if not track.IsPlaying then
                 activeThreats[track] = nil
@@ -1117,6 +1078,7 @@ function DuelingGrounds.new(context)
             local targetModel = targetHandler and targetHandler.OriginalModel
             local speed = math.max(math.abs(track.Speed), 0.05)
             local isHeavyAttack = threat.isHeavy == true
+            local impactCount = #(threat.attackInfo.impacts or {})
             local reactionLead = isHeavyAttack and math.max(leadTime, 0.2) or leadTime
             for index, impact in ipairs(threat.attackInfo.impacts or {}) do
                 if threat.reacted[index] then
@@ -1134,6 +1096,16 @@ function DuelingGrounds.new(context)
                         { localHandler.Model, localHandler.OriginalModel }
                     )
                 then
+                    if not Skill.shouldAct(skill, skillRandom) then
+                        threat.reacted[index] = true
+                        logCombatDecision("defenseMissed", {
+                            attack = threat.attackName,
+                            impactIndex = index,
+                            impactCount = impactCount,
+                            skill = skill.level,
+                        })
+                        continue
+                    end
                     local impactResults = impact.impactInfo and impact.impactInfo.impactResults
                     local actionManager = localHandler.ActionManager
                     local currentAction = actionManager and actionManager.CurrentAction
@@ -1154,7 +1126,10 @@ function DuelingGrounds.new(context)
                         and impactResults.Parry ~= nil
                     local winner
                     local reason
-                    if isHeavyAttack and dodgeReady then
+                    if isHeavyAttack and impactCount > 1 and canStartBlock and parryable then
+                        winner = "parry"
+                        reason = "interrupt multi-hit heavy"
+                    elseif isHeavyAttack and dodgeReady then
                         winner = "dodge"
                         reason = "heavy counter"
                     elseif not parryable then
@@ -1175,6 +1150,8 @@ function DuelingGrounds.new(context)
                         kind = winner,
                         mode = isHeavyAttack and "heavy" or nil,
                         attackName = threat.attackName,
+                        impactIndex = index,
+                        impactCount = impactCount,
                         reason = reason,
                         canDodge = canDodge,
                         canParry = canStartBlock,
@@ -1231,34 +1208,20 @@ function DuelingGrounds.new(context)
             pendingDodgeCounterAt = nil
             pendingDodgeCounterUntil = nil
             pendingJumpAttackUntil = nil
-            boundTarget = nil
-            disconnectTargetAnimation()
+            disconnectEnemyAnimations()
             return
         end
         executeDefenseIntent()
         local target = targetLockController.Target
-        if target ~= boundTarget then
-            disconnectTargetAnimation()
-            boundTarget = target
+        local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
+        if targetModel ~= boundTarget then
+            boundTarget = targetModel
+            table.clear(targetCombatState.blockTracks)
+            targetCombatState.dodgeUntil = -math.huge
+            targetCombatState.parryUntil = -math.huge
+            targetCombatState.staggerUntil = -math.huge
         end
-        if not target then
-            return
-        end
-        if not targetAnimationConnection then
-            local model = target:FindFirstAncestorWhichIsA("Model")
-            local handler = model and characterController:GetCharacterHandler(model)
-            local animator = handler and handler.Animator
-            if not animator then
-                return
-            end
-            rebuildTargetAnimationSets(handler)
-            targetAnimationConnection = animator.AnimationPlayed:Connect(function(track)
-                observeTargetTrack(handler, track)
-            end)
-            for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
-                observeTargetTrack(handler, track)
-            end
-        end
+        refreshEnemyAnimations()
         updateIncomingThreats()
     end
 
@@ -1431,7 +1394,32 @@ function DuelingGrounds.new(context)
                 actionManager:SwitchToAction(nil)
             end
         end
-        if actionManager.CurrentAction or actionManager._queuedActionType then
+        local currentAction = actionManager.CurrentAction
+        if currentAction
+            and currentAction.ActionType == "BasicAttack"
+            and currentAction.CanQueueBasicAttacks
+            and not actionManager._queuedActionType
+            and not defenseIntent
+            and not hasIncomingThreat(true)
+            and not targetIsDodging()
+            and not targetIsParrying()
+            and not (targetHandler and (targetHandler.IsDodging or targetHandler.IsParrying))
+        then
+            local skill = Skill.profile(settings.botSkill)
+            local stylePreferences = Styles.preferences(settings.combatStyle, nil, dynamicState)
+            if (stylePreferences.aggressiveCombos or Skill.shouldPunish(skill, skillRandom))
+                and actionManager:TryQueueBasicAttack("Light")
+            then
+                lastFightAttackAt = os.clock()
+                appendCurrentMatchEvent("comboAttack", {
+                    result = "queued",
+                    attack = actionManager:_resolveAttackName("Light"),
+                    skill = skill.level,
+                })
+            end
+            return
+        end
+        if currentAction or actionManager._queuedActionType then
             return
         end
         if os.clock() < nextNeutralAttackAt and not priorityUltimateInRange then
@@ -1453,6 +1441,26 @@ function DuelingGrounds.new(context)
         end
 
         local profile = getCombatProfile(localHandler)
+        local stylePreferences = Styles.preferences(settings.combatStyle, {
+            health = localHandler.Model and localHandler.Model:GetAttribute("Health"),
+            maximumHealth = localHandler.Model and localHandler.Model:GetAttribute("MaxHealth"),
+            posture = localHandler.Model and localHandler.Model:GetAttribute("Posture"),
+            maximumPosture = localHandler.Model and localHandler.Model:GetAttribute("MaxPosture"),
+            defenseReady = (actionManager._dodgeStamina or 0) >= 0.99
+                and (actionManager._blockStrength or 0) > 0.01,
+        }, dynamicState)
+        if stylePreferences.movement then
+            profile = {
+                approachDistance = profile.approachDistance,
+                orbitDistance = profile.orbitDistance
+                    * (stylePreferences.movement.orbitDistanceScale or 1),
+                retreatDistance = profile.retreatDistance,
+                neutralAttack = profile.neutralAttack,
+                neutralCadence = profile.neutralCadence,
+                safeRangeBuffer = profile.safeRangeBuffer,
+                maximumNeutralAttackDistance = profile.maximumNeutralAttackDistance,
+            }
+        end
         local distance = (Vector3.new(targetRoot.Position.X, 0, targetRoot.Position.Z)
             - Vector3.new(localRoot.Position.X, 0, localRoot.Position.Z)).Magnitude
         local targetReach = getTargetGeometricReach(targetHandler)
@@ -1462,6 +1470,7 @@ function DuelingGrounds.new(context)
             or (targetHandler and targetHandler.IsBlocking)
         local targetStaggered = targetIsStaggered()
         local punishWindow = getTargetPunishWindow()
+        local skill = Skill.profile(settings.botSkill)
 
         if not priorityUltimateInRange
             and os.clock() - lastFightAttackAt < profile.neutralCadence
@@ -1485,12 +1494,18 @@ function DuelingGrounds.new(context)
             and offensiveAttackCanReach(localRoot, targetRoot, heavyInfo)
         local attack
         if ultimateCanHit then
+            if not Skill.shouldPunish(skill, skillRandom) then
+                return
+            end
             attack = "Ultimate"
         elseif targetAvoidingAttack then
             return
         elseif targetBlocking or targetStaggered then
+            if not Skill.shouldPunish(skill, skillRandom) then
+                return
+            end
             attack = "Heavy"
-        elseif lightCanHit then
+        elseif lightCanHit and stylePreferences.allowOffense ~= false then
             attack = "Light"
         elseif heavyCanHit and safelyOutsideCounterRange then
             attack = "Heavy"
@@ -1607,6 +1622,26 @@ function DuelingGrounds.new(context)
             return
         end
         local profile = getCombatProfile(localHandler)
+        local stylePreferences = Styles.preferences(settings.combatStyle, {
+            health = localHandler.Model and localHandler.Model:GetAttribute("Health"),
+            maximumHealth = localHandler.Model and localHandler.Model:GetAttribute("MaxHealth"),
+            posture = localHandler.Model and localHandler.Model:GetAttribute("Posture"),
+            maximumPosture = localHandler.Model and localHandler.Model:GetAttribute("MaxPosture"),
+            defenseReady = (actionManager._dodgeStamina or 0) >= 0.99
+                and (actionManager._blockStrength or 0) > 0.01,
+        }, dynamicState)
+        if stylePreferences.movement then
+            profile = {
+                approachDistance = profile.approachDistance,
+                orbitDistance = profile.orbitDistance
+                    * (stylePreferences.movement.orbitDistanceScale or 1),
+                retreatDistance = profile.retreatDistance,
+                neutralAttack = profile.neutralAttack,
+                neutralCadence = profile.neutralCadence,
+                safeRangeBuffer = profile.safeRangeBuffer,
+                maximumNeutralAttackDistance = profile.maximumNeutralAttackDistance,
+            }
+        end
 
         local currentAction = actionManager.CurrentAction
         local canMoveAfterImpact = currentAction
@@ -1649,8 +1684,11 @@ function DuelingGrounds.new(context)
         local attackName = actionManager:_resolveAttackName(profile.neutralAttack)
         local attackInfo = attackName and attackTypes and attackTypes[attackName]
         local attackReach = getAttackMaximumReach(attackInfo)
+        local flashyDash = stylePreferences.proactiveDashCounter == true
+            and distance > attackReach + 0.25
+            and distance <= attackReach + AUTO_MOVE_DASH_EXTRA_REACH
         if attackReach > 0
-            and settings.combatStyle == "offensive"
+            and (settings.combatStyle == "offensive" or flashyDash)
             and distance > attackReach + 0.25
             and distance <= attackReach + AUTO_MOVE_DASH_EXTRA_REACH
             and os.clock() - lastApproachDashAt >= AUTO_MOVE_DASH_COOLDOWN
@@ -1671,6 +1709,10 @@ function DuelingGrounds.new(context)
             })
             lastDodgeAt = os.clock()
             lastApproachDashAt = lastDodgeAt
+            if flashyDash then
+                pendingDodgeCounterAt = lastDodgeAt + 0.12
+                pendingDodgeCounterUntil = lastDodgeAt + 0.38
+            end
             playerInputController.CurrentInput.MoveDirection = Vector3.zero
             return
         end
@@ -1700,7 +1742,8 @@ function DuelingGrounds.new(context)
             if os.clock() >= nextOrbitSwitchAt then
                 orbitDirection = -orbitDirection
                 nextOrbitSwitchAt = os.clock()
-                    + offenseRandom:NextNumber(1.2, 2.6)
+                    + (stylePreferences.movement and stylePreferences.movement.orbitInterval
+                        or offenseRandom:NextNumber(1.2, 2.6))
             end
             local tangent = Vector3.new(-toward.Z, 0, toward.X) * orbitDirection
             local radialCorrection = math.clamp(
@@ -1745,74 +1788,18 @@ function DuelingGrounds.new(context)
         playerInputController.CurrentInput.MoveDirection = direction
     end
 
-    local function updateWallPhase(settings)
-        if settings.wallPhase ~= true or os.clock() - lastWallPhaseAt < WALL_PHASE_COOLDOWN then
-            return
-        end
-        local character = localPlayer.Character
-        local root = character and character:FindFirstChild("HumanoidRootPart")
-        local direction = type(context.movementDirection) == "function" and context.movementDirection() or nil
-        if not root or typeof(direction) ~= "Vector3" or direction.Magnitude < 0.1 then
-            return
-        end
-        direction = direction.Unit
-
-        local exclude = RaycastParams.new()
-        exclude.FilterType = Enum.RaycastFilterType.Exclude
-        exclude.FilterDescendantsInstances = { character }
-        exclude.IgnoreWater = true
-        local front = context.workspace:Raycast(root.Position + Vector3.new(0, 0.5, 0), direction * 3.5, exclude)
-        if not front
-            or not front.Instance:IsA("BasePart")
-            or front.Instance.CanCollide ~= true
-            or math.abs(front.Normal.Y) > 0.45
-        then
-            return
-        end
-
-        local include = RaycastParams.new()
-        include.FilterType = Enum.RaycastFilterType.Include
-        include.FilterDescendantsInstances = { front.Instance }
-        include.IgnoreWater = true
-        local back = context.workspace:Raycast(front.Position + direction * 12, -direction * 12.2, include)
-        if not back then
-            return
-        end
-        local thickness = (back.Position - front.Position):Dot(direction)
-        if thickness < 0.05 or thickness > 10 then
-            return
-        end
-        character:PivotTo(character:GetPivot() + direction * (thickness + 2.25))
-        lastWallPhaseAt = os.clock()
-    end
-
     local function updateTeleportBehind(settings)
-        if settings.teleportBehind ~= true then
-            return
-        end
         local target = targetLockController.Target
         local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
-        if not targetModel or targetModel:GetAttribute("IsDead") == true then
-            return
-        end
-        local targetRoot = targetModel:FindFirstChild("HumanoidRootPart") or target
+        local targetRoot = targetModel and targetModel:FindFirstChild("HumanoidRootPart") or target
         local localHandler = characterController:GetLocalCharacterHandler()
         local localRoot = localHandler and localHandler.Root
-        if not targetRoot or not targetRoot:IsA("BasePart") or not localRoot then
-            return
-        end
-
-        local targetLook = targetRoot.CFrame.LookVector
-        local flatLook = Vector3.new(targetLook.X, 0, targetLook.Z)
-        if flatLook.Magnitude <= 0.001 then
-            return
-        end
-        flatLook = flatLook.Unit
-        local destination = targetRoot.Position - flatLook * TARGET_BACKSTEP_DISTANCE
-        localRoot.CFrame = CFrame.lookAt(
-            destination,
-            Vector3.new(targetRoot.Position.X, destination.Y, targetRoot.Position.Z)
-        )
+        TeleportBehind.update(settings, {
+            targetDead = targetModel and targetModel:GetAttribute("IsDead") == true,
+            localRoot = localRoot,
+            targetRoot = targetRoot,
+            distance = TARGET_BACKSTEP_DISTANCE,
+        })
     end
 
     local connection = game:GetService("RunService").RenderStepped:Connect(function()
@@ -1827,7 +1814,8 @@ function DuelingGrounds.new(context)
         updateTeleportBehind(settings)
         updateAutoFight(settings)
         updateAutoMovement(settings)
-        updateWallPhase(settings)
+        noclip:update(settings.noclip == true, localPlayer.Character)
+        winTitles:update(settings.showWins == true, context.players)
         local observations = {}
         if settings.showEnemies ~= false then
             observations = context.oh.targeting.observePlayers({
@@ -1862,11 +1850,12 @@ function DuelingGrounds.new(context)
             "worldRenderer",
             "names",
             "health",
+            "showWins",
             "autoFight",
             "autoMovement",
             "combatStyle",
             "teleportBehind",
-            "wallPhase",
+            "noclip",
         },
         isOpponent = function(player)
             return player ~= nil and player ~= localPlayer
@@ -1876,9 +1865,11 @@ function DuelingGrounds.new(context)
                 return
             end
             stopped = true
-            finishMatchRecording("sessionStopped")
-            disconnectTargetAnimation()
+            recording:stop("sessionStopped")
+            disconnectEnemyAnimations()
             disconnectLocalCombatObservation()
+            noclip:stop()
+            winTitles:stop()
             if activeParryBlock then
                 activeParryBlock._wantsToRelease = true
                 activeParryBlock = nil

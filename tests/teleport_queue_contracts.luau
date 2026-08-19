@@ -5,28 +5,26 @@ local localLoader = fs.readFile("local.lua")
 local remoteLoader = fs.readFile("loader.lua")
 
 assert(
-    init:find("configDefaults.autoExecuteOnTeleport = false", 1, true),
-    "Teleport auto execution must default off as a generic hub setting"
+    not init:find("autoExecuteOnTeleport", 1, true)
+        and not init:find("UniversalHubTeleportQueueOwned", 1, true)
+        and not init:find("clearteleportqueue", 1, true),
+    "Teleport persistence must be loader infrastructure, not a hub setting"
 )
 assert(
-    init:find('"autoExecuteOnTeleport",', 1, true)
-        and init:find('"Auto Execute on Teleport"', 1, true),
-    "Every game presentation must expose the generic teleport option"
+    localLoader:find("local queue =", 1, true)
+        and localLoader:find("pcall(queue", 1, true)
+        and localLoader:find("UniversalHubTeleportBootstrap = true", 1, true),
+    "The local loader must automatically queue its local bootstrap"
 )
 assert(
-    init:find("UniversalHubTeleportQueueOwned", 1, true)
-        and init:find("clearteleportqueue", 1, true),
-    "The hub must own and cancel only the teleport queue it enabled"
+    remoteLoader:find("local function queueNextPlace()", 1, true)
+        and remoteLoader:find("pcall(queue", 1, true)
+        and remoteLoader:find("UniversalHubConfig.SourceBaseUrl", 1, true),
+    "The remote loader must automatically queue its matching remote bootstrap"
 )
 assert(
-    localLoader:find("configuration.TeleportBootstrapSource", 1, true)
-        and remoteLoader:find("configuration.TeleportBootstrapSource", 1, true),
-    "Both loaders must provide their bootstrap without enabling it implicitly"
-)
-assert(
-    not localLoader:find("pcall(queue", 1, true)
-        and not remoteLoader:find("queueNextPlace", 1, true),
-    "Loaders must not bypass the saved hub option"
+    remoteLoader:find("if sourceRoot ~= officialSourceRoot then", 1, true),
+    "A custom remote source must provide its own safe teleport bootstrap"
 )
 
 print("teleport-queue-contracts-ok")

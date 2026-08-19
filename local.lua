@@ -182,13 +182,20 @@ local function startBootstrap()
     end
     environment.UniversalHubConfig = configuration
 
-    configuration.TeleportBootstrapSource = ([[
+    local synapse = environment.syn
+    local queue = type(environment.queue_on_teleport) == "function"
+            and environment.queue_on_teleport
+        or type(environment.queueonteleport) == "function" and environment.queueonteleport
+        or type(synapse) == "table" and type(synapse.queue_on_teleport) == "function"
+            and synapse.queue_on_teleport
+    if queue then
+        pcall(queue, ([[
 getgenv().UniversalHubTeleportBootstrap = true
-getgenv().UniversalHubTeleportQueueOwned = nil
 local path = %q
 local chunk, compileError = loadstring(readfile(path), path)
 assert(chunk, compileError)()
-]]):format(configuration.LocalRoot .. "/local.lua", configuration.LocalRoot .. "/local.lua")
+]]):format(configuration.LocalRoot .. "/local.lua", configuration.LocalRoot .. "/local.lua"))
+    end
 
     if not game:IsLoaded() then
         task.spawn(function()
