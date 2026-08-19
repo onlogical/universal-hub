@@ -17,6 +17,10 @@ local TeleportBehind = importDependency(
     "games/duelinggrounds/features/TeleportBehind",
     "./duelinggrounds/features/TeleportBehind"
 )
+local AttackRange = importDependency(
+    "games/duelinggrounds/features/combat/AttackRange",
+    "./duelinggrounds/features/combat/AttackRange"
+)
 local Styles = importDependency(
     "games/duelinggrounds/features/combat/Styles",
     "./duelinggrounds/features/combat/Styles"
@@ -53,6 +57,7 @@ local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
 local ULTIMATE_RETRY_INTERVAL = 0.2
+local ULTIMATE_SHIELD_BREAK_RESERVE = 4.5
 local UNKNOWN_ATTACK_REACH = 12
 
 local DEFAULT_COMBAT_PROFILE = {
@@ -323,6 +328,11 @@ function DuelingGrounds.new(context)
     local nextOrbitSwitchAt = 0
     local offenseRandom = Random.new()
     local skillRandom = Random.new()
+    local selectedAttackRangeMode = nil
+    local selectedAttackRangeTarget = nil
+    local selectedAttackRangeRandom = false
+    local selectedAttackRangeSetting = nil
+    local ultimateReadyAt = nil
     local dynamicState = {
         mode = "offensive",
         deflectTimes = {},
@@ -346,6 +356,55 @@ function DuelingGrounds.new(context)
             end,
         }),
     })
+
+    local function resolveAttackRangeMode(settings, targetModel, defenseReady)
+        local randomEnabled = settings.randomAttackRange == true
+        local configuredMode = AttackRange.normalize(settings.attackRange)
+        if selectedAttackRangeTarget ~= targetModel
+            or selectedAttackRangeRandom ~= randomEnabled
+            or selectedAttackRangeSetting ~= configuredMode
+        then
+            selectedAttackRangeMode = nil
+            selectedAttackRangeTarget = targetModel
+            selectedAttackRangeRandom = randomEnabled
+            selectedAttackRangeSetting = configuredMode
+        end
+        if randomEnabled then
+            if defenseReady == false then
+                selectedAttackRangeMode = "far"
+            elseif selectedAttackRangeMode == nil then
+                selectedAttackRangeMode = AttackRange.choose(offenseRandom, true)
+            end
+        else
+            selectedAttackRangeMode = configuredMode
+        end
+        return selectedAttackRangeMode
+    end
+
+    local function applyAttackRange(
+        profile,
+        settings,
+        targetModel,
+        localHandler,
+        actionManager
+    )
+        local weaponHandler = localHandler and localHandler:GetEquippedWeaponHandler()
+        local weaponInfo = weaponHandler and weaponHandler.WeaponInfo
+        local attackTypes = weaponInfo and weaponInfo.BasicAttackTypes
+        local attackName = actionManager and actionManager:_resolveAttackName(profile.neutralAttack)
+        local attackInfo = attackName and attackTypes and attackTypes[attackName]
+        local defenseReady = actionManager
+            and (actionManager._dodgeStamina or 0) >= 0.99
+            and (actionManager._blockStrength or 0) > 0.01
+        local mode = resolveAttackRangeMode(settings, targetModel, defenseReady)
+        return AttackRange.apply(profile, mode, getAttackGeometricReach(attackInfo))
+    end
+
+    local function rerollAttackRange(settings)
+        if settings.randomAttackRange == true then
+            selectedAttackRangeMode = nil
+        end
+    end
 
     local function appendCurrentMatchEvent(kind, data)
         recording:recordEvent(kind, data)
@@ -755,6 +814,7 @@ function DuelingGrounds.new(context)
             return true
         end
         if actionManager:TryQueueBasicAttack("Light") then
+            rerollAttackRange(context.store:Get().settings or {})
             pendingDodgeCounterAt = nil
             pendingDodgeCounterUntil = nil
             lastFightAttackAt = now
@@ -1242,6 +1302,13 @@ function DuelingGrounds.new(context)
         if not actionManager or not localHandler.EquippedWeapon then
             return
         end
+        local now = os.clock()
+        local ultimateAvailable = localHandler:CanPerformUltimate()
+        if ultimateAvailable then
+            ultimateReadyAt = ultimateReadyAt or now
+        else
+            ultimateReadyAt = nil
+        end
         local criticalTarget = targetLockController.CriticalStrikeTarget
         local criticalModel = criticalTarget and criticalTarget.Parent
         if criticalModel
@@ -1252,13 +1319,12 @@ function DuelingGrounds.new(context)
                 or criticalModel.PrimaryPart
             local localRoot = localHandler.Root
             local weaponHandler = localHandler:GetEquippedWeaponHandler()
-            local attackTypes = weaponHandler and weaponHandler.WeaponInfo.BasicAttackTypes
+            local weaponInfo = weaponHandler and weaponHandler.WeaponInfo
+            local attackTypes = weaponInfo and weaponInfo.BasicAttackTypes
             local ultimateInfo = attackTypes and attackTypes.Ultimate
-            local canUpgradeToUltimate = ultimateInfo ~= nil
+            local ultimateOpening = ultimateInfo ~= nil
                 and triggersUltimateDamage(ultimateInfo)
-                and localHandler:CanPerformUltimate()
-                and not actionManager.CurrentAction
-                and not actionManager._queuedActionType
+                and ultimateAvailable
                 and offensiveAttackCanReach(localRoot, criticalRoot, ultimateInfo)
                 and hasClearPath(
                     localRoot,
@@ -1266,14 +1332,29 @@ function DuelingGrounds.new(context)
                     criticalRoot,
                     { criticalHandler and criticalHandler.Model, criticalModel }
                 )
-            if canUpgradeToUltimate then
+            if ultimateOpening then
+                if actionManager._queuedActionType == "BasicAttack" then
+                    actionManager:_clearQueuedAction()
+                end
+                local currentAction = actionManager.CurrentAction
+                if currentAction
+                    and currentAction.ActionType == "BasicAttack"
+                    and currentAction.CanCancel
+                then
+                    actionManager:SwitchToAction(nil)
+                end
+                if actionManager.CurrentAction or actionManager._queuedActionType then
+                    return
+                end
                 local queued = actionManager:TryQueueBasicAttack("Ultimate")
                 lastUltimateAttemptAt = os.clock()
                 appendCurrentMatchEvent("criticalDecision", {
-                    choice = queued and "ultimate" or "criticalFallback",
-                    ultimateResult = queued and "queued" or "rejected",
+                    choice = queued and "shieldBreakUltimate" or "criticalFallback",
+                    ultimateResult = queued and "queueAccepted" or "rejected",
                 })
                 if queued then
+                    ultimateReadyAt = nil
+                    rerollAttackRange(settings)
                     lastFightAttackAt = lastUltimateAttemptAt
                     local canCancel = getAttackMarker(ultimateInfo, "canCancel")
                         or getFirstImpactTime(ultimateInfo)
@@ -1359,6 +1440,7 @@ function DuelingGrounds.new(context)
                 if actionManager.CurrentAction.CanQueueBasicAttacks
                     and actionManager:TryQueueBasicAttack("JumpAttack")
                 then
+                    rerollAttackRange(settings)
                     pendingJumpAttackUntil = nil
                     lastFightAttackAt = os.clock()
                 end
@@ -1369,12 +1451,26 @@ function DuelingGrounds.new(context)
                 pendingJumpAttackUntil = nil
             end
         end
+        local targetStateModel = targetHandler and targetHandler.Model or targetModel
+        local targetPosture = targetStateModel and targetStateModel:GetAttribute("Posture")
+        local targetMaximumPosture = targetStateModel
+            and targetStateModel:GetAttribute("MaxPosture")
+        local targetCloseToPostureBreak = type(targetPosture) == "number"
+            and type(targetMaximumPosture) == "number"
+            and targetMaximumPosture > 0
+            and targetPosture / targetMaximumPosture <= 0.4
+        local reserveUltimateForShieldBreak = ultimateAvailable
+            and ((ultimateReadyAt and now - ultimateReadyAt < ULTIMATE_SHIELD_BREAK_RESERVE)
+                or targetCloseToPostureBreak)
         local priorityWeaponHandler = localHandler:GetEquippedWeaponHandler()
-        local priorityAttackTypes = priorityWeaponHandler
-            and priorityWeaponHandler.WeaponInfo.BasicAttackTypes
+        local priorityWeaponInfo = priorityWeaponHandler
+            and priorityWeaponHandler.WeaponInfo
+        local priorityAttackTypes = priorityWeaponInfo
+            and priorityWeaponInfo.BasicAttackTypes
         local priorityUltimateInfo = priorityAttackTypes and priorityAttackTypes.Ultimate
         local priorityUltimateInRange = priorityUltimateInfo ~= nil
-            and localHandler:CanPerformUltimate()
+            and ultimateAvailable
+            and not reserveUltimateForShieldBreak
             and offensiveAttackCanReach(localHandler.Root, targetRoot, priorityUltimateInfo)
             and hasClearPath(
                 localHandler.Root,
@@ -1410,6 +1506,7 @@ function DuelingGrounds.new(context)
             if (stylePreferences.aggressiveCombos or Skill.shouldPunish(skill, skillRandom))
                 and actionManager:TryQueueBasicAttack("Light")
             then
+                rerollAttackRange(settings)
                 lastFightAttackAt = os.clock()
                 appendCurrentMatchEvent("comboAttack", {
                     result = "queued",
@@ -1461,6 +1558,13 @@ function DuelingGrounds.new(context)
                 maximumNeutralAttackDistance = profile.maximumNeutralAttackDistance,
             }
         end
+        profile = applyAttackRange(
+            profile,
+            settings,
+            targetModel,
+            localHandler,
+            actionManager
+        )
         local distance = (Vector3.new(targetRoot.Position.X, 0, targetRoot.Position.Z)
             - Vector3.new(localRoot.Position.X, 0, localRoot.Position.Z)).Magnitude
         local targetReach = getTargetGeometricReach(targetHandler)
@@ -1482,7 +1586,8 @@ function DuelingGrounds.new(context)
         local heavyInfo = attackTypes[actionManager:_resolveAttackName("Heavy")]
         local ultimateInfo = attackTypes.Ultimate
         local ultimateReady = ultimateInfo ~= nil
-            and localHandler:CanPerformUltimate()
+            and ultimateAvailable
+            and not reserveUltimateForShieldBreak
             and os.clock() - lastUltimateAttemptAt >= ULTIMATE_RETRY_INTERVAL
         local ultimateCanHit = ultimateReady
             and offensiveAttackCanReach(localRoot, targetRoot, ultimateInfo)
@@ -1582,6 +1687,7 @@ function DuelingGrounds.new(context)
             })
         end
         if queued then
+            rerollAttackRange(settings)
             lastFightAttackAt = os.clock()
             local canCancel = getAttackMarker(attackInfo, "canCancel")
                 or getFirstImpactTime(attackInfo)
@@ -1642,6 +1748,13 @@ function DuelingGrounds.new(context)
                 maximumNeutralAttackDistance = profile.maximumNeutralAttackDistance,
             }
         end
+        profile = applyAttackRange(
+            profile,
+            settings,
+            targetModel,
+            localHandler,
+            actionManager
+        )
 
         local currentAction = actionManager.CurrentAction
         local canMoveAfterImpact = currentAction

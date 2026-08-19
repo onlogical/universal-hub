@@ -60,6 +60,9 @@ lune run tests/town_large_copy_integration_contracts.luau
 lune run tests/town_second_review_contracts.luau
 lune run tests/counterblox_adapter_contracts.luau
 lune run tests/town_adapter_contracts.luau
+for duelinggrounds_contract in tests/duelinggrounds_*_contracts.luau; do
+    lune run "$duelinggrounds_contract"
+done
 lune run tests/rivals_combat_state_contracts.luau
 lune run tests/rivals_auto_counter_runtime_contracts.luau
 lune run tests/rivals_auto_counter_test_simulator_contracts.luau

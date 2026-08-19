@@ -48,6 +48,33 @@ function Presentation.mount(host)
         })
     end
     host:segmented("Combat", {
+        id = "attackRange",
+        label = "Attack Range",
+        parent = "autoFight",
+        emphasis = "row",
+        options = {
+            {
+                label = "Close",
+                value = "close",
+                when = { attackRange = "close" },
+                patch = { { "attackRange", "close" } },
+            },
+            {
+                label = "Medium",
+                value = "medium",
+                when = { attackRange = "medium" },
+                patch = { { "attackRange", "medium" } },
+            },
+            {
+                label = "Far",
+                value = "far",
+                when = { attackRange = "far" },
+                patch = { { "attackRange", "far" } },
+            },
+        },
+    })
+    host:option("offense", 4, "randomAttackRange", "Random Range", "autoFight")
+    host:segmented("Combat", {
         id = "combatStyle",
         label = "Fight Style",
         emphasis = "prominent",
