@@ -10,10 +10,26 @@ function Firearm:refresh(firearmLocal)
         aimDirection = { name = "GetAimDirection", upvalueIndex = 1 },
         fire = { name = "OnFire", upvalueIndex = 1 },
         reload = { name = "Reload", upvalueIndex = 1 },
+        scope = { name = "ScopeToggle", upvalueIndex = 1 },
     })
     self.aimDirections = found.aimDirection and { found.aimDirection } or {}
     self.fire = found.fire or self.fire
     self.reload = found.reload or self.reload
+    self.scope = found.scope or self.scope
+    if self.reload and type(getupvalues) == "function" then
+        local succeeded, upvalues = pcall(getupvalues, self.reload)
+        if succeeded then
+            for _, value in pairs(upvalues) do
+                if type(value) == "table"
+                    and typeof(value.Reload) == "Instance"
+                    and value.Reload:IsA("AnimationTrack")
+                then
+                    self.reloadTrack = value.Reload
+                    break
+                end
+            end
+        end
+    end
     return self
 end
 
@@ -23,6 +39,10 @@ end
 
 function Firearm:startReload()
     return self.reload and pcall(self.reload) or false
+end
+
+function Firearm:setScoped(scoped)
+    return self.scope and pcall(self.scope, scoped == true) or false
 end
 
 function Firearm:canHit(workspace, target, weapon, localCharacter)

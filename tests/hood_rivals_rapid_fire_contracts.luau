@@ -17,15 +17,21 @@ local weapon = {
 }
 
 local rapidFire = RapidFire.new()
-rapidFire:update({ rapidFire = true, rapidFireDelay = 30 }, weapon)
+rapidFire:update({ rapidFire = true, rapidFireDelay = 30 }, weapon, {
+    manualFire = false,
+})
 assert(fireRate.Value == 0.03)
 assert(gunType.Value == "Auto")
 
-rapidFire:update({ rapidFire = false }, weapon)
+rapidFire:update({ rapidFire = false }, weapon, {
+    manualFire = false,
+})
 assert(fireRate.Value == 0.12)
 assert(gunType.Value == "Semi")
 
-rapidFire:update({ rapidFire = true, rapidFireDelay = 10 }, weapon)
+rapidFire:update({ rapidFire = true, rapidFireDelay = 10 }, weapon, {
+    manualFire = false,
+})
 rapidFire:stop()
 assert(fireRate.Value == 0.12)
 assert(gunType.Value == "Semi")

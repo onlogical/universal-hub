@@ -19,9 +19,17 @@ local weapon = {
 }
 
 local feature = FastReload.new()
-feature:update(true, weapon)
+local adjustedSpeed
+local reloadTrack = {
+    IsPlaying = true,
+    AdjustSpeed = function(_self, speed)
+        adjustedSpeed = speed
+    end,
+}
+feature:update(true, weapon, reloadTrack)
 assert(reloadTime.Value == 0.1)
 assert(sound.PlaybackSpeed == 10)
+assert(adjustedSpeed == 10)
 feature:update(false, weapon)
 assert(reloadTime.Value == 2)
 assert(sound.PlaybackSpeed == 1)

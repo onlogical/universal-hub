@@ -8,7 +8,7 @@ function FastReload.new()
     }, FastReload)
 end
 
-function FastReload:update(enabled, weapon)
+function FastReload:update(enabled, weapon, reloadTrack)
     local stats = weapon and weapon:FindFirstChild("Stats")
     local reloadTime = stats and stats:FindFirstChild("ReloadTime")
     local handle = weapon and weapon:FindFirstChild("Handle")
@@ -24,6 +24,9 @@ function FastReload:update(enabled, weapon)
                 self.animations[sound] = sound.PlaybackSpeed
             end
             sound.PlaybackSpeed = math.max(self.animations[sound], 10)
+        end
+        if reloadTrack and reloadTrack.IsPlaying then
+            reloadTrack:AdjustSpeed(10)
         end
         return
     end

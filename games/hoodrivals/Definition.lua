@@ -2,6 +2,7 @@ return {
     defaults = {
         autoReload = false,
         fastReload = false,
+        noScope = false,
         rapidFireDelay = 40,
     },
     features = {
@@ -10,8 +11,6 @@ return {
             "triggerBot",
             "rapidFire",
             "rapidFireDelay",
-            "autoReload",
-            "fastReload",
             "headshotRate",
             "missRate",
             "boxes",
@@ -41,8 +40,10 @@ return {
         "games/hoodrivals/Firearm",
         "games/hoodrivals/Presentation",
         "games/hoodrivals/Targeting",
+        "games/hoodrivals/WeaponPolicy",
         "games/hoodrivals/features/AutoReload",
         "games/hoodrivals/features/FastReload",
+        "games/hoodrivals/features/NoScope",
         "games/hoodrivals/features/RapidFire",
         "games/hoodrivals/features/SilentAim",
         "games/hoodrivals/features/TriggerBot",

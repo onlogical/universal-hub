@@ -7,7 +7,7 @@ function RapidFire.new()
     }, RapidFire)
 end
 
-function RapidFire:update(settings, weapon)
+function RapidFire:update(settings, weapon, profile, firearm, primaryHeld)
     local stats = weapon and weapon:FindFirstChild("Stats")
     local fireRate = stats and stats:FindFirstChild("FireRate")
     local gunType = stats and stats:FindFirstChild("GunType")
@@ -25,7 +25,12 @@ function RapidFire:update(settings, weapon)
             200
         ) / 1000
         fireRate.Value = math.min(self.weapons[weapon].fireRate, delay)
-        gunType.Value = "Auto"
+        if not profile or not profile.manualFire then
+            gunType.Value = "Auto"
+        elseif primaryHeld and firearm and os.clock() >= (self.nextManualAt or 0) then
+            firearm:shoot()
+            self.nextManualAt = os.clock() + delay
+        end
         return
     end
 

@@ -11,11 +11,13 @@ end
 
 local Targeting = importDependency("games/hoodrivals/Targeting", "./Targeting")
 local Firearm = importDependency("games/hoodrivals/Firearm", "./Firearm")
+local WeaponPolicy = importDependency("games/hoodrivals/WeaponPolicy", "./WeaponPolicy")
 local SilentAim = importDependency("games/hoodrivals/features/SilentAim", "./features/SilentAim")
 local TriggerBot = importDependency("games/hoodrivals/features/TriggerBot", "./features/TriggerBot")
 local RapidFire = importDependency("games/hoodrivals/features/RapidFire", "./features/RapidFire")
 local AutoReload = importDependency("games/hoodrivals/features/AutoReload", "./features/AutoReload")
 local FastReload = importDependency("games/hoodrivals/features/FastReload", "./features/FastReload")
+local NoScope = importDependency("games/hoodrivals/features/NoScope", "./features/NoScope")
 local Adapter = {}
 
 function Adapter.new(context)
@@ -42,6 +44,8 @@ function Adapter.new(context)
     local rapidFire = RapidFire.new()
     local autoReload = AutoReload.new()
     local fastReload = FastReload.new()
+    local noScope = NoScope.new()
+    local WeaponData = require(game.ReplicatedStorage.WeaponData)
 
     local connection = RunService.Heartbeat:Connect(function()
         if stopped then
@@ -51,6 +55,7 @@ function Adapter.new(context)
         local settings = store:Get().settings
         local character = LocalPlayer.Character
         local weapon = character and character:FindFirstChildWhichIsA("Tool")
+        local profile = WeaponPolicy.profile(weapon, weapon and WeaponData[weapon.Name])
         target = camera and Targeting.acquire(
             Players,
             LocalPlayer,
@@ -62,9 +67,16 @@ function Adapter.new(context)
         if target then
             target.lineOfFire = firearm:canHit(Workspace, target, weapon, character)
         end
-        rapidFire:update(settings, weapon)
+        rapidFire:update(
+            settings,
+            weapon,
+            profile,
+            firearm,
+            UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)
+        )
         autoReload:update(settings.autoReload == true, firearm.reload, weapon)
-        fastReload:update(settings.fastReload == true, weapon)
+        fastReload:update(settings.fastReload == true, weapon, firearm.reloadTrack)
+        noScope:update(settings.noScope == true, firearm, profile)
         triggerBot:update(settings, firearm.fire, weapon, target)
         context.render(
             camera and Targeting.observations(Players, LocalPlayer, camera) or {},
@@ -77,8 +89,12 @@ function Adapter.new(context)
         if firearmConnection then firearmConnection:Disconnect() end
         local function bind(instance)
             if instance.Name ~= "FirearmLocal" then return end
-            firearm:refresh(instance)
-            silentAim:install(firearm.aimDirections)
+            task.spawn(function()
+                RunService.Heartbeat:Wait()
+                if stopped or instance.Parent ~= character then return end
+                firearm:refresh(instance)
+                silentAim:install(firearm.aimDirections)
+            end)
         end
         local existing = character and character:FindFirstChild("FirearmLocal")
         if existing then bind(existing) end
@@ -104,6 +120,7 @@ function Adapter.new(context)
         silentAim:stop()
         rapidFire:stop()
         fastReload:stop()
+        noScope:stop(firearm)
     end
     return self
 end

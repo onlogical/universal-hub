@@ -9,8 +9,6 @@ function Presentation.mount(host)
     host:option("aim", 1, "silentAim", "Silent Aim")
     host:option("aim", 2, "triggerBot", "Trigger Bot")
     host:option("aim", 3, "rapidFire", "Rapid Fire")
-    host:option("aim", 4, "autoReload", "Auto Reload")
-    host:option("aim", 5, "fastReload", "Fast Reload")
     if type(host.slider) == "function" then
         host:slider("aim", "rapidFireDelay", "Delay", {
             min = 10,
