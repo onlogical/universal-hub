@@ -1,5 +1,8 @@
 local Ugc = {}
 
+local AUTO_MOVE_APPROACH_DISTANCE = 7.25
+local AUTO_MOVE_ORBIT_DISTANCE = 5.25
+local AUTO_MOVE_RETREAT_DISTANCE = 3.25
 local DODGE_COOLDOWN = 0.35
 local FIGHT_RETRY_INTERVAL = 0.05
 local IMPACT_MARGIN = Vector3.new(2.5, 3, 2.5)
@@ -78,6 +81,7 @@ function Ugc.new(context)
     local GameManager = require(game:GetService("ReplicatedStorage").GameManager)
     local characterController = GameManager:GetController("CharacterController")
     local pingController = GameManager:GetController("PingController")
+    local playerInputController = GameManager:GetController("PlayerInputController")
     local targetLockController = GameManager:GetController("TargetLockController")
     local stopped = false
     local lastDodgeAt = -math.huge
@@ -91,6 +95,11 @@ function Ugc.new(context)
     local boundTarget = nil
     local targetAnimationConnection = nil
     local activeThreats = {}
+    local autoMoveMode = nil
+    local autoMoveTarget = nil
+    local orbitDirection = 1
+    local lastMovementCheckAt = 0
+    local lastMovementCheckPosition = nil
 
     local function getInstances(value)
         if typeof(value) == "Instance" then
@@ -429,6 +438,125 @@ function Ugc.new(context)
         end
     end
 
+    local function updateAutoMovement(settings)
+        if settings.autoMovement ~= true then
+            autoMoveMode = nil
+            autoMoveTarget = nil
+            lastMovementCheckPosition = nil
+            return
+        end
+        local target = targetLockController.Target
+        local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
+        if not targetModel or targetModel:GetAttribute("IsDead") == true then
+            autoMoveMode = nil
+            autoMoveTarget = nil
+            lastMovementCheckPosition = nil
+            return
+        end
+        local targetHandler = characterController:GetCharacterHandler(targetModel)
+        local targetRoot = targetHandler and targetHandler.Root or target
+        local localHandler = characterController:GetLocalCharacterHandler()
+        local actionManager = localHandler and localHandler.ActionManager
+        local localRoot = localHandler and localHandler.Root
+        if not actionManager or not localRoot or not targetRoot then
+            return
+        end
+
+        local currentAction = actionManager.CurrentAction
+        if pendingDodgeUntil
+            or pendingParryUntil
+            or hasIncomingThreat()
+            or actionManager._queuedActionType
+            or actionManager.BlockAction
+            or currentAction
+            or localHandler.IsDodging
+            or localHandler.IsParrying
+        then
+            playerInputController.CurrentInput.MoveDirection = Vector3.zero
+            return
+        end
+
+        if target ~= autoMoveTarget then
+            autoMoveTarget = target
+            autoMoveMode = nil
+            orbitDirection = 1
+            lastMovementCheckPosition = localRoot.Position
+            lastMovementCheckAt = os.clock()
+        end
+
+        local offset = targetRoot.Position - localRoot.Position
+        local flatOffset = Vector3.new(offset.X, 0, offset.Z)
+        local distance = flatOffset.Magnitude
+        if distance <= 0.001 then
+            playerInputController.CurrentInput.MoveDirection = Vector3.zero
+            return
+        end
+        local toward = flatOffset.Unit
+        if autoMoveMode == "approach" then
+            if distance <= AUTO_MOVE_ORBIT_DISTANCE + 0.5 then
+                autoMoveMode = "orbit"
+            end
+        elseif autoMoveMode == "retreat" then
+            if distance >= AUTO_MOVE_ORBIT_DISTANCE - 0.75 then
+                autoMoveMode = "orbit"
+            end
+        elseif distance > AUTO_MOVE_APPROACH_DISTANCE then
+            autoMoveMode = "approach"
+        elseif distance < AUTO_MOVE_RETREAT_DISTANCE then
+            autoMoveMode = "retreat"
+        else
+            autoMoveMode = "orbit"
+        end
+
+        local direction
+        if autoMoveMode == "approach" then
+            direction = toward
+        elseif autoMoveMode == "retreat" then
+            direction = -toward
+        else
+            local tangent = Vector3.new(-toward.Z, 0, toward.X) * orbitDirection
+            local radialCorrection = math.clamp(
+                (distance - AUTO_MOVE_ORBIT_DISTANCE) / 2,
+                -0.6,
+                0.6
+            )
+            direction = tangent + toward * radialCorrection
+            direction = direction.Magnitude > 0 and direction.Unit or tangent
+        end
+
+        local parameters = RaycastParams.new()
+        parameters.FilterType = Enum.RaycastFilterType.Exclude
+        parameters.FilterDescendantsInstances = getInstances({
+            localHandler.Model,
+            localHandler.OriginalModel,
+            targetHandler and targetHandler.Model,
+            targetModel,
+        })
+        parameters.IgnoreWater = true
+        local obstacle = context.workspace:Raycast(
+            localRoot.Position + Vector3.new(0, 0.5, 0),
+            direction * 3,
+            parameters
+        )
+        if obstacle and obstacle.Instance.CanCollide then
+            orbitDirection = -orbitDirection
+            direction = Vector3.new(-toward.Z, 0, toward.X) * orbitDirection
+            autoMoveMode = "orbit"
+        end
+
+        local now = os.clock()
+        if now - lastMovementCheckAt >= 0.75 then
+            if lastMovementCheckPosition
+                and (localRoot.Position - lastMovementCheckPosition).Magnitude < 0.6
+            then
+                orbitDirection = -orbitDirection
+            end
+            lastMovementCheckPosition = localRoot.Position
+            lastMovementCheckAt = now
+        end
+        playerInputController.CurrentInput.MoveDirection = direction
+    end
+
     local function updateWallPhase(settings)
         if settings.wallPhase ~= true or os.clock() - lastWallPhaseAt < WALL_PHASE_COOLDOWN then
             return
@@ -508,6 +636,7 @@ function Ugc.new(context)
         updateAutoDefense(settings)
         updateTeleportBehind(settings)
         updateAutoFight(settings)
+        updateAutoMovement(settings)
         updateWallPhase(settings)
         local observations = {}
         if settings.showEnemies ~= false then
@@ -544,6 +673,7 @@ function Ugc.new(context)
             "names",
             "health",
             "autoFight",
+            "autoMovement",
             "teleportBehind",
             "wallPhase",
         },

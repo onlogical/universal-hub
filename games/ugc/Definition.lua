@@ -1,6 +1,7 @@
 return {
     defaults = {
         autoFight = false,
+        autoMovement = false,
         teleportBehind = false,
         wallPhase = false,
     },
@@ -15,6 +16,7 @@ return {
             "names",
             "health",
             "autoFight",
+            "autoMovement",
             "teleportBehind",
             "wallPhase",
         },
