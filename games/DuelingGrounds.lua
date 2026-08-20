@@ -64,7 +64,8 @@ local OFFENSIVE_RECOVERY_MIN = 0.18
 local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
-local TELE_AWAY_DISTANCE = 26
+local TELE_FALLBACK_DISTANCE = 80
+local TELE_FLOAT_HEIGHT = 35
 local TELE_BEHIND_DISTANCE = 2.75
 local TELE_IMPACT_GRACE = 0.04
 local ULTIMATE_RETRY_INTERVAL = 0.2
@@ -1327,19 +1328,32 @@ function DuelingGrounds.new(context)
         if not localRoot or not targetRoot then
             return false
         end
-        local direction = teleState.awayDirection
-        if not direction then
+        local world = context.workspace or workspace
+        local lobbyMap = world:FindFirstChild("LobbyMap")
+        local spawner = lobbyMap and lobbyMap:FindFirstChild("LobbySpawner")
+        local destination
+        if spawner and spawner:IsA("BasePart") then
+            destination = spawner.Position
+                + Vector3.new(0, spawner.Size.Y / 2 + TELE_FLOAT_HEIGHT, 0)
+        elseif spawner and spawner:IsA("Model") then
+            destination = spawner:GetPivot().Position
+                + Vector3.new(0, spawner:GetExtentsSize().Y / 2 + TELE_FLOAT_HEIGHT, 0)
+        else
+            local direction = teleState.awayDirection
             local offset = localRoot.Position - targetRoot.Position
-            direction = Vector3.new(offset.X, 0, offset.Z)
-            if direction.Magnitude <= 0.001 then
-                local look = targetRoot.CFrame.LookVector
-                direction = Vector3.new(-look.X, 0, -look.Z)
+            if not direction then
+                direction = Vector3.new(offset.X, 0, offset.Z)
+                if direction.Magnitude <= 0.001 then
+                    local look = targetRoot.CFrame.LookVector
+                    direction = Vector3.new(-look.X, 0, -look.Z)
+                end
+                direction = direction.Unit
+                teleState.awayDirection = direction
             end
-            direction = direction.Unit
-            teleState.awayDirection = direction
+            destination = targetRoot.Position
+                + direction * TELE_FALLBACK_DISTANCE
+                + Vector3.new(0, TELE_FLOAT_HEIGHT, 0)
         end
-        local destination = targetRoot.Position + direction * TELE_AWAY_DISTANCE
-        destination = Vector3.new(destination.X, localRoot.Position.Y, destination.Z)
         return teleCharacter(localHandler, CFrame.lookAt(
             destination,
             Vector3.new(targetRoot.Position.X, destination.Y, targetRoot.Position.Z)
@@ -1474,11 +1488,19 @@ function DuelingGrounds.new(context)
     end
 
     local function updateAutoFight(settings)
-        if settings.autoFight ~= true or os.clock() < nextFightAt then
+        if settings.autoFight ~= true then
             return
         end
-        nextFightAt = os.clock() + FIGHT_RETRY_INTERVAL
+        if settings.combatStyle ~= "tele" then
+            if os.clock() < nextFightAt then
+                return
+            end
+            nextFightAt = os.clock() + FIGHT_RETRY_INTERVAL
+        end
         local target = targetLockController.Target
+        if settings.combatStyle == "tele" and not target then
+            target = teleState.targetRoot
+        end
         local targetModel = target and target:FindFirstAncestorWhichIsA("Model")
         if not targetModel or targetModel:GetAttribute("IsDead") == true then
             return

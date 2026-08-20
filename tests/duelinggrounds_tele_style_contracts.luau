@@ -14,5 +14,8 @@ assert(adapterSource:find("teleBehind(localHandler, targetRoot)", 1, true))
 assert(adapterSource:find('settings.combatStyle == "tele"', 1, true))
 assert(adapterSource:find("TeleStyle.shouldWarpIn", 1, true))
 assert(adapterSource:find("TeleStyle.shouldWarpAway", 1, true))
+assert(adapterSource:find('FindFirstChild("LobbySpawner")', 1, true))
+assert(adapterSource:find("TELE_FLOAT_HEIGHT = 35", 1, true))
+assert(adapterSource:find('settings.combatStyle ~= "tele"', 1, true))
 
 print("duelinggrounds-tele-style-contracts-ok")
