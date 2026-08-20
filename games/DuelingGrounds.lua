@@ -1324,6 +1324,20 @@ function DuelingGrounds.new(context)
         root.AssemblyLinearVelocity = Vector3.zero
         root.AssemblyAngularVelocity = Vector3.zero
         model:PivotTo(destination)
+        localHandler:UpdateServerCFrame(destination)
+        localHandler._interpolationResultCFrame = destination
+        localHandler._bulkMoveCFrame = destination
+        local rigHandler = localHandler.RigHandler
+        if rigHandler then
+            rigHandler._lastRootPosition = destination.Position
+            rigHandler._lastRootVelocity = Vector3.zero
+            local accelerationSpring = rigHandler._accelerationSpring
+            if accelerationSpring then
+                accelerationSpring.target = Vector3.zero
+                accelerationSpring.position = Vector3.zero
+                accelerationSpring.velocity = Vector3.zero
+            end
+        end
         return true
     end
 
