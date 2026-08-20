@@ -68,8 +68,6 @@ local OFFENSIVE_RECOVERY_MIN = 0.18
 local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
-local TELE_NETWORK_STANDOFF_DISTANCE = 8
-local TELE_NETWORK_APPROACH_SPEED = 12
 local TELE_VISUAL_HOVER_HEIGHT = 50
 local TELE_DEFAULT_BEHIND_DISTANCE = 5
 local TELE_IMPACT_GRACE = 0.04
@@ -412,7 +410,7 @@ function DuelingGrounds.new(context)
         attackInfo = nil,
         attackName = nil,
         serverCFrame = nil,
-        networkUpdatedAt = nil,
+        safeServerCFrame = nil,
     }
     local teleNetworkHook = nil
     local updateCharacterCFrameRemote = nil
@@ -579,7 +577,7 @@ function DuelingGrounds.new(context)
         teleState.attackInfo = nil
         teleState.attackName = nil
         teleState.serverCFrame = nil
-        teleState.networkUpdatedAt = nil
+        teleState.safeServerCFrame = nil
     end
 
     local function recordDynamicDeflect()
@@ -1386,32 +1384,14 @@ function DuelingGrounds.new(context)
         end
         local visualDestination = targetRoot.Position
             + Vector3.new(0, TELE_VISUAL_HOVER_HEIGHT, 0)
-        local networkDestination = targetRoot.Position
-            + flatLook.Unit * TELE_NETWORK_STANDOFF_DISTANCE
-        networkDestination = Vector3.new(
-            networkDestination.X,
-            targetRoot.Position.Y,
-            networkDestination.Z
-        )
         local visualCFrame = CFrame.lookAt(
             visualDestination,
             visualDestination + flatLook.Unit
         )
-        local now = os.clock()
-        local currentCFrame = localHandler._serverRootCFrame
-            or teleState.serverCFrame
-            or localRoot.CFrame
-        local delta = networkDestination - currentCFrame.Position
-        local elapsed = teleState.networkUpdatedAt and now - teleState.networkUpdatedAt or 1 / 60
-        local maximumStep = TELE_NETWORK_APPROACH_SPEED * math.clamp(elapsed, 1 / 240, 0.05)
-        local networkPosition = delta.Magnitude > maximumStep
-            and currentCFrame.Position + delta.Unit * maximumStep
-            or networkDestination
-        teleState.networkUpdatedAt = now
-        teleState.serverCFrame = CFrame.lookAt(
-            networkPosition,
-            Vector3.new(targetRoot.Position.X, networkPosition.Y, targetRoot.Position.Z)
-        )
+        if not teleState.safeServerCFrame then
+            teleState.safeServerCFrame = localHandler._serverRootCFrame or localRoot.CFrame
+        end
+        teleState.serverCFrame = teleState.safeServerCFrame
         return teleCharacter(localHandler, visualCFrame)
     end
 
@@ -1587,7 +1567,8 @@ function DuelingGrounds.new(context)
         local serverDistance = serverCFrame
             and (serverCFrame.Position - targetRoot.Position).Magnitude
             or math.huge
-        if serverDistance > TELE_NETWORK_STANDOFF_DISTANCE + 3 then
+        local serverReach = math.max(getAttackGeometricReach(attackInfoForTiming), 2)
+        if serverDistance > serverReach + 1 then
             teleAway(localHandler, targetRoot)
             return
         end
