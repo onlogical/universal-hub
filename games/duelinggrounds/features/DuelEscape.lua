@@ -3,6 +3,7 @@ DuelEscape.__index = DuelEscape
 
 local DEFAULT_KEY = "End"
 local COOLDOWN = 1.5
+local ESCAPE_HEIGHT = 50
 
 local function inputKeyName(input)
     local keyCode = input and input.KeyCode
@@ -42,6 +43,7 @@ function DuelEscape.new(options)
     local self = setmetatable({
         clearTarget = options.clearTarget,
         getRoot = options.getRoot,
+        hoverCFrame = nil,
         isDuelActive = options.isDuelActive,
         lastEscapeAt = -math.huge,
         localPlayer = options.localPlayer,
@@ -54,23 +56,32 @@ function DuelEscape.new(options)
     self.connection = options.inputService.InputBegan:Connect(function(input, gameProcessed)
         self:_onInput(input, gameProcessed)
     end)
+    self.hoverConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        self:_updateHover()
+    end)
     return self
 end
 
-function DuelEscape:_destination()
-    local lobbyMap = self.workspace:FindFirstChild("LobbyMap")
-    local spawner = lobbyMap and lobbyMap:FindFirstChild("LobbySpawner")
-    if not spawner then
-        return nil
+function DuelEscape:_destination(root)
+    return root and (root.CFrame + Vector3.new(0, ESCAPE_HEIGHT, 0)) or nil
+end
+
+function DuelEscape:_updateHover()
+    if self.stopped or not self.hoverCFrame then
+        return
     end
-    if spawner:IsA("BasePart") then
-        return spawner.CFrame * CFrame.new(0, spawner.Size.Y / 2 + 4, 0)
+    if type(self.isDuelActive) == "function" and self.isDuelActive() ~= true then
+        self.hoverCFrame = nil
+        return
     end
-    if spawner:IsA("Model") then
-        local size = spawner:GetExtentsSize()
-        return spawner:GetPivot() * CFrame.new(0, size.Y / 2 + 4, 0)
+    local root = type(self.getRoot) == "function" and self.getRoot() or nil
+    local character = root and root:FindFirstAncestorWhichIsA("Model")
+    if not root or not character then
+        return
     end
-    return nil
+    root.AssemblyLinearVelocity = Vector3.zero
+    root.AssemblyAngularVelocity = Vector3.zero
+    character:PivotTo(self.hoverCFrame)
 end
 
 function DuelEscape:_onInput(input, gameProcessed)
@@ -97,7 +108,7 @@ function DuelEscape:_onInput(input, gameProcessed)
         root = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
     end
     local character = root and root:FindFirstAncestorWhichIsA("Model")
-    local destination = self:_destination()
+    local destination = self:_destination(root)
     if not character or not root or not destination then
         return
     end
@@ -112,6 +123,7 @@ function DuelEscape:_onInput(input, gameProcessed)
     end
     root.AssemblyLinearVelocity = Vector3.zero
     root.AssemblyAngularVelocity = Vector3.zero
+    self.hoverCFrame = destination
     character:PivotTo(destination)
 end
 
@@ -124,6 +136,11 @@ function DuelEscape:stop()
         self.connection:Disconnect()
         self.connection = nil
     end
+    if self.hoverConnection then
+        self.hoverConnection:Disconnect()
+        self.hoverConnection = nil
+    end
+    self.hoverCFrame = nil
 end
 
 return DuelEscape

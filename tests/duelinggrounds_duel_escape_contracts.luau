@@ -19,9 +19,14 @@ assert(DuelEscape.shouldTrigger(input("End"), false, {}, true, 1.5, 0))
 
 local fs = require("@lune/fs")
 local adapterSource = fs.readFile("games/DuelingGrounds.lua")
+local escapeSource = fs.readFile("games/duelinggrounds/features/DuelEscape.lua")
 assert(
     adapterSource:find("characterController:GetLocalCharacterHandler()", 1, true),
     "Duel Escape must resolve the live workspace character handler"
 )
+assert(escapeSource:find("ESCAPE_HEIGHT = 50", 1, true))
+assert(escapeSource:find("root.CFrame + Vector3.new(0, ESCAPE_HEIGHT, 0)", 1, true))
+assert(escapeSource:find('RunService").Heartbeat', 1, true))
+assert(not escapeSource:find('FindFirstChild("LobbySpawner")', 1, true))
 
 print("duelinggrounds-duel-escape-contracts-ok")
