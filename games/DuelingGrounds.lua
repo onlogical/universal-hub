@@ -66,7 +66,7 @@ local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
 local TELE_FALLBACK_DISTANCE = 80
 local TELE_FLOAT_HEIGHT = 35
-local TELE_BEHIND_DISTANCE = 2.75
+local TELE_DEFAULT_BEHIND_DISTANCE = 3
 local TELE_IMPACT_GRACE = 0.04
 local ULTIMATE_RETRY_INTERVAL = 0.2
 local ULTIMATE_SHIELD_BREAK_RESERVE = 4.5
@@ -1360,7 +1360,27 @@ function DuelingGrounds.new(context)
         ))
     end
 
-    local function teleBehind(localHandler, targetRoot)
+    local function getTeleBehindDistance(attackInfo)
+        local selectedImpact
+        local selectedTime = math.huge
+        for _, impact in ipairs(attackInfo and attackInfo.impacts or {}) do
+            local markerTime = type(impact.markerTime) == "number"
+                and impact.markerTime
+                or math.huge
+            if markerTime < selectedTime then
+                selectedTime = markerTime
+                selectedImpact = impact
+            end
+        end
+        local impactInfo = selectedImpact and selectedImpact.impactInfo
+        local hitboxCFrame = impactInfo and impactInfo.hitboxCFrame
+        if typeof(hitboxCFrame) == "CFrame" then
+            return math.clamp(math.abs(hitboxCFrame.Position.Z), 2, 8)
+        end
+        return TELE_DEFAULT_BEHIND_DISTANCE
+    end
+
+    local function teleBehind(localHandler, targetRoot, attackInfo)
         local localRoot = localHandler and localHandler.Root
         if not localRoot or not targetRoot then
             return false
@@ -1370,7 +1390,8 @@ function DuelingGrounds.new(context)
         if flatLook.Magnitude <= 0.001 then
             return false
         end
-        local destination = targetRoot.Position - flatLook.Unit * TELE_BEHIND_DISTANCE
+        local distance = getTeleBehindDistance(attackInfo)
+        local destination = targetRoot.Position - flatLook.Unit * distance
         destination = Vector3.new(destination.X, targetRoot.Position.Y, destination.Z)
         return teleCharacter(localHandler, CFrame.lookAt(
             destination,
@@ -1404,10 +1425,14 @@ function DuelingGrounds.new(context)
                 return
             end
             local firstImpact = getFirstImpactTime(attackInfo) or 0.25
-            local leadTime = math.clamp((pingController:GetPing() or 0) + 0.04, 0.05, 0.16)
+            local leadTime = math.clamp(
+                (pingController:GetPing() or 0) * 2 + 0.1,
+                0.25,
+                0.35
+            )
             if TeleStyle.shouldWarpIn(track.TimePosition, track.Speed, firstImpact, leadTime) then
                 teleState.phase = "impact"
-                teleBehind(localHandler, targetRoot)
+                teleBehind(localHandler, targetRoot, attackInfo)
             else
                 teleAway(localHandler, targetRoot)
             end
@@ -1430,7 +1455,7 @@ function DuelingGrounds.new(context)
                 teleAway(localHandler, targetRoot)
                 teleState.phase = "recovering"
             else
-                teleBehind(localHandler, targetRoot)
+                teleBehind(localHandler, targetRoot, attackInfo)
             end
             return
         end
