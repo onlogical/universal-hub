@@ -14,7 +14,7 @@ assert(adapterSource:find("teleBehind(localHandler, targetRoot, attackInfo)", 1,
 assert(adapterSource:find('settings.combatStyle == "tele"', 1, true))
 assert(adapterSource:find("TeleStyle.shouldWarpIn", 1, true))
 assert(adapterSource:find("TeleStyle.shouldWarpAway", 1, true))
-assert(adapterSource:find("TELE_FLOAT_HEIGHT = 50", 1, true))
+assert(adapterSource:find("TELE_FLOAT_HEIGHT = 12", 1, true))
 assert(adapterSource:find("targetRoot.Position + Vector3.new(0, TELE_FLOAT_HEIGHT, 0)", 1, true))
 assert(adapterSource:find('settings.combatStyle ~= "tele"', 1, true))
 assert(adapterSource:find("getTeleBehindDistance", 1, true))
