@@ -91,6 +91,9 @@ function Presentation.mount(host)
     host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "noclip", "Noclip")
     host:option("movement", 2, "teleportBehind", "Teleport Behind Target")
+    if type(host.keybind) == "function" then
+        host:keybind("movement", "duelEscapeKey", "Duel Escape", "End")
+    end
 end
 
 return Presentation

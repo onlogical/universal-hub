@@ -2,6 +2,7 @@ return {
     defaults = {
         autoFight = false,
         autoMovement = false,
+        duelEscapeKey = "End",
         fightReplay = false,
         botSkill = 85,
         combatStyle = "offensive",
@@ -22,6 +23,7 @@ return {
             "showWins",
             "autoFight",
             "autoMovement",
+            "duelEscapeKey",
             "fightReplay",
             "botSkill",
             "combatStyle",
@@ -44,6 +46,7 @@ return {
         "games/DuelingGrounds",
         "games/duelinggrounds/Presentation",
         "games/duelinggrounds/features/AutoMovement",
+        "games/duelinggrounds/features/DuelEscape",
         "games/duelinggrounds/features/Noclip",
         "games/duelinggrounds/features/TeleportBehind",
         "games/duelinggrounds/features/WinTitles",

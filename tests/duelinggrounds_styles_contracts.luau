@@ -28,8 +28,17 @@ assert(
     table.find(Definition.sources, "games/duelinggrounds/features/combat/BabyStyle"),
     "BabyStyle must be staged by the Dueling Grounds definition"
 )
+assert(Definition.defaults.duelEscapeKey == "End", "Duel Escape must default to End")
+assert(
+    table.find(Definition.sources, "games/duelinggrounds/features/DuelEscape"),
+    "DuelEscape must be staged by the Dueling Grounds definition"
+)
 local presentationSource = fs.readFile("games/duelinggrounds/Presentation.lua")
 assert(presentationSource:find('value = "baby"', 1, true), "Prism must expose Baby mode")
+assert(
+    presentationSource:find('"duelEscapeKey", "Duel Escape"', 1, true),
+    "Prism must expose the Duel Escape keybind"
+)
 local adapterSource = fs.readFile("games/DuelingGrounds.lua")
 assert(
     adapterSource:find('settings.combatStyle == "baby"', 1, true),

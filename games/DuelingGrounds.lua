@@ -17,6 +17,10 @@ local TeleportBehind = importDependency(
     "games/duelinggrounds/features/TeleportBehind",
     "./duelinggrounds/features/TeleportBehind"
 )
+local DuelEscape = importDependency(
+    "games/duelinggrounds/features/DuelEscape",
+    "./duelinggrounds/features/DuelEscape"
+)
 local Styles = importDependency(
     "games/duelinggrounds/features/combat/Styles",
     "./duelinggrounds/features/combat/Styles"
@@ -310,6 +314,7 @@ function DuelingGrounds.new(context)
     local replicatedStorage = game:GetService("ReplicatedStorage")
     local GameManager = require(replicatedStorage.GameManager)
     local characterController = GameManager:GetController("CharacterController")
+    local matchController = GameManager:GetController("MatchController")
     local pingController = GameManager:GetController("PingController")
     local playerInputController = GameManager:GetController("PlayerInputController")
     local targetLockController = GameManager:GetController("TargetLockController")
@@ -332,6 +337,21 @@ function DuelingGrounds.new(context)
     local observedEnemies = {}
     local noclip = Noclip.new()
     local winTitles = WinTitles.new()
+    local duelEscape = DuelEscape.new({
+        clearTarget = function()
+            targetLockController.Target = nil
+        end,
+        inputService = game:GetService("UserInputService"),
+        isDuelActive = function()
+            return matchController.ActiveLocalPlayerMatch ~= nil
+        end,
+        localPlayer = localPlayer,
+        stopMovement = function()
+            playerInputController.CurrentInput.MoveDirection = Vector3.zero
+        end,
+        store = context.store,
+        workspace = context.workspace or workspace,
+    })
     local activeThreats = {}
     local targetCombatState = {
         blockTracks = {},
@@ -1979,6 +1999,7 @@ function DuelingGrounds.new(context)
             "showWins",
             "autoFight",
             "autoMovement",
+            "duelEscapeKey",
             "fightReplay",
             "combatStyle",
             "teleportBehind",
@@ -1998,6 +2019,7 @@ function DuelingGrounds.new(context)
             end
             disconnectEnemyAnimations()
             disconnectLocalCombatObservation()
+            duelEscape:stop()
             noclip:stop()
             winTitles:stop()
             if activeParryBlock then
