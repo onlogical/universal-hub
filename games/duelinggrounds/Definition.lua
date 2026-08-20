@@ -8,6 +8,7 @@ return {
         combatStyle = "offensive",
         showWins = false,
         teleportBehind = false,
+        multiJump = false,
         noclip = false,
     },
     features = {
@@ -28,6 +29,7 @@ return {
             "botSkill",
             "combatStyle",
             "teleportBehind",
+            "multiJump",
             "noclip",
         },
         cosmetics = false,
@@ -47,6 +49,7 @@ return {
         "games/duelinggrounds/Presentation",
         "games/duelinggrounds/features/AutoMovement",
         "games/duelinggrounds/features/DuelEscape",
+        "games/duelinggrounds/features/MultiJump",
         "games/duelinggrounds/features/Noclip",
         "games/duelinggrounds/features/TeleportBehind",
         "games/duelinggrounds/features/WinTitles",

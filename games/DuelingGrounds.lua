@@ -21,6 +21,10 @@ local DuelEscape = importDependency(
     "games/duelinggrounds/features/DuelEscape",
     "./duelinggrounds/features/DuelEscape"
 )
+local MultiJump = importDependency(
+    "games/duelinggrounds/features/MultiJump",
+    "./duelinggrounds/features/MultiJump"
+)
 local Styles = importDependency(
     "games/duelinggrounds/features/combat/Styles",
     "./duelinggrounds/features/combat/Styles"
@@ -64,7 +68,7 @@ local OFFENSIVE_RECOVERY_MIN = 0.18
 local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
-local TELE_FLOAT_HEIGHT = 35
+local TELE_FLOAT_HEIGHT = 50
 local TELE_DEFAULT_BEHIND_DISTANCE = 5
 local TELE_IMPACT_GRACE = 0.04
 local ULTIMATE_RETRY_INTERVAL = 0.2
@@ -362,6 +366,14 @@ function DuelingGrounds.new(context)
         end,
         store = context.store,
         workspace = context.workspace or workspace,
+    })
+    local multiJump = MultiJump.new({
+        getHumanoid = function()
+            local handler = characterController:GetLocalCharacterHandler()
+            return handler and handler.Humanoid
+        end,
+        inputService = game:GetService("UserInputService"),
+        store = context.store,
     })
     local activeThreats = {}
     local targetCombatState = {
@@ -2335,6 +2347,7 @@ function DuelingGrounds.new(context)
             "fightReplay",
             "combatStyle",
             "teleportBehind",
+            "multiJump",
             "noclip",
         },
         isOpponent = function(player)
@@ -2355,6 +2368,7 @@ function DuelingGrounds.new(context)
             disconnectEnemyAnimations()
             disconnectLocalCombatObservation()
             duelEscape:stop()
+            multiJump:stop()
             noclip:stop()
             winTitles:stop()
             if activeParryBlock then
