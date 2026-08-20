@@ -24,5 +24,8 @@ assert(adapterSource:find("getTeleBehindCFrame", 1, true))
 assert(adapterSource:find("localHandler._serverRootCFrame", 1, true))
 assert(adapterSource:find("runService.PreSimulation", 1, true))
 assert(adapterSource:find("teleState.serverCFrame", 1, true))
+assert(adapterSource:find('WaitForChild("UpdateCharacterCFrame")', 1, true))
+assert(adapterSource:find('hookmetamethod(game, "__namecall"', 1, true))
+assert(adapterSource:find("arguments[1] = teleState.serverCFrame", 1, true))
 
 print("duelinggrounds-tele-style-contracts-ok")

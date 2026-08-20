@@ -400,6 +400,36 @@ function DuelingGrounds.new(context)
         attackName = nil,
         serverCFrame = nil,
     }
+    local teleNetworkHook = nil
+    local updateCharacterCFrameRemote = nil
+    pcall(function()
+        updateCharacterCFrameRemote = game:GetService("ReplicatedStorage")
+            :WaitForChild("Remotes")
+            :WaitForChild("PlayerCharacter")
+            :WaitForChild("Request")
+            :WaitForChild("UpdateCharacterCFrame")
+    end)
+    if updateCharacterCFrameRemote
+        and type(hookmetamethod) == "function"
+        and type(newcclosure) == "function"
+        and type(getnamecallmethod) == "function"
+    then
+        teleNetworkHook = { enabled = true }
+        local previousNamecall
+        previousNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
+            if teleNetworkHook.enabled
+                and not stopped
+                and self == updateCharacterCFrameRemote
+                and getnamecallmethod() == "FireServer"
+                and teleState.serverCFrame
+            then
+                local arguments = table.pack(...)
+                arguments[1] = teleState.serverCFrame
+                return previousNamecall(self, table.unpack(arguments, 1, arguments.n))
+            end
+            return previousNamecall(self, ...)
+        end))
+    end
     local boundLocalCombatHandler = nil
     local boundLocalCombatWeapon = nil
     local localCombatConnection = nil
@@ -2349,6 +2379,9 @@ function DuelingGrounds.new(context)
                 return
             end
             stopped = true
+            if teleNetworkHook then
+                teleNetworkHook.enabled = false
+            end
             recording:stop("sessionStopped")
             if type(context.updateCombatTelemetry) == "function" then
                 context.updateCombatTelemetry(nil)
