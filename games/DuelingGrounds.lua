@@ -64,7 +64,6 @@ local OFFENSIVE_RECOVERY_MIN = 0.18
 local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
-local TELE_FALLBACK_DISTANCE = 80
 local TELE_FLOAT_HEIGHT = 35
 local TELE_DEFAULT_BEHIND_DISTANCE = 5
 local TELE_IMPACT_GRACE = 0.04
@@ -1364,36 +1363,18 @@ function DuelingGrounds.new(context)
         if not localRoot or not targetRoot then
             return false
         end
-        local world = context.workspace or workspace
-        local lobbyMap = world:FindFirstChild("LobbyMap")
-        local spawner = lobbyMap and lobbyMap:FindFirstChild("LobbySpawner")
-        local destination
-        if spawner and spawner:IsA("BasePart") then
-            destination = spawner.Position
-                + Vector3.new(0, spawner.Size.Y / 2 + TELE_FLOAT_HEIGHT, 0)
-        elseif spawner and spawner:IsA("Model") then
-            destination = spawner:GetPivot().Position
-                + Vector3.new(0, spawner:GetExtentsSize().Y / 2 + TELE_FLOAT_HEIGHT, 0)
-        else
-            local direction = teleState.awayDirection
-            local offset = localRoot.Position - targetRoot.Position
-            if not direction then
-                direction = Vector3.new(offset.X, 0, offset.Z)
-                if direction.Magnitude <= 0.001 then
-                    local look = targetRoot.CFrame.LookVector
-                    direction = Vector3.new(-look.X, 0, -look.Z)
-                end
-                direction = direction.Unit
-                teleState.awayDirection = direction
-            end
-            destination = targetRoot.Position
-                + direction * TELE_FALLBACK_DISTANCE
-                + Vector3.new(0, TELE_FLOAT_HEIGHT, 0)
+        local look = targetRoot.CFrame.LookVector
+        local flatLook = Vector3.new(look.X, 0, look.Z)
+        if flatLook.Magnitude <= 0.001 then
+            flatLook = Vector3.new(0, 0, -1)
         end
-        return teleCharacter(localHandler, CFrame.lookAt(
+        local destination = targetRoot.Position + Vector3.new(0, TELE_FLOAT_HEIGHT, 0)
+        local awayCFrame = CFrame.lookAt(
             destination,
-            Vector3.new(targetRoot.Position.X, destination.Y, targetRoot.Position.Z)
-        ))
+            destination + flatLook.Unit
+        )
+        teleState.serverCFrame = awayCFrame
+        return teleCharacter(localHandler, awayCFrame)
     end
 
     local function getTeleBehindDistance(attackInfo)
@@ -1446,13 +1427,8 @@ function DuelingGrounds.new(context)
             resetTeleState()
             teleState.targetRoot = targetRoot
         end
-        teleState.serverCFrame = getTeleBehindCFrame(
-            targetRoot,
-            teleState.attackInfo
-        )
-
         if teleState.phase == "arming" then
-            teleBehind(localHandler, targetRoot, teleState.attackInfo)
+            teleAway(localHandler, targetRoot)
             if now < (teleState.armUntil or now) then
                 return
             end
@@ -1569,16 +1545,6 @@ function DuelingGrounds.new(context)
             return
         end
 
-        local serverCFrame = localHandler._serverRootCFrame
-        local serverDistance = serverCFrame
-            and (serverCFrame.Position - targetRoot.Position).Magnitude
-            or math.huge
-        local serverReach = math.max(getAttackGeometricReach(attackInfoForTiming), 2)
-        if serverDistance > serverReach + 1 then
-            teleAway(localHandler, targetRoot)
-            return
-        end
-
         teleState.phase = "arming"
         teleState.attackInfo = attackInfoForTiming
         teleState.attackName = resolvedName
@@ -1587,7 +1553,7 @@ function DuelingGrounds.new(context)
             0.18,
             0.3
         )
-        teleBehind(localHandler, targetRoot, attackInfoForTiming)
+        teleAway(localHandler, targetRoot)
     end
 
     local function updateAutoFight(settings)
