@@ -341,6 +341,10 @@ function DuelingGrounds.new(context)
         clearTarget = function()
             targetLockController.Target = nil
         end,
+        getRoot = function()
+            local handler = characterController:GetLocalCharacterHandler()
+            return handler and handler.Root
+        end,
         inputService = game:GetService("UserInputService"),
         isDuelActive = function()
             return matchController.ActiveLocalPlayerMatch ~= nil

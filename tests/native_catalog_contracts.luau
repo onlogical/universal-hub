@@ -260,9 +260,10 @@ assert(
     "Non-Rage toggles must continue to persist"
 )
 
+local genericKeybindWrites = {}
 local genericState = {
     menuVisible = true,
-    settings = { fills = true, fillOutline = false, menuKey = "RightShift" },
+    settings = { duelEscapeKey = "End", fills = true, fillOutline = false, menuKey = "RightShift" },
 }
 local genericStore = {}
 function genericStore:Get()
@@ -272,6 +273,10 @@ function genericStore:Patch() end
 local genericCatalog = Catalog.new({
     store = genericStore,
     capabilities = { "fills", "fillOutline" },
+    setSetting = function(id, value, persist)
+        genericState.settings[id] = value
+        table.insert(genericKeybindWrites, { id, value, persist })
+    end,
     setOption = function() end,
     setRate = function() end,
     setFov = function() end,
@@ -298,6 +303,14 @@ assert(
         and genericVisuals.sections[1].controls[2].parent == "fills"
         and genericVisuals.sections[1].controls[2].placement == "details",
     "Toggle-grid layout must be driven by treatment and placement, not fixed ids"
+)
+genericCatalog:keybind("esp", "duelEscapeKey", "Duel Escape", "End")
+genericModel = genericCatalog:model(genericState)
+genericModel.onValueChange("duelEscapeKey", Enum.KeyCode.Q, true)
+assert(
+    genericState.settings.duelEscapeKey == "Q"
+        and genericKeybindWrites[#genericKeybindWrites][3] == true,
+    "Generic Prism keybinds must save their selected key"
 )
 
 local cosmeticState = {

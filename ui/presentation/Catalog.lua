@@ -106,6 +106,7 @@ function Catalog.new(context)
         relatedValues = {},
         segments = {},
         segmentById = {},
+        keybindById = {},
         sliderById = {},
     }, Catalog)
 end
@@ -279,7 +280,10 @@ end
 
 function Catalog:keybind(sectionId, id, label, defaultValue)
     local group = assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
-    table.insert(group.keybinds, { id = id, label = label, defaultValue = defaultValue })
+    assert(not self.keybindById[id], "Duplicate presentation keybind: " .. tostring(id))
+    local keybind = { id = id, label = label, defaultValue = defaultValue }
+    table.insert(group.keybinds, keybind)
+    self.keybindById[id] = keybind
     if group.ephemeral then
         self.ephemeralSettings[id] = true
     end
@@ -842,8 +846,15 @@ function Catalog:model(state)
             end
             if id == "menuKey" and self.context.setMenuKey then
                 self.context.setMenuKey(value)
-            elseif id == "taskAutomationEmergencyKey" and value ~= nil then
-                self.context.setSetting(id, value.Name, persist == true)
+            elseif self.keybindById[id] and value ~= nil then
+                local name = value.Name
+                if type(name) == "string" and name ~= "Unknown" then
+                    self.context.setSetting(
+                        id,
+                        name,
+                        persist == true and not self.ephemeralSettings[id]
+                    )
+                end
             elseif id == "fov" then
                 self.context.setFov(value, persist == true)
             elseif id:sub(1, 9) == "espColor:" then

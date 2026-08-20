@@ -6,13 +6,17 @@ local COOLDOWN = 1.5
 
 local function inputKeyName(input)
     local keyCode = input and input.KeyCode
-    if keyCode == nil then
-        return nil
-    end
-    if type(keyCode) == "string" then
+    if type(keyCode) == "string" and keyCode ~= "Unknown" then
         return keyCode
     end
-    return keyCode.Name
+    if type(keyCode) ~= "string" and keyCode and keyCode.Name ~= "Unknown" then
+        return keyCode.Name
+    end
+    local inputType = input and input.UserInputType
+    if type(inputType) == "string" then
+        return inputType
+    end
+    return inputType and inputType.Name or nil
 end
 
 function DuelEscape.shouldTrigger(input, gameProcessed, settings, duelActive, now, lastEscapeAt)
@@ -37,6 +41,7 @@ function DuelEscape.new(options)
 
     local self = setmetatable({
         clearTarget = options.clearTarget,
+        getRoot = options.getRoot,
         isDuelActive = options.isDuelActive,
         lastEscapeAt = -math.huge,
         localPlayer = options.localPlayer,
@@ -86,8 +91,12 @@ function DuelEscape:_onInput(input, gameProcessed)
         return
     end
 
-    local character = self.localPlayer.Character
-    local root = character and character:FindFirstChild("HumanoidRootPart")
+    local root = type(self.getRoot) == "function" and self.getRoot() or nil
+    if not root then
+        local playerCharacter = self.localPlayer.Character
+        root = playerCharacter and playerCharacter:FindFirstChild("HumanoidRootPart")
+    end
+    local character = root and root:FindFirstAncestorWhichIsA("Model")
     local destination = self:_destination()
     if not character or not root or not destination then
         return
