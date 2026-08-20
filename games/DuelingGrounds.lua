@@ -393,9 +393,11 @@ function DuelingGrounds.new(context)
         phase = "idle",
         targetRoot = nil,
         awayDirection = nil,
+        armUntil = nil,
         pendingAt = nil,
         track = nil,
         attackInfo = nil,
+        attackName = nil,
     }
     local boundLocalCombatHandler = nil
     local boundLocalCombatWeapon = nil
@@ -526,9 +528,11 @@ function DuelingGrounds.new(context)
         teleState.phase = "idle"
         teleState.targetRoot = nil
         teleState.awayDirection = nil
+        teleState.armUntil = nil
         teleState.pendingAt = nil
         teleState.track = nil
         teleState.attackInfo = nil
+        teleState.attackName = nil
     end
 
     local function recordDynamicDeflect()
@@ -1406,6 +1410,38 @@ function DuelingGrounds.new(context)
             teleState.targetRoot = targetRoot
         end
 
+        if teleState.phase == "arming" then
+            teleBehind(localHandler, targetRoot, teleState.attackInfo)
+            if now < (teleState.armUntil or now) then
+                return
+            end
+            if actionManager.CurrentAction or actionManager._queuedActionType then
+                teleAway(localHandler, targetRoot)
+                resetTeleState()
+                teleState.targetRoot = targetRoot
+                return
+            end
+            teleState.phase = "pending"
+            teleState.pendingAt = now
+            local queued = actionManager:TryQueueBasicAttack("Light")
+            if not queued then
+                teleAway(localHandler, targetRoot)
+                resetTeleState()
+                teleState.targetRoot = targetRoot
+                return
+            end
+            lastFightAttackAt = now
+            local canCancel = getAttackMarker(teleState.attackInfo, "canCancel")
+                or getLastImpactTime(teleState.attackInfo)
+                or 0.5
+            nextNeutralAttackAt = now + canCancel + OFFENSIVE_RECOVERY_MIN
+            appendCurrentMatchEvent("teleAttack", {
+                result = "queued",
+                attack = teleState.attackName,
+            })
+            return
+        end
+
         if teleState.phase == "pending" then
             teleAway(localHandler, targetRoot)
             if now - (teleState.pendingAt or now) > 0.75 then
@@ -1492,24 +1528,15 @@ function DuelingGrounds.new(context)
             return
         end
 
-        teleAway(localHandler, targetRoot)
-        teleState.phase = "pending"
-        teleState.pendingAt = now
-        local queued = actionManager:TryQueueBasicAttack("Light")
-        if not queued then
-            resetTeleState()
-            teleState.targetRoot = targetRoot
-            return
-        end
-        lastFightAttackAt = now
-        local canCancel = getAttackMarker(attackInfoForTiming, "canCancel")
-            or getLastImpactTime(attackInfoForTiming)
-            or 0.5
-        nextNeutralAttackAt = now + canCancel + OFFENSIVE_RECOVERY_MIN
-        appendCurrentMatchEvent("teleAttack", {
-            result = "queued",
-            attack = resolvedName,
-        })
+        teleState.phase = "arming"
+        teleState.attackInfo = attackInfoForTiming
+        teleState.attackName = resolvedName
+        teleState.armUntil = now + math.clamp(
+            (pingController:GetPing() or 0) * 2 + 0.05,
+            0.18,
+            0.3
+        )
+        teleBehind(localHandler, targetRoot, attackInfoForTiming)
     end
 
     local function updateAutoFight(settings)

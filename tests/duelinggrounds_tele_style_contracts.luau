@@ -18,5 +18,7 @@ assert(adapterSource:find('FindFirstChild("LobbySpawner")', 1, true))
 assert(adapterSource:find("TELE_FLOAT_HEIGHT = 35", 1, true))
 assert(adapterSource:find('settings.combatStyle ~= "tele"', 1, true))
 assert(adapterSource:find("getTeleBehindDistance", 1, true))
+assert(adapterSource:find('teleState.phase = "arming"', 1, true))
+assert(adapterSource:find("teleState.armUntil", 1, true))
 
 print("duelinggrounds-tele-style-contracts-ok")
