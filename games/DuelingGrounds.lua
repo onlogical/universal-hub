@@ -68,7 +68,7 @@ local OFFENSIVE_RECOVERY_MIN = 0.18
 local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
-local TELE_NETWORK_HOVER_HEIGHT = 5
+local TELE_NETWORK_STANDOFF_DISTANCE = 8
 local TELE_VISUAL_HOVER_HEIGHT = 50
 local TELE_DEFAULT_BEHIND_DISTANCE = 5
 local TELE_IMPACT_GRACE = 0.04
@@ -1384,14 +1384,19 @@ function DuelingGrounds.new(context)
         local visualDestination = targetRoot.Position
             + Vector3.new(0, TELE_VISUAL_HOVER_HEIGHT, 0)
         local networkDestination = targetRoot.Position
-            + Vector3.new(0, TELE_NETWORK_HOVER_HEIGHT, 0)
+            + flatLook.Unit * TELE_NETWORK_STANDOFF_DISTANCE
+        networkDestination = Vector3.new(
+            networkDestination.X,
+            targetRoot.Position.Y,
+            networkDestination.Z
+        )
         local visualCFrame = CFrame.lookAt(
             visualDestination,
             visualDestination + flatLook.Unit
         )
         teleState.serverCFrame = CFrame.lookAt(
             networkDestination,
-            networkDestination + flatLook.Unit
+            Vector3.new(targetRoot.Position.X, networkDestination.Y, targetRoot.Position.Z)
         )
         return teleCharacter(localHandler, visualCFrame)
     end
