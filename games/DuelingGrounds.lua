@@ -66,7 +66,7 @@ local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
 local TELE_FALLBACK_DISTANCE = 80
 local TELE_FLOAT_HEIGHT = 35
-local TELE_DEFAULT_BEHIND_DISTANCE = 3
+local TELE_DEFAULT_BEHIND_DISTANCE = 5
 local TELE_IMPACT_GRACE = 0.04
 local ULTIMATE_RETRY_INTERVAL = 0.2
 local ULTIMATE_SHIELD_BREAK_RESERVE = 4.5
@@ -398,6 +398,7 @@ function DuelingGrounds.new(context)
         track = nil,
         attackInfo = nil,
         attackName = nil,
+        serverCFrame = nil,
     }
     local boundLocalCombatHandler = nil
     local boundLocalCombatWeapon = nil
@@ -533,6 +534,7 @@ function DuelingGrounds.new(context)
         teleState.track = nil
         teleState.attackInfo = nil
         teleState.attackName = nil
+        teleState.serverCFrame = nil
     end
 
     local function recordDynamicDeflect()
@@ -1324,20 +1326,6 @@ function DuelingGrounds.new(context)
         root.AssemblyLinearVelocity = Vector3.zero
         root.AssemblyAngularVelocity = Vector3.zero
         model:PivotTo(destination)
-        localHandler:UpdateServerCFrame(destination)
-        localHandler._interpolationResultCFrame = destination
-        localHandler._bulkMoveCFrame = destination
-        local rigHandler = localHandler.RigHandler
-        if rigHandler then
-            rigHandler._lastRootPosition = destination.Position
-            rigHandler._lastRootVelocity = Vector3.zero
-            local accelerationSpring = rigHandler._accelerationSpring
-            if accelerationSpring then
-                accelerationSpring.target = Vector3.zero
-                accelerationSpring.position = Vector3.zero
-                accelerationSpring.velocity = Vector3.zero
-            end
-        end
         return true
     end
 
@@ -1398,23 +1386,28 @@ function DuelingGrounds.new(context)
         return TELE_DEFAULT_BEHIND_DISTANCE
     end
 
-    local function teleBehind(localHandler, targetRoot, attackInfo)
-        local localRoot = localHandler and localHandler.Root
-        if not localRoot or not targetRoot then
-            return false
+    local function getTeleBehindCFrame(targetRoot, attackInfo)
+        if not targetRoot then
+            return nil
         end
         local look = targetRoot.CFrame.LookVector
         local flatLook = Vector3.new(look.X, 0, look.Z)
         if flatLook.Magnitude <= 0.001 then
-            return false
+            return nil
         end
         local distance = getTeleBehindDistance(attackInfo)
         local destination = targetRoot.Position - flatLook.Unit * distance
         destination = Vector3.new(destination.X, targetRoot.Position.Y, destination.Z)
-        return teleCharacter(localHandler, CFrame.lookAt(
+        return CFrame.lookAt(
             destination,
             Vector3.new(targetRoot.Position.X, destination.Y, targetRoot.Position.Z)
-        ))
+        )
+    end
+
+    local function teleBehind(localHandler, targetRoot, attackInfo)
+        local destination = getTeleBehindCFrame(targetRoot, attackInfo)
+        teleState.serverCFrame = destination
+        return teleCharacter(localHandler, destination)
     end
 
     local function updateTeleAttack(localHandler, actionManager, targetRoot)
@@ -1423,6 +1416,10 @@ function DuelingGrounds.new(context)
             resetTeleState()
             teleState.targetRoot = targetRoot
         end
+        teleState.serverCFrame = getTeleBehindCFrame(
+            targetRoot,
+            teleState.attackInfo
+        )
 
         if teleState.phase == "arming" then
             teleBehind(localHandler, targetRoot, teleState.attackInfo)
@@ -1539,6 +1536,16 @@ function DuelingGrounds.new(context)
         local resolvedName = actionManager:_resolveAttackName("Light")
         local attackInfoForTiming = resolvedName and attackTypes and attackTypes[resolvedName]
         if not attackInfoForTiming then
+            return
+        end
+
+        local serverCFrame = localHandler._serverRootCFrame
+        local serverDistance = serverCFrame
+            and (serverCFrame.Position - targetRoot.Position).Magnitude
+            or math.huge
+        local serverReach = math.max(getAttackGeometricReach(attackInfoForTiming), 2)
+        if serverDistance > serverReach + 1 then
+            teleAway(localHandler, targetRoot)
             return
         end
 
@@ -2253,7 +2260,30 @@ function DuelingGrounds.new(context)
         })
     end
 
-    local connection = game:GetService("RunService").RenderStepped:Connect(function()
+    local runService = game:GetService("RunService")
+    local telePhysicsConnection = runService.PreSimulation:Connect(function()
+        if stopped then
+            return
+        end
+
+        local settings = context.store:Get().settings or {}
+        if settings.autoFight ~= true
+            or settings.combatStyle ~= "tele"
+            or not teleState.serverCFrame
+        then
+            return
+        end
+
+        local localHandler = characterController:GetLocalCharacterHandler()
+        local root = localHandler and localHandler.Root
+        if root then
+            root.CFrame = teleState.serverCFrame
+            root.AssemblyLinearVelocity = Vector3.zero
+            root.AssemblyAngularVelocity = Vector3.zero
+        end
+    end)
+
+    local connection = runService.RenderStepped:Connect(function()
         if stopped then
             return
         end
@@ -2332,6 +2362,7 @@ function DuelingGrounds.new(context)
                 activeParryBlock._wantsToRelease = true
                 activeParryBlock = nil
             end
+            telePhysicsConnection:Disconnect()
             connection:Disconnect()
         end,
     }
