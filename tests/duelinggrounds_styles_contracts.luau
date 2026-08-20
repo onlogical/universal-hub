@@ -3,6 +3,9 @@ local Definition = require("../games/duelinggrounds/Definition")
 local fs = require("@lune/fs")
 
 assert(Styles.preferences("offensive").counterAllowed == true)
+local tele = Styles.preferences("tele")
+assert(tele.teleAttack == true, "Tele style must enable its teleport attack loop")
+assert(tele.counterAllowed == false, "Tele style must not start dodge counters")
 assert(Styles.preferences("defensive").counterAllowed == false)
 local baby = Styles.preferences("baby")
 assert(baby.allowOffense == false, "Baby mode must not initiate attacks")
@@ -28,6 +31,10 @@ assert(
     table.find(Definition.sources, "games/duelinggrounds/features/combat/BabyStyle"),
     "BabyStyle must be staged by the Dueling Grounds definition"
 )
+assert(
+    table.find(Definition.sources, "games/duelinggrounds/features/combat/TeleStyle"),
+    "TeleStyle must be staged by the Dueling Grounds definition"
+)
 assert(Definition.defaults.duelEscapeKey == "End", "Duel Escape must default to End")
 assert(
     table.find(Definition.sources, "games/duelinggrounds/features/DuelEscape"),
@@ -35,6 +42,7 @@ assert(
 )
 local presentationSource = fs.readFile("games/duelinggrounds/Presentation.lua")
 assert(presentationSource:find('value = "baby"', 1, true), "Prism must expose Baby mode")
+assert(presentationSource:find('value = "tele"', 1, true), "Prism must expose Tele mode")
 assert(
     presentationSource:find('"duelEscapeKey", "Duel Escape"', 1, true),
     "Prism must expose the Duel Escape keybind"

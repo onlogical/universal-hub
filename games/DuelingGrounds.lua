@@ -33,6 +33,10 @@ local Skill = importDependency(
     "games/duelinggrounds/features/combat/Skill",
     "./duelinggrounds/features/combat/Skill"
 )
+local TeleStyle = importDependency(
+    "games/duelinggrounds/features/combat/TeleStyle",
+    "./duelinggrounds/features/combat/TeleStyle"
+)
 local WinTitles = importDependency(
     "games/duelinggrounds/features/WinTitles",
     "./duelinggrounds/features/WinTitles"
@@ -60,6 +64,9 @@ local OFFENSIVE_RECOVERY_MIN = 0.18
 local PARRY_COOLDOWN = 0.05
 local PARRY_HOLD_TIME = 0.12
 local TARGET_BACKSTEP_DISTANCE = 4
+local TELE_AWAY_DISTANCE = 26
+local TELE_BEHIND_DISTANCE = 2.75
+local TELE_IMPACT_GRACE = 0.04
 local ULTIMATE_RETRY_INTERVAL = 0.2
 local ULTIMATE_SHIELD_BREAK_RESERVE = 4.5
 local UNKNOWN_ATTACK_REACH = 12
@@ -381,6 +388,14 @@ function DuelingGrounds.new(context)
         defensiveUntil = -math.huge,
         probeUntil = nil,
     }
+    local teleState = {
+        phase = "idle",
+        targetRoot = nil,
+        awayDirection = nil,
+        pendingAt = nil,
+        track = nil,
+        attackInfo = nil,
+    }
     local boundLocalCombatHandler = nil
     local boundLocalCombatWeapon = nil
     local localCombatConnection = nil
@@ -506,6 +521,15 @@ function DuelingGrounds.new(context)
         dynamicState.probeUntil = nil
     end
 
+    local function resetTeleState()
+        teleState.phase = "idle"
+        teleState.targetRoot = nil
+        teleState.awayDirection = nil
+        teleState.pendingAt = nil
+        teleState.track = nil
+        teleState.attackInfo = nil
+    end
+
     local function recordDynamicDeflect()
         local settings = context.store:Get().settings or {}
         if settings.combatStyle ~= "dynamic"
@@ -561,7 +585,16 @@ function DuelingGrounds.new(context)
             local animation = track.Animation
             local animationId = animation and animation.AnimationId or ""
             local animationName = string.lower(animation and animation.Name or "")
-            local _, attackName = getAttackInfo(handler, track)
+            local attackInfo, attackName = getAttackInfo(handler, track)
+            local settings = context.store:Get().settings or {}
+            if settings.combatStyle == "tele"
+                and teleState.phase == "pending"
+                and attackInfo
+            then
+                teleState.phase = "waitingImpact"
+                teleState.track = track
+                teleState.attackInfo = attackInfo
+            end
             appendCurrentMatchEvent("animation", {
                 side = "self",
                 id = animationId,
@@ -1248,6 +1281,7 @@ function DuelingGrounds.new(context)
     local function updateAutoDefense(settings)
         if settings.combatStyle ~= lastCombatStyle then
             resetDynamicState()
+            resetTeleState()
             lastCombatStyle = settings.combatStyle
         end
         if settings.autoFight ~= true then
@@ -1256,6 +1290,7 @@ function DuelingGrounds.new(context)
             pendingDodgeCounterUntil = nil
             pendingJumpAttackUntil = nil
             disconnectEnemyAnimations()
+            resetTeleState()
             return
         end
         executeDefenseIntent()
@@ -1270,6 +1305,172 @@ function DuelingGrounds.new(context)
         end
         refreshEnemyAnimations()
         updateIncomingThreats()
+    end
+
+    local function teleCharacter(localHandler, destination)
+        local root = localHandler and localHandler.Root
+        local model = root and root:FindFirstAncestorWhichIsA("Model")
+        if not root or not model or not destination then
+            return false
+        end
+        if playerInputController.CurrentInput then
+            playerInputController.CurrentInput.MoveDirection = Vector3.zero
+        end
+        root.AssemblyLinearVelocity = Vector3.zero
+        root.AssemblyAngularVelocity = Vector3.zero
+        model:PivotTo(destination)
+        return true
+    end
+
+    local function teleAway(localHandler, targetRoot)
+        local localRoot = localHandler and localHandler.Root
+        if not localRoot or not targetRoot then
+            return false
+        end
+        local direction = teleState.awayDirection
+        if not direction then
+            local offset = localRoot.Position - targetRoot.Position
+            direction = Vector3.new(offset.X, 0, offset.Z)
+            if direction.Magnitude <= 0.001 then
+                local look = targetRoot.CFrame.LookVector
+                direction = Vector3.new(-look.X, 0, -look.Z)
+            end
+            direction = direction.Unit
+            teleState.awayDirection = direction
+        end
+        local destination = targetRoot.Position + direction * TELE_AWAY_DISTANCE
+        destination = Vector3.new(destination.X, localRoot.Position.Y, destination.Z)
+        return teleCharacter(localHandler, CFrame.lookAt(
+            destination,
+            Vector3.new(targetRoot.Position.X, destination.Y, targetRoot.Position.Z)
+        ))
+    end
+
+    local function teleBehind(localHandler, targetRoot)
+        local localRoot = localHandler and localHandler.Root
+        if not localRoot or not targetRoot then
+            return false
+        end
+        local look = targetRoot.CFrame.LookVector
+        local flatLook = Vector3.new(look.X, 0, look.Z)
+        if flatLook.Magnitude <= 0.001 then
+            return false
+        end
+        local destination = targetRoot.Position - flatLook.Unit * TELE_BEHIND_DISTANCE
+        destination = Vector3.new(destination.X, targetRoot.Position.Y, destination.Z)
+        return teleCharacter(localHandler, CFrame.lookAt(
+            destination,
+            Vector3.new(targetRoot.Position.X, destination.Y, targetRoot.Position.Z)
+        ))
+    end
+
+    local function updateTeleAttack(localHandler, actionManager, targetRoot)
+        local now = os.clock()
+        if teleState.targetRoot ~= targetRoot then
+            resetTeleState()
+            teleState.targetRoot = targetRoot
+        end
+
+        if teleState.phase == "pending" then
+            teleAway(localHandler, targetRoot)
+            if now - (teleState.pendingAt or now) > 0.75 then
+                resetTeleState()
+                teleState.targetRoot = targetRoot
+            end
+            return
+        end
+
+        local track = teleState.track
+        local attackInfo = teleState.attackInfo
+        if teleState.phase == "waitingImpact" then
+            if not track or not track.IsPlaying then
+                teleAway(localHandler, targetRoot)
+                resetTeleState()
+                teleState.targetRoot = targetRoot
+                return
+            end
+            local firstImpact = getFirstImpactTime(attackInfo) or 0.25
+            local leadTime = math.clamp((pingController:GetPing() or 0) + 0.04, 0.05, 0.16)
+            if TeleStyle.shouldWarpIn(track.TimePosition, track.Speed, firstImpact, leadTime) then
+                teleState.phase = "impact"
+                teleBehind(localHandler, targetRoot)
+            else
+                teleAway(localHandler, targetRoot)
+            end
+            return
+        end
+
+        if teleState.phase == "impact" then
+            local lastImpact = getLastImpactTime(attackInfo)
+                or getFirstImpactTime(attackInfo)
+                or 0.25
+            if not track
+                or not track.IsPlaying
+                or TeleStyle.shouldWarpAway(
+                    track.TimePosition,
+                    track.Speed,
+                    lastImpact,
+                    TELE_IMPACT_GRACE
+                )
+            then
+                teleAway(localHandler, targetRoot)
+                teleState.phase = "recovering"
+            else
+                teleBehind(localHandler, targetRoot)
+            end
+            return
+        end
+
+        if teleState.phase == "recovering" then
+            teleAway(localHandler, targetRoot)
+            if not actionManager.CurrentAction
+                and not actionManager._queuedActionType
+                and now >= nextNeutralAttackAt
+            then
+                resetTeleState()
+                teleState.targetRoot = targetRoot
+            end
+            return
+        end
+
+        if defenseIntent
+            or localHandler.IsParrying
+            or actionManager.BlockAction
+            or hasIncomingThreat(true)
+            or actionManager.CurrentAction
+            or actionManager._queuedActionType
+            or now < nextNeutralAttackAt
+        then
+            teleAway(localHandler, targetRoot)
+            return
+        end
+
+        local weaponHandler = localHandler:GetEquippedWeaponHandler()
+        local attackTypes = weaponHandler and weaponHandler.WeaponInfo.BasicAttackTypes
+        local resolvedName = actionManager:_resolveAttackName("Light")
+        local attackInfoForTiming = resolvedName and attackTypes and attackTypes[resolvedName]
+        if not attackInfoForTiming then
+            return
+        end
+
+        teleAway(localHandler, targetRoot)
+        teleState.phase = "pending"
+        teleState.pendingAt = now
+        local queued = actionManager:TryQueueBasicAttack("Light")
+        if not queued then
+            resetTeleState()
+            teleState.targetRoot = targetRoot
+            return
+        end
+        lastFightAttackAt = now
+        local canCancel = getAttackMarker(attackInfoForTiming, "canCancel")
+            or getLastImpactTime(attackInfoForTiming)
+            or 0.5
+        nextNeutralAttackAt = now + canCancel + OFFENSIVE_RECOVERY_MIN
+        appendCurrentMatchEvent("teleAttack", {
+            result = "queued",
+            attack = resolvedName,
+        })
     end
 
     local function updateAutoFight(settings)
@@ -1287,6 +1488,10 @@ function DuelingGrounds.new(context)
         local localHandler = characterController:GetLocalCharacterHandler()
         local actionManager = localHandler and localHandler.ActionManager
         if not actionManager or not localHandler.EquippedWeapon then
+            return
+        end
+        if settings.combatStyle == "tele" then
+            updateTeleAttack(localHandler, actionManager, targetRoot)
             return
         end
         if settings.combatStyle == "baby" then
@@ -1707,6 +1912,15 @@ function DuelingGrounds.new(context)
             autoMoveMode = nil
             autoMoveTarget = nil
             lastMovementCheckPosition = nil
+            return
+        end
+        if settings.combatStyle == "tele" then
+            autoMoveMode = nil
+            autoMoveTarget = nil
+            lastMovementCheckPosition = nil
+            if playerInputController.CurrentInput then
+                playerInputController.CurrentInput.MoveDirection = Vector3.zero
+            end
             return
         end
         local target = targetLockController.Target

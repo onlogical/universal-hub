@@ -1,0 +1,18 @@
+local TeleStyle = require("../games/duelinggrounds/features/combat/TeleStyle")
+local fs = require("@lune/fs")
+
+assert(math.abs(TeleStyle.timeUntilImpact(0.2, 1, 0.5) - 0.3) < 0.0001)
+assert(math.abs(TeleStyle.timeUntilImpact(0.2, 2, 0.5) - 0.15) < 0.0001)
+assert(not TeleStyle.shouldWarpIn(0.2, 1, 0.5, 0.1))
+assert(TeleStyle.shouldWarpIn(0.41, 1, 0.5, 0.1))
+assert(not TeleStyle.shouldWarpAway(0.5, 1, 0.5, 0.04))
+assert(TeleStyle.shouldWarpAway(0.55, 1, 0.5, 0.04))
+
+local adapterSource = fs.readFile("games/DuelingGrounds.lua")
+assert(adapterSource:find("teleAway(localHandler, targetRoot)", 1, true))
+assert(adapterSource:find("teleBehind(localHandler, targetRoot)", 1, true))
+assert(adapterSource:find('settings.combatStyle == "tele"', 1, true))
+assert(adapterSource:find("TeleStyle.shouldWarpIn", 1, true))
+assert(adapterSource:find("TeleStyle.shouldWarpAway", 1, true))
+
+print("duelinggrounds-tele-style-contracts-ok")

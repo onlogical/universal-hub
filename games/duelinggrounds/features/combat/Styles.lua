@@ -29,6 +29,10 @@ local OffensiveStyle = importDependency(
     "games/duelinggrounds/features/combat/OffensiveStyle",
     "./OffensiveStyle"
 )
+local TeleStyle = importDependency(
+    "games/duelinggrounds/features/combat/TeleStyle",
+    "./TeleStyle"
+)
 
 local Styles = {}
 
@@ -44,6 +48,9 @@ function Styles.preferences(name, state, dynamicState)
     end
     if name == "flashy" then
         return FlashyStyle.preferences(state)
+    end
+    if name == "tele" then
+        return TeleStyle.preferences(state)
     end
     return OffensiveStyle.preferences(state)
 end

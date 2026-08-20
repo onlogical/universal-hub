@@ -59,6 +59,7 @@ return {
         "games/duelinggrounds/features/combat/OffensiveStyle",
         "games/duelinggrounds/features/combat/Skill",
         "games/duelinggrounds/features/combat/Styles",
+        "games/duelinggrounds/features/combat/TeleStyle",
         "games/duelinggrounds/features/combat/WallEscape",
         "games/duelinggrounds/features/combat/defense/Planner",
         "games/duelinggrounds/recording/Persistence",

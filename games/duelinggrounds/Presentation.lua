@@ -82,6 +82,12 @@ function Presentation.mount(host)
                 when = { combatStyle = "flashy" },
                 patch = { { "combatStyle", "flashy" } },
             },
+            {
+                label = "Tele",
+                value = "tele",
+                when = { combatStyle = "tele" },
+                patch = { { "combatStyle", "tele" } },
+            },
         },
     })
 
