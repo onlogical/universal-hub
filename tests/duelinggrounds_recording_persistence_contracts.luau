@@ -29,7 +29,6 @@ local match = {
     },
     events = { { kind = "matchStarted", t = 0 } },
     samples = { { t = 0 } },
-    timeline = { entries = {} },
 }
 assert(persistence:save(1, match))
 assert(folders[1] == "universal-hub/beta/logs")
@@ -39,7 +38,6 @@ assert(match.metadata.file == path)
 assert(encoded == "encoded-json")
 assert(payload.version == 1 and payload.metadata == match.metadata)
 assert(payload.events == match.events and payload.samples == match.samples)
-assert(payload.timeline == match.timeline)
 
 assert(not Persistence.new():save(1, match), "Missing filesystem/JSON dependencies must be inert")
 

@@ -68,7 +68,6 @@ function Sampler.sample(frame, settings, elapsed)
         blockStrength = localManager and localManager._blockStrength or nil,
         defense = frame.defense,
         critical = frame.critical == true,
-        punishWindow = frame.punishWindow,
     }
 end
 

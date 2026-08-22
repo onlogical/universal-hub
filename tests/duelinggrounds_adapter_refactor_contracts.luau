@@ -1,8 +1,8 @@
-local fs = require("@lune/fs")
 local roblox = require("@lune/roblox")
 Vector3 = roblox.Vector3
 
 local Definition = require("../games/duelinggrounds/Definition")
+local CombatPipeline = require("../games/duelinggrounds/features/CombatPipeline")
 local Noclip = require("../games/duelinggrounds/features/Noclip")
 local Sampler = require("../games/duelinggrounds/recording/Sampler")
 local WinTitles = require("../games/duelinggrounds/features/WinTitles")
@@ -11,14 +11,25 @@ local function includes(values, expected)
     return table.find(values, expected) ~= nil
 end
 
-local adapterSource = fs.readFile(Definition.module .. ".lua")
-local frameStart = adapterSource:find("RenderStepped:Connect(function()", 1, true)
-assert(frameStart, "Dueling Grounds adapter must own a RenderStepped frame callback")
-local defensePhase = adapterSource:find("updateAutoDefense", frameStart, true)
-local offensePhase = adapterSource:find("updateAutoFight", frameStart, true)
+local phases = {}
+local function phase(name)
+    return function(frame)
+        assert(frame.id == 7)
+        table.insert(phases, name)
+    end
+end
+CombatPipeline.run({
+    record = phase("record"),
+    defend = phase("defend"),
+    relocate = phase("relocate"),
+    attack = phase("attack"),
+    move = phase("move"),
+    effects = phase("effects"),
+    render = phase("render"),
+}, { id = 7 })
 assert(
-    defensePhase and offensePhase and defensePhase < offensePhase,
-    "Each adapter frame must process defense before offense"
+    table.concat(phases, ",") == "record,defend,relocate,attack,move,effects,render",
+    "The combat pipeline must preserve phase ordering"
 )
 
 local function model(attributes, humanoidHealth)
@@ -83,10 +94,7 @@ local noclip = Noclip.new()
 noclip:update(true, character)
 assert(collidablePart.CanCollide == false, "Noclip must own collision while enabled")
 noclip:stop()
-assert(
-    collidablePart.CanCollide == true,
-    "Stopping Noclip must restore collision"
-)
+assert(collidablePart.CanCollide == true, "Stopping Noclip must restore collision")
 noclip:stop()
 assert(collidablePart.CanCollide == true, "Noclip stop must be idempotent")
 
@@ -127,7 +135,6 @@ local expectedExtractedSources = {
     "games/duelinggrounds/features/Noclip",
     "games/duelinggrounds/features/WinTitles",
     "games/duelinggrounds/features/combat/EnemyPolicy",
-    "games/duelinggrounds/recording/Replay",
     "games/duelinggrounds/recording/Sampler",
 }
 for _, source in ipairs(expectedExtractedSources) do

@@ -21,12 +21,9 @@ local function selectImpact(impacts, canReach)
 end
 
 function Planner.plan(input)
-    local selected, reachableCount = selectImpact(
-        input.impacts,
-        input.canReach or function()
-            return true
-        end
-    )
+    local selected, reachableCount = selectImpact(input.impacts, input.canReach or function()
+        return true
+    end)
     if not selected then
         return nil
     end
@@ -36,7 +33,7 @@ function Planner.plan(input)
     local canDodge = input.canDodge == true
     local kind
     local reason
-    if reachableCount > 1 and canParry then
+    if math.max(reachableCount, input.chainImpactCount or 0) > 1 and canParry then
         kind = "parry"
         reason = "interrupt multi-hit chain"
     elseif input.isHeavy and canDodge then
@@ -66,10 +63,7 @@ function Planner.plan(input)
 end
 
 function Planner.fallback(intent, availability)
-    if intent.kind == "dodge"
-        and intent.parryable
-        and availability.canParry == true
-    then
+    if intent.kind == "dodge" and intent.parryable and availability.canParry == true then
         return "parry"
     end
     if intent.kind == "parry" and availability.canDodge == true then

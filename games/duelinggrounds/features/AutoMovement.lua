@@ -2,8 +2,18 @@ local AutoMovement = {}
 AutoMovement.__index = AutoMovement
 
 local ZERO = Vector3.zero
+local DEFAULT_RANDOM = {
+    NextNumber = function(_, minimum, maximum)
+        local value = math.random()
+        if minimum ~= nil and maximum ~= nil then
+            return minimum + (maximum - minimum) * value
+        end
+        return value
+    end,
+}
 
-function AutoMovement.new()
+function AutoMovement.new(options)
+    options = options or {}
     return setmetatable({
         input = nil,
         lastDirection = nil,
@@ -14,15 +24,15 @@ function AutoMovement.new()
         lastMovementCheckAt = 0,
         lastMovementCheckPosition = nil,
         owned = false,
+        random = options.random or (Random and Random.new and Random.new()) or DEFAULT_RANDOM,
+        feintUntil = -math.huge,
+        radiusScale = 1,
         stopped = false,
     }, AutoMovement)
 end
 
 function AutoMovement:_release()
-    if self.owned
-        and self.input
-        and self.input.MoveDirection == self.lastDirection
-    then
+    if self.owned and self.input and self.input.MoveDirection == self.lastDirection then
         self.input.MoveDirection = ZERO
     end
     self.input = nil
@@ -51,7 +61,8 @@ function AutoMovement:update(settings, frame, combatDisposition)
     if self.stopped then
         return
     end
-    if settings.autoMovement ~= true
+    if
+        settings.autoMovement ~= true
         or settings.autoFight ~= true
         or not frame
         or not frame.input
@@ -77,6 +88,8 @@ function AutoMovement:update(settings, frame, combatDisposition)
         self.lastMovementCheckPosition = frame.localPosition
         self.lastMovementCheckAt = now
         self.nextOrbitSwitchAt = now + (frame.orbitInterval or 1.9)
+        self.feintUntil = -math.huge
+        self.radiusScale = 1
     end
 
     local offset = frame.targetPosition - frame.localPosition
@@ -88,6 +101,7 @@ function AutoMovement:update(settings, frame, combatDisposition)
     end
 
     local profile = frame.profile
+    local movement = frame.movement or {}
     local toward = flatOffset.Unit
     if self.mode == "approach" then
         if distance <= profile.orbitDistance + 0.5 then
@@ -112,17 +126,31 @@ function AutoMovement:update(settings, frame, combatDisposition)
         direction = -toward
     else
         if now >= self.nextOrbitSwitchAt then
-            self.orbitDirection = -self.orbitDirection
-            self.nextOrbitSwitchAt = now + (frame.orbitInterval or 1.9)
+            self.orbitDirection = self.random:NextNumber() < 0.5 and -1 or 1
+            self.nextOrbitSwitchAt = now + (movement.orbitInterval or frame.orbitInterval or 1.9)
+            self.radiusScale = 1
+                + self.random:NextNumber(
+                    -(movement.radiusVariance or 0),
+                    movement.radiusVariance or 0
+                )
+            if self.random:NextNumber() < (movement.feintChance or 0) then
+                self.feintUntil = now + (movement.feintDuration or 0)
+            end
         end
         local tangent = Vector3.new(-toward.Z, 0, toward.X) * self.orbitDirection
-        local radialCorrection = math.clamp(
-            (distance - profile.orbitDistance) / 2,
-            -0.6,
-            0.6
-        )
+        local desiredOrbitDistance = profile.orbitDistance * self.radiusScale
+        local radialCorrection = math.clamp((distance - desiredOrbitDistance) / 2, -0.6, 0.6)
         direction = tangent + toward * radialCorrection
         direction = direction.Magnitude > 0 and direction.Unit or tangent
+    end
+
+    local tangent = Vector3.new(-toward.Z, 0, toward.X) * self.orbitDirection
+    if now < self.feintUntil then
+        direction = (-toward * 0.65 + tangent * 0.75).Unit
+    elseif self.mode == "approach" and (movement.angularApproach or 0) > 0 then
+        direction = (toward + tangent * movement.angularApproach).Unit
+    elseif self.mode == "retreat" and (movement.angularApproach or 0) > 0 then
+        direction = (-toward + tangent * movement.angularApproach * 0.5).Unit
     end
 
     if frame.isObstacle and frame.isObstacle(direction) then
@@ -132,7 +160,8 @@ function AutoMovement:update(settings, frame, combatDisposition)
     end
 
     if now - self.lastMovementCheckAt >= 0.75 then
-        if self.lastMovementCheckPosition
+        if
+            self.lastMovementCheckPosition
             and (frame.localPosition - self.lastMovementCheckPosition).Magnitude < 0.6
         then
             self.orbitDirection = -self.orbitDirection

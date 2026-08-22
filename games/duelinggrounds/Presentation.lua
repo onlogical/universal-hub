@@ -65,12 +65,6 @@ function Presentation.mount(host)
                 patch = { { "combatStyle", "defensive" } },
             },
             {
-                label = "Baby",
-                value = "baby",
-                when = { combatStyle = "baby" },
-                patch = { { "combatStyle", "baby" } },
-            },
-            {
                 label = "Dynamic",
                 value = "dynamic",
                 when = { combatStyle = "dynamic" },
@@ -82,25 +76,12 @@ function Presentation.mount(host)
                 when = { combatStyle = "flashy" },
                 patch = { { "combatStyle", "flashy" } },
             },
-            {
-                label = "Tele",
-                value = "tele",
-                when = { combatStyle = "tele" },
-                patch = { { "combatStyle", "tele" } },
-            },
         },
     })
-
-    host:section("Combat", "fightData", "FIGHT DATA", 70)
-    host:option("fightData", 1, "fightReplay", "Fight Replay Timeline")
 
     host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "noclip", "Noclip")
     host:option("movement", 2, "teleportBehind", "Teleport Behind Target")
-    host:option("movement", 3, "multiJump", "Multi Jump")
-    if type(host.keybind) == "function" then
-        host:keybind("movement", "duelEscapeKey", "Duel Escape", "End")
-    end
 end
 
 return Presentation

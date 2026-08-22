@@ -18,8 +18,12 @@ function FlashyStyle.preferences(state)
         punishOnly = true,
         suppressTraversalDodge = true,
         movement = {
+            angularApproach = pressured and 0.35 or 0.72,
+            feintChance = pressured and 0.08 or 0.28,
+            feintDuration = pressured and 0.12 or 0.22,
             orbitInterval = pressured and 1.1 or 0.65,
             orbitDistanceScale = pressured and 1.2 or 0.9,
+            radiusVariance = pressured and 0.08 or 0.28,
         },
     }
 end

@@ -40,7 +40,6 @@ function Persistence:save(version, match)
             metadata = match.metadata,
             events = match.events,
             samples = match.samples,
-            timeline = match.timeline,
         }))
     end)
 end

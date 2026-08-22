@@ -520,13 +520,6 @@ local adapterContext = {
     render = function(observations, mousePosition, utilityObservations)
         overlay:render(observations, mousePosition, utilityObservations)
     end,
-    updateCombatTelemetry = function(telemetry)
-        if overlay and overlay.menu
-            and type(overlay.menu.updateCombatTelemetry) == "function"
-        then
-            overlay.menu:updateCombatTelemetry(telemetry)
-        end
-    end,
     restoreFunction = restorefunction,
     settingsChanged = function(updatedSettings)
         configStore:save(updatedSettings)

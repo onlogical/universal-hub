@@ -620,10 +620,8 @@ function HubMenu.new(context)
             return
         end
         withExecutorScheduler(function()
-            local nextModel = self.catalog:model(state)
-            nextModel.combatTelemetry = self.model and self.model.combatTelemetry or nil
-            self.model = nextModel
-            self.handle.update(nextModel)
+            self.model = self.catalog:model(state)
+            self.handle.update(self.model)
             if self.whatsNew then
                 self.whatsNew.update(self.model.whatsNew)
             end
@@ -673,21 +671,6 @@ end
 
 function HubMenu:isCaptured()
     return not self.destroyed and self.context.store:Get().menuVisible ~= false
-end
-
-function HubMenu:updateCombatTelemetry(telemetry)
-    if self.destroyed then
-        return
-    end
-    local nextModel = {}
-    for key, value in pairs(self.model) do
-        nextModel[key] = value
-    end
-    nextModel.combatTelemetry = telemetry
-    withExecutorScheduler(function()
-        self.model = nextModel
-        self.handle.update(nextModel)
-    end)
 end
 
 function HubMenu:destroy()

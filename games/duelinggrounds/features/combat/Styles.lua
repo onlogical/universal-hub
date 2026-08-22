@@ -13,10 +13,6 @@ local DefensiveStyle = importDependency(
     "games/duelinggrounds/features/combat/DefensiveStyle",
     "./DefensiveStyle"
 )
-local BabyStyle = importDependency(
-    "games/duelinggrounds/features/combat/BabyStyle",
-    "./BabyStyle"
-)
 local DynamicStyle = importDependency(
     "games/duelinggrounds/features/combat/DynamicStyle",
     "./DynamicStyle"
@@ -29,17 +25,10 @@ local OffensiveStyle = importDependency(
     "games/duelinggrounds/features/combat/OffensiveStyle",
     "./OffensiveStyle"
 )
-local TeleStyle = importDependency(
-    "games/duelinggrounds/features/combat/TeleStyle",
-    "./TeleStyle"
-)
 
 local Styles = {}
 
 function Styles.preferences(name, state, dynamicState)
-    if name == "baby" then
-        return BabyStyle.preferences(state)
-    end
     if name == "defensive" then
         return DefensiveStyle.preferences(state)
     end
@@ -48,9 +37,6 @@ function Styles.preferences(name, state, dynamicState)
     end
     if name == "flashy" then
         return FlashyStyle.preferences(state)
-    end
-    if name == "tele" then
-        return TeleStyle.preferences(state)
     end
     return OffensiveStyle.preferences(state)
 end

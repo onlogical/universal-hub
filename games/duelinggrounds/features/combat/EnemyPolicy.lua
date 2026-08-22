@@ -1,12 +1,28 @@
 local EnemyPolicy = {}
 
 local function isValidCharacter(character)
-    return character ~= nil and character.isDead ~= true
+    if character == nil then
+        return false
+    end
+    local isDead = character.isDead
+    if type(character.GetAttribute) == "function" then
+        isDead = character:GetAttribute("IsDead")
+    end
+    return isDead ~= true
+end
+
+local function teamGroup(character)
+    if type(character.GetAttribute) == "function" then
+        return character:GetAttribute("TeamGroup")
+    end
+    return character.teamGroup
 end
 
 function EnemyPolicy.isEnemy(localPlayer, candidate, lockedTarget)
-    if candidate == nil
+    if
+        candidate == nil
         or candidate == localPlayer
+        or candidate.player ~= nil and candidate.player == localPlayer.player
         or not isValidCharacter(candidate.character)
     then
         return false
@@ -16,8 +32,8 @@ function EnemyPolicy.isEnemy(localPlayer, candidate, lockedTarget)
     end
 
     local localCharacter = localPlayer and localPlayer.character
-    local localTeamGroup = localCharacter and localCharacter.teamGroup
-    local candidateTeamGroup = candidate.character.teamGroup
+    local localTeamGroup = localCharacter and teamGroup(localCharacter)
+    local candidateTeamGroup = teamGroup(candidate.character)
     return localTeamGroup ~= nil
         and candidateTeamGroup ~= nil
         and candidateTeamGroup ~= localTeamGroup

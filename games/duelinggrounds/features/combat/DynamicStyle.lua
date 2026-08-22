@@ -34,12 +34,10 @@ function DynamicStyle.recordDeflect(state, now, isDynamic, lastAttackAt)
         return nextState
     end
     table.insert(nextState.deflectTimes, now)
-    while nextState.deflectTimes[1]
-        and now - nextState.deflectTimes[1] > DEFLECT_WINDOW
-    do
+    while nextState.deflectTimes[1] and now - nextState.deflectTimes[1] > DEFLECT_WINDOW do
         table.remove(nextState.deflectTimes, 1)
     end
-    if #nextState.deflectTimes >= 3 or nextState.mode == "probing" then
+    if isDynamic and (#nextState.deflectTimes >= 3 or nextState.mode == "probing") then
         nextState.mode = "defensive"
         nextState.probeUntil = nil
         nextState.defensiveUntil = now + math.min(2.5 + #nextState.deflectTimes * 0.5, 5)

@@ -46,7 +46,6 @@ local sample = Sampler.sample({
     dynamicMode = "defensive",
     defense = "parry",
     critical = true,
-    punishWindow = 0.3,
 }, { combatStyle = "dynamic" }, 0.25)
 
 assert(sample.t == 0.25 and sample.distance == 5, "Distance must ignore vertical offset")
@@ -56,6 +55,5 @@ assert(sample.targetHealth == 76, "Humanoid health must be used when native Heal
 assert(sample.targetPosture == 12)
 assert(sample.dynamicMode == "defensive" and sample.defense == "parry")
 assert(sample.selfCanUltimate and sample.critical)
-assert(sample.punishWindow == 0.3)
 
 print("duelinggrounds-recording-sampler-contracts-ok")
