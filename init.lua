@@ -163,7 +163,8 @@ local configStore = Config.new({
     readFile = type(readfile) == "function" and readfile or nil,
     writeFile = type(writefile) == "function" and writefile or nil,
 })
-local settings = configStore:load(copyData(adapterDefinition.defaults))
+local configDefaults = copyData(adapterDefinition.defaults)
+local settings = configStore:load(configDefaults)
 local hasPersistedConfig = type(isfile) == "function" and isfile(configPath)
 if not hasPersistedConfig then
     for name, value in pairs(environment.UniversalHubSettings or {}) do
@@ -314,6 +315,7 @@ end
 local adapterCapabilities = type(adapterModule.capabilitiesFor) == "function"
         and adapterModule.capabilitiesFor(adapterCapabilityContext, features.capabilities)
     or features.capabilities
+adapterCapabilities = copyData(adapterCapabilities)
 local function customAsset(path)
     if type(getcustomasset) ~= "function" or type(isfile) ~= "function" or not isfile(path) then
         return nil
@@ -517,6 +519,13 @@ local adapterContext = {
     oh = helpers,
     render = function(observations, mousePosition, utilityObservations)
         overlay:render(observations, mousePosition, utilityObservations)
+    end,
+    updateCombatTelemetry = function(telemetry)
+        if overlay and overlay.menu
+            and type(overlay.menu.updateCombatTelemetry) == "function"
+        then
+            overlay.menu:updateCombatTelemetry(telemetry)
+        end
     end,
     restoreFunction = restorefunction,
     settingsChanged = function(updatedSettings)

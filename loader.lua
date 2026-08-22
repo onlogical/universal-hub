@@ -59,7 +59,7 @@ local function queueNextPlace()
         return
     end
 
-    queue(([[
+    pcall(queue, ([[
 local environment = getgenv()
 environment.UniversalHubConfig = environment.UniversalHubConfig or {}
 environment.UniversalHubConfig.SourceBaseUrl = %q

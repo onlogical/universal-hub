@@ -189,10 +189,12 @@ local function startBootstrap()
         or type(synapse) == "table" and type(synapse.queue_on_teleport) == "function"
             and synapse.queue_on_teleport
     if queue then
-        queue(([[
+        pcall(queue, ([[
 getgenv().UniversalHubTeleportBootstrap = true
-loadfile(%q)()
-]]):format(configuration.LocalRoot .. "/local.lua"))
+local path = %q
+local chunk, compileError = loadstring(readfile(path), path)
+assert(chunk, compileError)()
+]]):format(configuration.LocalRoot .. "/local.lua", configuration.LocalRoot .. "/local.lua"))
     end
 
     if not game:IsLoaded() then

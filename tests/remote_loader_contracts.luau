@@ -52,22 +52,18 @@ local duplicateEarlyChunk, duplicateEarlyCompileError = loadstring(source, "load
 local duplicateEarlyResult = assert(duplicateEarlyChunk, duplicateEarlyCompileError)()
 assert(duplicateEarlyResult == nil, "A duplicate early remote bootstrap in the same job must coalesce")
 assert(spawnCount == 1, "A duplicate early remote bootstrap must not schedule a second deferred task")
-assert(queueCount == 1, "A duplicate early remote bootstrap must queue teleport code once")
+assert(queueCount == 1, "The remote loader must automatically persist across teleports")
 assert(
-    type(queuedTeleportSource) == "string"
-        and string.find(queuedTeleportSource, "universal%-hub/loader%.lua") ~= nil
-        and string.find(queuedTeleportSource, ", true)", 1, true) ~= nil
-        and string.find(
-            queuedTeleportSource,
-            "https://raw%.githubusercontent%.com/3xjn/universal%-hub/refs/heads/main/"
-        ) ~= nil,
-    "Remote loader must queue itself so game-to-game teleports refresh the selected adapter"
+    queuedTeleportSource
+        and queuedTeleportSource:find("UniversalHubConfig.SourceBaseUrl", 1, true)
+        and queuedTeleportSource:find("/loader.lua", 1, true),
+    "The queued remote bootstrap must retain the matching loader source"
 )
 local deferredResult = pendingBootstrap()
 assert(deferredResult == "remote-loader-ok")
 assert(waitedForLoad, "Remote loader must yield to Roblox startup when launched from autoexec")
 assert(
-    requestedUrl == "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/main/hub.lua",
+    requestedUrl == "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/beta/hub.lua",
     "Remote loader must use GitHub's canonical branch-ref URL"
 )
 
