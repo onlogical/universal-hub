@@ -21,6 +21,36 @@ if localLoaderSource then
     return assert(chunk, compileError)()
 end
 
+local synapse = environment.syn
+local requestFunction = type(environment.request) == "function" and environment.request
+    or type(environment.http_request) == "function" and environment.http_request
+    or type(synapse) == "table" and type(synapse.request) == "function" and synapse.request
+local HttpService = requestFunction and game:GetService("HttpService")
+
+local function fetchSource(url)
+    if requestFunction then
+        local separator = url:find("?", 1, true) and "&" or "?"
+        local response = requestFunction({
+            Url = url .. separator .. "cacheBust=" .. HttpService:GenerateGUID(false),
+            Method = "GET",
+            Headers = {
+                ["Cache-Control"] = "no-cache",
+                Pragma = "no-cache",
+            },
+        })
+        local status = response and (response.StatusCode or response.Status)
+        assert(
+            type(response) == "table"
+                and type(response.Body) == "string"
+                and response.Success ~= false
+                and (status == nil or (status >= 200 and status < 300)),
+            ("Universal Hub source request failed (%s)"):format(tostring(status or "unknown"))
+        )
+        return response.Body
+    end
+    return httpGame:HttpGet(url, true)
+end
+
 local jobId = game.JobId
 local activeFlight = environment.UniversalHubLoaderFlight
 if type(activeFlight) == "table" and activeFlight.jobId == jobId then
@@ -49,7 +79,8 @@ local function queueNextPlace()
     local queue = type(environment.queue_on_teleport) == "function"
             and environment.queue_on_teleport
         or type(environment.queueonteleport) == "function" and environment.queueonteleport
-        or type(synapse) == "table" and type(synapse.queue_on_teleport) == "function"
+        or type(synapse) == "table"
+            and type(synapse.queue_on_teleport) == "function"
             and synapse.queue_on_teleport
     if not queue then
         return
@@ -59,19 +90,43 @@ local function queueNextPlace()
         return
     end
 
-    pcall(queue, ([[
+    pcall(
+        queue,
+        ([[
 local environment = getgenv()
+local HttpService = game:GetService("HttpService")
+local synapse = environment.syn
+local requestFunction = type(environment.request) == "function" and environment.request
+    or type(environment.http_request) == "function" and environment.http_request
+    or type(synapse) == "table" and type(synapse.request) == "function" and synapse.request
+assert(requestFunction, "Universal Hub requires request")
 environment.UniversalHubConfig = environment.UniversalHubConfig or {}
 environment.UniversalHubConfig.SourceBaseUrl = %q
-loadstring(game:HttpGet(%q, true), "universal-hub/loader.lua")()
-]]):format(sourceRoot, sourceRoot .. "loader.lua"))
+local response = requestFunction({
+    Url = %q .. "?cacheBust=" .. HttpService:GenerateGUID(false),
+    Method = "GET",
+    Headers = { ["Cache-Control"] = "no-cache", Pragma = "no-cache" },
+})
+local status = response and (response.StatusCode or response.Status)
+assert(
+    type(response) == "table"
+        and type(response.Body) == "string"
+        and response.Success ~= false
+        and (status == nil or (status >= 200 and status < 300)),
+    ("Universal Hub loader request failed (%%s)"):format(tostring(status or "unknown"))
+)
+local chunk, compileError = loadstring(response.Body, "universal-hub/loader.lua")
+return assert(chunk, compileError)()
+]]):format(sourceRoot, sourceRoot .. "loader.lua")
+    )
 end
 
 local function loadHub()
     configuration.SourceBaseUrl = sourceRoot
+    configuration.Fetch = fetchSource
     environment.UniversalHubConfig = configuration
 
-    local source = httpGame:HttpGet(sourceRoot .. "hub.lua", true)
+    local source = fetchSource(sourceRoot .. "hub.lua")
     if not ownsFlight() then
         return
     end

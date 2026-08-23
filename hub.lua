@@ -8,8 +8,11 @@ type HttpGame = typeof(game) & {
     HttpGet: (self: typeof(game), url: string, noCache: boolean?) -> string,
 }
 local httpGame = game :: HttpGame
+local fetchSource = type(configuration.Fetch) == "function" and configuration.Fetch or function(url)
+    return httpGame:HttpGet(url, true)
+end
 
-local menuSource = httpGame:HttpGet(sourceBaseUrl .. "ui/dist/Menu.lua", true)
+local menuSource = fetchSource(sourceBaseUrl .. "ui/dist/Menu.lua")
 local menuChunk, menuError = loadstring(menuSource, "ui/dist/Menu.lua")
 local Menu = assert(menuChunk, menuError)()
 assert(
@@ -17,7 +20,7 @@ assert(
     "Universal Hub requires the compiled Prism menu"
 )
 
-local limnSource = httpGame:HttpGet(sourceBaseUrl .. "vendor/Limn.lua", true)
+local limnSource = fetchSource(sourceBaseUrl .. "vendor/Limn.lua")
 local limnChunk, limnError = loadstring(limnSource, "vendor/Limn.lua")
 local Limn = assert(limnChunk, limnError)()
 assert(type(Limn) == "table" and type(Limn.new) == "function", "Universal Hub requires Limn")
@@ -32,7 +35,7 @@ for _, path in ipairs({
     "modules/Lifecycle.lua",
     "modules/Targeting.lua",
 }) do
-    hydroxideSources[path] = httpGame:HttpGet(hydroxideSourceBaseUrl .. path, true)
+    hydroxideSources[path] = fetchSource(hydroxideSourceBaseUrl .. path)
 end
 local helpersChunk, helpersError =
     loadstring(hydroxideSources["modules/Helpers.lua"], "hydroxide/modules/Helpers.lua")
@@ -52,7 +55,7 @@ end
 
 local function fetch(path)
     if sources[path] == nil then
-        sources[path] = httpGame:HttpGet(sourceBaseUrl .. path, true)
+        sources[path] = fetchSource(sourceBaseUrl .. path)
     end
     return sources[path]
 end
@@ -141,8 +144,8 @@ end
 configuration.HydroxideHelpers = Helpers
 configuration.Limn = Limn
 configuration.Menu = Menu
-configuration.ChangelogSource = httpGame:HttpGet(sourceBaseUrl .. "changelog.json", true)
+configuration.ChangelogSource = fetchSource(sourceBaseUrl .. "changelog.json")
 
-local initSource = httpGame:HttpGet(sourceBaseUrl .. "init.lua", true)
+local initSource = fetchSource(sourceBaseUrl .. "init.lua")
 local initChunk, initError = loadstring(initSource, "init.lua")
 return assert(initChunk, initError)()

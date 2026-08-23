@@ -31,6 +31,7 @@ luau-lsp analyze \
 ./scripts/check-hydroxide-pin.sh
 lune run tests/store_contracts.luau
 lune run tests/remote_loader_contracts.luau
+lune run tests/request_transport_contracts.luau
 lune run tests/hub_loader_contracts.luau
 lune run tests/local_loader_contracts.luau
 lune run tests/menu_artifact_contracts.luau
