@@ -481,6 +481,7 @@ antiHit:stop()
 
 local trapAdded = signal()
 local trapRemoved = signal()
+local trapOwner = "trap-owner"
 local hitbox = {
     CanTouch = true,
     Parent = true,
@@ -492,7 +493,7 @@ local trap = {
     CanTouch = true,
     Parent = true,
     GetAttribute = function(_self, name)
-        return name == "Owner" and "trap-owner" or nil
+        return name == "Owner" and trapOwner or nil
     end,
     GetDescendants = function()
         return { hitbox }
@@ -581,8 +582,10 @@ local highlightEsp = HighlightEsp.new({
             return { Records = { eggRecord } }
         end,
     },
+    localPlayer = { Name = "trap-owner" },
     outlineColor = "white",
     runService = { Heartbeat = espHeartbeat },
+    safeTrapColor = "green",
     trapColor = "red",
     workspace = espWorkspace,
     createHighlight = function()
@@ -615,6 +618,15 @@ highlightEsp:setMinimumSize(1.5)
 assert(highlightEsp.eggHighlights[eggRecord.Uid] == nil, "Egg ESP must honor size filters")
 highlightEsp:setMinimumSize(1.4)
 highlightEsp:setTrapsEnabled(true)
+assert(highlightEsp.trapHighlights[trap].FillColor == "green", "Owned traps must render as safe")
+trapOwner = "other-player"
+trapAdded:Fire(trap)
+assert(highlightEsp.trapHighlights[trap].FillColor == "red", "Active enemy traps must render red")
+highlightEsp:setAntiTrapEnabled(true)
+assert(
+    highlightEsp.trapHighlights[trap].FillColor == "green",
+    "Neutralized enemy traps must render green"
+)
 espHeartbeat:Fire(0.1)
 assert(
     eggRecord.State == "Dropped"
@@ -623,14 +635,14 @@ assert(
 )
 assert(
     highlightEsp.eggHighlights[eggRecord.Uid].DepthMode == "always-on-top"
-        and highlightEsp.trapHighlights[trap].FillColor == "red",
+        and highlightEsp.trapHighlights[trap].FillColor == "green",
     "Egg and trap ESP must use native always-on-top highlights"
 )
 assert(
     highlightEsp.eggLabels[eggRecord.Uid].label.Text:find("Mythic", 1, true)
         and highlightEsp.eggLabels[eggRecord.Uid].label.Text:find("1.4x", 1, true)
         and highlightEsp.eggLabels[eggRecord.Uid].label.TextSize > 16.2
-        and highlightEsp.trapLabels[trap].label.Text:find("trap-owner", 1, true),
+        and highlightEsp.trapLabels[trap].label.Text:find("other-player", 1, true),
     "ESP labels must show egg rarity, size, and trap ownership"
 )
 highlightEsp:stop()

@@ -18,6 +18,7 @@ function HighlightEsp.new(options)
             and options.assets
             and options.collectionService
             and options.eggCmds
+            and options.localPlayer
             and options.runService
             and options.workspace
     )
@@ -25,6 +26,7 @@ function HighlightEsp.new(options)
         assets = options.assets,
         collectionService = options.collectionService,
         eggCmds = options.eggCmds,
+        localPlayer = options.localPlayer,
         runService = options.runService,
         workspace = options.workspace,
         createHighlight = options.createHighlight or function()
@@ -59,6 +61,8 @@ function HighlightEsp.new(options)
         depthMode = options.depthMode or Enum.HighlightDepthMode.AlwaysOnTop,
         outlineColor = options.outlineColor or Color3.new(1, 1, 1),
         trapColor = options.trapColor or Color3.fromRGB(255, 70, 70),
+        safeTrapColor = options.safeTrapColor or Color3.fromRGB(80, 220, 120),
+        antiTrapEnabled = false,
         eggHighlights = {},
         eggLabels = {},
         trapHighlights = {},
@@ -242,23 +246,30 @@ end
 
 function HighlightEsp:_refreshTrap(trap)
     if self.trapsEnabled then
-        self:_highlight(
-            self.trapHighlights,
-            trap,
-            trap,
-            self.trapColor,
-            "UniversalHubTrapHighlight"
-        )
         local owner = trap:GetAttribute("Owner")
+        local color = (self.antiTrapEnabled or owner == self.localPlayer.Name)
+                and self.safeTrapColor
+            or self.trapColor
+        self:_highlight(self.trapHighlights, trap, trap, color, "UniversalHubTrapHighlight")
         self:_label(
             self.trapLabels,
             trap,
             trap,
             owner and ("Trap\n%s"):format(tostring(owner)) or "Trap",
-            self.trapColor
+            color
         )
     else
         self:_destroy(self.trapHighlights, trap, self.trapLabels)
+    end
+end
+
+function HighlightEsp:setAntiTrapEnabled(enabled)
+    enabled = enabled == true
+    if self.antiTrapEnabled ~= enabled then
+        self.antiTrapEnabled = enabled
+        for _, trap in ipairs(self.collectionService:GetTagged("PlacedTrap")) do
+            self:_refreshTrap(trap)
+        end
     end
 end
 

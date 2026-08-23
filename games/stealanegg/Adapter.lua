@@ -52,6 +52,7 @@ function Adapter.new(context)
         assets = require(ReplicatedStorage.Directory.Assets),
         collectionService = CollectionService,
         eggCmds = EggCmds,
+        localPlayer = LocalPlayer,
         runService = RunService,
         workspace = Workspace,
     })
@@ -69,6 +70,7 @@ function Adapter.new(context)
         antiHit:setEnabled(state.settings.antiHit == true)
         antiTrap:setEnabled(state.settings.antiTrap == true)
         autoOpenEggs:setEnabled(state.settings.autoOpenEggs == true)
+        highlightEsp:setAntiTrapEnabled(state.settings.antiTrap == true)
         highlightEsp:setMinimumRarity(state.settings.eggEspMinimumRarity)
         highlightEsp:setMinimumSize(state.settings.eggEspMinimumSize)
         highlightEsp:setEggsEnabled(state.settings.eggEsp == true)
