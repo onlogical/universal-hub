@@ -137,7 +137,8 @@ userInputService.OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None
 localPlayer.CameraMode = Enum.CameraMode.LockFirstPerson
 inputPropertyCallbacks.MouseBehavior()
 assert(
-    userInputService.MouseBehavior == Enum.MouseBehavior.Default and userInputService.MouseIconEnabled == true,
+    userInputService.MouseBehavior == Enum.MouseBehavior.Default
+        and userInputService.MouseIconEnabled == true,
     "Visible menu must win against games that relock the cursor every frame"
 )
 assert(userInputService.OverrideMouseIconBehavior == Enum.OverrideMouseIconBehavior.ForceShow)
@@ -159,6 +160,36 @@ assert(localPlayer.CameraMode == Enum.CameraMode.LockFirstPerson)
 
 capture:Destroy()
 capture:Destroy()
+
+localPlayer.CameraMode = Enum.CameraMode.Classic
+local thirdPersonInput = {
+    MouseBehavior = Enum.MouseBehavior.LockCenter,
+    MouseIconEnabled = true,
+    OverrideMouseIconBehavior = Enum.OverrideMouseIconBehavior.None,
+}
+function thirdPersonInput:GetPropertyChangedSignal()
+    return {
+        Connect = function()
+            return {
+                Disconnect = function() end,
+            }
+        end,
+    }
+end
+local thirdPersonCapture = InputCapture.new({
+    contextActionService = contextActionService,
+    guiService = guiService,
+    localPlayer = localPlayer,
+    runService = runService,
+    userInputService = thirdPersonInput,
+})
+thirdPersonCapture:SetEnabled(true)
+thirdPersonCapture:SetEnabled(false)
+assert(
+    thirdPersonInput.MouseBehavior == Enum.MouseBehavior.Default,
+    "Third-person games must not inherit a stale center lock after the hub closes"
+)
+thirdPersonCapture:Destroy()
 
 local townInput = {
     MouseBehavior = Enum.MouseBehavior.LockCenter,

@@ -5,4 +5,5 @@ return {
     "games/bloxstrike/Definition",
     "games/duelinggrounds/Definition",
     "games/hoodrivals/Definition",
+    "games/stealanegg/Definition",
 }
