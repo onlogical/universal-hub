@@ -62,8 +62,6 @@ function InputCapture:SetEnabled(enabled)
             end,
             false,
             Enum.ContextActionPriority.High.Value + 100,
-            Enum.UserInputType.MouseButton1,
-            Enum.UserInputType.MouseButton2,
             Enum.UserInputType.MouseWheel,
             Enum.UserInputType.Touch
         )

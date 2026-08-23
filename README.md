@@ -23,13 +23,7 @@ loadstring(game:HttpGet("https://3xjn.github.io/universal-hub/bootstrap.lua?v=".
 Beta testing:
 
 ```lua
-local response = request({
-    Url = "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/beta/loader.lua?v=" .. tick(),
-    Method = "GET",
-    Headers = { ["Cache-Control"] = "no-cache", Pragma = "no-cache" },
-})
-assert(response.Success and response.StatusCode == 200, "Universal Hub beta request failed")
-loadstring(response.Body, "universal-hub/loader.lua")()
+getgenv().UniversalHubConfig = nil; loadstring(request({ Url = "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/beta/loader.lua?v=" .. tick(), Method = "GET", Headers = { ["Cache-Control"] = "no-cache", Pragma = "no-cache" } }).Body, "universal-hub/loader.lua")()
 ```
 
 Works with Volt and Potassium; press `Right Shift` to toggle the menu.

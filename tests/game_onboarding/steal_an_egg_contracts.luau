@@ -88,6 +88,7 @@ local attributeChanged = signal()
 local characterAdded = signal()
 local stateChanged = signal()
 local carryChanged = signal()
+local eggUpdated = signal()
 local postSimulation = signal()
 local now = 100
 local attributes = {}
@@ -133,6 +134,7 @@ local record = {
 local carryRequests = {}
 local eggCmds = {
     AreaEggCarryStateChanged = carryChanged,
+    AreaEggUpdated = eggUpdated,
     GetAreaEggRecord = function(uid)
         return uid == record.Uid and record or nil
     end,
@@ -147,6 +149,7 @@ local eggCmds = {
     end,
 }
 local clearCount = 0
+local spawned = {}
 local antiHit = AntiHit.new({
     eggCmds = eggCmds,
     localPlayer = player,
@@ -168,7 +171,7 @@ local antiHit = AntiHit.new({
         end,
     },
     spawn = function(callback)
-        callback()
+        table.insert(spawned, callback)
     end,
     wait = function()
         now += 0.1
@@ -205,6 +208,20 @@ carryChanged:Fire({ IsCarrying = false })
 assert(#carryRequests == 1, "Anti Hit must request the dropped egg after a hit")
 assert(carryRequests[1].uid == record.Uid)
 assert(carryRequests[1].slotKey == "Forest:Slot_002")
+
+table.clear(carryRequests)
+record.State = "Carried"
+record.CarrierUserId = player.UserId
+carryChanged:Fire({ IsCarrying = true, Uid = record.Uid })
+carryChanged:Fire({ IsCarrying = false, Uid = record.Uid })
+assert(#carryRequests == 0, "Anti Hit must wait until the server marks the egg dropped")
+record.State = "Dropped"
+record.CarrierUserId = nil
+eggUpdated:Fire(record)
+assert(
+    #carryRequests == 1 and carryRequests[1].uid == record.Uid,
+    "Anti Hit must beat non-ragdoll animal and boss pickups to a dropped egg"
+)
 antiHit:setEnabled(false)
 attributeChanged:Fire()
 assert(clearCount == 1, "Disabled Anti Hit must disconnect native state listeners")

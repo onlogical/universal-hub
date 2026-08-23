@@ -121,8 +121,11 @@ assert(capture:IsEnabled() == true)
 assert(action and action.callback() == Enum.ContextActionResult.Sink)
 assert(actionPriority > Enum.ContextActionPriority.High.Value)
 assert(
-    #actionInputs == 4 and not table.find(actionInputs, Enum.UserInputType.MouseMovement),
-    "Visible menu must not sink raw mouse movement or the unlocked RIVALS lobby cursor freezes"
+    #actionInputs == 2
+        and not table.find(actionInputs, Enum.UserInputType.MouseMovement)
+        and not table.find(actionInputs, Enum.UserInputType.MouseButton1)
+        and not table.find(actionInputs, Enum.UserInputType.MouseButton2),
+    "Visible menu must leave clicking and right-click camera rotation available"
 )
 assert(heartbeatCallback, "Cursor release must run after the game's render-phase camera lock")
 assert(userInputService.MouseBehavior == Enum.MouseBehavior.Default)

@@ -2,7 +2,6 @@ local AntiHit = {}
 AntiHit.__index = AntiHit
 
 local RECLAIM_SECONDS = 6
-local HIT_DROP_WINDOW = 1.5
 local KNOCKBACK_SUPPRESSION_SECONDS = 0.35
 
 local function disconnectAll(connections)
@@ -28,8 +27,6 @@ function AntiHit.new(options)
         characterConnections = {},
         enabled = false,
         claimToken = 0,
-        lastHitAt = -math.huge,
-        lastDropAt = -math.huge,
         suppressKnockbackUntil = -math.huge,
     }, AntiHit)
 end
@@ -56,31 +53,45 @@ function AntiHit:_slotKey(uid)
     return record and self.slotIdentity.BuildSlotKey(record.AreaId, record.NestId) or nil
 end
 
+function AntiHit:_tryReclaim(uid)
+    local record = self.eggCmds.GetAreaEggRecord(uid)
+    if not record or record.State ~= "Dropped" then
+        return false
+    end
+    if not self.eggCmds.RequestCarryAreaEgg(uid, self:_slotKey(uid)) then
+        return false
+    end
+    self.carriedUid = uid
+    self.reclaimUid = nil
+    self.claimToken += 1
+    return true
+end
+
 function AntiHit:_reclaim(uid)
+    self.reclaimUid = uid
     self.claimToken += 1
     local token = self.claimToken
+    if self:_tryReclaim(uid) then
+        return
+    end
     self.spawn(function()
         local deadline = self:_now() + RECLAIM_SECONDS
         while self.enabled and token == self.claimToken and self:_now() <= deadline do
-            local record = self.eggCmds.GetAreaEggRecord(uid)
-            if
-                record
-                and record.State == "Carried"
-                and record.CarrierUserId == self.localPlayer.UserId
-            then
-                self.carriedUid = uid
+            if self:_tryReclaim(uid) then
                 return
             end
-            if record and (record.State == "Dropped" or record.State == "Slot") then
-                local accepted = self.eggCmds.RequestCarryAreaEgg(uid, self:_slotKey(uid))
-                if accepted then
-                    self.carriedUid = uid
-                    return
-                end
-            end
-            self.wait(0.1)
+            self.wait()
+        end
+        if token == self.claimToken then
+            self.reclaimUid = nil
         end
     end)
+end
+
+function AntiHit:_onEggRecord(record)
+    if self.enabled and self.reclaimUid and record and record.Uid == self.reclaimUid then
+        self:_tryReclaim(record.Uid)
+    end
 end
 
 function AntiHit:_cancelVelocity()
@@ -110,34 +121,21 @@ function AntiHit:_onHit()
     if not self.enabled then
         return
     end
-    local now = self:_now()
-    self.lastHitAt = now
-    self.suppressKnockbackUntil = now + KNOCKBACK_SUPPRESSION_SECONDS
-    self.hitEggUid = self.carriedUid
-    if not self.hitEggUid and now - self.lastDropAt <= HIT_DROP_WINDOW then
-        self.hitEggUid = self.lastDroppedUid
-        if self.hitEggUid then
-            self:_reclaim(self.hitEggUid)
-        end
-    end
+    self.suppressKnockbackUntil = self:_now() + KNOCKBACK_SUPPRESSION_SECONDS
     self:_recover()
 end
 
 function AntiHit:_onCarryState(state)
     if state.IsCarrying then
         self.carriedUid = state.Uid
-        if state.Uid == self.hitEggUid then
-            self.hitEggUid = nil
-        end
+        self.reclaimUid = nil
+        self.claimToken += 1
         return
     end
 
-    local uid = state.Uid or self.carriedUid or self.hitEggUid
+    local uid = state.Uid or self.carriedUid or self.reclaimUid
     self.carriedUid = nil
-    self.lastDroppedUid = uid
-    self.lastDropAt = self:_now()
-    if uid and self.lastDropAt - self.lastHitAt <= HIT_DROP_WINDOW then
-        self.hitEggUid = uid
+    if uid then
         self:_reclaim(uid)
     end
 end
@@ -183,6 +181,12 @@ function AntiHit:setEnabled(enabled)
         )
         table.insert(
             self.connections,
+            self.eggCmds.AreaEggUpdated:Connect(function(record)
+                self:_onEggRecord(record)
+            end)
+        )
+        table.insert(
+            self.connections,
             self.localPlayer:GetAttributeChangedSignal("RagdollEndTime"):Connect(function()
                 if (self.localPlayer:GetAttribute("RagdollEndTime") or 0) > self:_now() then
                     self:_onHit()
@@ -203,8 +207,7 @@ function AntiHit:setEnabled(enabled)
     disconnectAll(self.connections)
     disconnectAll(self.characterConnections)
     self.carriedUid = nil
-    self.hitEggUid = nil
-    self.lastDroppedUid = nil
+    self.reclaimUid = nil
     self.suppressKnockbackUntil = -math.huge
 end
 
