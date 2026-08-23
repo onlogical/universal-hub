@@ -360,6 +360,7 @@ assert(
     rootPart.AssemblyLinearVelocity ~= Vector3.zero,
     "Normal movement must resume after recovery"
 )
+attributes.RagdollEndTime = now
 record.State = "Dropped"
 record.CarrierUserId = nil
 carryChanged:Fire({ IsCarrying = false })
@@ -380,6 +381,21 @@ assert(
     #carryRequests == 1 and carryRequests[1].uid == record.Uid,
     "Anti Hit must beat non-ragdoll animal and boss pickups to a dropped egg"
 )
+
+table.clear(carryRequests)
+record.State = "Carried"
+record.CarrierUserId = player.UserId
+carryChanged:Fire({ IsCarrying = true, Uid = record.Uid })
+attributes.RagdollEndTime = now + 0.3
+record.State = "Dropped"
+record.CarrierUserId = nil
+carryChanged:Fire({ IsCarrying = false, Uid = record.Uid })
+assert(
+    #carryRequests == 0,
+    "Anti Hit must not reclaim while the server still considers the player hit"
+)
+spawned[#spawned]()
+assert(#carryRequests == 1, "Anti Hit must reclaim once the server ragdoll window ends")
 
 table.clear(carryRequests)
 assert(eggCmds.RequestDropAreaEgg("Manual") == true and dropRequestCount == 1)
