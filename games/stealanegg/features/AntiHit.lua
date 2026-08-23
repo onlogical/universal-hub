@@ -54,7 +54,7 @@ function AntiHit:_slotKey(uid)
 end
 
 function AntiHit:_tryReclaim(uid)
-    if (self.localPlayer:GetAttribute("RagdollEndTime") or 0) > self:_now() then
+    if self:_now() < self.suppressKnockbackUntil then
         return false
     end
     local record = self.eggCmds.GetAreaEggRecord(uid)
