@@ -102,7 +102,7 @@ function Adapter.new(context)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
         if state.settings.serverHop == true then
             context.store:Patch({ settings = { serverHop = false } })
-            serverHop:run()
+            serverHop:run(state.settings.serverHopMaxPing)
         end
     end
     local unsubscribe = context.store:Subscribe(apply, false)

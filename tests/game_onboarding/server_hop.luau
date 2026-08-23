@@ -14,10 +14,11 @@ local hop = ServerHop.new({
     decode = function()
         return {
             data = {
-                { id = "current", playing = 1, maxPlayers = 10 },
-                { id = "full", playing = 2, maxPlayers = 2 },
-                { id = "busier", playing = 5, maxPlayers = 10 },
-                { id = "lowest", playing = 2, maxPlayers = 10 },
+                { id = "current", playing = 1, maxPlayers = 10, ping = 30 },
+                { id = "full", playing = 2, maxPlayers = 2, ping = 20 },
+                { id = "too-slow", playing = 1, maxPlayers = 10, ping = 180 },
+                { id = "busier", playing = 5, maxPlayers = 10, ping = 50 },
+                { id = "lowest", playing = 2, maxPlayers = 10, ping = 70 },
             },
         }
     end,
@@ -39,7 +40,7 @@ local hop = ServerHop.new({
     },
 })
 
-hop:run()
+hop:run(120)
 assert(
     teleported.placeId == 123 and teleported.serverId == "lowest" and teleported.player == "player"
 )

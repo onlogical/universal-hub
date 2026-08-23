@@ -21,7 +21,15 @@ function Presentation.mount(host)
     host:option("prompts", 1, "instantPrompts", "Instant Prompts")
 
     host:section("Tools", "server", "SERVER", 70)
-    host:option("server", 1, "serverHop", "Hop to Low Population")
+    host:slider("server", "serverHopMaxPing", "Maximum Ping", {
+        min = 50,
+        max = 300,
+        step = 10,
+        unit = "ms",
+    })
+    if type(host.button) == "function" then
+        host:button("server", "serverHop", "Hop to Low Population", "primary")
+    end
 
     host:section("Visuals", "highlights", "HIGHLIGHTS", 70, false, 2, { treatment = "grid" })
     host:option("highlights", 1, "eggEsp", "Eggs")

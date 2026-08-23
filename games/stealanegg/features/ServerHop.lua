@@ -25,7 +25,7 @@ function ServerHop:_log(level, message, fields)
     end
 end
 
-function ServerHop:run()
+function ServerHop:run(maxPing)
     if self.running or self.stopped then
         return
     end
@@ -41,13 +41,23 @@ function ServerHop:run()
                 if
                     server.id ~= self.jobId
                     and server.playing < server.maxPlayers
-                    and (not best or server.playing < best.playing)
+                    and type(server.ping) == "number"
+                    and server.ping <= maxPing
+                    and (
+                        not best
+                        or server.playing < best.playing
+                        or (server.playing == best.playing and server.ping < best.ping)
+                    )
                 then
                     best = server
                 end
             end
-            assert(best, "No available server found")
-            self:_log("info", "teleporting", { players = best.playing, serverId = best.id })
+            assert(best, ("No available server found below %d ms"):format(maxPing))
+            self:_log("info", "teleporting", {
+                ping = best.ping,
+                players = best.playing,
+                serverId = best.id,
+            })
             if not self.stopped then
                 self.teleportService:TeleportToPlaceInstance(
                     self.placeId,

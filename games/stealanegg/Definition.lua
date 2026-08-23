@@ -10,6 +10,7 @@ return {
         hitAuraIgnoreFriends = true,
         instantPrompts = false,
         serverHop = false,
+        serverHopMaxPing = 120,
         trapEsp = false,
     },
     features = {
@@ -24,6 +25,7 @@ return {
             "hitAuraIgnoreFriends",
             "instantPrompts",
             "serverHop",
+            "serverHopMaxPing",
             "trapEsp",
         },
         cosmetics = false,

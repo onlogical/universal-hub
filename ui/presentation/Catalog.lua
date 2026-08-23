@@ -50,6 +50,8 @@ function Catalog.collectEphemeralSettings(presentation)
         end
     end
 
+    function collector:button() end
+
     function collector:keybind(sectionId, id)
         local section = assert(sections[sectionId], "Unknown presentation section: " .. tostring(sectionId))
         if section.ephemeral then
@@ -132,8 +134,11 @@ end
 
 function Catalog:action(name, ...)
     local callback = self.context[name]
-    assert(type(callback) == "function", "Unknown presentation action: " .. tostring(name))
-    return callback(...)
+    if type(callback) == "function" then
+        return callback(...)
+    end
+    assert(self.available[name], "Unknown presentation action: " .. tostring(name))
+    return self.context.setOption(name, true, true)
 end
 
 function Catalog:_markPage(page)
@@ -207,12 +212,22 @@ function Catalog:section(page, id, label, lineOffset, includesRates, columns, sp
         columns = columns or 1,
         ephemeral = isEphemeral(page, spec),
         treatment = spec.treatment,
+        actions = {},
         options = {},
         keybinds = {},
         sliders = {},
     }
     self.groupById[id] = group
     table.insert(self.groups, group)
+end
+
+function Catalog:button(sectionId, id, label, variant)
+    if not self.available[id] then
+        return
+    end
+    local group = assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+    table.insert(group.actions, { action = id, id = id, label = label, variant = variant })
+    self:_markPage(group.page)
 end
 
 function Catalog:option(sectionId, rowIndex, id, label, parent, visibility)
@@ -446,8 +461,17 @@ function Catalog:model(state)
     end
 
     for _, group in ipairs(self.groups) do
-        if #group.options > 0 or #group.keybinds > 0 or #group.sliders > 0 then
+        if #group.actions > 0 or #group.options > 0 or #group.keybinds > 0 or #group.sliders > 0 then
             local controls = {}
+            for _, action in ipairs(group.actions) do
+                append(controls, {
+                    action = action.action,
+                    id = action.id,
+                    kind = "action",
+                    label = action.label,
+                    variant = action.variant,
+                })
+            end
             for _, keybind in ipairs(group.keybinds) do
                 local value = settings[keybind.id]
                 append(controls, {
