@@ -391,9 +391,7 @@ attributeChanged:Fire()
 record.State = "Dropped"
 record.CarrierUserId = nil
 carryChanged:Fire({ IsCarrying = false, Uid = record.Uid })
-assert(#carryRequests == 0, "Anti Hit must not reclaim during the short knockback settle window")
-spawned[#spawned]()
-assert(#carryRequests == 1, "Anti Hit must quickly reclaim after knockback settles")
+assert(#carryRequests == 1, "Anti Hit must immediately reclaim eggs dropped during a hit")
 
 table.clear(carryRequests)
 assert(eggCmds.RequestDropAreaEgg("Manual") == true and dropRequestCount == 1)

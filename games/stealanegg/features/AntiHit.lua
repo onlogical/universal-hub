@@ -54,9 +54,6 @@ function AntiHit:_slotKey(uid)
 end
 
 function AntiHit:_tryReclaim(uid)
-    if self:_now() < self.suppressKnockbackUntil then
-        return false
-    end
     local record = self.eggCmds.GetAreaEggRecord(uid)
     if not record or record.State ~= "Dropped" then
         return false
