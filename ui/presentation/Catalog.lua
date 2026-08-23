@@ -113,6 +113,7 @@ end
 function Catalog:page(page, metadata)
     assert(type(page) == "string" and page ~= "", "Presentation page metadata requires a page id")
     assert(type(metadata) == "table", "Presentation page metadata requires a descriptor")
+    assert(metadata.order == nil or type(metadata.order) == "number", "Page order must be numeric")
     assert(self.pageMetadata[page] == nil, "Duplicate presentation page metadata: " .. page)
     self.pageMetadata[page] = metadata
 end
@@ -674,9 +675,11 @@ function Catalog:model(state)
     })
 
     local pages = {}
-    for _, page in ipairs(PAGE_ORDER) do
+    local pageRanks = {}
+    for defaultOrder, page in ipairs(PAGE_ORDER) do
         if self.hasContent[page] then
             local metadata = self.pageMetadata[page] or {}
+            pageRanks[page] = metadata.order or defaultOrder
             local preview
             if metadata.preview then
                 preview = {}
@@ -766,6 +769,9 @@ function Catalog:model(state)
             })
         end
     end
+    table.sort(pages, function(left, right)
+        return pageRanks[left.id] < pageRanks[right.id]
+    end)
 
     return {
         brandLabel = "universal-hub",

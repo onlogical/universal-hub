@@ -41,7 +41,7 @@ if teleportBootstrap then hideStaleMenu() end
 
 local function loadWorkspaceModule(path, chunkName)
     if type(loadfile) == "function" then
-        local chunk, compileError = loadfile(path)
+        local chunk, compileError = loadfile(path, chunkName or path)
         return assert(chunk, compileError)()
     end
     local chunk, compileError = loadstring(readfile(path), chunkName or path)

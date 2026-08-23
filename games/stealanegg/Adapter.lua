@@ -10,8 +10,11 @@ local function importDependency(path, relativePath)
 end
 
 local AntiHit = importDependency("games/stealanegg/features/AntiHit", "./features/AntiHit")
+local AntiTrap = importDependency("games/stealanegg/features/AntiTrap", "./features/AntiTrap")
 local AutoOpenEggs =
     importDependency("games/stealanegg/features/AutoOpenEggs", "./features/AutoOpenEggs")
+local HighlightEsp =
+    importDependency("games/stealanegg/features/HighlightEsp", "./features/HighlightEsp")
 local HitAura = importDependency("games/stealanegg/features/HitAura", "./features/HitAura")
 local InstantPrompts =
     importDependency("games/stealanegg/features/InstantPrompts", "./features/InstantPrompts")
@@ -23,6 +26,7 @@ function Adapter.new(context)
 
     local Workspace = context.workspace or workspace
     local LocalPlayer = context.localPlayer or context.players.LocalPlayer
+    local CollectionService = game:GetService("CollectionService")
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local RunService = game:GetService("RunService")
     local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
@@ -34,11 +38,21 @@ function Adapter.new(context)
         slotIdentity = require(ReplicatedStorage.Library.Util.AreaEggSlotIdentity),
         workspace = Workspace,
     })
+    local antiTrap = AntiTrap.new({
+        collectionService = CollectionService,
+        localPlayer = LocalPlayer,
+    })
     local autoOpenEggs = AutoOpenEggs.new({
         eggCmds = EggCmds,
         localPlayer = LocalPlayer,
         renderer = require(ReplicatedStorage.Library.Client.Eggs.PlacedEggRenderer),
         runService = RunService,
+    })
+    local highlightEsp = HighlightEsp.new({
+        assets = require(ReplicatedStorage.Directory.Assets),
+        collectionService = CollectionService,
+        eggCmds = EggCmds,
+        workspace = Workspace,
     })
     local hitAura = HitAura.new({
         eggCmds = EggCmds,
@@ -52,7 +66,12 @@ function Adapter.new(context)
     local instantPrompts = InstantPrompts.new(Workspace)
     local function apply(state)
         antiHit:setEnabled(state.settings.antiHit == true)
+        antiTrap:setEnabled(state.settings.antiTrap == true)
         autoOpenEggs:setEnabled(state.settings.autoOpenEggs == true)
+        highlightEsp:setMinimumRarity(state.settings.eggEspMinimumRarity)
+        highlightEsp:setMinimumSize(state.settings.eggEspMinimumSize)
+        highlightEsp:setEggsEnabled(state.settings.eggEsp == true)
+        highlightEsp:setTrapsEnabled(state.settings.trapEsp == true)
         hitAura:setIgnoreFriends(state.settings.hitAuraIgnoreFriends == true)
         hitAura:setEnabled(state.settings.hitAura == true)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
@@ -66,7 +85,9 @@ function Adapter.new(context)
         stopped = true
         pcall(unsubscribe)
         pcall(antiHit.stop, antiHit)
+        pcall(antiTrap.stop, antiTrap)
         pcall(autoOpenEggs.stop, autoOpenEggs)
+        pcall(highlightEsp.stop, highlightEsp)
         pcall(hitAura.stop, hitAura)
         pcall(instantPrompts.stop, instantPrompts)
     end

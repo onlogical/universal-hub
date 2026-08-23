@@ -357,4 +357,23 @@ local viewer = cosmeticVisuals.sections[2].controls[1]
 assert(viewer.kind == "model-viewer" and viewer.key == "weapon-preview-key")
 assert(viewer.resolve().marker == "weapon-preview")
 
+local orderedCatalog = Catalog.new({
+    store = cosmeticStore,
+    capabilities = { "antiHit", "boxes" },
+    setOption = function() end,
+    setRate = function() end,
+    setFov = function() end,
+})
+orderedCatalog:page("Tools", { order = 1 })
+orderedCatalog:page("Visuals", { order = 2 })
+orderedCatalog:section("Tools", "orderedTools", "TOOLS", 70)
+orderedCatalog:option("orderedTools", 1, "antiHit", "Anti Hit")
+orderedCatalog:section("Visuals", "orderedVisuals", "VISUALS", 70)
+orderedCatalog:option("orderedVisuals", 1, "boxes", "Boxes")
+local orderedModel = orderedCatalog:model(cosmeticState)
+assert(
+    orderedModel.pages[1].id == "Tools" and orderedModel.pages[2].id == "Visuals",
+    "Page metadata must support game-specific tab ordering"
+)
+
 print("native-catalog-contracts-ok")

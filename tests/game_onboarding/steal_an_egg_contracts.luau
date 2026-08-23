@@ -5,8 +5,10 @@ Vector3 = roblox.Vector3
 local Catalog = require("../../games/Catalog")
 local Adapter = require("../../games/stealanegg/Adapter")
 local AntiHit = require("../../games/stealanegg/features/AntiHit")
+local AntiTrap = require("../../games/stealanegg/features/AntiTrap")
 local AutoOpenEggs = require("../../games/stealanegg/features/AutoOpenEggs")
 local Definition = require("../../games/stealanegg/Definition")
+local HighlightEsp = require("../../games/stealanegg/features/HighlightEsp")
 local HitAura = require("../../games/stealanegg/features/HitAura")
 local InstantPrompts = require("../../games/stealanegg/features/InstantPrompts")
 local Presentation = require("../../games/stealanegg/Presentation")
@@ -18,36 +20,69 @@ assert(Definition.id == "stealanegg")
 assert(Definition.manifest.gameIds[1] == 10563114921)
 assert(Definition.manifest.placeIds[1] == 107778070777162)
 assert(Definition.defaults.antiHit == false)
+assert(Definition.defaults.antiTrap == false)
 assert(Definition.defaults.autoOpenEggs == false)
+assert(Definition.defaults.eggEsp == false and Definition.defaults.trapEsp == false)
+assert(
+    Definition.defaults.eggEspMinimumRarity == 1 and Definition.defaults.eggEspMinimumSize == 0.5
+)
 assert(Definition.defaults.hitAura == false)
 assert(Definition.defaults.hitAuraIgnoreFriends == true)
 assert(Definition.defaults.instantPrompts == false)
 assert(table.find(Definition.features.capabilities, "antiHit"))
+assert(table.find(Definition.features.capabilities, "antiTrap"))
 assert(table.find(Definition.features.capabilities, "autoOpenEggs"))
+assert(table.find(Definition.features.capabilities, "eggEsp"))
+assert(table.find(Definition.features.capabilities, "eggEspMinimumRarity"))
+assert(table.find(Definition.features.capabilities, "eggEspMinimumSize"))
+assert(table.find(Definition.features.capabilities, "trapEsp"))
 assert(table.find(Definition.features.capabilities, "hitAura"))
 assert(table.find(Definition.features.capabilities, "hitAuraIgnoreFriends"))
 assert(table.find(Definition.features.capabilities, "instantPrompts"))
 assert(table.find(Definition.sources, "games/stealanegg/features/AntiHit"))
+assert(table.find(Definition.sources, "games/stealanegg/features/AntiTrap"))
 assert(table.find(Definition.sources, "games/stealanegg/features/AutoOpenEggs"))
+assert(table.find(Definition.sources, "games/stealanegg/features/HighlightEsp"))
 assert(table.find(Definition.sources, "games/stealanegg/features/HitAura"))
 assert(table.find(Definition.sources, "games/stealanegg/features/InstantPrompts"))
 
 local presented = {}
 Presentation.mount({
-    section = function() end,
+    page = function(_self, page, metadata)
+        presented[page] = true
+        presented[page .. "Order"] = metadata.order
+        assert(metadata.preview == nil)
+    end,
+    section = function(_self, page)
+        presented[page] = true
+    end,
     option = function(_self, _section, _row, setting, _label, parent)
         presented[setting] = parent or true
+    end,
+    slider = function(_self, _section, setting, _label, spec)
+        presented[setting] = spec.parent
     end,
 })
 assert(
     presented.antiHit
+        and presented.antiTrap
         and presented.autoOpenEggs
         and presented.hitAura
         and presented.hitAuraIgnoreFriends
-        and presented.instantPrompts,
+        and presented.instantPrompts
+        and presented.eggEsp
+        and presented.trapEsp,
     "Presentation must expose every Steal An Egg tool"
 )
+assert(
+    presented.ToolsOrder == 1 and presented.VisualsOrder == 2,
+    "Steal An Egg must place Visuals second without an ESP preview"
+)
 assert(presented.hitAuraIgnoreFriends == "hitAura", "Ignore Friends must be a Hit Aura sub-toggle")
+assert(
+    presented.eggEspMinimumRarity == "eggEsp" and presented.eggEspMinimumSize == "eggEsp",
+    "Egg ESP filters must be nested under Egg ESP"
+)
 
 local function signal()
     local callbacks = {}
@@ -443,5 +478,158 @@ assert(eggCmds.RequestDropAreaEgg == nativeDropRequest, "Anti Hit must restore t
 attributeChanged:Fire()
 assert(clearCount == 2, "Disabled Anti Hit must disconnect native state listeners")
 antiHit:stop()
+
+local trapAdded = signal()
+local trapRemoved = signal()
+local hitbox = {
+    CanTouch = true,
+    Parent = true,
+    IsA = function(_self, className)
+        return className == "BasePart"
+    end,
+}
+local trap = {
+    CanTouch = true,
+    Parent = true,
+    GetAttribute = function(_self, name)
+        return name == "Owner" and "trap-owner" or nil
+    end,
+    GetDescendants = function()
+        return { hitbox }
+    end,
+    IsA = hitbox.IsA,
+}
+local collectionService = {
+    GetTagged = function(_self, tag)
+        assert(tag == "PlacedTrap")
+        return { trap }
+    end,
+    GetInstanceAddedSignal = function()
+        return trapAdded
+    end,
+    GetInstanceRemovedSignal = function()
+        return trapRemoved
+    end,
+}
+local trappedChanged = signal()
+local character = { IsTrapped = false }
+function character:GetAttribute(name)
+    assert(name == "IsTrapped")
+    return self.IsTrapped
+end
+function character:SetAttribute(name, value)
+    assert(name == "IsTrapped")
+    self.IsTrapped = value
+    trappedChanged:Fire()
+end
+function character:GetAttributeChangedSignal(name)
+    assert(name == "IsTrapped")
+    return trappedChanged
+end
+local localPlayer = {
+    Character = character,
+    CharacterAdded = signal(),
+}
+local antiTrap = AntiTrap.new({
+    collectionService = collectionService,
+    localPlayer = localPlayer,
+})
+antiTrap:setEnabled(true)
+assert(not trap.CanTouch and not hitbox.CanTouch, "Anti Trap must neutralize placed trap hitboxes")
+character:SetAttribute("IsTrapped", true)
+assert(character:GetAttribute("IsTrapped") == false, "Anti Trap must clear the local trapped state")
+antiTrap:setEnabled(false)
+assert(trap.CanTouch and hitbox.CanTouch, "Disabling Anti Trap must restore touch state")
+
+local eggAdded = signal()
+local eggRemoved = signal()
+local eggModel = { Name = "egg-esp-1" }
+local eggFolder = {
+    ChildAdded = eggAdded,
+    ChildRemoved = eggRemoved,
+    GetChildren = function()
+        return { eggModel }
+    end,
+    FindFirstChild = function(_self, name)
+        return name == eggModel.Name and eggModel or nil
+    end,
+}
+local eggRecord = {
+    AssetCategory = "Mythic Egg",
+    AssetScale = 1.4,
+    Uid = eggModel.Name,
+}
+local espEggUpdated = signal()
+local createdHighlights = {}
+local createdLabels = {}
+local highlightEsp = HighlightEsp.new({
+    assets = {
+        Directory = {
+            [eggRecord.AssetCategory] = {
+                Rarity = { Color = "mythic", RarityNumber = 6 },
+            },
+        },
+    },
+    collectionService = collectionService,
+    depthMode = "always-on-top",
+    eggCmds = {
+        AreaEggUpdated = espEggUpdated,
+        GetAreaEggRecord = function(uid)
+            return uid == eggRecord.Uid and eggRecord or nil
+        end,
+    },
+    outlineColor = "white",
+    trapColor = "red",
+    workspace = {
+        FindFirstChild = function(_self, name)
+            return name == "AreaEggSlotsClient" and eggFolder or nil
+        end,
+    },
+    createHighlight = function()
+        local highlight = { destroyed = false }
+        function highlight:Destroy()
+            self.destroyed = true
+        end
+        table.insert(createdHighlights, highlight)
+        return highlight
+    end,
+    createLabel = function()
+        local billboard = { destroyed = false }
+        function billboard:Destroy()
+            self.destroyed = true
+        end
+        local label = {}
+        table.insert(createdLabels, label)
+        return billboard, label
+    end,
+})
+highlightEsp:setMinimumRarity(7)
+highlightEsp:setEggsEnabled(true)
+assert(highlightEsp.eggHighlights[eggRecord.Uid] == nil, "Egg ESP must honor rarity filters")
+highlightEsp:setMinimumRarity(6)
+assert(highlightEsp.eggHighlights[eggRecord.Uid], "Egg ESP must highlight eligible eggs")
+highlightEsp:setMinimumSize(1.5)
+assert(highlightEsp.eggHighlights[eggRecord.Uid] == nil, "Egg ESP must honor size filters")
+highlightEsp:setMinimumSize(1.4)
+highlightEsp:setTrapsEnabled(true)
+assert(highlightEsp.eggHighlights[eggRecord.Uid] and highlightEsp.trapHighlights[trap])
+assert(
+    highlightEsp.eggHighlights[eggRecord.Uid].DepthMode == "always-on-top"
+        and highlightEsp.trapHighlights[trap].FillColor == "red",
+    "Egg and trap ESP must use native always-on-top highlights"
+)
+assert(
+    highlightEsp.eggLabels[eggRecord.Uid].label.Text:find("Mythic", 1, true)
+        and highlightEsp.eggLabels[eggRecord.Uid].label.Text:find("1.4x", 1, true)
+        and highlightEsp.trapLabels[trap].label.Text:find("trap-owner", 1, true),
+    "ESP labels must show egg rarity, size, and trap ownership"
+)
+highlightEsp:stop()
+assert(
+    next(highlightEsp.eggHighlights) == nil
+        and next(highlightEsp.eggLabels) == nil
+        and next(highlightEsp.trapHighlights) == nil
+        and next(highlightEsp.trapLabels) == nil
+)
 
 print("steal-an-egg-contracts-ok")
