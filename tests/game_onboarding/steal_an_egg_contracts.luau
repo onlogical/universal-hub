@@ -359,9 +359,18 @@ local eggCmds = {
 local nativeDropRequest = eggCmds.RequestDropAreaEgg
 local clearCount = 0
 local spawned = {}
+local antiHitLogs = {}
+local antiHitLogger = {}
+function antiHitLogger:info(scope, message, fields)
+    table.insert(antiHitLogs, { scope = scope, message = message, fields = fields })
+end
+function antiHitLogger:warn(scope, message, fields)
+    table.insert(antiHitLogs, { scope = scope, message = message, fields = fields })
+end
 local antiHit = AntiHit.new({
     eggCmds = eggCmds,
     localPlayer = player,
+    logger = antiHitLogger,
     ragdoll = {
         ClearClientRagdoll = function(receivedCharacter)
             assert(receivedCharacter == character)
@@ -479,6 +488,17 @@ assert(eggCmds.RequestDropAreaEgg == nativeDropRequest, "Anti Hit must restore t
 attributeChanged:Fire()
 assert(clearCount == 2, "Disabled Anti Hit must disconnect native state listeners")
 antiHit:stop()
+local loggedMessages = {}
+for _, entry in ipairs(antiHitLogs) do
+    loggedMessages[entry.message] = true
+    assert(entry.scope == "stealanegg.antiHit")
+end
+assert(
+    loggedMessages["hit detected"]
+        and loggedMessages["carry lost"]
+        and loggedMessages["reclaim succeeded"],
+    "Anti Hit must emit persistent diagnostic milestones"
+)
 
 local trapAdded = signal()
 local trapRemoved = signal()

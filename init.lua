@@ -53,6 +53,7 @@ local WhatsNew = import("ui/WhatsNew")
 local InputCapture = import("modules/InputCapture")
 local MenuToggle = import("modules/MenuToggle")
 local Registry = import("modules/Registry")
+local Logger = import("modules/Logger")
 local Session = import("modules/Session")
 local DrawingRenderer = import("ui/esp/DrawingRenderer")
 local VisualPolicy = import("ui/esp/VisualPolicy")
@@ -68,6 +69,27 @@ local CosmeticsPanel = import("ui/presentation/CosmeticsPanel")
 local Compatibility = import("games/Compatibility")
 local Catalog = import("games/Catalog")
 
+local previousLogger = environment.UniversalHubLogger
+if type(previousLogger) == "table" and type(previousLogger.close) == "function" then
+    pcall(previousLogger.close, previousLogger, { reason = "reexecution" })
+end
+local logger = Logger.new({
+    appendFile = type(appendfile) == "function" and appendfile or nil,
+    archiveName = function()
+        return "session-" .. tostring(DateTime.now().UnixTimestampMillis)
+    end,
+    isFile = type(isfile) == "function" and isfile or nil,
+    makeFolder = type(makefolder) == "function" and makefolder or nil,
+    readFile = type(readfile) == "function" and readfile or nil,
+    writeFile = type(writefile) == "function" and writefile or nil,
+})
+environment.UniversalHubLogger = logger
+logger:info("bootstrap", "initializing", {
+    gameId = game.GameId,
+    jobId = game.JobId,
+    placeId = game.PlaceId,
+})
+
 local registry = Registry.new()
 for _, definitionPath in ipairs(Catalog) do
     registry:Register(Compatibility.Compose(import(definitionPath)))
@@ -81,6 +103,10 @@ assert(
     adapterDefinition,
     ("Universal Hub does not support game %s / place %s"):format(tostring(game.GameId), tostring(game.PlaceId))
 )
+logger:info("bootstrap", "game selected", {
+    adapter = adapterDefinition.id,
+    label = adapterDefinition.label,
+})
 local adapterModule = import(adapterDefinition.module)
 assert(type(adapterModule) == "table" and type(adapterModule.new) == "function", "Invalid game adapter module")
 local presentation = import(adapterDefinition.presentation)
@@ -244,10 +270,15 @@ local function ownStartup(cleanup)
     table.insert(startupCleanups, cleanup)
 end
 local function failStartup(message)
+    logger:error("bootstrap", "startup failed", { error = message })
     for index = #startupCleanups, 1, -1 do
         pcall(startupCleanups[index])
     end
     table.clear(startupCleanups)
+    logger:close({ reason = "startup-failed" })
+    if environment.UniversalHubLogger == logger then
+        environment.UniversalHubLogger = nil
+    end
     error(message, 0)
 end
 
@@ -514,6 +545,7 @@ local adapterContext = {
         return direction.Magnitude > 1 and direction.Unit or direction
     end,
     limn = drawingRuntime,
+    logger = logger,
     capabilities = adapterCapabilities,
     rivalsAutoCounterTest = configuration.RivalsAutoCounterTest,
     oh = helpers,
@@ -563,6 +595,7 @@ local sessionCreated, sessionResult = pcall(Session.new, {
     adapter = adapter,
     environment = environment,
     inputCapture = inputCapture,
+    logger = logger,
     overlay = overlay,
     settingsChanged = function(updatedSettings)
         configStore:save(updatedSettings)
@@ -598,6 +631,7 @@ local finalized, finalError = pcall(function()
 
     local readyStatus = ("%s ready"):format(adapterDefinition.label)
     store:Patch({ status = readyStatus })
+    logger:info("bootstrap", "ready", { adapter = adapterDefinition.id })
     print("[Universal Hub]", readyStatus)
 
     local lastUsedStore = Config.new({

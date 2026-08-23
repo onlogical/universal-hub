@@ -9,6 +9,7 @@ local CORE = {
     "modules/InputCapture",
     "modules/MenuToggle",
     "modules/Registry",
+    "modules/Logger",
     "modules/Session",
     "ui/esp/DrawingRenderer",
     "ui/esp/ColorPolicy",

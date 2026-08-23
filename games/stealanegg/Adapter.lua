@@ -33,6 +33,7 @@ function Adapter.new(context)
     local antiHit = AntiHit.new({
         eggCmds = EggCmds,
         localPlayer = LocalPlayer,
+        logger = context.logger,
         ragdoll = require(ReplicatedStorage.Library.Modules.Ragdoll),
         runService = RunService,
         slotIdentity = require(ReplicatedStorage.Library.Util.AreaEggSlotIdentity),

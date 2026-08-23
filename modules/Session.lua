@@ -32,6 +32,7 @@ function Session.new(options)
         adapter = options.adapter,
         environment = options.environment,
         inputCapture = options.inputCapture,
+        logger = options.logger,
         overlay = options.overlay,
         resources = {},
         settingsChanged = options.settingsChanged,
@@ -40,6 +41,9 @@ function Session.new(options)
     }, Session)
 
     self.environment.UniversalHubSession = self
+    if self.logger then
+        self.logger:info("session", "created")
+    end
     return self
 end
 
@@ -132,6 +136,9 @@ function Session:stop()
         return
     end
     self.stopped = true
+    if self.logger then
+        self.logger:info("session", "stopping")
+    end
 
     for index = #self.resources, 1, -1 do
         pcall(self.resources[index])
@@ -153,6 +160,12 @@ function Session:stop()
 
     if self.environment.UniversalHubSession == self then
         self.environment.UniversalHubSession = nil
+    end
+    if self.logger then
+        self.logger:close({ reason = "session-stop" })
+        if self.environment.UniversalHubLogger == self.logger then
+            self.environment.UniversalHubLogger = nil
+        end
     end
 end
 
