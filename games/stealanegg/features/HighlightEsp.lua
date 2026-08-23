@@ -44,7 +44,7 @@ function HighlightEsp.new(options)
             billboard.Adornee = adornee
             billboard.AlwaysOnTop = true
             billboard.MaxDistance = 600
-            billboard.Size = UDim2.fromOffset(180, 42)
+            billboard.Size = UDim2.fromOffset(220, 64)
             billboard.StudsOffsetWorldSpace = Vector3.new(0, 3, 0)
             billboard.Parent = target
             local label = Instance.new("TextLabel")
