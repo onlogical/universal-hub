@@ -79,16 +79,6 @@ function Session:setOption(name, enabled, persist)
     self:setSetting(name, enabled == true, persist)
 end
 
-function Session:setFov(value, persist)
-    local state = self.store:Get()
-    local settings = state.settings
-    local name = settings.shotAim == true and "shotFov" or "cameraFov"
-    self:patchSettings({
-        fov = math.clamp(value, settings.minimumFov, settings.maximumFov),
-        [name] = math.clamp(value, settings.minimumFov, settings.maximumFov),
-    }, persist)
-end
-
 function Session:setRate(name, value, persist)
     assert(
         name == "aimSmoothness" or name == "headshotRate" or name == "missRate",

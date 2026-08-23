@@ -412,7 +412,10 @@ local overlayContext = {
         if not current then
             return
         end
-        current:setFov(value, persist)
+        local settings = current.store:Get().settings
+        local name = settings.shotAim == true and "shotFov" or "cameraFov"
+        local clamped = math.clamp(value, settings.minimumFov, settings.maximumFov)
+        current:patchSettings({ fov = clamped, [name] = clamped }, persist)
     end,
     setCosmeticsOpen = function(open)
         local current = session
