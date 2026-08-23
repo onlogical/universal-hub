@@ -134,6 +134,7 @@ local record = {
     Uid = "egg-42",
 }
 local carryRequests = {}
+local dropRequestCount = 0
 local eggCmds = {
     AreaEggCarryStateChanged = carryChanged,
     AreaEggUpdated = eggUpdated,
@@ -149,7 +150,12 @@ local eggCmds = {
         record.CarrierUserId = player.UserId
         return true
     end,
+    RequestDropAreaEgg = function()
+        dropRequestCount += 1
+        return true
+    end,
 }
+local nativeDropRequest = eggCmds.RequestDropAreaEgg
 local clearCount = 0
 local spawned = {}
 local antiHit = AntiHit.new({
@@ -230,7 +236,16 @@ assert(
     #carryRequests == 1 and carryRequests[1].uid == record.Uid,
     "Anti Hit must beat non-ragdoll animal and boss pickups to a dropped egg"
 )
+
+table.clear(carryRequests)
+assert(eggCmds.RequestDropAreaEgg("Manual") == true and dropRequestCount == 1)
+record.State = "Dropped"
+record.CarrierUserId = nil
+carryChanged:Fire({ IsCarrying = false, Uid = record.Uid })
+eggUpdated:Fire(record)
+assert(#carryRequests == 0, "A user-requested drop must stop automatic pickup")
 antiHit:setEnabled(false)
+assert(eggCmds.RequestDropAreaEgg == nativeDropRequest, "Anti Hit must restore the native drop API")
 attributeChanged:Fire()
 assert(clearCount == 1, "Disabled Anti Hit must disconnect native state listeners")
 antiHit:stop()

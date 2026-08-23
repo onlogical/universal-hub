@@ -131,6 +131,7 @@ end
 function AntiHit:_onCarryState(state)
     if state.IsCarrying then
         self.carriedUid = state.Uid
+        self.intentionalDropUid = nil
         self.reclaimUid = nil
         self.claimToken += 1
         return
@@ -138,9 +139,43 @@ function AntiHit:_onCarryState(state)
 
     local uid = state.Uid or self.carriedUid or self.reclaimUid
     self.carriedUid = nil
+    if uid == self.intentionalDropUid then
+        self.intentionalDropUid = nil
+        self.reclaimUid = nil
+        self.claimToken += 1
+        return
+    end
     if uid then
         self:_reclaim(uid)
     end
+end
+
+function AntiHit:_bindDropRequest()
+    local original = self.eggCmds.RequestDropAreaEgg
+    if type(original) ~= "function" then
+        return
+    end
+    self.originalDropRequest = original
+    self.dropRequest = function(...)
+        local uid = self.carriedUid
+        self.intentionalDropUid = uid
+        self.reclaimUid = nil
+        self.claimToken += 1
+        local results = table.pack(original(...))
+        if results[1] ~= true and self.intentionalDropUid == uid then
+            self.intentionalDropUid = nil
+        end
+        return table.unpack(results, 1, results.n)
+    end
+    self.eggCmds.RequestDropAreaEgg = self.dropRequest
+end
+
+function AntiHit:_unbindDropRequest()
+    if self.eggCmds.RequestDropAreaEgg == self.dropRequest then
+        self.eggCmds.RequestDropAreaEgg = self.originalDropRequest
+    end
+    self.dropRequest = nil
+    self.originalDropRequest = nil
 end
 
 function AntiHit:_bindCharacter(character)
@@ -168,6 +203,7 @@ function AntiHit:setEnabled(enabled)
 
     if enabled then
         self:_syncCarried()
+        self:_bindDropRequest()
         table.insert(
             self.connections,
             self.runService.PostSimulation:Connect(function()
@@ -209,7 +245,9 @@ function AntiHit:setEnabled(enabled)
     self.claimToken += 1
     disconnectAll(self.connections)
     disconnectAll(self.characterConnections)
+    self:_unbindDropRequest()
     self.carriedUid = nil
+    self.intentionalDropUid = nil
     self.reclaimUid = nil
     self.suppressKnockbackUntil = -math.huge
 end
