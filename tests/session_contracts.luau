@@ -42,6 +42,15 @@ local unrelatedEnvironment = {
 }
 assert(Session.stopPrevious(unrelatedEnvironment) == nil)
 assert(unrelatedHydroxideExits == 0, "An unrelated oh namespace must remain untouched")
+local failedPrevious = {
+    stop = function()
+        error("simulated legacy cleanup failure")
+    end,
+}
+local failedEnvironment = { UniversalHubSession = failedPrevious }
+assert(Session.stopPrevious(failedEnvironment) == failedPrevious)
+assert(failedEnvironment.UniversalHubSession == nil, "Failed legacy cleanup must not block replacement")
+
 local adapterStops = 0
 local inputStops = 0
 local overlayStops = 0

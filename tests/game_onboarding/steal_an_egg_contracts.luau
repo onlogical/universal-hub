@@ -155,6 +155,8 @@ assert(#auraCalls == 2, "Disabled Hit Aura must stop native bat activations")
 local autoOpenHeartbeat = signal()
 local readyEggs = { ready = true }
 local openedEggs = {}
+local runAutoOpenSpawn = true
+local pendingAutoOpen = {}
 local autoOpenEggs = AutoOpenEggs.new({
     eggCmds = {
         GetOwnerRuntimeRecords = function(userId)
@@ -178,7 +180,11 @@ local autoOpenEggs = AutoOpenEggs.new({
     },
     runService = { Heartbeat = autoOpenHeartbeat },
     spawn = function(callback)
-        callback()
+        if runAutoOpenSpawn then
+            callback()
+        else
+            table.insert(pendingAutoOpen, callback)
+        end
     end,
 })
 autoOpenEggs:setEnabled(true)
@@ -193,6 +199,13 @@ autoOpenEggs:setEnabled(false)
 autoOpenHeartbeat:Fire(1)
 assert(#openedEggs == 2, "Disabled Auto Open Eggs must stop scanning")
 autoOpenEggs:stop()
+runAutoOpenSpawn = false
+autoOpenEggs:setEnabled(true)
+autoOpenEggs:setEnabled(false)
+for _, callback in ipairs(pendingAutoOpen) do
+    callback()
+end
+assert(#openedEggs == 2, "Queued hatch tasks must not survive Auto Open Eggs teardown")
 
 local changed = signal()
 local prompt = {

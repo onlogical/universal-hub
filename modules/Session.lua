@@ -12,7 +12,7 @@ function Session.stopPrevious(environment)
     local resources = type(helpers) == "table" and helpers.Resources or nil
     local legacyIndex = type(resources) == "table" and table.find(resources, previous) or nil
 
-    previous:stop()
+    pcall(previous.stop, previous)
     if environment.UniversalHubSession == previous then
         environment.UniversalHubSession = nil
     end

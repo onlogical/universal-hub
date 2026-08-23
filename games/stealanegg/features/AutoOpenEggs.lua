@@ -34,6 +34,9 @@ function AutoOpenEggs:_scan()
         if record.Placement and self.eggCmds.IsLocalEggReady(uid) and not self.opening[uid] then
             self.opening[uid] = true
             self.spawn(function()
+                if not self.enabled then
+                    return
+                end
                 if not self.renderer.ActivateLocalEgg(uid) then
                     self.opening[uid] = nil
                 end

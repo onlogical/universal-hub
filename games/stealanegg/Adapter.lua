@@ -50,27 +50,34 @@ function Adapter.new(context)
         workspace = Workspace,
     })
     local instantPrompts = InstantPrompts.new(Workspace)
-    local unsubscribe = context.store:Subscribe(function(state)
+    local function apply(state)
         antiHit:setEnabled(state.settings.antiHit == true)
         autoOpenEggs:setEnabled(state.settings.autoOpenEggs == true)
         hitAura:setIgnoreFriends(state.settings.hitAuraIgnoreFriends == true)
         hitAura:setEnabled(state.settings.hitAura == true)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
-    end)
+    end
+    local unsubscribe = context.store:Subscribe(apply, false)
     local stopped = false
+    local function stop()
+        if stopped then
+            return
+        end
+        stopped = true
+        pcall(unsubscribe)
+        pcall(antiHit.stop, antiHit)
+        pcall(autoOpenEggs.stop, autoOpenEggs)
+        pcall(hitAura.stop, hitAura)
+        pcall(instantPrompts.stop, instantPrompts)
+    end
+    local applied, applyError = pcall(apply, context.store:Get())
+    if not applied then
+        stop()
+        error(applyError, 0)
+    end
 
     return {
-        stop = function()
-            if stopped then
-                return
-            end
-            stopped = true
-            unsubscribe()
-            antiHit:stop()
-            autoOpenEggs:stop()
-            hitAura:stop()
-            instantPrompts:stop()
-        end,
+        stop = stop,
     }
 end
 
