@@ -2,12 +2,16 @@ return {
     defaults = {
         antiHit = false,
         autoOpenEggs = false,
+        hitAura = false,
+        hitAuraIgnoreFriends = true,
         instantPrompts = false,
     },
     features = {
         capabilities = {
             "antiHit",
             "autoOpenEggs",
+            "hitAura",
+            "hitAuraIgnoreFriends",
             "instantPrompts",
         },
         cosmetics = false,
@@ -27,6 +31,7 @@ return {
         "games/stealanegg/Presentation",
         "games/stealanegg/features/AntiHit",
         "games/stealanegg/features/AutoOpenEggs",
+        "games/stealanegg/features/HitAura",
         "games/stealanegg/features/InstantPrompts",
     },
 }

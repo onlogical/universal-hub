@@ -12,6 +12,7 @@ end
 local AntiHit = importDependency("games/stealanegg/features/AntiHit", "./features/AntiHit")
 local AutoOpenEggs =
     importDependency("games/stealanegg/features/AutoOpenEggs", "./features/AutoOpenEggs")
+local HitAura = importDependency("games/stealanegg/features/HitAura", "./features/HitAura")
 local InstantPrompts =
     importDependency("games/stealanegg/features/InstantPrompts", "./features/InstantPrompts")
 
@@ -39,10 +40,21 @@ function Adapter.new(context)
         renderer = require(ReplicatedStorage.Library.Client.Eggs.PlacedEggRenderer),
         runService = RunService,
     })
+    local hitAura = HitAura.new({
+        eggCmds = EggCmds,
+        endpoint = require(ReplicatedStorage.Library.Globals.Constants).NETWORK_MAP.Bat.ACTIVATE,
+        localPlayer = LocalPlayer,
+        network = require(ReplicatedStorage.Library.Client.Network),
+        players = context.players,
+        runService = RunService,
+        workspace = Workspace,
+    })
     local instantPrompts = InstantPrompts.new(Workspace)
     local unsubscribe = context.store:Subscribe(function(state)
         antiHit:setEnabled(state.settings.antiHit == true)
         autoOpenEggs:setEnabled(state.settings.autoOpenEggs == true)
+        hitAura:setIgnoreFriends(state.settings.hitAuraIgnoreFriends == true)
+        hitAura:setEnabled(state.settings.hitAura == true)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
     end)
     local stopped = false
@@ -56,6 +68,7 @@ function Adapter.new(context)
             unsubscribe()
             antiHit:stop()
             autoOpenEggs:stop()
+            hitAura:stop()
             instantPrompts:stop()
         end,
     }

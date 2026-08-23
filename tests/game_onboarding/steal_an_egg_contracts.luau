@@ -7,6 +7,7 @@ local Adapter = require("../../games/stealanegg/Adapter")
 local AntiHit = require("../../games/stealanegg/features/AntiHit")
 local AutoOpenEggs = require("../../games/stealanegg/features/AutoOpenEggs")
 local Definition = require("../../games/stealanegg/Definition")
+local HitAura = require("../../games/stealanegg/features/HitAura")
 local InstantPrompts = require("../../games/stealanegg/features/InstantPrompts")
 local Presentation = require("../../games/stealanegg/Presentation")
 
@@ -18,25 +19,35 @@ assert(Definition.manifest.gameIds[1] == 10563114921)
 assert(Definition.manifest.placeIds[1] == 107778070777162)
 assert(Definition.defaults.antiHit == false)
 assert(Definition.defaults.autoOpenEggs == false)
+assert(Definition.defaults.hitAura == false)
+assert(Definition.defaults.hitAuraIgnoreFriends == true)
 assert(Definition.defaults.instantPrompts == false)
 assert(table.find(Definition.features.capabilities, "antiHit"))
 assert(table.find(Definition.features.capabilities, "autoOpenEggs"))
+assert(table.find(Definition.features.capabilities, "hitAura"))
+assert(table.find(Definition.features.capabilities, "hitAuraIgnoreFriends"))
 assert(table.find(Definition.features.capabilities, "instantPrompts"))
 assert(table.find(Definition.sources, "games/stealanegg/features/AntiHit"))
 assert(table.find(Definition.sources, "games/stealanegg/features/AutoOpenEggs"))
+assert(table.find(Definition.sources, "games/stealanegg/features/HitAura"))
 assert(table.find(Definition.sources, "games/stealanegg/features/InstantPrompts"))
 
 local presented = {}
 Presentation.mount({
     section = function() end,
-    option = function(_self, _section, _row, setting)
-        presented[setting] = true
+    option = function(_self, _section, _row, setting, _label, parent)
+        presented[setting] = parent or true
     end,
 })
 assert(
-    presented.antiHit and presented.autoOpenEggs and presented.instantPrompts,
+    presented.antiHit
+        and presented.autoOpenEggs
+        and presented.hitAura
+        and presented.hitAuraIgnoreFriends
+        and presented.instantPrompts,
     "Presentation must expose every Steal An Egg tool"
 )
+assert(presented.hitAuraIgnoreFriends == "hitAura", "Ignore Friends must be a Hit Aura sub-toggle")
 
 local function signal()
     local callbacks = {}
@@ -56,6 +67,90 @@ local function signal()
         end,
     }
 end
+
+local auraHeartbeat = signal()
+local auraNow = 10
+local bat = {
+    IsA = function(_self, className)
+        return className == "Tool"
+    end,
+    GetAttribute = function(_self, name)
+        return name == "IsBat" and true or nil
+    end,
+}
+local function auraCharacter(position, tool)
+    local root = { Position = position }
+    local humanoid = { Health = 100 }
+    return {
+        GetChildren = function()
+            return tool and { tool } or {}
+        end,
+        FindFirstChild = function(_self, name)
+            return name == "HumanoidRootPart" and root or nil
+        end,
+        FindFirstChildOfClass = function(_self, className)
+            return className == "Humanoid" and humanoid or nil
+        end,
+    }
+end
+local auraPlayer = {
+    Character = auraCharacter(Vector3.zero, bat),
+    UserId = 42,
+    IsFriendsWith = function(_self, userId)
+        return userId == 7
+    end,
+}
+local friend = { Character = auraCharacter(Vector3.new(3, 0, 0)), UserId = 7 }
+local enemy = { Character = auraCharacter(Vector3.new(5, 0, 0)), UserId = 8 }
+local auraCalls = {}
+local hitAura = HitAura.new({
+    eggCmds = {
+        GetAreaEggSnapshot = function()
+            return {
+                Records = {
+                    { CarrierUserId = friend.UserId, State = "Carried" },
+                    { CarrierUserId = enemy.UserId, State = "Carried" },
+                },
+            }
+        end,
+    },
+    endpoint = "Bat:Activate",
+    localPlayer = auraPlayer,
+    network = {
+        Fire = function(endpoint, target, traceId)
+            table.insert(auraCalls, { endpoint = endpoint, target = target, traceId = traceId })
+        end,
+    },
+    players = {
+        GetPlayers = function()
+            return { auraPlayer, friend, enemy }
+        end,
+    },
+    runService = { Heartbeat = auraHeartbeat },
+    workspace = {
+        GetServerTimeNow = function()
+            return auraNow
+        end,
+    },
+})
+hitAura:setEnabled(true)
+auraHeartbeat:Fire()
+assert(
+    #auraCalls == 1 and auraCalls[1].target == enemy,
+    "Hit Aura must skip a friend carrying an egg"
+)
+hitAura:setIgnoreFriends(false)
+auraNow += 0.61
+auraHeartbeat:Fire()
+assert(
+    #auraCalls == 2 and auraCalls[2].target == friend,
+    "Hit Aura must target friends when allowed"
+)
+assert(auraCalls[2].endpoint == "Bat:Activate" and type(auraCalls[2].traceId) == "string")
+hitAura:stop()
+auraNow += 1
+auraHeartbeat:Fire()
+assert(#auraCalls == 2, "Disabled Hit Aura must stop native bat activations")
 
 local autoOpenHeartbeat = signal()
 local readyEggs = { ready = true }
