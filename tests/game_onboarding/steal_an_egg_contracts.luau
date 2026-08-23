@@ -278,6 +278,7 @@ local record = {
     Uid = "egg-42",
 }
 local carryRequests = {}
+local carryFailures = 0
 local dropRequestCount = 0
 local eggCmds = {
     AreaEggCarryStateChanged = carryChanged,
@@ -289,6 +290,10 @@ local eggCmds = {
         return { Records = { record } }
     end,
     RequestCarryAreaEgg = function(uid, slotKey)
+        if carryFailures > 0 then
+            carryFailures -= 1
+            error("transient executor invoke failure")
+        end
         table.insert(carryRequests, { slotKey = slotKey, uid = uid })
         record.State = "Carried"
         record.CarrierUserId = player.UserId
@@ -392,6 +397,18 @@ record.State = "Dropped"
 record.CarrierUserId = nil
 carryChanged:Fire({ IsCarrying = false, Uid = record.Uid })
 assert(#carryRequests == 1, "Anti Hit must immediately reclaim eggs dropped during a hit")
+
+table.clear(carryRequests)
+record.State = "Carried"
+record.CarrierUserId = player.UserId
+carryChanged:Fire({ IsCarrying = true, Uid = record.Uid })
+carryFailures = 1
+record.State = "Dropped"
+record.CarrierUserId = nil
+carryChanged:Fire({ IsCarrying = false, Uid = record.Uid })
+assert(#carryRequests == 0, "A transient executor invoke failure must not fake a reclaim")
+spawned[#spawned]()
+assert(#carryRequests == 1, "Anti Hit must retry after transient executor invoke failures")
 
 table.clear(carryRequests)
 assert(eggCmds.RequestDropAreaEgg("Manual") == true and dropRequestCount == 1)

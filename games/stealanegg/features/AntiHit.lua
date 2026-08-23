@@ -58,7 +58,8 @@ function AntiHit:_tryReclaim(uid)
     if not record or record.State ~= "Dropped" then
         return false
     end
-    if not self.eggCmds.RequestCarryAreaEgg(uid, self:_slotKey(uid)) then
+    local succeeded, carried = pcall(self.eggCmds.RequestCarryAreaEgg, uid, self:_slotKey(uid))
+    if not succeeded or carried ~= true then
         return false
     end
     self.carriedUid = uid
