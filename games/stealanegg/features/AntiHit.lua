@@ -97,10 +97,13 @@ end
 function AntiHit:_cancelVelocity()
     local character = self.localPlayer.Character
     local root = character and character:FindFirstChild("HumanoidRootPart")
-    if root then
-        root.AssemblyLinearVelocity = Vector3.zero
-        root.AssemblyAngularVelocity = Vector3.zero
+    if not root then
+        return
     end
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    local movement = humanoid and humanoid.MoveDirection * humanoid.WalkSpeed or Vector3.zero
+    root.AssemblyLinearVelocity = Vector3.new(movement.X, 0, movement.Z)
+    root.AssemblyAngularVelocity = Vector3.zero
 end
 
 function AntiHit:_recover()

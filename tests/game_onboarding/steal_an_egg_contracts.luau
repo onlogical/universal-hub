@@ -94,8 +94,10 @@ local now = 100
 local attributes = {}
 local changedState
 local humanoid = {
+    MoveDirection = Vector3.new(1, 0, 0),
     PlatformStand = true,
     StateChanged = stateChanged,
+    WalkSpeed = 16,
     ChangeState = function(_self, state)
         changedState = state
     end,
@@ -187,13 +189,19 @@ attributes.RagdollEndTime = now + 5
 attributeChanged:Fire()
 assert(clearCount == 1, "Anti Hit must clear the native client ragdoll immediately")
 assert(humanoid.PlatformStand == false and changedState == Enum.HumanoidStateType.GettingUp)
-assert(rootPart.AssemblyLinearVelocity == Vector3.zero, "Anti Hit must cancel hit knockback")
+assert(
+    rootPart.AssemblyLinearVelocity == Vector3.new(16, 0, 0),
+    "Anti Hit must cancel knockback without stopping held-direction movement"
+)
 assert(rootPart.AssemblyAngularVelocity == Vector3.zero, "Anti Hit must cancel hit spin")
 rootPart.AssemblyLinearVelocity = Vector3.new(9, 0, 0)
 rootPart.AssemblyAngularVelocity = Vector3.new(0, 9, 0)
 now += 0.1
 postSimulation:Fire()
-assert(rootPart.AssemblyLinearVelocity == Vector3.zero, "Anti Hit must suppress delayed knockback")
+assert(
+    rootPart.AssemblyLinearVelocity == Vector3.new(16, 0, 0),
+    "Delayed knockback suppression must preserve held-direction movement"
+)
 assert(rootPart.AssemblyAngularVelocity == Vector3.zero, "Anti Hit must suppress delayed hit spin")
 now += 0.4
 rootPart.AssemblyLinearVelocity = Vector3.new(1, 0, 0)
