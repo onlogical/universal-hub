@@ -18,6 +18,7 @@ local HighlightEsp =
 local HitAura = importDependency("games/stealanegg/features/HitAura", "./features/HitAura")
 local InstantPrompts =
     importDependency("games/stealanegg/features/InstantPrompts", "./features/InstantPrompts")
+local ServerHop = importDependency("games/stealanegg/features/ServerHop", "./features/ServerHop")
 
 local Adapter = {}
 
@@ -27,8 +28,10 @@ function Adapter.new(context)
     local Workspace = context.workspace or workspace
     local LocalPlayer = context.localPlayer or context.players.LocalPlayer
     local CollectionService = game:GetService("CollectionService")
+    local HttpService = game:GetService("HttpService")
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local RunService = game:GetService("RunService")
+    local TeleportService = game:GetService("TeleportService")
     local Constants = require(ReplicatedStorage.Library.Globals.Constants)
     local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
     local Network = require(ReplicatedStorage.Library.Client.Network)
@@ -72,6 +75,19 @@ function Adapter.new(context)
         workspace = Workspace,
     })
     local instantPrompts = InstantPrompts.new(Workspace)
+    local serverHop = ServerHop.new({
+        decode = function(source)
+            return HttpService:JSONDecode(source)
+        end,
+        httpGet = function(url)
+            return game:HttpGet(url, true)
+        end,
+        jobId = context.jobId,
+        localPlayer = LocalPlayer,
+        logger = context.logger,
+        placeId = context.placeId,
+        teleportService = TeleportService,
+    })
     local function apply(state)
         antiHit:setEnabled(state.settings.antiHit == true)
         antiTrap:setEnabled(state.settings.antiTrap == true)
@@ -84,6 +100,10 @@ function Adapter.new(context)
         hitAura:setIgnoreFriends(state.settings.hitAuraIgnoreFriends == true)
         hitAura:setEnabled(state.settings.hitAura == true)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
+        if state.settings.serverHop == true then
+            context.store:Patch({ settings = { serverHop = false } })
+            serverHop:run()
+        end
     end
     local unsubscribe = context.store:Subscribe(apply, false)
     local stopped = false
@@ -99,6 +119,7 @@ function Adapter.new(context)
         pcall(highlightEsp.stop, highlightEsp)
         pcall(hitAura.stop, hitAura)
         pcall(instantPrompts.stop, instantPrompts)
+        pcall(serverHop.stop, serverHop)
     end
     local applied, applyError = pcall(apply, context.store:Get())
     if not applied then

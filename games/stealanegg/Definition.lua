@@ -9,6 +9,7 @@ return {
         hitAura = false,
         hitAuraIgnoreFriends = true,
         instantPrompts = false,
+        serverHop = false,
         trapEsp = false,
     },
     features = {
@@ -22,6 +23,7 @@ return {
             "hitAura",
             "hitAuraIgnoreFriends",
             "instantPrompts",
+            "serverHop",
             "trapEsp",
         },
         cosmetics = false,
@@ -45,5 +47,6 @@ return {
         "games/stealanegg/features/HighlightEsp",
         "games/stealanegg/features/HitAura",
         "games/stealanegg/features/InstantPrompts",
+        "games/stealanegg/features/ServerHop",
     },
 }

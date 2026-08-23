@@ -20,6 +20,9 @@ function Presentation.mount(host)
     host:section("Tools", "prompts", "PROMPTS", 70)
     host:option("prompts", 1, "instantPrompts", "Instant Prompts")
 
+    host:section("Tools", "server", "SERVER", 70)
+    host:option("server", 1, "serverHop", "Hop to Low Population")
+
     host:section("Visuals", "highlights", "HIGHLIGHTS", 70, false, 2, { treatment = "grid" })
     host:option("highlights", 1, "eggEsp", "Eggs")
     host:option("highlights", 2, "trapEsp", "Traps")
