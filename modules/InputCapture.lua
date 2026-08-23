@@ -1,8 +1,6 @@
 local InputCapture = {}
 InputCapture.__index = InputCapture
 
-local ACTION_NAME = "UniversalHubMenuCapture"
-
 function InputCapture.new(services)
     services = services or {}
     local localPlayer = services.localPlayer
@@ -11,8 +9,6 @@ function InputCapture.new(services)
         localPlayer = players.LocalPlayer
     end
     return setmetatable({
-        contextActionService = services.contextActionService
-            or game:GetService("ContextActionService"),
         enabled = false,
         guiService = services.guiService or game:GetService("GuiService"),
         localPlayer = localPlayer,
@@ -55,16 +51,6 @@ function InputCapture:SetEnabled(enabled)
             self:_guardProperty(self.userInputService, "MouseIconEnabled"),
             self:_guardProperty(self.userInputService, "OverrideMouseIconBehavior"),
         }
-        self.contextActionService:BindActionAtPriority(
-            ACTION_NAME,
-            function()
-                return Enum.ContextActionResult.Sink
-            end,
-            false,
-            Enum.ContextActionPriority.High.Value + 100,
-            Enum.UserInputType.MouseWheel,
-            Enum.UserInputType.Touch
-        )
         self.heartbeatConnection = self.runService.Heartbeat:Connect(function()
             self:_enforceCursor()
         end)
@@ -75,7 +61,6 @@ function InputCapture:SetEnabled(enabled)
         return
     end
 
-    self.contextActionService:UnbindAction(ACTION_NAME)
     self.heartbeatConnection:Disconnect()
     self.heartbeatConnection = nil
     self.menuClosedConnection:Disconnect()
