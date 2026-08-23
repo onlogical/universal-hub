@@ -6,8 +6,15 @@ local function updateLabelMap(labels, cameraPosition)
         local adornee = entry.billboard.Adornee
         if adornee and adornee.Parent then
             local distance = (cameraPosition - adornee.Position).Magnitude
-            local proximityBoost = math.clamp((80 - distance) / 20, 0, 4)
-            entry.label.TextSize = math.clamp(entry.baseSize + proximityBoost, 16, 24)
+            local proximityBoost = math.clamp((180 - distance) / 15, 0, 12)
+            local textSize = math.clamp(entry.baseSize + proximityBoost, 16, 30)
+            entry.label.TextSize = textSize
+            if entry.icon then
+                local iconSize = textSize + 2
+                entry.icon.Size = UDim2.fromOffset(iconSize, iconSize)
+                entry.label.Position = UDim2.fromOffset(iconSize + 6, 0)
+                entry.label.Size = UDim2.new(1, -(iconSize + 6), 1, 0)
+            end
         end
     end
 end

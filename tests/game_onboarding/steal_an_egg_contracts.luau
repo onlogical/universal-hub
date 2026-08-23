@@ -1,5 +1,6 @@
 local roblox = require("@lune/roblox")
 Enum = roblox.Enum
+UDim2 = roblox.UDim2
 Vector3 = roblox.Vector3
 
 local Catalog = require("../../games/Catalog")
@@ -645,8 +646,9 @@ assert(
 assert(
     highlightEsp.eggLabels[eggRecord.Uid].label.Text:find("Mythic", 1, true)
         and highlightEsp.eggLabels[eggRecord.Uid].label.Text:find("1.4x", 1, true)
-        and highlightEsp.eggLabels[eggRecord.Uid].label.TextSize > 16.2
+        and highlightEsp.eggLabels[eggRecord.Uid].label.TextSize > 24
         and highlightEsp.eggLabels[eggRecord.Uid].icon.Image == "egg-icon"
+        and highlightEsp.eggLabels[eggRecord.Uid].icon.Size.X.Offset >= 26
         and highlightEsp.trapLabels[trap].label.Text:find("other-player", 1, true)
         and highlightEsp.trapLabels[trap].icon.Image == "trap-icon",
     "ESP labels must show native icons, egg rarity, size, and trap ownership"
