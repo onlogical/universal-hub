@@ -567,7 +567,8 @@ local highlightEsp = HighlightEsp.new({
     assets = {
         Directory = {
             [eggRecord.AssetCategory] = {
-                Icon = "egg-icon",
+                Egg = { Icon = "egg-icon" },
+                Icon = "pet-icon",
                 Rarity = { Color = "mythic", RarityNumber = 6 },
             },
         },

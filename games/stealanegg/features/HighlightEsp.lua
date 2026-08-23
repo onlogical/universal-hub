@@ -183,7 +183,7 @@ function HighlightEsp:_refreshEgg(uid)
         ),
         rarity.Color,
         math.clamp(12 + record.AssetScale * 3, 14, 22),
-        asset.Icon
+        asset.Egg and asset.Egg.Icon or asset.Icon
     )
 end
 
