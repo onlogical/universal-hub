@@ -89,6 +89,24 @@ logger:info("bootstrap", "initializing", {
     jobId = game.JobId,
     placeId = game.PlaceId,
 })
+local bootTiming = configuration.BootTiming
+if type(bootTiming) == "table" then
+    local function seconds(value)
+        return type(value) == "number" and ("%.3f"):format(value) or nil
+    end
+    logger:info("bootstrap", "loader timing", {
+        fetchCount = bootTiming.fetchCount,
+        fetchSeconds = seconds(bootTiming.fetchSeconds),
+        hydroxideSeconds = seconds(bootTiming.hydroxideSeconds),
+        inventorySeconds = seconds(bootTiming.inventorySeconds),
+        limnSeconds = seconds(bootTiming.limnSeconds),
+        menuSeconds = seconds(bootTiming.menuSeconds),
+        mode = bootTiming.mode,
+        preInitSeconds = seconds(bootTiming.preInitSeconds),
+        slowestFetch = bootTiming.slowestFetch,
+        slowestFetchSeconds = seconds(bootTiming.slowestFetchSeconds),
+    })
+end
 
 local registry = Registry.new()
 for _, definitionPath in ipairs(Catalog) do

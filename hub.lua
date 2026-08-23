@@ -12,7 +12,13 @@ local fetchSource = type(configuration.Fetch) == "function" and configuration.Fe
     return httpGame:HttpGet(url, true)
 end
 
+local bootTiming = configuration.BootTiming or { mode = "remote", startedAt = os.clock() }
+configuration.BootTiming = bootTiming
+bootTiming.hubStartedAt = os.clock()
+
+local phaseStartedAt = os.clock()
 local menuSource = fetchSource(sourceBaseUrl .. "ui/dist/Menu.lua")
+bootTiming.menuSeconds = os.clock() - phaseStartedAt
 local previousSession = environment.UniversalHubSession
 if type(previousSession) == "table" and type(previousSession.stop) == "function" then
     pcall(previousSession.stop, previousSession)
@@ -27,14 +33,17 @@ assert(
     "Universal Hub requires the compiled Prism menu"
 )
 
+phaseStartedAt = os.clock()
 local limnSource = fetchSource(sourceBaseUrl .. "vendor/Limn.lua")
 local limnChunk, limnError = loadstring(limnSource, "vendor/Limn.lua")
 local Limn = assert(limnChunk, limnError)()
 assert(type(Limn) == "table" and type(Limn.new) == "function", "Universal Hub requires Limn")
+bootTiming.limnSeconds = os.clock() - phaseStartedAt
 
 local hydroxideCommit = "38778f8a78762d48fba916cade6eb93399e7c404"
 local hydroxideSourceBaseUrl =
     ("https://raw.githubusercontent.com/3xjn/hydroxide/%s/"):format(hydroxideCommit)
+phaseStartedAt = os.clock()
 local hydroxideSources = {}
 for _, path in ipairs({
     "modules/Helpers.lua",
@@ -44,6 +53,7 @@ for _, path in ipairs({
 }) do
     hydroxideSources[path] = fetchSource(hydroxideSourceBaseUrl .. path)
 end
+bootTiming.hydroxideSeconds = os.clock() - phaseStartedAt
 local helpersChunk, helpersError =
     loadstring(hydroxideSources["modules/Helpers.lua"], "hydroxide/modules/Helpers.lua")
 local Helpers = assert(helpersChunk, helpersError)()
@@ -106,9 +116,11 @@ assert(
         tostring(game.PlaceId)
     )
 )
+phaseStartedAt = os.clock()
 for _, modulePath in ipairs(inventory:All()) do
     fetch(modulePath .. ".lua")
 end
+bootTiming.inventorySeconds = os.clock() - phaseStartedAt
 environment.UniversalHubConfig = configuration
 local importCache = {}
 local allowedImports = inventory:Allow(selectedDefinition.id)
@@ -155,4 +167,6 @@ configuration.ChangelogSource = fetchSource(sourceBaseUrl .. "changelog.json")
 
 local initSource = fetchSource(sourceBaseUrl .. "init.lua")
 local initChunk, initError = loadstring(initSource, "init.lua")
+bootTiming.hubSeconds = os.clock() - bootTiming.hubStartedAt
+bootTiming.preInitSeconds = os.clock() - bootTiming.startedAt
 return assert(initChunk, initError)()

@@ -1,4 +1,5 @@
 local environment = assert(getgenv, "<UH> ~ Your executor is not supported")()
+local bootStartedAt = os.clock()
 local teleportBootstrap = environment.UniversalHubTeleportBootstrap == true
 environment.UniversalHubTeleportBootstrap = nil
 local jobId = game.JobId
@@ -59,17 +60,24 @@ local function loadCompiledMenu()
 end
 
 local function loadHub()
+    local timing = configuration.BootTiming
+    local phaseStartedAt = os.clock()
     loadCompiledMenu()
+    timing.menuSeconds = os.clock() - phaseStartedAt
 
+    phaseStartedAt = os.clock()
     local Limn = loadWorkspaceModule(configuration.LimnPath, "limn/dist/Limn.lua")
     assert(type(Limn) == "table" and type(Limn.new) == "function", "Universal Hub requires Limn")
+    timing.limnSeconds = os.clock() - phaseStartedAt
 
+    phaseStartedAt = os.clock()
     local helpersPath = configuration.HydroxideRoot .. "/modules/Helpers.lua"
     local Helpers = loadWorkspaceModule(helpersPath, "hydroxide/modules/Helpers.lua")
     assert(
         type(Helpers) == "table" and type(Helpers.load) == "function",
         "Universal Hub requires Hydroxide Helpers.load"
     )
+    timing.hydroxideSeconds = os.clock() - phaseStartedAt
 
     configuration.Limn = Limn
     configuration.HydroxideHelpers = Helpers
@@ -77,6 +85,7 @@ local function loadHub()
         return
     end
 
+    timing.preInitSeconds = os.clock() - timing.startedAt
     return loadWorkspaceModule(configuration.LocalRoot .. "/init.lua", "universal-hub/init.lua")
 end
 
@@ -123,6 +132,10 @@ end
 
 local function startBootstrap()
     configuration = environment.UniversalHubConfig or {}
+    configuration.BootTiming = {
+        mode = "local",
+        startedAt = bootStartedAt,
+    }
     configuration.TeleportBootstrap = teleportBootstrap
     configuration.LocalRoot = configuration.LocalRoot or "universal-hub/local"
     configuration.HydroxideRoot = configuration.HydroxideRoot or "hydroxide/local"

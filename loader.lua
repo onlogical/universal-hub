@@ -1,5 +1,12 @@
 local environment = assert(getgenv, "<UH> ~ Your executor is not supported")()
 local configuration = environment.UniversalHubConfig or {}
+local bootTiming = {
+    fetchCount = 0,
+    fetchSeconds = 0,
+    mode = "remote",
+    startedAt = os.clock(),
+}
+configuration.BootTiming = bootTiming
 local officialSourceRoot = "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/beta/"
 local repositoryBranchRoot = "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/"
 local sourceRoot = configuration.SourceBaseUrl
@@ -36,6 +43,8 @@ local requestFunction = type(environment.request) == "function" and environment.
 local HttpService = requestFunction and game:GetService("HttpService")
 
 local function fetchSource(url)
+    local startedAt = os.clock()
+    local body
     if requestFunction then
         local separator = url:find("?", 1, true) and "&" or "?"
         local response = requestFunction({
@@ -54,9 +63,18 @@ local function fetchSource(url)
                 and (status == nil or (status >= 200 and status < 300)),
             ("Universal Hub source request failed (%s)"):format(tostring(status or "unknown"))
         )
-        return response.Body
+        body = response.Body
+    else
+        body = httpGame:HttpGet(url, true)
     end
-    return httpGame:HttpGet(url, true)
+    local elapsed = os.clock() - startedAt
+    bootTiming.fetchCount += 1
+    bootTiming.fetchSeconds += elapsed
+    if not bootTiming.slowestFetchSeconds or elapsed > bootTiming.slowestFetchSeconds then
+        bootTiming.slowestFetch = url
+        bootTiming.slowestFetchSeconds = elapsed
+    end
+    return body
 end
 
 local jobId = game.JobId
