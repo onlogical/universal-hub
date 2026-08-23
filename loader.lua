@@ -98,7 +98,9 @@ local function queueNextPlace()
         return
     end
 
-    queue(([[
+    pcall(
+        queue,
+        ([[
 local environment = getgenv()
 local HttpService = game:GetService("HttpService")
 local synapse = environment.syn
@@ -123,7 +125,8 @@ assert(
 )
 local chunk, compileError = loadstring(response.Body, "universal-hub/loader.lua")
 return assert(chunk, compileError)()
-]]):format(sourceRoot, sourceRoot .. "loader.lua"))
+]]):format(sourceRoot, sourceRoot .. "loader.lua")
+    )
 end
 
 local function loadHub()

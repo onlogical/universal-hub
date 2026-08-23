@@ -73,4 +73,16 @@ assert(assert(queuedChunk, queuedCompileError)() == "queued-request-ok")
 assert(httpGetCount == 0, "Queued bootstrap must use request instead of HttpGet")
 assert(#requests == 2 and requests[2]:find("/loader.lua", 1, true))
 
+environment.UniversalHubLoaderFlight = nil
+environment.UniversalHubConfig = {
+    SourceBaseUrl = "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/main/",
+}
+game.JobId = "stale-branch-config-job"
+local staleChunk, staleCompileError = loadstring(source, "stale-loader.lua")
+assert(assert(staleChunk, staleCompileError)() == "request-hub-ok")
+assert(
+    requests[3]:find("/refs/heads/beta/hub.lua", 1, true),
+    "Beta loader must not reuse a stale canonical branch from an earlier session"
+)
+
 print("request-transport-contracts-ok")

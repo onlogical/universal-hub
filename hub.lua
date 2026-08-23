@@ -8,10 +8,9 @@ type HttpGame = typeof(game) & {
     HttpGet: (self: typeof(game), url: string, noCache: boolean?) -> string,
 }
 local httpGame = game :: HttpGame
-local fetchSource = type(configuration.Fetch) == "function" and configuration.Fetch
-    or function(url)
-        return httpGame:HttpGet(url, true)
-    end
+local fetchSource = type(configuration.Fetch) == "function" and configuration.Fetch or function(url)
+    return httpGame:HttpGet(url, true)
+end
 
 local menuSource = fetchSource(sourceBaseUrl .. "ui/dist/Menu.lua")
 local previousSession = environment.UniversalHubSession
@@ -33,10 +32,9 @@ local limnChunk, limnError = loadstring(limnSource, "vendor/Limn.lua")
 local Limn = assert(limnChunk, limnError)()
 assert(type(Limn) == "table" and type(Limn.new) == "function", "Universal Hub requires Limn")
 
-local hydroxideCommit = "c0bcd94dd43b84eaf4f0a9f87daab86b701a3682"
-local hydroxideSourceBaseUrl = ("https://raw.githubusercontent.com/3xjn/hydroxide/%s/"):format(
-    hydroxideCommit
-)
+local hydroxideCommit = "38778f8a78762d48fba916cade6eb93399e7c404"
+local hydroxideSourceBaseUrl =
+    ("https://raw.githubusercontent.com/3xjn/hydroxide/%s/"):format(hydroxideCommit)
 local hydroxideSources = {}
 for _, path in ipairs({
     "modules/Helpers.lua",
@@ -84,10 +82,7 @@ local definitions = {}
 local seenDefinitions = {}
 for _, definitionPath in ipairs(catalog) do
     assert(validModulePath(definitionPath), "Invalid game definition path")
-    assert(
-        not seenDefinitions[definitionPath],
-        "Duplicate game definition path: " .. definitionPath
-    )
+    assert(not seenDefinitions[definitionPath], "Duplicate game definition path: " .. definitionPath)
     seenDefinitions[definitionPath] = true
 
     local definition = Compatibility.Compose(execute(definitionPath .. ".lua"))
@@ -117,29 +112,11 @@ end
 environment.UniversalHubConfig = configuration
 local importCache = {}
 local allowedImports = inventory:Allow(selectedDefinition.id)
-local nativeRequire = require
-local function resolveImport(path, importer)
-    if path:sub(1, 1) ~= "." then
-        return path
-    end
-    local resolved = {}
-    for segment in (importer:match("^(.*)/") or ""):gmatch("[^/]+") do
-        table.insert(resolved, segment)
-    end
-    for segment in path:gmatch("[^/]+") do
-        if segment == ".." then
-            assert(#resolved > 0, "Hub module path escapes source root: " .. path)
-            table.remove(resolved)
-        elseif segment ~= "." and segment ~= "" then
-            table.insert(resolved, segment)
-        end
-    end
-    return table.concat(resolved, "/")
-end
-local function import(path, importer)
-    path = resolveImport(path, importer or "")
+configuration.Import = function(path)
     assert(
-        type(path) == "string" and path:match("^[%w_/%-]+$") ~= nil and not path:find("//", 1, true),
+        type(path) == "string"
+            and path:match("^[%w_/%-]+$") ~= nil
+            and not path:find("//", 1, true),
         "Invalid hub module path"
     )
     assert(
@@ -150,25 +127,11 @@ local function import(path, importer)
         return importCache[path]
     end
     local file = path .. ".lua"
-    local chunk, compileError =
-        loadstring(assert(sources[file], "Unknown hub module: " .. path), file)
-    assert(chunk, compileError)
-    local chunkEnvironment = getfenv(chunk)
-    local moduleEnvironment = {
-        require = function(target)
-            if type(target) == "string" then
-                return import(target, path)
-            end
-            return nativeRequire(target)
-        end,
-    }
-    setmetatable(moduleEnvironment, { __index = chunkEnvironment })
-    setfenv(chunk, moduleEnvironment)
-    local result = chunk()
+    local chunk, compileError = loadstring(assert(sources[file], "Unknown hub module: " .. path), file)
+    local result = assert(chunk, compileError)()
     importCache[path] = result
     return result
 end
-configuration.Import = import
 local hydroxideCache = {}
 configuration.HydroxideImport = function(path)
     assert(
@@ -179,10 +142,8 @@ configuration.HydroxideImport = function(path)
         return hydroxideCache[path]
     end
     local file = path .. ".lua"
-    local chunk, compileError = loadstring(
-        assert(hydroxideSources[file], "Unknown Hydroxide source: " .. path),
-        "hydroxide/" .. file
-    )
+    local chunk, compileError =
+        loadstring(assert(hydroxideSources[file], "Unknown Hydroxide source: " .. path), "hydroxide/" .. file)
     local result = assert(chunk, compileError)()
     hydroxideCache[path] = assert(result, "Hydroxide helper module returned nil: " .. path)
     return hydroxideCache[path]

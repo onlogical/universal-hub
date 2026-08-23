@@ -25,8 +25,7 @@ local SECTION_COLOR = {
     security = Color3.fromRGB(255, 190, 92),
 }
 
-local MONTHS =
-    { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" }
+local MONTHS = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" }
 
 local function formatDate(value)
     local year, month, day = tostring(value or ""):match("^(%d+)%-(%d+)%-(%d+)$")
@@ -301,9 +300,7 @@ local function mountWhatsNew(parent, onAction)
             releases = notice.entries or {}
         end
         local fresh = notice.fresh or {}
-        selectedVersion = type(notice.current) == "string" and notice.current
-            or (releases[1] and releases[1].version)
-            or ""
+        selectedVersion = type(notice.current) == "string" and notice.current or (releases[1] and releases[1].version) or ""
         table.clear(railButtons)
         for _, child in ipairs(rail:GetChildren()) do
             if child:IsA("TextButton") then
@@ -391,8 +388,7 @@ local function mountWhatsNew(parent, onAction)
             headingLayout.Padding = UDim.new(0, 2)
             headingLayout.SortOrder = Enum.SortOrder.LayoutOrder
             headingLayout.Parent = headingBlock
-            local headingLine =
-                createText(headingBlock, "Title", 22, Enum.FontWeight.ExtraBold, TEXT)
+            local headingLine = createText(headingBlock, "Title", 22, Enum.FontWeight.ExtraBold, TEXT)
             headingLine.LayoutOrder = 1
             headingLine.Text = tostring(release.title or "")
             local meta = createText(headingBlock, "Meta", 12, Enum.FontWeight.Medium, DIM)
@@ -418,13 +414,7 @@ local function mountWhatsNew(parent, onAction)
                 blockLayout.Padding = UDim.new(0, 8)
                 blockLayout.SortOrder = Enum.SortOrder.LayoutOrder
                 blockLayout.Parent = block
-                local label = createText(
-                    block,
-                    "Label",
-                    14,
-                    Enum.FontWeight.ExtraBold,
-                    SECTION_COLOR[section.id] or MUTED
-                )
+                local label = createText(block, "Label", 14, Enum.FontWeight.ExtraBold, SECTION_COLOR[section.id] or MUTED)
                 label.LayoutOrder = 1
                 label.Text = tostring(section.label or "")
                 local items = Instance.new("Frame")
@@ -471,8 +461,7 @@ local function mountWhatsNew(parent, onAction)
                     clusterLayout.Parent = cluster
                     local nextOrder = 1
                     if type(group.tab) == "string" and group.tab ~= "" then
-                        local tabLabel =
-                            createText(cluster, "Tab", 12, Enum.FontWeight.ExtraBold, TEXT)
+                        local tabLabel = createText(cluster, "Tab", 12, Enum.FontWeight.ExtraBold, TEXT)
                         tabLabel.LayoutOrder = nextOrder
                         tabLabel.Text = group.tab
                         nextOrder += 1
@@ -570,19 +559,9 @@ end
 
 function HubMenu.new(context)
     assert(type(context) == "table", "HubMenu requires context")
-    assert(
-        type(context.prismMenu) == "table"
-            and type(context.prismMenu.mountUniversalHubMenu) == "function",
-        "HubMenu requires the compiled Prism artifact"
-    )
-    assert(
-        type(context.presentation) == "table" and type(context.presentation.mount) == "function",
-        "HubMenu requires a game presentation"
-    )
-    assert(
-        type(context.catalog) == "table" and type(context.catalog.new) == "function",
-        "HubMenu requires PresentationCatalog"
-    )
+    assert(type(context.prismMenu) == "table" and type(context.prismMenu.mountUniversalHubMenu) == "function", "HubMenu requires the compiled Prism artifact")
+    assert(type(context.presentation) == "table" and type(context.presentation.mount) == "function", "HubMenu requires a game presentation")
+    assert(type(context.catalog) == "table" and type(context.catalog.new) == "function", "HubMenu requires PresentationCatalog")
     assert(context.store, "HubMenu requires Store")
     assert(typeof(context.uiParent) == "Instance", "HubMenu requires a gethui() parent")
     restoreExecutorThread()
@@ -679,10 +658,9 @@ function HubMenu:previewObservations()
     if not published or not published.bounds or not published.bodyParts then
         return nil, nil
     end
-    self.previewPlayer = self.previewPlayer
-        or {
-            Name = game:GetService("Players").LocalPlayer.Name,
-        }
+    self.previewPlayer = self.previewPlayer or {
+        Name = game:GetService("Players").LocalPlayer.Name,
+    }
     local preview = activePreview(self.model) or {}
     return {
         {
@@ -696,8 +674,7 @@ function HubMenu:previewObservations()
             bounds = published.bounds,
             bodyParts = published.bodyParts,
         },
-    },
-        nil
+    }, nil
 end
 
 function HubMenu:isCaptured()
