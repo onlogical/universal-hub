@@ -52,6 +52,7 @@ function Adapter.new(context)
         assets = require(ReplicatedStorage.Directory.Assets),
         collectionService = CollectionService,
         eggCmds = EggCmds,
+        runService = RunService,
         workspace = Workspace,
     })
     local hitAura = HitAura.new({

@@ -1,18 +1,31 @@
 local HighlightEsp = {}
 HighlightEsp.__index = HighlightEsp
 
+local function updateLabelMap(labels, cameraPosition)
+    for _, entry in pairs(labels) do
+        local adornee = entry.billboard.Adornee
+        if adornee and adornee.Parent then
+            local distance = (cameraPosition - adornee.Position).Magnitude
+            local proximityBoost = math.clamp((80 - distance) / 20, 0, 4)
+            entry.label.TextSize = math.clamp(entry.baseSize + proximityBoost, 16, 24)
+        end
+    end
+end
+
 function HighlightEsp.new(options)
     assert(
         options
             and options.assets
             and options.collectionService
             and options.eggCmds
+            and options.runService
             and options.workspace
     )
-    return setmetatable({
+    local self = setmetatable({
         assets = options.assets,
         collectionService = options.collectionService,
         eggCmds = options.eggCmds,
+        runService = options.runService,
         workspace = options.workspace,
         createHighlight = options.createHighlight or function()
             return Instance.new("Highlight")
@@ -54,9 +67,28 @@ function HighlightEsp.new(options)
         trapConnections = {},
         minimumRarity = 1,
         minimumSize = 0.5,
+        labelElapsed = 0,
         eggsEnabled = false,
         trapsEnabled = false,
     }, HighlightEsp)
+    self.heartbeatConnection = options.runService.Heartbeat:Connect(function(elapsed)
+        self:_updateLabelSizes(elapsed)
+    end)
+    return self
+end
+
+function HighlightEsp:_updateLabelSizes(elapsed)
+    self.labelElapsed += elapsed or 0
+    if self.labelElapsed < 0.1 then
+        return
+    end
+    self.labelElapsed = 0
+    local camera = self.workspace.CurrentCamera
+    if camera then
+        local cameraPosition = camera.CFrame.Position
+        updateLabelMap(self.eggLabels, cameraPosition)
+        updateLabelMap(self.trapLabels, cameraPosition)
+    end
 end
 
 function HighlightEsp:_destroy(map, key, labels)
@@ -88,7 +120,7 @@ function HighlightEsp:_highlight(map, key, target, color, name)
     highlight.FillColor = color
 end
 
-function HighlightEsp:_label(map, key, target, text, color)
+function HighlightEsp:_label(map, key, target, text, color, textSize)
     local entry = map[key]
     if not entry then
         local billboard, label = self.createLabel(target)
@@ -98,8 +130,10 @@ function HighlightEsp:_label(map, key, target, text, color)
         entry = { billboard = billboard, label = label }
         map[key] = entry
     end
+    entry.baseSize = textSize or 14
     entry.label.Text = text
     entry.label.TextColor3 = color
+    entry.label.TextSize = math.max(entry.baseSize, 16)
 end
 
 function HighlightEsp:_refreshEgg(uid)
@@ -107,8 +141,7 @@ function HighlightEsp:_refreshEgg(uid)
         self:_destroy(self.eggHighlights, uid, self.eggLabels)
         return
     end
-    local folder = self.workspace:FindFirstChild("AreaEggSlotsClient")
-    local model = folder and folder:FindFirstChild(uid)
+    local model = self.workspace:FindFirstChild(uid, true)
     local record = self.eggCmds.GetAreaEggRecord(uid)
     local asset = record and self.assets.Directory[record.AssetCategory]
     local rarity = asset and asset.Rarity
@@ -131,19 +164,19 @@ function HighlightEsp:_refreshEgg(uid)
             tostring(rarity.DisplayName or rarity._id or "Egg"),
             record.AssetScale
         ),
-        rarity.Color
+        rarity.Color,
+        math.clamp(12 + record.AssetScale * 3, 14, 22)
     )
 end
 
 function HighlightEsp:_refreshEggs()
-    local folder = self.workspace:FindFirstChild("AreaEggSlotsClient")
-    if folder then
-        for _, model in ipairs(folder:GetChildren()) do
-            self:_refreshEgg(model.Name)
-        end
+    local present = {}
+    for _, record in ipairs(self.eggCmds.GetAreaEggSnapshot().Records) do
+        present[record.Uid] = true
+        self:_refreshEgg(record.Uid)
     end
     for uid in pairs(self.eggHighlights) do
-        if not folder or not folder:FindFirstChild(uid) then
+        if not present[uid] then
             self:_destroy(self.eggHighlights, uid, self.eggLabels)
         end
     end
@@ -156,21 +189,23 @@ function HighlightEsp:setEggsEnabled(enabled)
     end
     self.eggsEnabled = enabled
     if enabled then
-        local folder = self.workspace:FindFirstChild("AreaEggSlotsClient")
-        if folder then
-            table.insert(
-                self.eggConnections,
-                folder.ChildAdded:Connect(function(model)
-                    self:_refreshEgg(model.Name)
-                end)
-            )
-            table.insert(
-                self.eggConnections,
-                folder.ChildRemoved:Connect(function(model)
-                    self:_destroy(self.eggHighlights, model.Name, self.eggLabels)
-                end)
-            )
-        end
+        table.insert(
+            self.eggConnections,
+            self.workspace.DescendantAdded:Connect(function(instance)
+                if self.eggCmds.GetAreaEggRecord(instance.Name) then
+                    self:_refreshEgg(instance.Name)
+                end
+            end)
+        )
+        table.insert(
+            self.eggConnections,
+            self.workspace.DescendantRemoving:Connect(function(instance)
+                local highlight = self.eggHighlights[instance.Name]
+                if highlight and highlight.Adornee == instance then
+                    self:_destroy(self.eggHighlights, instance.Name, self.eggLabels)
+                end
+            end)
+        )
         table.insert(
             self.eggConnections,
             self.eggCmds.AreaEggUpdated:Connect(function(record)
@@ -263,6 +298,10 @@ end
 function HighlightEsp:stop()
     self:setEggsEnabled(false)
     self:setTrapsEnabled(false)
+    if self.heartbeatConnection then
+        pcall(self.heartbeatConnection.Disconnect, self.heartbeatConnection)
+        self.heartbeatConnection = nil
+    end
 end
 
 return HighlightEsp

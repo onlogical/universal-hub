@@ -541,23 +541,23 @@ assert(character:GetAttribute("IsTrapped") == false, "Anti Trap must clear the l
 antiTrap:setEnabled(false)
 assert(trap.CanTouch and hitbox.CanTouch, "Disabling Anti Trap must restore touch state")
 
-local eggAdded = signal()
-local eggRemoved = signal()
+local workspaceAdded = signal()
+local workspaceRemoving = signal()
+local espHeartbeat = signal()
 local eggModel = { Name = "egg-esp-1" }
-local eggFolder = {
-    ChildAdded = eggAdded,
-    ChildRemoved = eggRemoved,
-    GetChildren = function()
-        return { eggModel }
-    end,
-    FindFirstChild = function(_self, name)
-        return name == eggModel.Name and eggModel or nil
-    end,
-}
 local eggRecord = {
     AssetCategory = "Mythic Egg",
     AssetScale = 1.4,
+    State = "Dropped",
     Uid = eggModel.Name,
+}
+local espWorkspace = {
+    CurrentCamera = { CFrame = { Position = Vector3.zero } },
+    DescendantAdded = workspaceAdded,
+    DescendantRemoving = workspaceRemoving,
+    FindFirstChild = function(_self, name)
+        return name == eggModel.Name and eggModel or nil
+    end,
 }
 local espEggUpdated = signal()
 local createdHighlights = {}
@@ -577,14 +577,14 @@ local highlightEsp = HighlightEsp.new({
         GetAreaEggRecord = function(uid)
             return uid == eggRecord.Uid and eggRecord or nil
         end,
-    },
-    outlineColor = "white",
-    trapColor = "red",
-    workspace = {
-        FindFirstChild = function(_self, name)
-            return name == "AreaEggSlotsClient" and eggFolder or nil
+        GetAreaEggSnapshot = function()
+            return { Records = { eggRecord } }
         end,
     },
+    outlineColor = "white",
+    runService = { Heartbeat = espHeartbeat },
+    trapColor = "red",
+    workspace = espWorkspace,
     createHighlight = function()
         local highlight = { destroyed = false }
         function highlight:Destroy()
@@ -594,7 +594,10 @@ local highlightEsp = HighlightEsp.new({
         return highlight
     end,
     createLabel = function()
-        local billboard = { destroyed = false }
+        local billboard = {
+            Adornee = { Parent = true, Position = Vector3.new(0, 0, 10) },
+            destroyed = false,
+        }
         function billboard:Destroy()
             self.destroyed = true
         end
@@ -612,7 +615,12 @@ highlightEsp:setMinimumSize(1.5)
 assert(highlightEsp.eggHighlights[eggRecord.Uid] == nil, "Egg ESP must honor size filters")
 highlightEsp:setMinimumSize(1.4)
 highlightEsp:setTrapsEnabled(true)
-assert(highlightEsp.eggHighlights[eggRecord.Uid] and highlightEsp.trapHighlights[trap])
+espHeartbeat:Fire(0.1)
+assert(
+    eggRecord.State == "Dropped"
+        and highlightEsp.eggHighlights[eggRecord.Uid]
+        and highlightEsp.trapHighlights[trap]
+)
 assert(
     highlightEsp.eggHighlights[eggRecord.Uid].DepthMode == "always-on-top"
         and highlightEsp.trapHighlights[trap].FillColor == "red",
@@ -621,6 +629,7 @@ assert(
 assert(
     highlightEsp.eggLabels[eggRecord.Uid].label.Text:find("Mythic", 1, true)
         and highlightEsp.eggLabels[eggRecord.Uid].label.Text:find("1.4x", 1, true)
+        and highlightEsp.eggLabels[eggRecord.Uid].label.TextSize > 16.2
         and highlightEsp.trapLabels[trap].label.Text:find("trap-owner", 1, true),
     "ESP labels must show egg rarity, size, and trap ownership"
 )
