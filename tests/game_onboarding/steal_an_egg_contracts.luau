@@ -5,6 +5,7 @@ Vector3 = roblox.Vector3
 local Catalog = require("../../games/Catalog")
 local Adapter = require("../../games/stealanegg/Adapter")
 local AntiHit = require("../../games/stealanegg/features/AntiHit")
+local AutoOpenEggs = require("../../games/stealanegg/features/AutoOpenEggs")
 local Definition = require("../../games/stealanegg/Definition")
 local InstantPrompts = require("../../games/stealanegg/features/InstantPrompts")
 local Presentation = require("../../games/stealanegg/Presentation")
@@ -16,10 +17,13 @@ assert(Definition.id == "stealanegg")
 assert(Definition.manifest.gameIds[1] == 10563114921)
 assert(Definition.manifest.placeIds[1] == 107778070777162)
 assert(Definition.defaults.antiHit == false)
+assert(Definition.defaults.autoOpenEggs == false)
 assert(Definition.defaults.instantPrompts == false)
 assert(table.find(Definition.features.capabilities, "antiHit"))
+assert(table.find(Definition.features.capabilities, "autoOpenEggs"))
 assert(table.find(Definition.features.capabilities, "instantPrompts"))
 assert(table.find(Definition.sources, "games/stealanegg/features/AntiHit"))
+assert(table.find(Definition.sources, "games/stealanegg/features/AutoOpenEggs"))
 assert(table.find(Definition.sources, "games/stealanegg/features/InstantPrompts"))
 
 local presented = {}
@@ -29,7 +33,10 @@ Presentation.mount({
         presented[setting] = true
     end,
 })
-assert(presented.antiHit and presented.instantPrompts, "Presentation must expose both game tools")
+assert(
+    presented.antiHit and presented.autoOpenEggs and presented.instantPrompts,
+    "Presentation must expose every Steal An Egg tool"
+)
 
 local function signal()
     local callbacks = {}
@@ -49,6 +56,48 @@ local function signal()
         end,
     }
 end
+
+local autoOpenHeartbeat = signal()
+local readyEggs = { ready = true }
+local openedEggs = {}
+local autoOpenEggs = AutoOpenEggs.new({
+    eggCmds = {
+        GetOwnerRuntimeRecords = function(userId)
+            assert(userId == 42)
+            return {
+                inventory = {},
+                later = { Placement = {} },
+                ready = { Placement = {} },
+            }
+        end,
+        IsLocalEggReady = function(uid)
+            return readyEggs[uid] == true
+        end,
+    },
+    localPlayer = { UserId = 42 },
+    renderer = {
+        ActivateLocalEgg = function(uid)
+            table.insert(openedEggs, uid)
+            return true
+        end,
+    },
+    runService = { Heartbeat = autoOpenHeartbeat },
+    spawn = function(callback)
+        callback()
+    end,
+})
+autoOpenEggs:setEnabled(true)
+assert(#openedEggs == 1 and openedEggs[1] == "ready", "Ready placed eggs must open immediately")
+readyEggs.later = true
+autoOpenHeartbeat:Fire(0.25)
+assert(
+    #openedEggs == 2 and openedEggs[2] == "later",
+    "Newly ready eggs must open without retrying active hatches"
+)
+autoOpenEggs:setEnabled(false)
+autoOpenHeartbeat:Fire(1)
+assert(#openedEggs == 2, "Disabled Auto Open Eggs must stop scanning")
+autoOpenEggs:stop()
 
 local changed = signal()
 local prompt = {

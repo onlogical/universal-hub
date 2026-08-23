@@ -1,11 +1,13 @@
 return {
     defaults = {
         antiHit = false,
+        autoOpenEggs = false,
         instantPrompts = false,
     },
     features = {
         capabilities = {
             "antiHit",
+            "autoOpenEggs",
             "instantPrompts",
         },
         cosmetics = false,
@@ -24,6 +26,7 @@ return {
         "games/stealanegg/Adapter",
         "games/stealanegg/Presentation",
         "games/stealanegg/features/AntiHit",
+        "games/stealanegg/features/AutoOpenEggs",
         "games/stealanegg/features/InstantPrompts",
     },
 }
