@@ -84,7 +84,7 @@ function AntiHit:_tryReclaim(uid)
     if not record then
         return false, "missing-record"
     end
-    if record.State ~= "Dropped" then
+    if record.State ~= "Dropped" and record.State ~= "Slot" then
         return false, "state-" .. tostring(record.State)
     end
     return self:_requestReclaim(uid)
@@ -111,7 +111,7 @@ function AntiHit:_reclaim(uid)
                 self:_log("info", "reclaim succeeded", { attempts = attempts, uid = uid })
                 return
             end
-            self.wait()
+            self.wait(0.1)
         end
         if token == self.claimToken then
             self.reclaimUid = nil

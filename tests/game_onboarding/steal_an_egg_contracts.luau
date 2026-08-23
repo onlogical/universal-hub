@@ -476,12 +476,12 @@ record.State = "Carried"
 record.CarrierUserId = player.UserId
 carryChanged:Fire({ IsCarrying = true, Uid = record.Uid })
 carryFailures = 1
-record.State = "Dropped"
+record.State = "Slot"
 record.CarrierUserId = nil
 carryChanged:Fire({ IsCarrying = false, Uid = record.Uid })
 assert(#carryRequests == 0, "A transient executor invoke failure must not fake a reclaim")
 spawned[#spawned]()
-assert(#carryRequests == 1, "Anti Hit must retry after transient executor invoke failures")
+assert(#carryRequests == 1, "Anti Hit must reclaim eggs returned to a boss slot")
 
 table.clear(carryRequests)
 assert(eggCmds.RequestDropAreaEgg("Manual") == true and dropRequestCount == 1)
