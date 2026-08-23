@@ -71,14 +71,6 @@ environment.UniversalHubLoaderFlight = {
     owner = owner,
 }
 
-local previousSession = environment.UniversalHubSession
-if type(previousSession) == "table" and type(previousSession.stop) == "function" then
-    pcall(previousSession.stop, previousSession)
-    if environment.UniversalHubSession == previousSession then
-        environment.UniversalHubSession = nil
-    end
-end
-
 local function ownsFlight()
     local current = environment.UniversalHubLoaderFlight
     return type(current) == "table" and current.owner == owner

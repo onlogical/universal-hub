@@ -54,7 +54,7 @@ function HubView:destroy()
         return
     end
     self.destroyed = true
-    self.menu:destroy()
+    pcall(self.menu.destroy, self.menu)
     self.world:destroy()
 end
 

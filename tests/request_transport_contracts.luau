@@ -5,14 +5,6 @@ local environment = {}
 local queuedSource
 local requests = {}
 local httpGetCount = 0
-local stopCount = 0
-environment.UniversalHubSession = {
-    stop = function(self)
-        assert(self == environment.UniversalHubSession)
-        assert(#requests == 0, "The previous session must stop before remote bootstrap allocation")
-        stopCount += 1
-    end,
-}
 
 function getgenv()
     return environment
@@ -70,7 +62,6 @@ end
 
 local chunk, compileError = loadstring(source, "loader.lua")
 assert(assert(chunk, compileError)() == "request-hub-ok")
-assert(stopCount == 1 and environment.UniversalHubSession == nil)
 assert(httpGetCount == 0, "Remote loader must prefer request over HttpGet")
 assert(#requests == 1 and requests[1]:find("/hub.lua", 1, true))
 assert(type(queuedSource) == "string", "Teleport bootstrap must be queued")
