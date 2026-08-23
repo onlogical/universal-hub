@@ -64,14 +64,7 @@ function AntiHit:_slotKey(uid)
     return record and self.slotIdentity.BuildSlotKey(record.AreaId, record.NestId) or nil
 end
 
-function AntiHit:_tryReclaim(uid)
-    local record = self.eggCmds.GetAreaEggRecord(uid)
-    if not record then
-        return false, "missing-record"
-    end
-    if record.State ~= "Dropped" then
-        return false, "state-" .. tostring(record.State)
-    end
+function AntiHit:_requestReclaim(uid)
     local slotKey = self:_slotKey(uid)
     local succeeded, carried = pcall(self.eggCmds.RequestCarryAreaEgg, uid, slotKey)
     if not succeeded then
@@ -86,11 +79,22 @@ function AntiHit:_tryReclaim(uid)
     return true
 end
 
+function AntiHit:_tryReclaim(uid)
+    local record = self.eggCmds.GetAreaEggRecord(uid)
+    if not record then
+        return false, "missing-record"
+    end
+    if record.State ~= "Dropped" then
+        return false, "state-" .. tostring(record.State)
+    end
+    return self:_requestReclaim(uid)
+end
+
 function AntiHit:_reclaim(uid)
     self.reclaimUid = uid
     self.claimToken += 1
     local token = self.claimToken
-    local reclaimed, reason = self:_tryReclaim(uid)
+    local reclaimed, reason = self:_requestReclaim(uid)
     if reclaimed then
         self:_log("info", "reclaim immediate", { uid = uid })
         return

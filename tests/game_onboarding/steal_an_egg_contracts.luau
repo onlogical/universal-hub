@@ -451,7 +451,7 @@ record.State = "Carried"
 record.CarrierUserId = player.UserId
 carryChanged:Fire({ IsCarrying = true, Uid = record.Uid })
 carryChanged:Fire({ IsCarrying = false, Uid = record.Uid })
-assert(#carryRequests == 0, "Anti Hit must wait until the server marks the egg dropped")
+assert(#carryRequests == 1, "Anti Hit must reclaim before the dropped-state update arrives")
 record.State = "Dropped"
 record.CarrierUserId = nil
 eggUpdated:Fire(record)
