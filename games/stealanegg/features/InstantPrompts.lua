@@ -11,7 +11,7 @@ function InstantPrompts.new(root)
 end
 
 function InstantPrompts:_apply(instance)
-    if not instance:IsA("ProximityPrompt") then
+    if not self.enabled or not instance:IsA("ProximityPrompt") then
         return
     end
 
@@ -37,7 +37,7 @@ function InstantPrompts:_forget(instance)
     if not entry then
         return
     end
-    entry.connection:Disconnect()
+    pcall(entry.connection.Disconnect, entry.connection)
     self.entries[instance] = nil
 end
 
@@ -61,14 +61,22 @@ function InstantPrompts:setEnabled(enabled)
         return
     end
 
-    self.addedConnection:Disconnect()
-    self.removingConnection:Disconnect()
+    local addedConnection = self.addedConnection
+    local removingConnection = self.removingConnection
     self.addedConnection = nil
     self.removingConnection = nil
+    if addedConnection then
+        pcall(addedConnection.Disconnect, addedConnection)
+    end
+    if removingConnection then
+        pcall(removingConnection.Disconnect, removingConnection)
+    end
     for prompt, entry in pairs(self.entries) do
-        entry.connection:Disconnect()
+        pcall(entry.connection.Disconnect, entry.connection)
         if prompt.Parent then
-            prompt.HoldDuration = entry.original
+            pcall(function()
+                prompt.HoldDuration = entry.original
+            end)
         end
     end
     table.clear(self.entries)

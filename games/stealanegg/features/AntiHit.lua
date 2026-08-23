@@ -6,7 +6,7 @@ local KNOCKBACK_SUPPRESSION_SECONDS = 0.35
 
 local function disconnectAll(connections)
     for _, connection in ipairs(connections) do
-        connection:Disconnect()
+        pcall(connection.Disconnect, connection)
     end
     table.clear(connections)
 end
@@ -216,7 +216,9 @@ function AntiHit:setEnabled(enabled)
         table.insert(
             self.connections,
             self.eggCmds.AreaEggCarryStateChanged:Connect(function(state)
-                self:_onCarryState(state)
+                if self.enabled then
+                    self:_onCarryState(state)
+                end
             end)
         )
         table.insert(
@@ -244,9 +246,9 @@ function AntiHit:setEnabled(enabled)
     end
 
     self.claimToken += 1
+    self:_unbindDropRequest()
     disconnectAll(self.connections)
     disconnectAll(self.characterConnections)
-    self:_unbindDropRequest()
     self.carriedUid = nil
     self.intentionalDropUid = nil
     self.reclaimUid = nil

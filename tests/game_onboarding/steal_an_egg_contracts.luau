@@ -236,8 +236,11 @@ assert(prompt.HoldDuration == 0, "Enabling Instant Prompts must remove the curre
 prompt.HoldDuration = 4
 changed:Fire()
 assert(prompt.HoldDuration == 0, "Instant Prompts must reject game-side hold resets")
+feature.addedConnection = nil
 feature:setEnabled(false)
 assert(prompt.HoldDuration == 4, "Disabling Instant Prompts must restore the latest native hold")
+added:Fire(prompt)
+assert(prompt.HoldDuration == 4, "Queued prompt callbacks must stay inert after teardown")
 feature:stop()
 assert(prompt.HoldDuration == 4, "Instant Prompts stop must be idempotent")
 
@@ -430,6 +433,11 @@ record.CarrierUserId = nil
 carryChanged:Fire({ IsCarrying = false, Uid = record.Uid })
 eggUpdated:Fire(record)
 assert(#carryRequests == 0, "A user-requested drop must stop automatic pickup")
+table.insert(antiHit.connections, {
+    Disconnect = function()
+        error("simulated executor disconnect failure")
+    end,
+})
 antiHit:setEnabled(false)
 assert(eggCmds.RequestDropAreaEgg == nativeDropRequest, "Anti Hit must restore the native drop API")
 attributeChanged:Fire()
