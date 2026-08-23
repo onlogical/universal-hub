@@ -29,11 +29,15 @@ function Adapter.new(context)
     local CollectionService = game:GetService("CollectionService")
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local RunService = game:GetService("RunService")
+    local Constants = require(ReplicatedStorage.Library.Globals.Constants)
     local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
+    local Network = require(ReplicatedStorage.Library.Client.Network)
     local antiHit = AntiHit.new({
         eggCmds = EggCmds,
+        guardHitEndpoint = Constants.NETWORK_MAP.Guards.FOREST_HIT,
         localPlayer = LocalPlayer,
         logger = context.logger,
+        network = Network,
         ragdoll = require(ReplicatedStorage.Library.Modules.Ragdoll),
         runService = RunService,
         slotIdentity = require(ReplicatedStorage.Library.Util.AreaEggSlotIdentity),
@@ -60,9 +64,9 @@ function Adapter.new(context)
     })
     local hitAura = HitAura.new({
         eggCmds = EggCmds,
-        endpoint = require(ReplicatedStorage.Library.Globals.Constants).NETWORK_MAP.Bat.ACTIVATE,
+        endpoint = Constants.NETWORK_MAP.Bat.ACTIVATE,
         localPlayer = LocalPlayer,
-        network = require(ReplicatedStorage.Library.Client.Network),
+        network = Network,
         players = context.players,
         runService = RunService,
         workspace = Workspace,

@@ -358,6 +358,14 @@ local eggCmds = {
 }
 local nativeDropRequest = eggCmds.RequestDropAreaEgg
 local clearCount = 0
+local networkFireCount = 0
+local network = {
+    Fire = function()
+        networkFireCount += 1
+        return "sent"
+    end,
+}
+local nativeNetworkFire = network.Fire
 local spawned = {}
 local antiHitLogs = {}
 local antiHitLogger = {}
@@ -369,8 +377,10 @@ function antiHitLogger:warn(scope, message, fields)
 end
 local antiHit = AntiHit.new({
     eggCmds = eggCmds,
+    guardHitEndpoint = "guard-hit",
     localPlayer = player,
     logger = antiHitLogger,
+    network = network,
     ragdoll = {
         ClearClientRagdoll = function(receivedCharacter)
             assert(receivedCharacter == character)
@@ -410,6 +420,8 @@ assert(
     "Anti Hit must cancel knockback without stopping held-direction movement"
 )
 assert(rootPart.AssemblyAngularVelocity == Vector3.zero, "Anti Hit must cancel hit spin")
+assert(network.Fire("guard-hit", {}) == nil and networkFireCount == 0)
+assert(network.Fire("other", {}) == "sent" and networkFireCount == 1)
 rootPart.AssemblyLinearVelocity = Vector3.new(9, 0, 0)
 rootPart.AssemblyAngularVelocity = Vector3.new(0, 9, 0)
 now += 0.1
@@ -485,8 +497,9 @@ table.insert(antiHit.connections, {
 })
 antiHit:setEnabled(false)
 assert(eggCmds.RequestDropAreaEgg == nativeDropRequest, "Anti Hit must restore the native drop API")
+assert(network.Fire == nativeNetworkFire, "Anti Hit must restore the native network API")
 attributeChanged:Fire()
-assert(clearCount == 2, "Disabled Anti Hit must disconnect native state listeners")
+assert(clearCount == 3, "Disabled Anti Hit must disconnect native state listeners")
 antiHit:stop()
 local loggedMessages = {}
 for _, entry in ipairs(antiHitLogs) do
@@ -494,7 +507,8 @@ for _, entry in ipairs(antiHitLogs) do
     assert(entry.scope == "stealanegg.antiHit")
 end
 assert(
-    loggedMessages["hit detected"]
+    loggedMessages["guard hit blocked"]
+        and loggedMessages["hit detected"]
         and loggedMessages["carry lost"]
         and loggedMessages["reclaim succeeded"],
     "Anti Hit must emit persistent diagnostic milestones"

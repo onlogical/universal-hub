@@ -15,8 +15,10 @@ function AntiHit.new(options)
     assert(options and options.localPlayer and options.workspace and options.runService)
     assert(options.ragdoll and options.eggCmds and options.slotIdentity)
     return setmetatable({
+        guardHitEndpoint = options.guardHitEndpoint,
         localPlayer = options.localPlayer,
         logger = options.logger,
+        network = options.network,
         workspace = options.workspace,
         runService = options.runService,
         ragdoll = options.ragdoll,
@@ -191,6 +193,32 @@ function AntiHit:_onCarryState(state)
     end
 end
 
+function AntiHit:_bindGuardHit()
+    local network = self.network
+    local original = network and network.Fire
+    if type(original) ~= "function" or self.guardHitEndpoint == nil then
+        return
+    end
+    self.originalNetworkFire = original
+    self.networkFire = function(endpoint, ...)
+        if endpoint == self.guardHitEndpoint then
+            self:_log("info", "guard hit blocked", { carriedUid = self.carriedUid })
+            self:_onHit()
+            return nil
+        end
+        return original(endpoint, ...)
+    end
+    network.Fire = self.networkFire
+end
+
+function AntiHit:_unbindGuardHit()
+    if self.network and self.network.Fire == self.networkFire then
+        self.network.Fire = self.originalNetworkFire
+    end
+    self.networkFire = nil
+    self.originalNetworkFire = nil
+end
+
 function AntiHit:_bindDropRequest()
     local original = self.eggCmds.RequestDropAreaEgg
     if type(original) ~= "function" then
@@ -245,6 +273,7 @@ function AntiHit:setEnabled(enabled)
 
     if enabled then
         self:_syncCarried()
+        self:_bindGuardHit()
         self:_bindDropRequest()
         table.insert(
             self.connections,
@@ -287,6 +316,7 @@ function AntiHit:setEnabled(enabled)
     end
 
     self.claimToken += 1
+    self:_unbindGuardHit()
     self:_unbindDropRequest()
     disconnectAll(self.connections)
     disconnectAll(self.characterConnections)
