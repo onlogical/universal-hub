@@ -33,10 +33,6 @@ assert(not string.find(init, "ui/dist/Menu.lua", 1, true), "init.lua must not ha
 assert(not string.find(init, "configuration.NativeMenu", 1, true), "init.lua must not read configuration.NativeMenu")
 assert(string.find(init, "menuEnabled = false", 1, true), "Menu must stay disabled until the hub session exists")
 assert(
-    string.find(init, "overlay.menu.gui.Enabled = true", 1, true),
-    "Menu must enable only after Session.new succeeds"
-)
-assert(
     string.find(init, "if not current then", 1, true),
     "Option callbacks must not index a nil session"
 )
@@ -46,6 +42,17 @@ assert(
     string.find(hubMenu, "screenGui.Enabled = context.menuEnabled ~= false", 1, true),
     "HubMenu must honor menuEnabled before parenting the ScreenGui"
 )
+
+Color3 = { fromRGB = function() return {} end }
+local HubMenu = require("../ui/Menu")
+local identity
+setthreadidentity = function(value)
+    identity = value
+end
+local menu = setmetatable({ destroyed = false, gui = { Enabled = false } }, HubMenu)
+menu:setEnabled(true)
+assert(identity == 8 and menu.gui.Enabled == true, "Prism visibility must restore executor identity")
+setthreadidentity = nil
 
 assert(not fs.isFile("vendor/UniversalHubMenu.lua"), "vendor/UniversalHubMenu.lua must not remain")
 assert(not fs.isFile("scripts/build_native_menu.cjs"), "the missing native-ui build script must not be referenced as a live path")

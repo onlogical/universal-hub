@@ -633,6 +633,14 @@ function HubMenu.new(context)
     return self
 end
 
+function HubMenu:setEnabled(enabled)
+    if self.destroyed or not self.gui then
+        return
+    end
+    restoreExecutorThread()
+    self.gui.Enabled = enabled == true
+end
+
 local function activePreview(model)
     for _, page in ipairs(model and model.pages or {}) do
         if page.preview and page.preview.kind == "character" then

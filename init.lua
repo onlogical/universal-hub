@@ -573,9 +573,7 @@ if not sessionCreated then
     failStartup(sessionResult)
 end
 session = sessionResult
-if overlay and overlay.menu and overlay.menu.gui then
-    overlay.menu.gui.Enabled = true
-end
+overlay.menu:setEnabled(true)
 table.clear(startupCleanups)
 local finalized, finalError = pcall(function()
     session.adapterId = adapterDefinition.id
@@ -751,9 +749,7 @@ local finalized, finalError = pcall(function()
             return false
         end
         overlay:setMenu(nextMenu)
-        if nextMenu.gui then
-            nextMenu.gui.Enabled = true
-        end
+        nextMenu:setEnabled(true)
         reloadChangelog()
         print("[Universal Hub] UI reloaded")
         return true
