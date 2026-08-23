@@ -54,6 +54,7 @@ function Adapter.new(context)
         eggCmds = EggCmds,
         localPlayer = LocalPlayer,
         runService = RunService,
+        trapIcon = require(ReplicatedStorage.Directory.Gears._Index.Other.Trap).Icon,
         workspace = Workspace,
     })
     local hitAura = HitAura.new({

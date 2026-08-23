@@ -567,6 +567,7 @@ local highlightEsp = HighlightEsp.new({
     assets = {
         Directory = {
             [eggRecord.AssetCategory] = {
+                Icon = "egg-icon",
                 Rarity = { Color = "mythic", RarityNumber = 6 },
             },
         },
@@ -587,6 +588,7 @@ local highlightEsp = HighlightEsp.new({
     runService = { Heartbeat = espHeartbeat },
     safeTrapColor = "green",
     trapColor = "red",
+    trapIcon = "trap-icon",
     workspace = espWorkspace,
     createHighlight = function()
         local highlight = { destroyed = false }
@@ -605,8 +607,9 @@ local highlightEsp = HighlightEsp.new({
             self.destroyed = true
         end
         local label = {}
+        local icon = {}
         table.insert(createdLabels, label)
-        return billboard, label
+        return billboard, label, icon
     end,
 })
 highlightEsp:setMinimumRarity(7)
@@ -642,8 +645,10 @@ assert(
     highlightEsp.eggLabels[eggRecord.Uid].label.Text:find("Mythic", 1, true)
         and highlightEsp.eggLabels[eggRecord.Uid].label.Text:find("1.4x", 1, true)
         and highlightEsp.eggLabels[eggRecord.Uid].label.TextSize > 16.2
-        and highlightEsp.trapLabels[trap].label.Text:find("other-player", 1, true),
-    "ESP labels must show egg rarity, size, and trap ownership"
+        and highlightEsp.eggLabels[eggRecord.Uid].icon.Image == "egg-icon"
+        and highlightEsp.trapLabels[trap].label.Text:find("other-player", 1, true)
+        and highlightEsp.trapLabels[trap].icon.Image == "trap-icon",
+    "ESP labels must show native icons, egg rarity, size, and trap ownership"
 )
 highlightEsp:stop()
 assert(

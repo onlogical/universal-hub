@@ -50,17 +50,26 @@ function HighlightEsp.new(options)
             local label = Instance.new("TextLabel")
             label.BackgroundTransparency = 1
             label.Font = Enum.Font.GothamBold
-            label.Size = UDim2.fromScale(1, 1)
+            label.Position = UDim2.fromOffset(28, 0)
+            label.Size = UDim2.new(1, -28, 1, 0)
             label.TextScaled = false
             label.TextSize = 14
             label.TextStrokeTransparency = 0.25
             label.TextWrapped = true
+            label.TextXAlignment = Enum.TextXAlignment.Left
             label.Parent = billboard
-            return billboard, label
+            local icon = Instance.new("ImageLabel")
+            icon.BackgroundTransparency = 1
+            icon.Position = UDim2.fromOffset(2, 4)
+            icon.ScaleType = Enum.ScaleType.Fit
+            icon.Size = UDim2.fromOffset(22, 22)
+            icon.Parent = billboard
+            return billboard, label, icon
         end,
         depthMode = options.depthMode or Enum.HighlightDepthMode.AlwaysOnTop,
         outlineColor = options.outlineColor or Color3.new(1, 1, 1),
         trapColor = options.trapColor or Color3.fromRGB(255, 70, 70),
+        trapIcon = options.trapIcon,
         safeTrapColor = options.safeTrapColor or Color3.fromRGB(80, 220, 120),
         antiTrapEnabled = false,
         eggHighlights = {},
@@ -124,15 +133,19 @@ function HighlightEsp:_highlight(map, key, target, color, name)
     highlight.FillColor = color
 end
 
-function HighlightEsp:_label(map, key, target, text, color, textSize)
+function HighlightEsp:_label(map, key, target, text, color, textSize, iconImage)
     local entry = map[key]
     if not entry then
-        local billboard, label = self.createLabel(target)
+        local billboard, label, icon = self.createLabel(target)
         if not billboard then
             return
         end
-        entry = { billboard = billboard, label = label }
+        entry = { billboard = billboard, label = label, icon = icon }
         map[key] = entry
+    end
+    if entry.icon then
+        entry.icon.Image = iconImage or ""
+        entry.icon.Visible = iconImage ~= nil
     end
     entry.baseSize = textSize or 14
     entry.label.Text = text
@@ -169,7 +182,8 @@ function HighlightEsp:_refreshEgg(uid)
             record.AssetScale
         ),
         rarity.Color,
-        math.clamp(12 + record.AssetScale * 3, 14, 22)
+        math.clamp(12 + record.AssetScale * 3, 14, 22),
+        asset.Icon
     )
 end
 
@@ -256,7 +270,9 @@ function HighlightEsp:_refreshTrap(trap)
             trap,
             trap,
             owner and ("Trap\n%s"):format(tostring(owner)) or "Trap",
-            color
+            color,
+            nil,
+            self.trapIcon
         )
     else
         self:_destroy(self.trapHighlights, trap, self.trapLabels)
