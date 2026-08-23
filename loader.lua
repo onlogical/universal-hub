@@ -71,6 +71,14 @@ environment.UniversalHubLoaderFlight = {
     owner = owner,
 }
 
+local previousSession = environment.UniversalHubSession
+if type(previousSession) == "table" and type(previousSession.stop) == "function" then
+    pcall(previousSession.stop, previousSession)
+    if environment.UniversalHubSession == previousSession then
+        environment.UniversalHubSession = nil
+    end
+end
+
 local function ownsFlight()
     local current = environment.UniversalHubLoaderFlight
     return type(current) == "table" and current.owner == owner
@@ -98,9 +106,7 @@ local function queueNextPlace()
         return
     end
 
-    pcall(
-        queue,
-        ([[
+    queue(([[
 local environment = getgenv()
 local HttpService = game:GetService("HttpService")
 local synapse = environment.syn
@@ -125,8 +131,7 @@ assert(
 )
 local chunk, compileError = loadstring(response.Body, "universal-hub/loader.lua")
 return assert(chunk, compileError)()
-]]):format(sourceRoot, sourceRoot .. "loader.lua")
-    )
+]]):format(sourceRoot, sourceRoot .. "loader.lua"))
 end
 
 local function loadHub()

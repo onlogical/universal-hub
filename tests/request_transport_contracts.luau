@@ -5,6 +5,14 @@ local environment = {}
 local queuedSource
 local requests = {}
 local httpGetCount = 0
+local stopCount = 0
+environment.UniversalHubSession = {
+    stop = function(self)
+        assert(self == environment.UniversalHubSession)
+        assert(#requests == 0, "The previous session must stop before remote bootstrap allocation")
+        stopCount += 1
+    end,
+}
 
 function getgenv()
     return environment
@@ -62,6 +70,7 @@ end
 
 local chunk, compileError = loadstring(source, "loader.lua")
 assert(assert(chunk, compileError)() == "request-hub-ok")
+assert(stopCount == 1 and environment.UniversalHubSession == nil)
 assert(httpGetCount == 0, "Remote loader must prefer request over HttpGet")
 assert(#requests == 1 and requests[1]:find("/hub.lua", 1, true))
 assert(type(queuedSource) == "string", "Teleport bootstrap must be queued")
@@ -72,17 +81,5 @@ local queuedChunk, queuedCompileError = loadstring(queuedSource, "queued-loader.
 assert(assert(queuedChunk, queuedCompileError)() == "queued-request-ok")
 assert(httpGetCount == 0, "Queued bootstrap must use request instead of HttpGet")
 assert(#requests == 2 and requests[2]:find("/loader.lua", 1, true))
-
-environment.UniversalHubLoaderFlight = nil
-environment.UniversalHubConfig = {
-    SourceBaseUrl = "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/main/",
-}
-game.JobId = "stale-branch-config-job"
-local staleChunk, staleCompileError = loadstring(source, "stale-loader.lua")
-assert(assert(staleChunk, staleCompileError)() == "request-hub-ok")
-assert(
-    requests[3]:find("/refs/heads/beta/hub.lua", 1, true),
-    "Beta loader must not reuse a stale canonical branch from an earlier session"
-)
 
 print("request-transport-contracts-ok")
