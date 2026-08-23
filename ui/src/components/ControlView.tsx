@@ -253,6 +253,7 @@ export function ControlView({
         gap="md"
         layoutOrder={layoutOrder}
       >
+        {control.parent !== undefined && <uipadding PaddingLeft={new UDim(0, 12)} />}
         <Text
           text={control.label}
           size="md"
