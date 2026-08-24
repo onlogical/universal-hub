@@ -63,7 +63,10 @@ function AutoFarm:_publish(stage, detail, targetUid)
         table.insert(eggs, {
             uid = record.Uid,
             name = asset and asset.DisplayName or record.AssetCategory,
+            icon = asset and asset.Icon or "",
             rarity = rarityName,
+            rarityColor = asset and asset.Rarity and asset.Rarity.Color
+                or Color3.fromRGB(177, 188, 199),
             rarityNumber = rarityNumber,
             area = record.AreaId or "Unknown",
             size = tonumber(record.AssetScale) or 1,

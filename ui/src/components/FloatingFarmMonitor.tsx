@@ -5,12 +5,9 @@ const UserInputService = game.GetService("UserInputService");
 const Workspace = game.GetService("Workspace");
 const TweenService = game.GetService("TweenService");
 
-function rarityColor(rarity: string): Color3 {
-	if (rarity === "Eternal") return Color3.fromRGB(255, 118, 87);
-	if (rarity === "Secret") return Color3.fromRGB(255, 190, 92);
-	if (rarity === "Cosmic") return Color3.fromRGB(101, 157, 214);
-	if (rarity === "Mythic") return Color3.fromRGB(255, 111, 133);
-	return Color3.fromRGB(177, 188, 199);
+function readableRarity(color: Color3): Color3 {
+	const luminance = color.R * 0.299 + color.G * 0.587 + color.B * 0.114;
+	return luminance < 0.28 ? color.Lerp(Color3.fromRGB(244, 247, 249), 0.55) : color;
 }
 
 function Metric({ label, value }: { readonly label: string; readonly value: string }): React.ReactElement {
@@ -90,7 +87,7 @@ export function FloatingFarmMonitor({ monitor }: { readonly monitor?: FloatingMo
 
 	if (monitor?.visible !== true) return <></>;
 	const height = collapsed ? 52 : 390;
-	const canvasHeight = monitor.eggs.size() * 38;
+	const canvasHeight = monitor.eggs.size() * 44;
 	const beginDrag = (input: InputObject) => {
 		if (input.UserInputType !== Enum.UserInputType.MouseButton1 && input.UserInputType !== Enum.UserInputType.Touch) return;
 		const panel = panelRef.current;
@@ -142,15 +139,22 @@ export function FloatingFarmMonitor({ monitor }: { readonly monitor?: FloatingMo
 					<textlabel Position={UDim2.fromOffset(14, 110)} Size={new UDim2(1, -28, 0, 18)} BackgroundTransparency={1} Text={`SERVER EGGS  ·  ${monitor.eggs.size()}`} TextColor3={Color3.fromRGB(103, 115, 126)} TextSize={11} Font={Enum.Font.BuilderSansBold} TextXAlignment={Enum.TextXAlignment.Left} />
 					<scrollingframe Position={UDim2.fromOffset(8, 136)} Size={new UDim2(1, -16, 1, -144)} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollBarImageColor3={Color3.fromRGB(101, 101, 108)} CanvasSize={UDim2.fromOffset(0, canvasHeight)}>
 						<uilistlayout Padding={new UDim(0, 2)} SortOrder={Enum.SortOrder.LayoutOrder} />
-						{monitor.eggs.map((egg, index) => (
-							<frame key={egg.uid} LayoutOrder={index} Size={new UDim2(1, -4, 0, 36)} BackgroundColor3={egg.target ? Color3.fromRGB(38, 38, 42) : Color3.fromRGB(24, 24, 26)} BackgroundTransparency={egg.target ? 0 : 0.35} BorderSizePixel={0}>
-								<uicorner CornerRadius={new UDim(0, 5)} />
-								<frame Position={UDim2.fromOffset(8, 9)} Size={UDim2.fromOffset(3, 18)} BackgroundColor3={rarityColor(egg.rarity)} BorderSizePixel={0}><uicorner CornerRadius={new UDim(1, 0)} /></frame>
-								<textlabel Position={UDim2.fromOffset(18, 4)} Size={new UDim2(1, -112, 0, 16)} BackgroundTransparency={1} Text={egg.name} TextColor3={Color3.fromRGB(244, 247, 249)} TextSize={12} Font={Enum.Font.BuilderSansMedium} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} />
-								<textlabel Position={UDim2.fromOffset(18, 19)} Size={new UDim2(1, -112, 0, 13)} BackgroundTransparency={1} Text={`${egg.rarity} · ${egg.area}`} TextColor3={rarityColor(egg.rarity)} TextSize={10} Font={Enum.Font.BuilderSans} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} />
-								<textlabel Position={new UDim2(1, -88, 0, 4)} Size={UDim2.fromOffset(78, 28)} BackgroundTransparency={1} Text={`${string.format("%.2f", egg.size)}x  ${egg.state}`} TextColor3={Color3.fromRGB(177, 188, 199)} TextSize={10} Font={Enum.Font.BuilderSans} TextXAlignment={Enum.TextXAlignment.Right} />
-							</frame>
-						))}
+						{monitor.eggs.map((egg, index) => {
+							const rarity = readableRarity(egg.rarityColor);
+							const surface = Color3.fromRGB(24, 24, 26).Lerp(egg.rarityColor, egg.target ? 0.2 : 0.09);
+							return (
+								<frame key={egg.uid} LayoutOrder={index} Size={new UDim2(1, -4, 0, 42)} BackgroundColor3={surface} BackgroundTransparency={0.08} BorderSizePixel={0}>
+									<uicorner CornerRadius={new UDim(0, 6)} />
+									<uistroke Color={rarity} Transparency={egg.target ? 0.3 : 0.78} Thickness={1} />
+									<imagelabel Position={UDim2.fromOffset(7, 5)} Size={UDim2.fromOffset(32, 32)} BackgroundColor3={egg.rarityColor} BackgroundTransparency={0.82} BorderSizePixel={0} Image={egg.icon} ScaleType={Enum.ScaleType.Fit}>
+										<uicorner CornerRadius={new UDim(0, 5)} />
+									</imagelabel>
+									<textlabel Position={UDim2.fromOffset(47, 5)} Size={new UDim2(1, -141, 0, 16)} BackgroundTransparency={1} Text={egg.name} TextColor3={Color3.fromRGB(244, 247, 249)} TextSize={12} Font={Enum.Font.BuilderSansMedium} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} />
+									<textlabel Position={UDim2.fromOffset(47, 21)} Size={new UDim2(1, -141, 0, 14)} BackgroundTransparency={1} Text={`${egg.rarity} · ${egg.area}`} TextColor3={rarity} TextSize={10} Font={Enum.Font.BuilderSans} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} />
+									<textlabel Position={new UDim2(1, -88, 0, 7)} Size={UDim2.fromOffset(78, 28)} BackgroundTransparency={1} Text={`${string.format("%.2f", egg.size)}x  ${egg.state}`} TextColor3={Color3.fromRGB(177, 188, 199)} TextSize={10} Font={Enum.Font.BuilderSans} TextXAlignment={Enum.TextXAlignment.Right} />
+								</frame>
+							);
+						})}
 					</scrollingframe>
 				</frame>
 			)}

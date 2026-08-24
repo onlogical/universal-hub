@@ -194,7 +194,9 @@ export interface ActionNotificationModel {
 export interface FarmMonitorEgg {
 	readonly uid: string;
 	readonly name: string;
+	readonly icon: string;
 	readonly rarity: string;
+	readonly rarityColor: Color3;
 	readonly area: string;
 	readonly size: number;
 	readonly state: string;
