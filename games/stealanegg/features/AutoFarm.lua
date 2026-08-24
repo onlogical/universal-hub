@@ -16,6 +16,9 @@ function AutoFarm.new(options)
         localPlayer = options.localPlayer,
         logger = options.logger,
         navigator = options.navigator,
+        getResetSeconds = options.getResetSeconds or function()
+            return 0
+        end,
         plotCmds = options.plotCmds,
         players = options.players,
         publishStatus = options.publishStatus,
@@ -253,7 +256,28 @@ function AutoFarm:_waitForClaim(uid, token)
     return false
 end
 
+function AutoFarm:_waitForReset(token)
+    local remaining = math.max(0, tonumber(self.getResetSeconds()) or 0)
+    while self:_active(token) and remaining > 0 do
+        self:_publish(
+            "Reset in progress",
+            ("Eggs are refreshing globally. Waiting %d seconds before scanning or hopping."):format(
+                math.ceil(remaining)
+            )
+        )
+        self.wait(math.min(1, remaining))
+        remaining = math.max(0, tonumber(self.getResetSeconds()) or 0)
+    end
+    return self:_active(token)
+end
+
 function AutoFarm:_hop(token)
+    if (tonumber(self.getResetSeconds()) or 0) > 0 then
+        self.spawn(function()
+            self:_run(token)
+        end)
+        return
+    end
     self.serverHop:run(self.maxPing, function(succeeded)
         if succeeded or not self:_active(token) then
             return
@@ -269,13 +293,13 @@ function AutoFarm:_hop(token)
             end
         end)
     end, function()
-        return self:_active(token)
+        return self:_active(token) and (tonumber(self.getResetSeconds()) or 0) <= 0
     end, self.highPopulation and "high" or "low")
 end
 
 function AutoFarm:_run(token)
     self.wait(1.5)
-    if not self:_active(token) then
+    if not self:_active(token) or not self:_waitForReset(token) then
         return
     end
     pcall(self.eggCmds.RequestAreaEggSnapshot)

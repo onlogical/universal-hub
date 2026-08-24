@@ -69,6 +69,8 @@ function Adapter.new(context)
             gameRuntime.visitedServerIds
         )
     end
+    local AreaEggResetConfig = require(ReplicatedStorage.Directory.AreaEggResetCycle)
+    local AreaEggResetTimeUtil = require(ReplicatedStorage.Library.Util.AreaEggResetTimeUtil)
     local Assets = require(ReplicatedStorage.Directory.Assets)
     local Constants = require(ReplicatedStorage.Library.Globals.Constants)
     local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
@@ -144,6 +146,16 @@ function Adapter.new(context)
         localPlayer = LocalPlayer,
         runService = RunService,
     })
+    local resetPadding = AreaEggResetConfig.WallCountdownDelayAfterDayStartsSeconds
+        + AreaEggResetConfig.WallCountdownSeconds
+    local resetUntil = 0
+    local now = Workspace:GetServerTimeNow()
+    if Workspace:GetAttribute("Event_AdminAbuse") ~= true and AreaEggResetTimeUtil.IsNight(now) then
+        resetUntil = AreaEggResetTimeUtil.GetNextResetAt(now) + resetPadding
+    end
+    local function resetSecondsRemaining()
+        return math.max(0, resetUntil - Workspace:GetServerTimeNow())
+    end
     local serverHop = ServerHop.new({
         decode = function(source)
             return HttpService:JSONDecode(source)
@@ -159,7 +171,10 @@ function Adapter.new(context)
         teleportService = TeleportService,
         visitedServerIds = gameRuntime.visitedServerIds,
     })
-    local resetConnection = EggCmds.AreaEggResetStartCountdown:Connect(function()
+    local resetConnection = EggCmds.AreaEggResetStartCountdown:Connect(function(payload)
+        if type(payload) == "table" and type(payload.DayStartsAt) == "number" then
+            resetUntil = math.max(resetUntil, payload.DayStartsAt + resetPadding)
+        end
         table.clear(gameRuntime.visitedServerIds)
         gameRuntime.visitedServerIds[context.jobId] = true
         persistVisitedServers()
@@ -175,6 +190,7 @@ function Adapter.new(context)
         eggCmds = EggCmds,
         localPlayer = LocalPlayer,
         logger = context.logger,
+        getResetSeconds = resetSecondsRemaining,
         navigator = navigator,
         plotCmds = PlotCmds,
         players = context.players,

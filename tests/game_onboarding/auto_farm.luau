@@ -50,6 +50,7 @@ local queued
 local walks = {}
 local hops = 0
 local now = 0
+local resetSeconds = 2
 local farm
 local root = {
     IsA = function(_, className)
@@ -76,6 +77,7 @@ local eggCmds = {
 }
 local navigator = {
     walkTo = function(_, position)
+        assert(resetSeconds <= 0, "Auto Farm must wait for the reset phase to finish")
         root.Position = position
         table.insert(walks, position)
         if #walks == 2 then
@@ -94,6 +96,9 @@ farm = AutoFarm.new({
         },
     },
     eggCmds = eggCmds,
+    getResetSeconds = function()
+        return resetSeconds
+    end,
     localPlayer = {
         UserId = 42,
         Character = {
@@ -124,7 +129,9 @@ farm = AutoFarm.new({
     spawn = function(callback)
         queued = callback
     end,
-    wait = function() end,
+    wait = function(seconds)
+        resetSeconds = math.max(0, resetSeconds - (seconds or 0))
+    end,
     workspace = {
         GetServerTimeNow = function()
             now += 0.1
