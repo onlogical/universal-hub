@@ -140,8 +140,7 @@ export function FloatingFarmMonitor({ monitor }: { readonly monitor?: FloatingMo
 						<Metric icon="users" value={tostring(monitor.players)} />
 					</frame>
 					<frame Position={UDim2.fromOffset(14, 98)} Size={new UDim2(1, -28, 0, 1)} BackgroundColor3={Color3.fromRGB(48, 48, 52)} BorderSizePixel={0} />
-					<textlabel Position={UDim2.fromOffset(14, 110)} Size={new UDim2(1, -28, 0, 18)} BackgroundTransparency={1} Text={`SERVER EGGS  ·  ${monitor.eggs.size()}`} TextColor3={Color3.fromRGB(103, 115, 126)} TextSize={11} Font={Enum.Font.BuilderSansBold} TextXAlignment={Enum.TextXAlignment.Left} />
-					<scrollingframe Position={UDim2.fromOffset(8, 136)} Size={new UDim2(1, -16, 1, -144)} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollBarImageColor3={Color3.fromRGB(101, 101, 108)} CanvasSize={UDim2.fromOffset(0, canvasHeight)}>
+					<scrollingframe Position={UDim2.fromOffset(8, 110)} Size={new UDim2(1, -16, 1, -118)} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollBarImageColor3={Color3.fromRGB(101, 101, 108)} CanvasSize={UDim2.fromOffset(0, canvasHeight)}>
 						<uilistlayout Padding={new UDim(0, 2)} SortOrder={Enum.SortOrder.LayoutOrder} />
 						{monitor.eggs.map((egg, index) => {
 							const rarity = readableRarity(egg.rarityColor);
