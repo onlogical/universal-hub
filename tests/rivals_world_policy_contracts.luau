@@ -2,11 +2,15 @@ local WorldPolicy = require("../games/rivals/world/WorldPolicy")
 local Definition = require("../games/rivals/Definition")
 local fs = require("@lune/fs")
 
-assert(table.find(Definition.sources, "games/rivals/world/WorldPolicy") ~= nil,
-    "RIVALS must register its native world policy source")
+assert(
+    table.find(Definition.sources, "games/rivals/world/WorldPolicy") ~= nil,
+    "RIVALS must register its native world policy source"
+)
 local adapterSource = fs.readFile("games/rivals/Adapter.lua")
-assert(adapterSource:find('self.worldPolicy = WorldPolicy.new({', 1, true),
-    "RIVALS adapter must export the native world policy")
+assert(
+    adapterSource:find("self.worldPolicy = WorldPolicy.new({", 1, true),
+    "RIVALS adapter must export the native world policy"
+)
 
 local function signal()
     local callbacks = {}
@@ -128,7 +132,9 @@ local policy = WorldPolicy.new({
         return player.Name == "Enemy" and character ~= nil
     end,
     getPlayerTone = function(player, character)
-        if not character then return nil end
+        if not character then
+            return nil
+        end
         return player.Name == "Friend" and "team" or "enemy"
     end,
     getWeapon = function(player)
@@ -153,24 +159,32 @@ end)
 assert(next(added) == nil, "Range entities must not emit while native range state is false")
 assert(workspace.ChildAdded:Count() == 0 and workspace.ChildRemoved:Count() == 0)
 assert(folder.ChildAdded:Count() == 0 and folder.ChildRemoved:Count() == 0)
-assert(eligible.environmentChanged:Count() == 0 and eligible.humanoid.HealthChanged:Count() == 0,
-    "Inactive range policy must not retain folder or entity subscriptions")
+assert(
+    eligible.environmentChanged:Count() == 0 and eligible.humanoid.HealthChanged:Count() == 0,
+    "Inactive range policy must not retain folder or entity subscriptions"
+)
 
 fighter.Data.IsInShootingRange = true
 fighter._value_changed_events.IsInShootingRange:Fire(true)
 assert(added[eligible] ~= nil, "Activation must seed eligible existing range children")
 assert(workspace.ChildAdded:Count() == 1 and folder.ChildAdded:Count() == 1)
-assert(eligible.environmentChanged:Count() == 1 and eligible.humanoid.HealthChanged:Count() >= 1,
-    "Active range policy must attach native folder and entity subscriptions")
+assert(
+    eligible.environmentChanged:Count() == 1 and eligible.humanoid.HealthChanged:Count() >= 1,
+    "Active range policy must attach native folder and entity subscriptions"
+)
 assert(added[wrongEnvironment] == nil and added[dead] == nil)
 assert(added[eligible].humanoid == eligible.humanoid)
-assert(added[eligible].health == nil and added[eligible].maxHealth == nil,
-    "Policy descriptors must retain the native Humanoid instead of fabricating health")
+assert(
+    added[eligible].health == nil and added[eligible].maxHealth == nil,
+    "Policy descriptors must retain the native Humanoid instead of fabricating health"
+)
 
 eligible.humanoid.Health = 0
 eligible.humanoid.HealthChanged:Fire(0)
-assert(added[eligible] == nil and removed[eligible] == 1,
-    "Native Humanoid health changes must remove dead extras")
+assert(
+    added[eligible] == nil and removed[eligible] == 1,
+    "Native Humanoid health changes must remove dead extras"
+)
 eligible.humanoid.Health = 44
 eligible.humanoid.HealthChanged:Fire(44)
 assert(added[eligible] ~= nil, "Native health changes must restore a live range extra")
@@ -180,13 +194,17 @@ eligible.environmentChanged:Fire()
 assert(added[eligible] == nil, "Entity EnvironmentID changes must re-evaluate membership")
 fighter.Data.EnvironmentID = "PracticeB"
 fighter._value_changed_events.EnvironmentID:Fire("PracticeB")
-assert(added[eligible] ~= nil and added[wrongEnvironment] ~= nil,
-    "Fighter native EnvironmentID signals must resync all range membership")
+assert(
+    added[eligible] ~= nil and added[wrongEnvironment] ~= nil,
+    "Fighter native EnvironmentID signals must resync all range membership"
+)
 
 local late = dummy("Late", "PracticeB", math.huge)
 folder:add(late)
-assert(added[late] ~= nil and added[late].humanoid.Health == math.huge,
-    "ChildAdded must preserve native infinite health without substitution")
+assert(
+    added[late] ~= nil and added[late].humanoid.Health == math.huge,
+    "ChildAdded must preserve native infinite health without substitution"
+)
 folder:remove(late)
 assert(added[late] == nil, "ChildRemoved must remove emitted extras")
 
@@ -194,8 +212,10 @@ fighter.Data.IsInShootingRange = false
 fighter._value_changed_events.IsInShootingRange:Fire(false)
 assert(next(added) == nil, "Range deactivation must remove every emitted extra")
 assert(workspace.ChildAdded:Count() == 0 and folder.ChildAdded:Count() == 0)
-assert(eligible.environmentChanged:Count() == 0 and eligible.humanoid.HealthChanged:Count() == 0,
-    "Range deactivation must detach all feature-scoped native subscriptions")
+assert(
+    eligible.environmentChanged:Count() == 0 and eligible.humanoid.HealthChanged:Count() == 0,
+    "Range deactivation must detach all feature-scoped native subscriptions"
+)
 cleanup()
 cleanup()
 fighter.Data.IsInShootingRange = true

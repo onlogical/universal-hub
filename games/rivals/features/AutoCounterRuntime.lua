@@ -90,7 +90,8 @@ function AutoCounterRuntime:update(sample)
         self:_reset("disabled")
         return self:status()
     end
-    if sample.roundEligible ~= true
+    if
+        sample.roundEligible ~= true
         or sample.alive ~= true
         or sample.epoch == nil
         or typeof(sample.position) ~= "Vector3"
@@ -124,7 +125,8 @@ function AutoCounterRuntime:update(sample)
     local delta = sample.position - self.previousPosition
     if self.state == "idle" then
         local vertical = math.abs(delta.Y)
-        if vertical >= self.outboundMinimum
+        if
+            vertical >= self.outboundMinimum
             and vertical <= self.outboundMaximum
             and horizontalMagnitude(delta) <= self.maximumHorizontalDisplacement
         then

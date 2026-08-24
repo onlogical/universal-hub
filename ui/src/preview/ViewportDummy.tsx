@@ -1,5 +1,5 @@
 import React from "@rbxts/react";
-import { Text } from "@prism";
+import { Text } from "@prism/components/Text";
 import type { MenuPage } from "../contracts";
 
 const UserInputService = game.GetService("UserInputService");

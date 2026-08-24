@@ -47,27 +47,25 @@ local function options()
                 CFrame = CFrame.new(10, 20, 30),
             },
         },
-    }, controller
+    },
+        controller
 end
 
 local firstOptions = options()
 firstOptions.isEnabled = function()
     return true
 end
-local first = loadCopy("ShotPresentation.copy1")
-    .new(firstOptions)
+local first = loadCopy("ShotPresentation.copy1").new(firstOptions)
 first:refreshHook()
 local secondOptions, secondController = options()
 secondOptions.isEnabled = function()
     return true
 end
-local second = loadCopy("ShotPresentation.copy2")
-    .new(secondOptions)
+local second = loadCopy("ShotPresentation.copy2").new(secondOptions)
 second:refreshHook()
 
 assert(
-    first.preBinding ~= second.preBinding
-        and first.postBinding ~= second.postBinding,
+    first.preBinding ~= second.preBinding and first.postBinding ~= second.postBinding,
     "separate ShotPresentation module copies must bind unique render-step names"
 )
 assert(bindings[first.preBinding] and bindings[first.postBinding])

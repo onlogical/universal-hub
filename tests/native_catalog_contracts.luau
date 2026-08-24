@@ -59,11 +59,27 @@ end
 local catalog = Catalog.new({
     store = store,
     capabilities = {
-        "silentAim", "shotAim", "humanAim", "triggerBot", "triggerDelay",
-        "skipDeflect", "autoDeflect", "alwaysScoped",
-        "aimSmoothness", "headshotRate", "missRate", "boxes", "chams",
-        "chamsExcludeAccessories", "chamsPerPart", "names", "health", "weapon", "worldRenderer",
-        "showEnemies", "showTeammates",
+        "silentAim",
+        "shotAim",
+        "humanAim",
+        "triggerBot",
+        "triggerDelay",
+        "skipDeflect",
+        "autoDeflect",
+        "alwaysScoped",
+        "aimSmoothness",
+        "headshotRate",
+        "missRate",
+        "boxes",
+        "chams",
+        "chamsExcludeAccessories",
+        "chamsPerPart",
+        "names",
+        "health",
+        "weapon",
+        "worldRenderer",
+        "showEnemies",
+        "showTeammates",
         "teleportBehind",
     },
     setSetting = function(id, value)
@@ -187,7 +203,10 @@ model.onValueChange("espAlpha:enemy", 0.73, true)
 assert(settings.espEnemyOutlineColor == "#123456" and settings.espEnemyFillAlpha == 0.73)
 model = catalog:model(state)
 for _, page in ipairs(model.pages) do
-    if page.id == "Visuals" then visuals = page break end
+    if page.id == "Visuals" then
+        visuals = page
+        break
+    end
 end
 enemyPalette = visuals.preview.palette.relationships[1]
 assert(enemyPalette.targets[1].color == Color3.fromRGB(18, 52, 86))
@@ -204,7 +223,10 @@ end
 assert(rendererSection and rendererSection.label == "ESP")
 assert(rendererSection.treatment == "style", "ESP renderer selection must use style treatment")
 assert(rendererSection.controls[1].label == "Style" and rendererSection.controls[1].value == "limn")
-assert(visualSection and visualSection.treatment == "grid", "Visual toggle section must use grid treatment")
+assert(
+    visualSection and visualSection.treatment == "grid",
+    "Visual toggle section must use grid treatment"
+)
 assert(#visualSection.controls == 7, "Native-only Chams options must stay hidden in Classic mode")
 local classicControls = {}
 for _, control in ipairs(visualSection.controls) do
@@ -287,7 +309,10 @@ genericCatalog:option("esp", 2, "fillOutline", "Fill Outline", {
 local genericModel = genericCatalog:model(genericState)
 local genericVisuals
 for _, page in ipairs(genericModel.pages) do
-    if page.id == "Visuals" then genericVisuals = page break end
+    if page.id == "Visuals" then
+        genericVisuals = page
+        break
+    end
 end
 assert(
     genericVisuals.sections[1].id == "esp"

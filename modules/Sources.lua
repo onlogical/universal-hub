@@ -96,10 +96,7 @@ function Sources.new(options)
             not definitionById[definition.id],
             "Duplicate Sources definition id: " .. definition.id
         )
-        assert(
-            type(definition.sources) == "table",
-            "Sources definition sources must be a table"
-        )
+        assert(type(definition.sources) == "table", "Sources definition sources must be a table")
         definitionById[definition.id] = definition
         for _, path in ipairs(definition.sources) do
             assert(validPath(path), "Invalid game source path: " .. tostring(path))

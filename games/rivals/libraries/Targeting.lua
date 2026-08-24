@@ -11,9 +11,7 @@ local HEAD_RAY_HIT_NAMES = {
 }
 
 local function observationKey(observation)
-    return observation
-        and (observation.character or observation.player or observation.part)
-        or nil
+    return observation and (observation.character or observation.player or observation.part) or nil
 end
 
 function Targeting.closestObservation(observations, origin, options)
@@ -33,13 +31,15 @@ function Targeting.closestObservation(observations, origin, options)
             or type(screenDistance) == "number" and screenDistance <= options.maxScreenDistance
         local eligible = options.isEligible == nil
             or options.isEligible(observation.player, observation.character)
-        if position
+        if
+            position
             and insideFov
             and eligible
             and (options.includeBlocked or observation.visible)
         then
             local distance = (position - origin).Magnitude
-            if (options.maxDistance == nil or distance <= options.maxDistance)
+            if
+                (options.maxDistance == nil or distance <= options.maxDistance)
                 and distance < nearestDistance
             then
                 nearest = observation
@@ -69,14 +69,13 @@ end
 
 function Targeting.visibleHeadPoint(observation, origin, raycast)
     local character = observation and observation.character
-    local visualHead = character
-        and character.FindFirstChild
-        and character:FindFirstChild("Head")
+    local visualHead = character and character.FindFirstChild and character:FindFirstChild("Head")
     local head
     if character and character.FindFirstChild then
         for _, name in ipairs(HEAD_HITBOX_NAMES) do
             local candidate = character:FindFirstChild(name, true)
-            if candidate
+            if
+                candidate
                 and candidate.GetAttribute
                 and candidate:GetAttribute("IsCritical") == true
             then
@@ -101,18 +100,17 @@ function Targeting.visibleHeadPoint(observation, origin, raycast)
         end
         return instance.IsDescendantOf
             and instance:IsDescendantOf(character)
-            and (HEAD_RAY_HIT_NAMES[instance.Name] == true
-                or instance.GetAttribute
-                    and instance:GetAttribute("IsCritical") == true)
+            and (
+                HEAD_RAY_HIT_NAMES[instance.Name] == true
+                or instance.GetAttribute and instance:GetAttribute("IsCritical") == true
+            )
     end
 
     if exposed(head.Position) then
         return head.Position, head
     end
     for _, fraction in ipairs(HEAD_CROWN_FRACTIONS) do
-        local point = head.CFrame:PointToWorldSpace(
-            Vector3.new(0, head.Size.Y * fraction, 0)
-        )
+        local point = head.CFrame:PointToWorldSpace(Vector3.new(0, head.Size.Y * fraction, 0))
         if exposed(point) then
             return point, head
         end
@@ -137,10 +135,12 @@ function Targeting.visibleBodyPoint(observation, origin, raycast)
             local result = raycast(origin, position - origin)
             local instance = result and result.Instance
             local critical = instance
-                and (instance.Name == "Head"
-                    or instance.GetAttribute
-                        and instance:GetAttribute("IsCritical") == true)
-            if not instance
+                and (
+                    instance.Name == "Head"
+                    or instance.GetAttribute and instance:GetAttribute("IsCritical") == true
+                )
+            if
+                not instance
                 or instance == part
                 or not critical
                     and instance.IsDescendantOf
@@ -176,13 +176,9 @@ function Targeting.applyAimRates(observation, settings, random, options)
     end
 
     local character = observation.character
-    local head = character
-        and character.FindFirstChild
-        and character:FindFirstChild("Head")
+    local head = character and character.FindFirstChild and character:FindFirstChild("Head")
     local headshotRate = math.clamp(settings.headshotRate or 0, 0, 100)
-    local preferHead = head
-        and headshotRate > 0
-        and random() * 100 < headshotRate
+    local preferHead = head and headshotRate > 0 and random() * 100 < headshotRate
     if preferHead then
         local result = table.clone(observation)
         result.intentionalMiss = false
@@ -234,10 +230,7 @@ function Targeting.smoothRotation(current, target, smoothness, deltaTime)
     local speed = math.max(1.5, 30 * (1 - smoothness / 100))
     local alpha = 1 - math.exp(-speed * math.max(deltaTime or 1 / 60, 0))
     local yawDelta = (target.Y - current.Y + math.pi) % (math.pi * 2) - math.pi
-    return Vector2.new(
-        current.X + (target.X - current.X) * alpha,
-        current.Y + yawDelta * alpha
-    )
+    return Vector2.new(current.X + (target.X - current.X) * alpha, current.Y + yawDelta * alpha)
 end
 
 function Targeting.humanRotation(current, target, smoothness, deltaTime, state)

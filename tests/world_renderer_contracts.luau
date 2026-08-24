@@ -17,7 +17,8 @@ contains(compatibility, "showTeammates = false", "Teammate ESP must remain opt-i
 local world = read("ui/esp/WorldRenderer.lua")
 contains(world, 'settings.worldRenderer == "native"')
 contains(world, "self.highlights:render(observations)")
-contains(world, "self.drawing:render(remainder or {}", "Highlights mode must preserve Drawing-only observations")
+contains(world, "self.drawing:render({}, mousePosition, {})",
+    "Highlights mode must clear Drawing objects without creating Drawing-only observations")
 contains(world, "self.highlights:destroy()")
 contains(world, "self.drawing:destroy()")
 

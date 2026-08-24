@@ -40,15 +40,18 @@ assert(
 )
 
 assert(
-    CameraAim.shouldClearRetention({ silentAim = true, shotAim = true }, false, false, true, true) == false,
+    CameraAim.shouldClearRetention({ silentAim = true, shotAim = true }, false, false, true, true)
+        == false,
     "Silent Aim must keep the retained target while Camera Aim is gated off"
 )
 assert(
-    CameraAim.shouldClearRetention({ silentAim = false, shotAim = false }, false, false, true, true) == true,
+    CameraAim.shouldClearRetention({ silentAim = false, shotAim = false }, false, false, true, true)
+        == true,
     "Both aim features off must drop retention"
 )
 assert(
-    CameraAim.shouldClearRetention({ silentAim = true, shotAim = false }, false, true, true, true) == true,
+    CameraAim.shouldClearRetention({ silentAim = true, shotAim = false }, false, true, true, true)
+        == true,
     "Input capture outside task combat must drop retention"
 )
 
@@ -169,9 +172,7 @@ local silentAligned = cameraAim:align(context({
     settings = { silentAim = false, shotAim = true },
 }))
 assert(
-    silentAligned
-        and silentAligned.aimSettled == true
-        and #rotations == silentRotations,
+    silentAligned and silentAligned.aimSettled == true and #rotations == silentRotations,
     "The Silent Aim planning pass must not move the camera"
 )
 

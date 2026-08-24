@@ -28,8 +28,6 @@ function Movement.new(options)
         taskObstacleProbe = options.taskObstacleProbe,
         taskParkourProbe = options.taskParkourProbe,
         taskLineOfSightBlocked = options.taskLineOfSightBlocked,
-        wallPhase = options.wallPhase,
-        wallPhaseAt = 0,
         wallNoclipModel = nil,
         wallNoclipConnection = nil,
         wallNoclipParts = {},
@@ -85,7 +83,8 @@ function Movement:_clearInputs()
     for _, owned in ipairs(inputs) do
         self.controlsController:ToggleInput(owned.input, owned.previous)
     end
-    if self.movement
+    if
+        self.movement
         and self.movement.ownsSlide
         and self.mechanicsController.IsSliding
         and type(self.mechanicsController.StopSliding) == "function"
@@ -121,9 +120,7 @@ function Movement:_advance(fighter)
     elseif movement.phase == "sliding" then
         self:_toggleInput(Enum.KeyCode.Space, false)
         self:_toggleInput(Enum.KeyCode.C, true)
-        if self.mechanicsController.IsSliding == true
-            or readState("IsSlidingLocally", false)
-        then
+        if self.mechanicsController.IsSliding == true or readState("IsSlidingLocally", false) then
             movement.slideWaitFrames = 0
             movement.slideFrames += 1
             if movement.slideFrames >= 2 then
@@ -171,11 +168,8 @@ local function taskHazardRepulsion(position, hazards)
             or hazard.label == "THROWABLE"
             or hazard.label == "FIRE"
         if hazardous and typeof(hazardPosition) == "Vector3" then
-            local away = Vector3.new(
-                position.X - hazardPosition.X,
-                0,
-                position.Z - hazardPosition.Z
-            )
+            local away =
+                Vector3.new(position.X - hazardPosition.X, 0, position.Z - hazardPosition.Z)
             local hazardDistance = away.Magnitude
             local avoidanceRadius = hazard.label == "GRENADE" and 38
                 or hazard.label == "THROWABLE" and 34
@@ -183,9 +177,7 @@ local function taskHazardRepulsion(position, hazards)
                 or 28
             if hazardDistance > 0.01 and hazardDistance < avoidanceRadius then
                 nearby = true
-                repulsion += away.Unit
-                    * ((avoidanceRadius - hazardDistance) / avoidanceRadius)
-                    * 4
+                repulsion += away.Unit * ((avoidanceRadius - hazardDistance) / avoidanceRadius) * 4
             end
         end
     end
@@ -215,12 +207,13 @@ function Movement:stopTaskCombat()
     end
 end
 
-function Movement:updateTaskCombat(targetPosition, hazards, tactical)
+function Movement:updateTaskCombat(targetPosition, hazards, tactical, locomotionPlan)
     local fighter = self.getFighter()
     local entity = fighter and fighter.Entity
     local humanoid = entity and entity.Humanoid
     local root = entity and (entity.RootPart or entity.HumanoidRootPart)
-    if self.isTaskInputCaptured()
+    if
+        self.isTaskInputCaptured()
         or not self.isTaskActive()
         or not self.isInCombat()
         or not humanoid
@@ -231,7 +224,9 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
         self:stopTaskCombat()
         return
     end
-    if self.taskHumanoid and self.taskHumanoid ~= humanoid then self:stopTaskCombat() end
+    if self.taskHumanoid and self.taskHumanoid ~= humanoid then
+        self:stopTaskCombat()
+    end
     self.taskHumanoid = humanoid
     local repulsion, hazardNearby = taskHazardRepulsion(root.Position, hazards)
     if typeof(targetPosition) ~= "Vector3" then
@@ -242,9 +237,13 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
         humanoid:Move(repulsion.Magnitude > 0.01 and repulsion.Unit or Vector3.zero, false)
         return
     end
-    local offset = Vector3.new(targetPosition.X - root.Position.X, 0, targetPosition.Z - root.Position.Z)
+    local offset =
+        Vector3.new(targetPosition.X - root.Position.X, 0, targetPosition.Z - root.Position.Z)
     local distance = offset.Magnitude
-    if distance < 0.01 then humanoid:Move(Vector3.zero, false); return end
+    if distance < 0.01 then
+        humanoid:Move(Vector3.zero, false)
+        return
+    end
     local toward = offset.Unit
     local now = self.clock()
     local grounded = false
@@ -302,7 +301,15 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
     else
         direction = (toward * 0.35 + strafe).Unit
     end
-    if repulsion.Magnitude > 0.01 then direction = (direction + repulsion).Unit end
+    if repulsion.Magnitude > 0.01 then
+        direction = (direction + repulsion).Unit
+    end
+    if type(locomotionPlan) == "table" and typeof(locomotionPlan.direction) == "Vector3" then
+        direction = locomotionPlan.direction
+        if repulsion.Magnitude > 0.01 then
+            direction = (direction + repulsion).Unit
+        end
+    end
     local parkour
     if type(self.taskParkourProbe) == "function" then
         parkour = self.taskParkourProbe(root.Position, direction, fighter)
@@ -312,11 +319,8 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
     local performedParkour = false
     local commit = self.taskParkourCommit
     if commit then
-        local landingOffset = Vector3.new(
-            commit.landing.X - root.Position.X,
-            0,
-            commit.landing.Z - root.Position.Z
-        )
+        local landingOffset =
+            Vector3.new(commit.landing.X - root.Position.X, 0, commit.landing.Z - root.Position.Z)
         local landingDistance = landingOffset.Magnitude
         local elapsed = now - commit.startedAt
         if grounded and elapsed > 0.18 and landingDistance <= 3 then
@@ -331,13 +335,19 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
             direction = -toward
             self.taskParkourAt = now + 0.5
         else
-            if landingDistance > 0.05 then direction = landingOffset.Unit end
+            if landingDistance > 0.05 then
+                direction = landingOffset.Unit
+            end
             performedParkour = true
             local velocity = root.AssemblyLinearVelocity
             local descending = typeof(velocity) == "Vector3" and velocity.Y < -1
             local info = fighter.EquippedItem and fighter.EquippedItem.Info
-            if not grounded and descending and not commit.usedDoubleJump
-                and type(info) == "table" and type(info.MaxDoubleJumps) == "number"
+            if
+                not grounded
+                and descending
+                and not commit.usedDoubleJump
+                and type(info) == "table"
+                and type(info.MaxDoubleJumps) == "number"
                 and info.MaxDoubleJumps > 0
                 and type(self.mechanicsController.DoubleJumpRequest) == "function"
             then
@@ -347,11 +357,13 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
         end
     end
     if not commit and now >= self.taskParkourAt and type(parkour) == "table" then
-        if grounded and typeof(parkour.jumpLanding) == "Vector3"
+        if
+            grounded
+            and typeof(parkour.jumpLanding) == "Vector3"
             and parkour.jumpConfidence == 1
         then
             local jumpMethod = type(self.mechanicsController.JumpRequest) == "function"
-                and self.mechanicsController.JumpRequest
+                    and self.mechanicsController.JumpRequest
                 or self.mechanicsController.Jump
             if type(jumpMethod) == "function" then
                 local landingOffset = Vector3.new(
@@ -365,7 +377,9 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
                     startDistance = landingOffset.Magnitude,
                     usedDoubleJump = false,
                 }
-                if landingOffset.Magnitude > 0.05 then direction = landingOffset.Unit end
+                if landingOffset.Magnitude > 0.05 then
+                    direction = landingOffset.Unit
+                end
                 pcall(jumpMethod, self.mechanicsController)
                 performedParkour = true
                 commit = self.taskParkourCommit
@@ -404,7 +418,9 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
         obstacleBlocked = false
     elseif obstacleBlocked and not performedParkour then
         local side = strafe.Unit
-        if self.taskObstacleProbe(root.Position, side, fighter) then side = -side end
+        if self.taskObstacleProbe(root.Position, side, fighter) then
+            side = -side
+        end
         direction = side
     end
     if self.taskProgressAt == 0 then
@@ -413,11 +429,16 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
     elseif now - self.taskProgressAt >= 0.65 then
         local progressed = self.taskProgressPosition
             and (root.Position - self.taskProgressPosition).Magnitude >= 0.75
-        if not commit and grounded and not progressed and distance > 10 and now >= self.taskParkourAt
+        if
+            not commit
+            and grounded
+            and not progressed
+            and distance > 10
+            and now >= self.taskParkourAt
             and not (type(parkour) == "table" and not parkour.landing)
         then
             local recover = type(self.mechanicsController.JumpRequest) == "function"
-                and self.mechanicsController.JumpRequest
+                    and self.mechanicsController.JumpRequest
                 or self.mechanicsController.Jump
             if type(recover) == "function" then
                 pcall(recover, self.mechanicsController)
@@ -429,7 +450,8 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
         self.taskProgressAt = now
         self.taskProgressPosition = root.Position
     end
-    local shouldUseMobility = not performedParkour
+    local shouldUseMobility = (locomotionPlan == nil or locomotionPlan.slide == true)
+        and not performedParkour
         and not (type(parkour) == "table" and not parkour.landing)
         and not avoidSniperPeek
         and not lineBlocked
@@ -472,11 +494,7 @@ function Movement:updateTaskCombat(targetPosition, hazards, tactical)
         and type(self.mechanicsController.SetCrouching) == "function"
     if shouldCrouchSpam and now >= self.taskCrouchAt then
         self.taskCrouching = not self.taskCrouching
-        pcall(
-            self.mechanicsController.SetCrouching,
-            self.mechanicsController,
-            self.taskCrouching
-        )
+        pcall(self.mechanicsController.SetCrouching, self.mechanicsController, self.taskCrouching)
         self.taskCrouchAt = now + (self.taskCrouching and 0.22 or 0.38)
     elseif not shouldCrouchSpam and self.taskCrouching then
         pcall(self.mechanicsController.SetCrouching, self.mechanicsController, false)
@@ -522,40 +540,25 @@ function Movement:updateWallNoclip(settings)
                 descendant.CanCollide = false
             end
         end
-        for _, descendant in ipairs(model:GetDescendants()) do track(descendant) end
+        for _, descendant in ipairs(model:GetDescendants()) do
+            track(descendant)
+        end
         self.wallNoclipConnection = model.DescendantAdded:Connect(track)
     end
     -- RIVALS may restore character collision during its own physics update.
     -- Reassert only cached character parts; no descendant traversal occurs here.
     for part in pairs(self.wallNoclipParts) do
-        if part.Parent and part.CanCollide then part.CanCollide = false end
-    end
-end
-
-function Movement:updateWallPhase(settings)
-    settings = settings or self.getSettings()
-    if settings.wallPhase ~= true
-        or self.isInputCaptured()
-        or type(self.wallPhase) ~= "function"
-        or self.clock() < self.wallPhaseAt
-    then
-        return
-    end
-    local fighter = self.getFighter()
-    local entity = fighter and fighter.Entity
-    local humanoid = entity and entity.Humanoid
-    local direction = self.movementDirection and self.movementDirection()
-        or humanoid and humanoid.MoveDirection
-    if typeof(direction) ~= "Vector3" or direction.Magnitude < 0.1 then return end
-    if self.wallPhase(fighter, direction.Unit) == true then
-        self.wallPhaseAt = self.clock() + 0.35
+        if part.Parent and part.CanCollide then
+            part.CanCollide = false
+        end
     end
 end
 
 function Movement:updateInfiniteJump(settings)
     settings = settings or self.getSettings()
     local held = self.userInputService:IsKeyDown(Enum.KeyCode.Space) == true
-    if settings.infiniteJump == true
+    if
+        settings.infiniteJump == true
         and held
         and not self.infiniteJumpHeld
         and not self.isInputCaptured()
@@ -590,11 +593,7 @@ function Movement:update(settings)
             or self.userInputService:IsKeyDown(Enum.KeyCode.S)
             or self.userInputService:IsKeyDown(Enum.KeyCode.D)
     end
-    if not isMoving
-        or self.isInputCaptured()
-        or not self.isActive()
-        or not self.isInCombat()
-    then
+    if not isMoving or self.isInputCaptured() or not self.isActive() or not self.isInCombat() then
         self:stop()
         return
     end

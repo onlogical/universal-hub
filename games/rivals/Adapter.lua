@@ -1,49 +1,36 @@
-local function importDependency(path, relativePath)
-    if type(getgenv) == "function" then
-        local environment = getgenv()
-        local configuration = environment and environment.UniversalHubConfig
-        if configuration and type(configuration.Import) == "function" then
-            return configuration.Import(path)
-        end
-    end
-    return require(relativePath)
-end
-
-local Targeting = importDependency("games/rivals/libraries/Targeting", "./libraries/Targeting")
-local ProjectileAim = importDependency("games/rivals/libraries/ProjectileAim", "./libraries/ProjectileAim")
-local Session = importDependency("games/rivals/Session", "./Session")
-local CameraAim = importDependency("games/rivals/features/CameraAim", "./features/CameraAim")
-local SilentAim = importDependency("games/rivals/features/SilentAim", "./features/SilentAim")
-local TeleportBehind = importDependency("games/rivals/features/TeleportBehind", "./features/TeleportBehind")
-local TriggerBot = importDependency("games/rivals/features/TriggerBot", "./features/TriggerBot")
-local SkipBlocks = importDependency("games/rivals/features/SkipBlocks", "./features/SkipBlocks")
-local AutoDeflect = importDependency("games/rivals/features/AutoDeflect", "./features/AutoDeflect")
-local AutoCounter = importDependency("games/rivals/features/AutoCounter", "./features/AutoCounter")
-local NoScope = importDependency("games/rivals/features/NoScope", "./features/NoScope")
-local Pickup = importDependency("games/rivals/features/Pickup", "./features/Pickup")
-local TaskLoadout = importDependency("games/rivals/tasks/TaskLoadout", "./tasks/TaskLoadout")
-local HookRuntime = importDependency("games/rivals/libraries/HookRuntime", "./libraries/HookRuntime")
-local WeaponPolicy = importDependency("games/rivals/libraries/WeaponPolicy", "./libraries/WeaponPolicy")
-local ItemInput = importDependency("games/rivals/libraries/ItemInput", "./libraries/ItemInput")
-local Effects = importDependency("games/rivals/world/Effects", "./world/Effects")
-local Movement = importDependency("games/rivals/libraries/Movement", "./libraries/Movement")
-local TaskCamera = importDependency("games/rivals/tasks/TaskCamera", "./tasks/TaskCamera")
-local TaskWeaponSwap = importDependency("games/rivals/tasks/TaskWeaponSwap", "./tasks/TaskWeaponSwap")
-local TaskSkillRuntime = importDependency("games/rivals/tasks/TaskSkillRuntime", "./tasks/TaskSkillRuntime")
-local TaskCounterPolicy = importDependency("games/rivals/tasks/TaskCounterPolicy", "./tasks/TaskCounterPolicy")
-local TaskPolicy = importDependency("games/rivals/tasks/TaskPolicy", "./tasks/TaskPolicy")
-local CombatState = importDependency("games/rivals/libraries/CombatState", "./libraries/CombatState")
-local ModePolicy = importDependency("games/rivals/libraries/ModePolicy", "./libraries/ModePolicy")
-local GunGameRuntime = importDependency("games/rivals/features/GunGameRuntime", "./features/GunGameRuntime")
-local ObservationRuntime = importDependency("games/rivals/world/ObservationRuntime", "./world/ObservationRuntime")
-local AutoCounterRuntime = importDependency("games/rivals/features/AutoCounterRuntime", "./features/AutoCounterRuntime")
-local AutoCounterTestSimulator = importDependency(
-    "games/rivals/features/AutoCounterTestSimulator",
-    "./features/AutoCounterTestSimulator"
-)
-local WorldPolicy = importDependency("games/rivals/world/WorldPolicy", "./world/WorldPolicy")
-local TaskFarmRuntime = importDependency("games/rivals/tasks/TaskFarmRuntime", "./tasks/TaskFarmRuntime")
-local PracticeTaskDriver = importDependency("games/rivals/tasks/PracticeTaskDriver", "./tasks/PracticeTaskDriver")
+local Targeting = require("./libraries/Targeting")
+local ProjectileAim = require("./libraries/ProjectileAim")
+local Session = require("./Session")
+local CameraAim = require("./features/CameraAim")
+local SilentAim = require("./features/SilentAim")
+local TeleportBehind = require("./features/TeleportBehind")
+local TriggerBot = require("./features/TriggerBot")
+local SkipBlocks = require("./features/SkipBlocks")
+local AutoDeflect = require("./features/AutoDeflect")
+local AutoCounter = require("./features/AutoCounter")
+local NoScope = require("./features/NoScope")
+local Pickup = require("./features/Pickup")
+local RedLightSafety = require("./features/RedLightSafety")
+local TaskLoadout = require("./tasks/TaskLoadout")
+local HookRuntime = require("./libraries/HookRuntime")
+local WeaponPolicy = require("./libraries/WeaponPolicy")
+local ItemInput = require("./libraries/ItemInput")
+local Effects = require("./world/Effects")
+local Movement = require("./libraries/Movement")
+local TaskCamera = require("./tasks/TaskCamera")
+local TaskLocomotion = require("./tasks/TaskLocomotion")
+local TaskWeaponSwap = require("./tasks/TaskWeaponSwap")
+local TaskSkillRuntime = require("./tasks/TaskSkillRuntime")
+local TaskCounterPolicy = require("./tasks/TaskCounterPolicy")
+local TaskPolicy = require("./tasks/TaskPolicy")
+local CombatState = require("./libraries/CombatState")
+local ModePolicy = require("./libraries/ModePolicy")
+local GunGameRuntime = require("./features/GunGameRuntime")
+local ObservationRuntime = require("./world/ObservationRuntime")
+local AutoCounterRuntime = require("./features/AutoCounterRuntime")
+local WorldPolicy = require("./world/WorldPolicy")
+local TaskFarmRuntime = require("./tasks/TaskFarmRuntime")
+local PracticeTaskDriver = require("./tasks/PracticeTaskDriver")
 
 local Rivals = {}
 
@@ -89,7 +76,7 @@ function Rivals.capabilityContext(context)
     end
     return {
         isGunGame = duelController ~= nil
-            and ModePolicy.controllerIsGunGame(duelController, player)
+                and ModePolicy.controllerIsGunGame(duelController, player)
             or false,
     }
 end
@@ -104,7 +91,12 @@ function Rivals.capabilitiesFor(context, declaredCapabilities)
     local capabilities = {}
     for _, capability in ipairs(declaredCapabilities or {}) do
         local available = capability ~= "autoPickup" or autoPickupAvailable
-        if capability == "shotAim" or capability == "alwaysScoped" or capability == "skipDeflect" then
+        if
+            capability == "shotAim"
+            or capability == "alwaysScoped"
+            or capability == "skipDeflect"
+            or capability == "redLightSafety"
+        then
             available = available and hookFeaturesAvailable
         end
         if available then
@@ -155,14 +147,14 @@ Rivals.pickupType = GunGameRuntime.pickupType
 Rivals.shouldCollectPickup = GunGameRuntime.shouldCollect
 
 function Rivals.isTargetable(localPlayer, player, character, fighter, isGunGame)
-    if not Rivals.isOpponent(localPlayer, player, character)
+    if
+        not Rivals.isOpponent(localPlayer, player, character)
         or character:FindFirstChildOfClass("ForceField") ~= nil
     then
         return false
     end
 
-    return isGunGame ~= true
-        or not Rivals.entityIsInvincible(fighter and fighter.Entity)
+    return isGunGame ~= true or not Rivals.entityIsInvincible(fighter and fighter.Entity)
 end
 
 function Rivals.new(context)
@@ -174,6 +166,8 @@ function Rivals.new(context)
     local Players = game:GetService("Players")
     local RunService = game:GetService("RunService")
     local UserInputService = game:GetService("UserInputService")
+    local ContextActionService = context.contextActionService
+        or game:GetService("ContextActionService")
     local Workspace = game:GetService("Workspace")
     local Lighting = context.lighting or game:GetService("Lighting")
     local CollectionService = context.collectionService or game:GetService("CollectionService")
@@ -211,10 +205,7 @@ function Rivals.new(context)
             RunService.Heartbeat:Wait()
             loadingScreen = playerGui:FindFirstChild("LoadingScreen")
         end
-        while loadingScreen
-            and loadingScreen.Parent ~= nil
-            and loadingScreen.Enabled == true
-        do
+        while loadingScreen and loadingScreen.Parent ~= nil and loadingScreen.Enabled == true do
             RunService.Heartbeat:Wait()
         end
         RunService.Heartbeat:Wait()
@@ -232,20 +223,25 @@ function Rivals.new(context)
     if context.taskFarmRuntime == nil then
         local ReplicatedStorage = game:GetService("ReplicatedStorage")
         local modules = ReplicatedStorage:WaitForChild("Modules")
-        PlayerDataController = context.playerDataController or loadModule(playerDataControllerModule)
-        MatchmakingController = context.matchmakingController or loadModule(matchmakingControllerModule)
-        ShootingRangeController = context.shootingRangeController or loadModule(shootingRangeControllerModule)
+        PlayerDataController = context.playerDataController
+            or loadModule(playerDataControllerModule)
+        MatchmakingController = context.matchmakingController
+            or loadModule(matchmakingControllerModule)
+        ShootingRangeController = context.shootingRangeController
+            or loadModule(shootingRangeControllerModule)
         TaskLibrary = context.taskLibrary or loadModule(modules:WaitForChild("TaskLibrary"))
         RivalsConstants = context.rivalsConstants or loadModule(modules:WaitForChild("CONSTANTS"))
     end
     local function isGunGame()
         return ModePolicy.controllerIsGunGame(DuelController, LocalPlayer)
     end
-    local PickWeaponsPage = context.pickWeaponsPage or loadModule(
-        LocalPlayer.PlayerScripts:WaitForChild("Modules")
-            :WaitForChild("Pages")
-            :WaitForChild("PickWeapons")
-    )
+    local PickWeaponsPage = context.pickWeaponsPage
+        or loadModule(
+            LocalPlayer.PlayerScripts
+                :WaitForChild("Modules")
+                :WaitForChild("Pages")
+                :WaitForChild("PickWeapons")
+        )
     assert(
         PickWeaponsPage and type(PickWeaponsPage.IsOpen) == "function",
         "RIVALS adapter requires the live Pick Weapons page"
@@ -253,14 +249,14 @@ function Rivals.new(context)
     local spawn = context.spawn or task.spawn
     local targeting = context.oh.targeting
     local store = context.store
-    if context.teleportBootstrap ~= true
-        and store:Get().settings.taskAutomationPaused ~= true
-    then
+    if context.teleportBootstrap ~= true and store:Get().settings.taskAutomationPaused ~= true then
         local state = store:Get()
         local settings = table.clone(state.settings)
         settings.taskAutomationPaused = true
         store:Patch({ settings = settings })
-        if context.settingsChanged then context.settingsChanged(settings) end
+        if context.settingsChanged then
+            context.settingsChanged(settings)
+        end
     end
     local lastTaskPauseSetting = store:Get().settings.taskAutomationPaused == true
     local session = Session.new()
@@ -288,9 +284,10 @@ function Rivals.new(context)
     local taskEmergencyConnection
     local autoCounterInFlight = false
     local self = { autoCounterDebug = {}, taskDebug = {} }
-    local getNetworkPing = context.getNetworkPing or function()
-        return LocalPlayer:GetNetworkPing()
-    end
+    local getNetworkPing = context.getNetworkPing
+        or function()
+            return LocalPlayer:GetNetworkPing()
+        end
     local random = context.random or math.random
     local effects = Effects.new({
         clock = clock,
@@ -302,31 +299,32 @@ function Rivals.new(context)
         projectileAim = ProjectileAim,
         workspace = Workspace,
     })
-    local observeThrowables = context.observeThrowables or function(camera, environmentID)
-        return effects:observeThrowables(camera, environmentID)
-    end
+    local observeThrowables = context.observeThrowables
+        or function(camera, environmentID)
+            return effects:observeThrowables(camera, environmentID)
+        end
 
-    local function dispatchItemInput(action)
-        return ItemInput.dispatch(FighterController.LocalFighter, action)
-    end
+    local combatInput = ItemInput.new(function()
+        return FighterController.LocalFighter
+    end)
     local function startShooting()
-        dispatchItemInput(ItemInput.START_SHOOTING)
+        return combatInput:fire()
     end
     local function finishShooting()
-        dispatchItemInput(ItemInput.FINISH_SHOOTING)
+        return combatInput:releaseFire()
     end
     local function startAiming()
-        dispatchItemInput(ItemInput.START_AIMING)
+        return combatInput:aim()
     end
     local function finishAiming()
-        dispatchItemInput(ItemInput.FINISH_AIMING)
+        return combatInput:releaseAim()
     end
 
     local function releaseFire()
         if not trigger.fireHeld then
             return
         end
-        finishShooting()
+        combatInput:releaseFire()
         trigger.fireHeld = false
         trigger.fireItem = nil
         trigger.fireAmmo = nil
@@ -364,7 +362,8 @@ function Rivals.new(context)
             return FighterController.LocalFighter
         end
         if type(FighterController.GetFighter) == "function" then
-            local succeeded, fighter = pcall(FighterController.GetFighter, FighterController, player)
+            local succeeded, fighter =
+                pcall(FighterController.GetFighter, FighterController, player)
             if succeeded and fighter ~= nil then
                 return fighter
             end
@@ -513,7 +512,8 @@ function Rivals.new(context)
                         gameplayUtility = false
                     end
                 end
-                if type(gameplayUtility) == "table"
+                if
+                    type(gameplayUtility) == "table"
                     and type(gameplayUtility.IsWithinOOBPart) == "function"
                 then
                     return gameplayUtility:IsWithinOOBPart(position) ~= nil
@@ -557,11 +557,6 @@ function Rivals.new(context)
     end
 
     local autoCounterRuntime = AutoCounterRuntime.new({ clock = clock })
-    local autoCounterTestSimulator = AutoCounterTestSimulator.new({
-        clock = clock,
-        configuration = context.rivalsAutoCounterTest,
-        getRoot = localFighterRoot,
-    })
 
     local function localFighterIsCrouching(fighter)
         local isCrouching = fighter and fighter.IsCrouching
@@ -594,66 +589,48 @@ function Rivals.new(context)
         end,
         mechanicsController = MechanicsController,
         movementDirection = context.movementDirection,
-        wallPhase = function(fighter, direction)
-            local entity = fighter and fighter.Entity
-            local model = entity and entity.Model
-            local root = entity and (entity.RootPart or entity.HumanoidRootPart)
-            if not model or typeof(model) ~= "Instance" or not root
-                or typeof(root.Position) ~= "Vector3" or not Workspace.Raycast
-            then
-                return false
-            end
-            local exclude = RaycastParams.new()
-            exclude.FilterType = Enum.RaycastFilterType.Exclude
-            exclude.FilterDescendantsInstances = { model }
-            exclude.IgnoreWater = true
-            local origin = root.Position + Vector3.new(0, 0.5, 0)
-            local front = Workspace:Raycast(origin, direction * 3.5, exclude)
-            if not front or not front.Instance:IsA("BasePart") or front.Instance.CanCollide ~= true
-                or math.abs(front.Normal.Y) > 0.45
-            then
-                return false
-            end
-            local include = RaycastParams.new()
-            include.FilterType = Enum.RaycastFilterType.Include
-            include.FilterDescendantsInstances = { front.Instance }
-            include.IgnoreWater = true
-            local back = Workspace:Raycast(front.Position + direction * 12, -direction * 12.2, include)
-            if not back then return false end
-            local thickness = (back.Position - front.Position):Dot(direction)
-            if thickness < 0.05 or thickness > 10 then return false end
-            local delta = direction * (thickness + 2.25)
-            model:PivotTo(model:GetPivot() + delta)
-            return true
-        end,
         taskObstacleProbe = function(origin, direction)
-            if not Workspace.Raycast or typeof(origin) ~= "Vector3" or typeof(direction) ~= "Vector3" then
+            if
+                not Workspace.Raycast
+                or typeof(origin) ~= "Vector3"
+                or typeof(direction) ~= "Vector3"
+            then
                 return false
             end
             local params
             if RaycastParams and type(RaycastParams.new) == "function" then
                 params = RaycastParams.new()
                 params.FilterType = Enum.RaycastFilterType.Exclude
-                params.FilterDescendantsInstances = LocalPlayer.Character and { LocalPlayer.Character } or {}
+                params.FilterDescendantsInstances = LocalPlayer.Character
+                        and { LocalPlayer.Character }
+                    or {}
                 params.IgnoreWater = true
             end
-            local result = Workspace:Raycast(origin + Vector3.new(0, 2, 0), direction.Unit * 6, params)
+            local result =
+                Workspace:Raycast(origin + Vector3.new(0, 2, 0), direction.Unit * 6, params)
             return result ~= nil
         end,
         taskParkourProbe = function(origin, direction)
-            if not Workspace.Raycast or typeof(origin) ~= "Vector3" or typeof(direction) ~= "Vector3" then
+            if
+                not Workspace.Raycast
+                or typeof(origin) ~= "Vector3"
+                or typeof(direction) ~= "Vector3"
+            then
                 return nil
             end
             local params
             if RaycastParams and type(RaycastParams.new) == "function" then
                 params = RaycastParams.new()
                 params.FilterType = Enum.RaycastFilterType.Exclude
-                params.FilterDescendantsInstances = LocalPlayer.Character and { LocalPlayer.Character } or {}
+                params.FilterDescendantsInstances = LocalPlayer.Character
+                        and { LocalPlayer.Character }
+                    or {}
                 params.IgnoreWater = true
             end
             local unit = direction.Magnitude > 0.01 and direction.Unit or Vector3.zero
             local function blocked(height, length)
-                return Workspace:Raycast(origin + Vector3.new(0, height, 0), unit * length, params) ~= nil
+                return Workspace:Raycast(origin + Vector3.new(0, height, 0), unit * length, params)
+                    ~= nil
             end
             local function groundAt(distance)
                 local castOrigin = origin + unit * distance + Vector3.new(0, 5, 0)
@@ -682,7 +659,9 @@ function Rivals.new(context)
                 local maxReach = math.clamp(walkSpeed * (2 * jumpPower / gravity) * 0.82, 6, 11)
                 local lateral = Vector3.new(-unit.Z, 0, unit.X)
                 local function landingPatch(distance, center)
-                    if not center then return false end
+                    if not center then
+                        return false
+                    end
                     for _, offset in ipairs({
                         lateral * 1.1,
                         lateral * -1.1,
@@ -691,7 +670,9 @@ function Rivals.new(context)
                     }) do
                         local castOrigin = origin + unit * distance + offset + Vector3.new(0, 5, 0)
                         local patch = Workspace:Raycast(castOrigin, Vector3.new(0, -13, 0), params)
-                        if not patch or patch.Normal.Y < 0.55
+                        if
+                            not patch
+                            or patch.Normal.Y < 0.55
                             or math.abs(patch.Position.Y - center.Position.Y) > 0.75
                         then
                             return false
@@ -700,10 +681,13 @@ function Rivals.new(context)
                     return true
                 end
                 for _, distance in ipairs({ 6, 8, 10 }) do
-                    if distance > maxReach then break end
+                    if distance > maxReach then
+                        break
+                    end
                     local candidate = groundAt(distance)
                     local overshoot = groundAt(distance + 2)
-                    local verticalDelta = candidate and candidate.Position.Y - currentGround.Position.Y
+                    local verticalDelta = candidate
+                        and candidate.Position.Y - currentGround.Position.Y
                     local clearTrajectory = not blocked(2.5, distance - 1)
                         and not blocked(4.5, distance - 1)
                     if Workspace.Blockcast and clearTrajectory then
@@ -715,14 +699,21 @@ function Rivals.new(context)
                             params
                         ) == nil
                     end
-                    local headClear = candidate and Workspace:Raycast(
-                        candidate.Position + Vector3.new(0, 0.35, 0),
-                        Vector3.new(0, 5.5, 0),
-                        params
-                    ) == nil
-                    if candidate and overshoot and clearTrajectory and headClear
+                    local headClear = candidate
+                        and Workspace:Raycast(
+                                candidate.Position + Vector3.new(0, 0.35, 0),
+                                Vector3.new(0, 5.5, 0),
+                                params
+                            )
+                            == nil
+                    if
+                        candidate
+                        and overshoot
+                        and clearTrajectory
+                        and headClear
                         and landingPatch(distance, candidate)
-                        and verticalDelta >= -2.5 and verticalDelta <= 2
+                        and verticalDelta >= -2.5
+                        and verticalDelta <= 2
                     then
                         result.jumpLanding = candidate.Position + Vector3.new(0, rootHeight, 0)
                         result.jumpDistance = distance
@@ -736,19 +727,24 @@ function Rivals.new(context)
         end,
 
         taskLineOfSightBlocked = function(origin, targetPosition)
-            if not Workspace.Raycast
+            if
+                not Workspace.Raycast
                 or typeof(origin) ~= "Vector3"
                 or typeof(targetPosition) ~= "Vector3"
             then
                 return false
             end
             local displacement = targetPosition - (origin + Vector3.new(0, 2, 0))
-            if displacement.Magnitude <= 4 then return false end
+            if displacement.Magnitude <= 4 then
+                return false
+            end
             local params
             if RaycastParams and type(RaycastParams.new) == "function" then
                 params = RaycastParams.new()
                 params.FilterType = Enum.RaycastFilterType.Exclude
-                params.FilterDescendantsInstances = LocalPlayer.Character and { LocalPlayer.Character } or {}
+                params.FilterDescendantsInstances = LocalPlayer.Character
+                        and { LocalPlayer.Character }
+                    or {}
                 params.IgnoreWater = true
             end
             return Workspace:Raycast(
@@ -763,6 +759,56 @@ function Rivals.new(context)
         spawn = spawn,
         userInputService = UserInputService,
     })
+    local taskLocomotion = TaskLocomotion.new()
+    local redLightSafety
+    if table.find(context.capabilities or {}, "redLightSafety") then
+        local actionName = "UniversalHubRivalsRedLightSafety"
+        redLightSafety = RedLightSafety.new({
+            enabled = function()
+                return not stopped and store:Get().settings.redLightSafety == true
+            end,
+            hookFunction = context.hookFunction,
+            releaseAll = function()
+                combatInput:releaseAll()
+                trigger.fireHeld = false
+                trigger.fireItem = nil
+                trigger.held = false
+                trigger.heldItem = nil
+            end,
+            restoreFunction = context.restoreFunction,
+            setInputSink = function(enabled)
+                if enabled then
+                    ContextActionService:BindActionAtPriority(
+                        actionName,
+                        function()
+                            return Enum.ContextActionResult.Sink
+                        end,
+                        false,
+                        Enum.ContextActionPriority.High.Value + 200,
+                        Enum.UserInputType.MouseButton1,
+                        Enum.UserInputType.MouseButton2,
+                        Enum.KeyCode.W,
+                        Enum.KeyCode.A,
+                        Enum.KeyCode.S,
+                        Enum.KeyCode.D,
+                        Enum.KeyCode.Space,
+                        Enum.KeyCode.LeftShift,
+                        Enum.KeyCode.C
+                    )
+                else
+                    ContextActionService:UnbindAction(actionName)
+                end
+            end,
+            stopMovement = function()
+                movement:stopTaskCombat()
+                movement:stop()
+                local humanoid = localFighterHumanoid()
+                if humanoid and type(humanoid.Move) == "function" then
+                    humanoid:Move(Vector3.zero, false)
+                end
+            end,
+        })
+    end
 
     local function playerTone(player, character)
         return Rivals.playerTone(LocalPlayer, player, character)
@@ -773,23 +819,20 @@ function Rivals.new(context)
     end
 
     local function isTargetable(player, character)
-        return Rivals.isTargetable(
-            LocalPlayer,
-            player,
-            character,
-            fighterFor(player),
-            isGunGame()
-        )
+        return Rivals.isTargetable(LocalPlayer, player, character, fighterFor(player), isGunGame())
     end
 
     local function taskOpponentFighter()
         local localEnvironment = LocalPlayer:GetAttribute("EnvironmentID")
         for _, player in ipairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer
+            if
+                player ~= LocalPlayer
                 and player:GetAttribute("EnvironmentID") == localEnvironment
             then
                 local fighter = fighterFor(player)
-                if fighter then return fighter, player end
+                if fighter then
+                    return fighter, player
+                end
             end
         end
         return nil, nil
@@ -797,10 +840,14 @@ function Rivals.new(context)
 
     local function counterLoadoutReady(fighter)
         local items = fighter and fighter.Items
-        if type(items) ~= "table" or next(items) == nil then return false end
+        if type(items) ~= "table" or next(items) == nil then
+            return false
+        end
         if type(fighter.Get) == "function" then
             local succeeded, canPick = pcall(fighter.Get, fighter, "CanPickWeapons")
-            if succeeded and canPick == true then return false end
+            if succeeded and canPick == true then
+                return false
+            end
         end
         return true
     end
@@ -824,7 +871,9 @@ function Rivals.new(context)
         local fighter = FighterController.LocalFighter
         local entity = fighter and fighter.Entity
         local localRoot = entity and (entity.RootPart or entity.HumanoidRootPart)
-        if not localRoot then return nil end
+        if not localRoot then
+            return nil
+        end
         local nearest
         local nearestDistance = math.huge
         for _, player in ipairs(Players:GetPlayers()) do
@@ -861,16 +910,11 @@ function Rivals.new(context)
         elseif not ignoreAimFov then
             local shotOnly = settings.shotAim == true
             local fullScreenAim = shotOnly
-                    and (settings.shotFullScreenAim == nil
-                        and settings.fullScreenAim
-                        or settings.shotFullScreenAim)
+                    and (settings.shotFullScreenAim == nil and settings.fullScreenAim or settings.shotFullScreenAim)
                 or not shotOnly
-                    and (settings.cameraFullScreenAim == nil
-                        and settings.fullScreenAim
-                        or settings.cameraFullScreenAim)
+                    and (settings.cameraFullScreenAim == nil and settings.fullScreenAim or settings.cameraFullScreenAim)
             if not fullScreenAim then
-                options.maxScreenDistance = shotOnly
-                        and (settings.shotFov or settings.fov)
+                options.maxScreenDistance = shotOnly and (settings.shotFov or settings.fov)
                     or (settings.cameraFov or settings.fov)
             end
         end
@@ -878,12 +922,13 @@ function Rivals.new(context)
         if preferVisible then
             for _, observation in ipairs(observations) do
                 local screenDistance = observation.screenDistance
-                if observation.visible == true
-                    and (options.maxScreenDistance == nil
-                        or type(screenDistance) == "number"
-                            and screenDistance <= options.maxScreenDistance)
-                    and (observation.player == observation.character
-                        or isTargetable(observation.player, observation.character))
+                if
+                    observation.visible == true
+                    and (options.maxScreenDistance == nil or type(screenDistance) == "number" and screenDistance <= options.maxScreenDistance)
+                    and (
+                        observation.player == observation.character
+                        or isTargetable(observation.player, observation.character)
+                    )
                 then
                     preferredVisible = true
                     break
@@ -893,9 +938,12 @@ function Rivals.new(context)
         local function nearest(values)
             local eligible = {}
             for _, observation in ipairs(values) do
-                if (not preferredVisible or observation.visible == true)
-                    and (observation.player == observation.character
-                        or isTargetable(observation.player, observation.character))
+                if
+                    (not preferredVisible or observation.visible == true)
+                    and (
+                        observation.player == observation.character
+                        or isTargetable(observation.player, observation.character)
+                    )
                 then
                     table.insert(eligible, observation)
                 end
@@ -932,26 +980,21 @@ function Rivals.new(context)
                     and origin
                     and candidate.position
                     and (candidate.position - origin).Magnitude
-                local damage = candidate
-                    and WeaponPolicy.finishingDamage(item, candidate, distance)
+                local damage = candidate and WeaponPolicy.finishingDamage(item, candidate, distance)
                 return type(damage) == "number"
-                    and type(candidate.health) == "number"
-                    and damage >= candidate.health
-                    and candidate
+                        and type(candidate.health) == "number"
+                        and damage >= candidate.health
+                        and candidate
                     or nil
             end
             selected = Rivals.lowestHealthObservation(observations, finishable, nearest)
                 or Rivals.lowestHealthObservation(observations, accepted, nearest)
                 or nearest(observations)
-            aimTargetKey = selected
-                and (selected.character or selected.player or selected.part)
+            aimTargetKey = selected and (selected.character or selected.player or selected.part)
                 or nil
         else
-            selected, aimTargetKey = Targeting.selectObservation(
-                observations,
-                aimTargetKey,
-                nearest
-            )
+            selected, aimTargetKey =
+                Targeting.selectObservation(observations, aimTargetKey, nearest)
         end
         return selected
     end
@@ -963,24 +1006,19 @@ function Rivals.new(context)
         for _, observation in ipairs(observations) do
             local character = observation.character
             local root = character and character:FindFirstChild("HumanoidRootPart")
-            local plan = WeaponPolicy.backstabPlan(
-                localPosition,
-                observation,
-                info,
-                acquisitionDistance
-            )
-            if observation.visible
+            local plan =
+                WeaponPolicy.backstabPlan(localPosition, observation, info, acquisitionDistance)
+            if
+                observation.visible
                 and isTargetable(observation.player, character)
                 and root
                 and plan
             then
                 local distance = (localPosition - root.Position).Magnitude
-                local health = type(observation.health) == "number"
-                        and observation.health
+                local health = type(observation.health) == "number" and observation.health
                     or math.huge
                 local preferred = isGunGame()
-                        and (health < lowestHealth
-                            or health == lowestHealth and distance < nearestDistance)
+                        and (health < lowestHealth or health == lowestHealth and distance < nearestDistance)
                     or not isGunGame() and distance < nearestDistance
                 if preferred then
                     nearest = table.clone(observation)
@@ -1028,12 +1066,12 @@ function Rivals.new(context)
             for _, player in ipairs(Players:GetPlayers()) do
                 local character = player.Character
                 local position = targetRootPosition({ character = character })
-                local result = position and gunbladeRaycast
+                local result = position
+                    and gunbladeRaycast
                     and gunbladeRaycast(localRoot.Position, position - localRoot.Position)
                 local instance = result and result.Instance
                 local clear = not instance
-                    or instance.IsDescendantOf
-                        and instance:IsDescendantOf(character)
+                    or instance.IsDescendantOf and instance:IsDescendantOf(character)
                 if position and clear and isTargetable(player, character) then
                     table.insert(candidates, {
                         character = character,
@@ -1108,7 +1146,8 @@ function Rivals.new(context)
         local headshotRate = rateOverrides and rateOverrides.headshotRate or settings.headshotRate
         local missRate = rateOverrides and rateOverrides.missRate or settings.missRate
         local options = headAimOptions()
-        if aimPlan
+        if
+            aimPlan
             and aimPlan.character == target.character
             and aimPlan.headshotRate == headshotRate
             and aimPlan.humanAim == settings.humanAim
@@ -1174,7 +1213,8 @@ function Rivals.new(context)
 
     local solveRicochet = context.solveRicochet or ProjectileAim.solveRicochet
     local solveSplashAim = context.solveSplashAim or ProjectileAim.solveSplashAim
-    local solveBouncingProjectile = context.solveBouncingProjectile or ProjectileAim.solveBouncingProjectile
+    local solveBouncingProjectile = context.solveBouncingProjectile
+        or ProjectileAim.solveBouncingProjectile
 
     local observationRuntime = ObservationRuntime.new({
         effects = effects,
@@ -1192,7 +1232,9 @@ function Rivals.new(context)
         local applied = rotation
         local function commitCameraFrame(committedRotation)
             local camera = Workspace.CurrentCamera
-            if not camera then return end
+            if not camera then
+                return
+            end
 
             -- SetRotation can be ignored while the native subject is frozen (for
             -- example while a modal menu is open).  This adapter owns the final
@@ -1244,7 +1286,6 @@ function Rivals.new(context)
 
     local function publishAutoCounterDebug(extra)
         local status = autoCounterRuntime:status()
-        status.test = autoCounterTestSimulator:status()
         for key, value in pairs(extra or {}) do
             status[key] = value
         end
@@ -1270,7 +1311,6 @@ function Rivals.new(context)
 
     local function updateAutoCounterDetector(settings)
         local roundEligible = localFighterIsInRound()
-        autoCounterTestSimulator:update(settings.autoCounter == true, roundEligible)
         local fighter = FighterController.LocalFighter
         local entity = fighter and fighter.Entity
         local root = entity and (entity.RootPart or entity.HumanoidRootPart)
@@ -1332,7 +1372,6 @@ function Rivals.new(context)
 
     local function stopAutoCounter(reason)
         autoCounterRuntime:disable(reason or "disabled")
-        autoCounterTestSimulator:update(false, false)
         autoCounterInFlight = false
         publishAutoCounterDebug()
     end
@@ -1348,8 +1387,7 @@ function Rivals.new(context)
             taskCombatActive = taskCombatActive,
             settings = store:Get().settings,
             inputCaptured = context.isInputCaptured(),
-            fighterActive = taskCombatActive == true
-                and localFighterIsTaskActive()
+            fighterActive = taskCombatActive == true and localFighterIsTaskActive()
                 or localFighterIsActive(),
             inCombat = localFighterIsInCombat(),
             fighter = FighterController.LocalFighter,
@@ -1453,8 +1491,7 @@ function Rivals.new(context)
             alignedTarget = alignedTarget,
             taskCombatActive = taskCombatActive,
             inputCaptured = context.isInputCaptured(),
-            fighterActive = taskCombatActive == true
-                and localFighterIsTaskActive()
+            fighterActive = taskCombatActive == true and localFighterIsTaskActive()
                 or localFighterIsActive(),
             inCombat = localFighterIsInCombat(),
             state = trigger,
@@ -1487,23 +1524,30 @@ function Rivals.new(context)
             raycast = type(environmentRaycast) == "function" and environmentRaycast() or nil,
             click = startShooting,
             aimClick = startAiming,
-            aimPress = startAiming,
+            aimPress = function()
+                return combatInput:pressAim()
+            end,
             aimRelease = finishAiming,
-            press = startShooting,
+            press = function()
+                return combatInput:pressFire()
+            end,
         }
     end
     local function runTriggerBot(alignedTarget, taskCombatActive)
         TriggerBot.update(session, triggerContext(alignedTarget, taskCombatActive))
     end
-    
 
     local function taskMovementPosition(alignedTarget)
         local position = targetRootPosition(alignedTarget)
-        if typeof(position) == "Vector3" then return position end
+        if typeof(position) == "Vector3" then
+            return position
+        end
         local fighter = FighterController.LocalFighter
         local entity = fighter and fighter.Entity
         local localRoot = entity and (entity.RootPart or entity.HumanoidRootPart)
-        if not localRoot then return nil end
+        if not localRoot then
+            return nil
+        end
         local nearestPosition
         local nearestDistance = math.huge
         for _, player in ipairs(Players:GetPlayers()) do
@@ -1529,9 +1573,20 @@ function Rivals.new(context)
             return
         end
         local settings = store:Get().settings
-        if ensureTaskLoadoutPoll then ensureTaskLoadoutPoll() end
-        local taskCombatActive = taskFarmRuntime
-            and taskFarmRuntime:isCombatActive() == true
+        if redLightSafety then
+            local duel = DuelController:GetDuel(LocalPlayer)
+            redLightSafety:refresh(duel and duel.ChickenGame)
+            if settings.redLightSafety ~= true then
+                redLightSafety:setPaused(false)
+            elseif redLightSafety:isPaused() then
+                redLightSafety:holdStill()
+                return
+            end
+        end
+        if ensureTaskLoadoutPoll then
+            ensureTaskLoadoutPoll()
+        end
+        local taskCombatActive = taskFarmRuntime and taskFarmRuntime:isCombatActive() == true
         if taskCombatActive ~= taskSkillWasActive then
             taskSkillRuntime:reset()
             taskSkillWasActive = taskCombatActive
@@ -1550,9 +1605,7 @@ function Rivals.new(context)
             or settings.health == true
             or settings.weapon == true
         local limnVisualsEnabled = settings.worldRenderer ~= "native"
-            and (settings.boxes == true
-                or settings.chams == true
-                or overlayVisualsEnabled)
+            and (settings.boxes == true or settings.chams == true or overlayVisualsEnabled)
         local observationsEnabled = settings.silentAim == true
             or settings.shotAim == true
             or settings.triggerBot == true
@@ -1574,7 +1627,8 @@ function Rivals.new(context)
         local utilityObservations = {}
         local taskHazards = utilityObservations
         local fighter = FighterController.LocalFighter
-        if (settings.utilityEsp == true or taskCombatActive)
+        if
+            (settings.utilityEsp == true or taskCombatActive)
             and localFighterIsInCombat()
             and Workspace.CurrentCamera
         then
@@ -1582,7 +1636,9 @@ function Rivals.new(context)
             local environmentID = type(data) == "table" and data.EnvironmentID
                 or LocalPlayer:GetAttribute("EnvironmentID")
             taskHazards = observeThrowables(Workspace.CurrentCamera, environmentID)
-            if settings.utilityEsp == true then utilityObservations = taskHazards end
+            if settings.utilityEsp == true then
+                utilityObservations = taskHazards
+            end
         end
         if not settingsSubscription then
             effects:update(settings)
@@ -1592,9 +1648,7 @@ function Rivals.new(context)
         local autoCounterActed = runAutoCounter(settings)
         local alignedTarget
         local aimEnabled = not autoCounterActed
-            and (settings.silentAim == true
-                or settings.shotAim == true
-                or taskCombatActive)
+            and (settings.silentAim == true or settings.shotAim == true or taskCombatActive)
         if aimEnabled then
             alignedTarget = alignCamera(false, taskCombatActive)
             if not alignedTarget and settings.shotAim then
@@ -1602,7 +1656,8 @@ function Rivals.new(context)
             end
         end
         local taskWeaponDistance
-        local taskRoot = fighter and fighter.Entity
+        local taskRoot = fighter
+            and fighter.Entity
             and (fighter.Entity.RootPart or fighter.Entity.HumanoidRootPart)
         local taskTargetPosition = alignedTarget and targetRootPosition(alignedTarget)
         if taskRoot and taskTargetPosition then
@@ -1610,7 +1665,6 @@ function Rivals.new(context)
         end
         movement:updateInfiniteJump(settings)
         movement:updateWallNoclip(settings)
-        movement:updateWallPhase(settings)
         local taskTactical
         if taskCombatActive and alignedTarget and alignedTarget.player then
             local opponentFighter = fighterFor(alignedTarget.player)
@@ -1625,16 +1679,25 @@ function Rivals.new(context)
         if taskCombatActive and alignedTarget and alignedTarget.player then
             local opponentFighter = fighterFor(alignedTarget.player)
             local counterActive = counterLoadoutReady(opponentFighter)
-                and taskCounterPolicy:update(opponentFighter.EquippedItem)
+                    and taskCounterPolicy:update(opponentFighter.EquippedItem)
                 or false
-            if counterActive and fighter and fighter.EquippedItem
+            if
+                counterActive
+                and fighter
+                and fighter.EquippedItem
                 and not WeaponPolicy.isTrueDamage(fighter.EquippedItem)
                 and clock() >= nextCounterEquipAt
             then
                 local spray
                 for key, value in pairs(fighter.Items or {}) do
-                    local item = type(value) == "table" and value or type(key) == "table" and key or nil
-                    if item and WeaponPolicy.isTrueDamage(item) and (WeaponPolicy.ammo(item) or 0) > 0 then
+                    local item = type(value) == "table" and value
+                        or type(key) == "table" and key
+                        or nil
+                    if
+                        item
+                        and WeaponPolicy.isTrueDamage(item)
+                        and (WeaponPolicy.ammo(item) or 0) > 0
+                    then
                         spray = item
                         break
                     end
@@ -1649,17 +1712,14 @@ function Rivals.new(context)
                 end
             end
         end
-        local taskWeaponSwapping = counterSwitching or taskWeaponSwap:update(
-            taskCombatActive,
-            fighter,
-            alignedTarget,
-            taskWeaponDistance
-        )
-        if taskWeaponSwapping then alignedTarget = nil end
+        local taskWeaponSwapping = counterSwitching
+            or taskWeaponSwap:update(taskCombatActive, fighter, alignedTarget, taskWeaponDistance)
+        if taskWeaponSwapping then
+            alignedTarget = nil
+        end
         session.settings = settings
         session.aligned = alignedTarget
-        session.active = taskCombatActive == true
-            and localFighterIsTaskActive()
+        session.active = taskCombatActive == true and localFighterIsTaskActive()
             or localFighterIsActive()
         session.inCombat = localFighterIsInCombat()
         session.inRound = localFighterIsInRound()
@@ -1712,19 +1772,35 @@ function Rivals.new(context)
             triggerTarget = session.presented
         end
         if taskCombatActive then
-            movement:updateTaskCombat(
-                taskMovementPosition(alignedTarget),
-                taskHazards,
-                taskTactical
-            )
+            local movementTarget = taskMovementPosition(alignedTarget)
+            local locomotionPlan
+            if taskRoot and typeof(movementTarget) == "Vector3" then
+                local routeClear = true
+                if type(environmentRaycast) == "function" then
+                    local cast = environmentRaycast()
+                    local offset = movementTarget - taskRoot.Position
+                    if type(cast) == "function" and offset.Magnitude > 1 then
+                        routeClear = cast(
+                            taskRoot.Position,
+                            offset.Unit * math.min(offset.Magnitude, 6)
+                        ) == nil
+                    end
+                end
+                locomotionPlan = taskLocomotion:plan({
+                    clear = routeClear,
+                    grounded = localFighterIsTaskActive(),
+                    now = clock(),
+                    position = taskRoot.Position,
+                    targetPosition = movementTarget,
+                })
+            end
+            movement:updateTaskCombat(movementTarget, taskHazards, taskTactical, locomotionPlan)
             self.taskDebug.parkour = movement.taskParkourCommit and "committed" or "grounded-route"
         else
             movement:stopTaskCombat()
         end
         if settings.bhop == true then
-            suppressBhopJump = WeaponPolicy.isBackstabKnife(
-                fighter and fighter.EquippedItem
-            )
+            suppressBhopJump = WeaponPolicy.isBackstabKnife(fighter and fighter.EquippedItem)
                 and alignedTarget ~= nil
                 and alignedTarget.knifePath ~= nil
             movement:update(settings)
@@ -1734,13 +1810,21 @@ function Rivals.new(context)
         end
         if aimEnabled then
             local trajectory = alignedTarget
-                and ((alignedTarget.ricochet and alignedTarget.ricochet.path)
+                and (
+                    (alignedTarget.ricochet and alignedTarget.ricochet.path)
                     or (alignedTarget.slingshot and alignedTarget.slingshot.path)
-                    or alignedTarget.knifePath)
+                    or alignedTarget.knifePath
+                )
             effects:renderTrajectory(trajectory)
         elseif not settingsSubscription then
             effects:renderTrajectory(nil)
         end
+        local targetDeflecting = settings.skipDeflect == true
+                and triggerTarget
+                and triggerTarget.player
+                and isDeflecting(triggerTarget.player)
+            or false
+        combatInput:setDeflecting(targetDeflecting)
         if settings.skipDeflect == true then
             local equipped = fighter and fighter.EquippedItem
             SkipBlocks.update(equipped, triggerTarget, {
@@ -1765,7 +1849,8 @@ function Rivals.new(context)
             if type(map) == "table" then
                 for player, opponentFighter in pairs(map) do
                     local character = player and player.Character
-                    if player ~= LocalPlayer
+                    if
+                        player ~= LocalPlayer
                         and opponentFighter
                         and character
                         and isTargetable(player, character)
@@ -1792,7 +1877,8 @@ function Rivals.new(context)
                 opponents = opponents,
                 hasLine = function(origin, point, opponentCharacter)
                     local cast = type(environmentRaycast) == "function" and environmentRaycast()
-                    if type(cast) ~= "function"
+                    if
+                        type(cast) ~= "function"
                         or typeof(origin) ~= "Vector3"
                         or typeof(point) ~= "Vector3"
                     then
@@ -1819,13 +1905,16 @@ function Rivals.new(context)
                 taskDebug = self.taskDebug,
             })
         end
-        if not autoCounterActed
+        if
+            not autoCounterActed
             and not autoDeflectActed
-            and (settings.triggerBot == true
+            and (
+                settings.triggerBot == true
                 or taskCombatActive
                 or trigger.held
                 or trigger.fireHeld
-                or not settingsSubscription)
+                or not settingsSubscription
+            )
         then
             runTriggerBot(triggerTarget, taskCombatActive)
         end
@@ -1834,7 +1923,9 @@ function Rivals.new(context)
     local reconcileFrameLifecycle
     local reconcileTaskEmergency
     local function taskStatusChanged(status)
-        if reconcileTaskEmergency then reconcileTaskEmergency(status) end
+        if reconcileTaskEmergency then
+            reconcileTaskEmergency(status)
+        end
     end
     local function taskActivityChanged(_, status)
         taskStatusChanged(status)
@@ -1845,7 +1936,9 @@ function Rivals.new(context)
     local practiceTaskDriver = context.practiceTaskDriver
     if practiceTaskDriver == nil and context.taskFarmRuntime == nil then
         practiceTaskDriver = PracticeTaskDriver.new({
-            getFighter = function() return FighterController.LocalFighter end,
+            getFighter = function()
+                return FighterController.LocalFighter
+            end,
             actions = {
                 enterRange = function()
                     local result = ShootingRangeController:Enter()
@@ -1853,7 +1946,11 @@ function Rivals.new(context)
                 end,
                 slide = function()
                     local fighter = FighterController.LocalFighter
-                    if not fighter or type(fighter.CanSlide) ~= "function" or fighter:CanSlide() ~= true then
+                    if
+                        not fighter
+                        or type(fighter.CanSlide) ~= "function"
+                        or fighter:CanSlide() ~= true
+                    then
                         return false
                     end
                     MechanicsController:Slide()
@@ -1861,11 +1958,17 @@ function Rivals.new(context)
                 end,
                 equip = function(name)
                     local fighter = FighterController.LocalFighter
-                    if not fighter or type(fighter.GetItem) ~= "function" or type(fighter.EquipItem) ~= "function" then
+                    if
+                        not fighter
+                        or type(fighter.GetItem) ~= "function"
+                        or type(fighter.EquipItem) ~= "function"
+                    then
                         return false
                     end
                     local item = fighter:GetItem(name)
-                    if not item then return false end
+                    if not item then
+                        return false
+                    end
                     local result = fighter:EquipItem(item)
                     return result ~= false
                 end,
@@ -1887,27 +1990,32 @@ function Rivals.new(context)
             },
         })
     end
-    taskFarmRuntime = context.taskFarmRuntime or TaskFarmRuntime.new({
-        constants = RivalsConstants,
-        duelController = DuelController,
-        fighterController = FighterController,
-        localPlayer = LocalPlayer,
-        matchmakingController = MatchmakingController,
-        playerDataController = PlayerDataController,
-        practiceDriver = practiceTaskDriver,
-        taskLibrary = TaskLibrary,
-        paused = store:Get().settings.taskAutomationPaused == true,
-        onActivityChanged = taskActivityChanged,
-        onStatusChanged = taskStatusChanged,
-        onManualDuel = function()
-            local state = store:Get()
-            if state.settings.taskAutomationPaused == true then return end
-            local settings = table.clone(state.settings)
-            settings.taskAutomationPaused = true
-            store:Patch({ settings = settings })
-            if type(context.settingsChanged) == "function" then context.settingsChanged(settings) end
-        end,
-    })
+    taskFarmRuntime = context.taskFarmRuntime
+        or TaskFarmRuntime.new({
+            constants = RivalsConstants,
+            duelController = DuelController,
+            fighterController = FighterController,
+            localPlayer = LocalPlayer,
+            matchmakingController = MatchmakingController,
+            playerDataController = PlayerDataController,
+            practiceDriver = practiceTaskDriver,
+            taskLibrary = TaskLibrary,
+            paused = store:Get().settings.taskAutomationPaused == true,
+            onActivityChanged = taskActivityChanged,
+            onStatusChanged = taskStatusChanged,
+            onManualDuel = function()
+                local state = store:Get()
+                if state.settings.taskAutomationPaused == true then
+                    return
+                end
+                local settings = table.clone(state.settings)
+                settings.taskAutomationPaused = true
+                store:Patch({ settings = settings })
+                if type(context.settingsChanged) == "function" then
+                    context.settingsChanged(settings)
+                end
+            end,
+        })
     if type(taskFarmRuntime.setActivityChanged) == "function" then
         taskFarmRuntime:setActivityChanged(taskActivityChanged)
     end
@@ -1915,7 +2023,9 @@ function Rivals.new(context)
         taskFarmRuntime:setStatusChanged(taskStatusChanged)
     end
     local function currentTaskStatus()
-        if type(taskFarmRuntime.status) == "function" then return taskFarmRuntime:status() end
+        if type(taskFarmRuntime.status) == "function" then
+            return taskFarmRuntime:status()
+        end
         return { state = "idle", paused = false, task = nil }
     end
     taskStatusChanged(currentTaskStatus())
@@ -1947,21 +2057,32 @@ function Rivals.new(context)
             and status.state ~= "idle"
             and status.state ~= "stopped"
         if not armed then
-            if taskEmergencyConnection then taskEmergencyConnection:Disconnect(); taskEmergencyConnection = nil end
+            if taskEmergencyConnection then
+                taskEmergencyConnection:Disconnect()
+                taskEmergencyConnection = nil
+            end
             return
         end
-        if taskEmergencyConnection then return end
+        if taskEmergencyConnection then
+            return
+        end
         taskEmergencyConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
-            if gameProcessed then return end
+            if gameProcessed then
+                return
+            end
             local keyCode = input and input.KeyCode
             local pressedName = keyCode and keyCode.Name
             local currentState = store:Get()
             local settings = currentState.settings or {}
-            if pressedName ~= (settings.taskAutomationEmergencyKey or "End") then return end
+            if pressedName ~= (settings.taskAutomationEmergencyKey or "End") then
+                return
+            end
             local updated = table.clone(settings)
             updated.taskAutomationPaused = true
             store:Patch({ settings = updated })
-            if type(context.settingsChanged) == "function" then context.settingsChanged(updated) end
+            if type(context.settingsChanged) == "function" then
+                context.settingsChanged(updated)
+            end
         end)
     end
     reconcileTaskEmergency(currentTaskStatus())
@@ -1986,7 +2107,6 @@ function Rivals.new(context)
             or settings.infiniteJump == true
             or settings.wallNoclip == true
             or settings.teleportBehind == true
-            or settings.wallPhase == true
             or settings.autoPickup == true
             or settings.utilityEsp == true
             or settings.fovCircle == true
@@ -1994,8 +2114,11 @@ function Rivals.new(context)
     end
 
     local function connectFrame()
-        if renderConnection then return end
-        if context.requireModule == nil
+        if renderConnection then
+            return
+        end
+        if
+            context.requireModule == nil
             and type(RunService.BindToRenderStep) == "function"
             and type(RunService.UnbindFromRenderStep) == "function"
         then
@@ -2065,9 +2188,13 @@ function Rivals.new(context)
     end
 
     local function loadoutVisibilityChanged()
-        if stopped then return end
+        if stopped then
+            return
+        end
         if PickWeaponsPage:IsOpen() then
-            if ensureTaskLoadoutPoll then ensureTaskLoadoutPoll() end
+            if ensureTaskLoadoutPoll then
+                ensureTaskLoadoutPoll()
+            end
         elseif taskLoadout.wasOpen then
             stopLoadoutPoll()
             self.taskDebug.loadoutStage = "closed"
@@ -2077,8 +2204,13 @@ function Rivals.new(context)
     if PickWeaponsPage.OpenChanged and type(PickWeaponsPage.OpenChanged.Connect) == "function" then
         loadoutOpenConnection = PickWeaponsPage.OpenChanged:Connect(loadoutVisibilityChanged)
     end
-    if PickWeaponsPage.PageFrame and type(PickWeaponsPage.PageFrame.GetPropertyChangedSignal) == "function" then
-        loadoutVisibleConnection = PickWeaponsPage.PageFrame:GetPropertyChangedSignal("Visible"):Connect(loadoutVisibilityChanged)
+    if
+        PickWeaponsPage.PageFrame
+        and type(PickWeaponsPage.PageFrame.GetPropertyChangedSignal) == "function"
+    then
+        loadoutVisibleConnection = PickWeaponsPage.PageFrame
+            :GetPropertyChangedSignal("Visible")
+            :Connect(loadoutVisibilityChanged)
     end
 
     if type(store.Subscribe) == "function" then
@@ -2093,15 +2225,26 @@ function Rivals.new(context)
             return
         end
         stopped = true
-        if taskEmergencyConnection then taskEmergencyConnection:Disconnect(); taskEmergencyConnection = nil end
+        if redLightSafety then
+            redLightSafety:stop()
+        end
+        if taskEmergencyConnection then
+            taskEmergencyConnection:Disconnect()
+            taskEmergencyConnection = nil
+        end
         stopLoadoutPoll()
-        if loadoutOpenConnection then loadoutOpenConnection:Disconnect(); loadoutOpenConnection = nil end
-        if loadoutVisibleConnection then loadoutVisibleConnection:Disconnect(); loadoutVisibleConnection = nil end
+        if loadoutOpenConnection then
+            loadoutOpenConnection:Disconnect()
+            loadoutOpenConnection = nil
+        end
+        if loadoutVisibleConnection then
+            loadoutVisibleConnection:Disconnect()
+            loadoutVisibleConnection = nil
+        end
         taskFarmRuntime:stop()
         gunGameRuntime:stop()
         hookRuntime:stop()
         autoCounterRuntime:stop()
-        autoCounterTestSimulator:stop()
         if trigger.held then
             finishAiming()
             trigger.held = false
@@ -2120,7 +2263,6 @@ function Rivals.new(context)
 
     self.capabilities = context.capabilities or {}
     self.autoCounterRuntime = autoCounterRuntime
-    self.autoCounterTestSimulator = autoCounterTestSimulator
     self.isOpponent = isOpponent
     self.selectTarget = selectTarget
     self.worldPolicy = WorldPolicy.new({
@@ -2134,15 +2276,6 @@ function Rivals.new(context)
         localPlayer = LocalPlayer,
         workspace = Workspace,
     })
-
-    function self:cycleSkin() end
-    function self:setWear() end
-    function self:toggleStatTrak() end
-    function self:resetSkin() end
-    function self:cycleGlove() end
-    function self:setGloveWear() end
-    function self:setGloveColor() end
-    function self:resetGlove() end
 
     return self
 end

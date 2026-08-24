@@ -89,8 +89,8 @@ from Adapter. Do not copy `importDependency` into a feature.
     `settings.triggerDelay` is a first-shot wait in milliseconds; do
     not add it to the native cooldown after the hold starts.
 - `features/SkipBlocks.lua`
-  - User-facing Katana Stop (`settings.skipDeflect`). Hooks
-    `StartShooting` so a manual click does not fire into a deflect
+  - User-facing Katana Stop (`settings.skipDeflect`). Hooks fighter input's
+    `StartShooting` action so a manual click does not fire into a deflect
     unless true-damage spray applies. Same gate as Trigger Bot.
 - `features/AutoDeflect.lua`
   - User-facing Auto Katana (`settings.autoDeflect`). Pre-blocks with

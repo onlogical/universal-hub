@@ -44,7 +44,8 @@ function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemie
                 local _viewportPoint
                 _viewportPoint, onScreen = camera:WorldToViewportPoint(root.Position)
             end
-            if entity:IsA("Model")
+            if
+                entity:IsA("Model")
                 and humanoid
                 and humanoid.Health > 0
                 and (data.EnvironmentID == nil or environmentID == data.EnvironmentID)
@@ -68,7 +69,8 @@ function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemie
     local nearby = {}
     if cameraPosition then
         for _, observation in ipairs(observations) do
-            if observation.position
+            if
+                observation.position
                 and (observation.position - cameraPosition).Magnitude <= self.maximumDistance
             then
                 table.insert(nearby, observation)
@@ -81,9 +83,10 @@ function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemie
             local humanoid = character and character:FindFirstChildOfClass("Humanoid")
             observation.health = humanoid and humanoid.Health or nil
             observation.maxHealth = humanoid and humanoid.MaxHealth or nil
-            observation.weapon = self.equippedWeapon and self.equippedWeapon(observation.player) or nil
+            observation.weapon = self.equippedWeapon and self.equippedWeapon(observation.player)
+                or nil
             observation.tone = self.getPlayerTone
-                and self.getPlayerTone(observation.player, character)
+                    and self.getPlayerTone(observation.player, character)
                 or "enemy"
         end
     end

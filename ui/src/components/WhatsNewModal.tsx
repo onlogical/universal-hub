@@ -1,5 +1,9 @@
 import React from "@rbxts/react";
-import { Button, Modal, ScrollArea, Stack, Text } from "@prism";
+import { Button } from "@prism/components/Button";
+import { Modal } from "@prism/components/Modal";
+import { ScrollArea } from "@prism/components/ScrollArea";
+import { Stack } from "@prism/components/Stack";
+import { Text } from "@prism/components/Text";
 import { theme } from "@prism/theme";
 import type { WhatsNewModel } from "../contracts";
 

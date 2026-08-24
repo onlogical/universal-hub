@@ -47,17 +47,26 @@ session.settings = { shotAim = false }
 session.aligned = aligned
 session.cameraOrigin = origin
 SilentAim.update(session, presentation, libs)
-assert(clears == 1 and #updates == 0 and session.presented == nil, "Silent Aim must clear when shotAim is off")
+assert(
+    clears == 1 and #updates == 0 and session.presented == nil,
+    "Silent Aim must clear when shotAim is off"
+)
 
 session.settings = { shotAim = true }
 session.aligned = nil
 SilentAim.update(session, presentation, libs)
-assert(clears == 2 and #updates == 0 and session.presented == nil, "Silent Aim must clear when aligned is missing")
+assert(
+    clears == 2 and #updates == 0 and session.presented == nil,
+    "Silent Aim must clear when aligned is missing"
+)
 
 session.aligned = aligned
 session.cameraOrigin = nil
 SilentAim.update(session, presentation, libs)
-assert(clears == 3 and #updates == 0 and session.presented == nil, "Silent Aim must clear when the camera origin is unknown")
+assert(
+    clears == 3 and #updates == 0 and session.presented == nil,
+    "Silent Aim must clear when the camera origin is unknown"
+)
 
 session.cameraOrigin = origin
 SilentAim.update(session, presentation, libs)

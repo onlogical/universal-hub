@@ -14,7 +14,12 @@ local ctx = {
         return true
     end,
     fighterFor = function()
-        return { EquippedItem = { _deflect_hash = 1, Info = { DeflectDuration = 1, DeflectCooldown = 4 } } }
+        return {
+            EquippedItem = {
+                _deflect_hash = 1,
+                Info = { DeflectDuration = 1, DeflectCooldown = 4 },
+            },
+        }
     end,
     taskCounterPolicy = {
         shouldForceSpray = function()
@@ -28,7 +33,10 @@ assert(TriggerBot.shouldHoldForDeflect(target, rifle, ctx) == true)
 ctx.taskCounterPolicy.shouldForceSpray = function()
     return true
 end
-assert(SkipBlocks.shouldBlock(rifle, target, ctx) == false, "True-damage spray may still fire through a deflector")
+assert(
+    SkipBlocks.shouldBlock(rifle, target, ctx) == false,
+    "True-damage spray may still fire through a deflector"
+)
 
 ctx.isDeflecting = function()
     return false
@@ -66,19 +74,21 @@ assert(released == 1, "Katana Stop must release a held shot into a deflect")
 
 local hooked = 0
 local originalCalls = 0
-local item = {
-    StartShooting = function()
+local item = {}
+local fighter = {
+    EquippedItem = item,
+    Input = function()
         originalCalls += 1
     end,
 }
 local runtime = SkipBlocks.new({
     getFighter = function()
-        return { EquippedItem = item }
+        return fighter
     end,
     hookFunction = function(targetFunction, replacement)
         hooked += 1
-        assert(targetFunction == item.StartShooting)
-        item.StartShooting = function(...)
+        assert(targetFunction == fighter.Input)
+        fighter.Input = function(...)
             return replacement(...)
         end
         return function()
@@ -91,14 +101,17 @@ local runtime = SkipBlocks.new({
     isEnabled = function()
         return true
     end,
-    shouldBlock = function()
+    shouldBlock = function(blockedItem)
+        assert(blockedItem == item)
         return true
     end,
 })
 runtime:refreshHook()
 assert(hooked == 1)
-item:StartShooting()
-assert(originalCalls == 0, "Katana Stop must swallow StartShooting while the target is deflecting")
+fighter:Input("StartAiming")
+assert(originalCalls == 1, "Katana Stop must preserve unrelated fighter input")
+fighter:Input("StartShooting")
+assert(originalCalls == 1, "Katana Stop must swallow StartShooting while the target is deflecting")
 runtime:stop()
 
 print("rivals-skip-blocks-contracts-ok")

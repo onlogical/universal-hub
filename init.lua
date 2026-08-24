@@ -41,6 +41,7 @@ end
 
 local GuiService = game:GetService("GuiService")
 local HttpService = game:GetService("HttpService")
+local ContextActionService = game:GetService("ContextActionService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -119,14 +120,20 @@ local adapterDefinition = registry:Resolve({
 })
 assert(
     adapterDefinition,
-    ("Universal Hub does not support game %s / place %s"):format(tostring(game.GameId), tostring(game.PlaceId))
+    ("Universal Hub does not support game %s / place %s"):format(
+        tostring(game.GameId),
+        tostring(game.PlaceId)
+    )
 )
 logger:info("bootstrap", "game selected", {
     adapter = adapterDefinition.id,
     label = adapterDefinition.label,
 })
 local adapterModule = import(adapterDefinition.module)
-assert(type(adapterModule) == "table" and type(adapterModule.new) == "function", "Invalid game adapter module")
+assert(
+    type(adapterModule) == "table" and type(adapterModule.new) == "function",
+    "Invalid game adapter module"
+)
 local presentation = import(adapterDefinition.presentation)
 local features = adapterDefinition.features
 local compositionModule
@@ -143,7 +150,10 @@ if adapterDefinition.composition then
     end
     local dependencyNames = {}
     for name, path in pairs(compositionModule.dependencies or {}) do
-        assert(type(name) == "string" and name ~= "", "Composition dependency names must be strings")
+        assert(
+            type(name) == "string" and name ~= "",
+            "Composition dependency names must be strings"
+        )
         assert(
             type(path) == "string" and declaredSources[path],
             "Composition dependency must be declared by the selected definition"
@@ -158,10 +168,14 @@ end
 
 local Limn = assert(configuration.Limn, "Universal Hub loader must stage Limn before init")
 assert(type(Limn) == "table" and type(Limn.new) == "function", "Universal Hub requires Limn")
-local Helpers =
-    assert(configuration.HydroxideHelpers, "Universal Hub loader must stage Hydroxide Helpers before init")
-local hydroxideImport =
-    assert(configuration.HydroxideImport, "Universal Hub loader must stage a Hydroxide importer before init")
+local Helpers = assert(
+    configuration.HydroxideHelpers,
+    "Universal Hub loader must stage Hydroxide Helpers before init"
+)
+local hydroxideImport = assert(
+    configuration.HydroxideImport,
+    "Universal Hub loader must stage a Hydroxide importer before init"
+)
 assert(
     type(Helpers) == "table" and type(Helpers.load) == "function",
     "Universal Hub requires Hydroxide Helpers.load"
@@ -192,7 +206,8 @@ configuration.Limn = nil
 configuration.HydroxideHelpers = nil
 configuration.HydroxideImport = nil
 
-local configPath = configuration.ConfigPath or ("universal-hub/configs/%s.json"):format(adapterDefinition.id)
+local configPath = configuration.ConfigPath
+    or ("universal-hub/configs/%s.json"):format(adapterDefinition.id)
 local ephemeralSettings = PresentationCatalog.collectEphemeralSettings(presentation)
 local configStore = Config.new({
     decode = function(source)
@@ -404,12 +419,19 @@ local function customAsset(path)
     return succeeded and asset or nil
 end
 local brandIcon = customAsset(root .. "/assets/brand/universal-hub.png")
-local gameIcon = customAsset(root .. "/assets/games/" .. adapterDefinition.id .. ".png")
+local gameIcon = ("rbxthumb://type=GameIcon&id=%d&w=150&h=150"):format(game.GameId)
 local enemyAudienceIcon = customAsset(root .. "/assets/icons/enemies.png")
 local allyAudienceIcon = customAsset(root .. "/assets/icons/allies.png")
 local alphaCheckerboard = customAsset(root .. "/assets/ui/alpha-checkerboard.png")
 local pageIcons = {}
-for page, file in pairs({ Combat = "combat.png", Rage = "rage.png", Movement = "movement.png", Visuals = "visuals.png", Tools = "tools.png", Settings = "settings.png" }) do
+for page, file in pairs({
+    Combat = "combat.png",
+    Rage = "rage.png",
+    Movement = "movement.png",
+    Visuals = "visuals.png",
+    Tools = "tools.png",
+    Settings = "settings.png",
+}) do
     pageIcons[page] = customAsset(root .. "/assets/icons/" .. file)
 end
 
@@ -429,7 +451,10 @@ local overlayContext = {
     visualPolicy = VisualPolicy,
     catalog = PresentationCatalog,
     cosmetics = features.cosmetics,
-    prismMenu = assert(configuration.Menu, "Universal Hub loader must stage the compiled Prism menu"),
+    prismMenu = assert(
+        configuration.Menu,
+        "Universal Hub loader must stage the compiled Prism menu"
+    ),
     worldOnly = true,
     gameLabel = adapterDefinition.label,
     getCamera = function()
@@ -510,9 +535,7 @@ local overlayContext = {
         end
         current:setOption(name, enabled, persist)
         if enabled and features.exclusiveOptions then
-            for _, excluded in ipairs(
-                features.exclusiveOptions[name] or {}
-            ) do
+            for _, excluded in ipairs(features.exclusiveOptions[name] or {}) do
                 current:setOption(excluded, false, persist)
             end
         end
@@ -556,6 +579,7 @@ local adapterContext = {
     aimPress = mouse2press,
     aimRelease = mouse2release,
     click = mouse1click,
+    contextActionService = ContextActionService,
     fireTouchInterest = type(environment.firetouchinterest) == "function"
             and environment.firetouchinterest
         or nil,
@@ -599,7 +623,6 @@ local adapterContext = {
     limn = drawingRuntime,
     logger = logger,
     capabilities = adapterCapabilities,
-    rivalsAutoCounterTest = configuration.RivalsAutoCounterTest,
     oh = helpers,
     render = function(observations, mousePosition, utilityObservations)
         overlay:render(observations, mousePosition, utilityObservations)
@@ -667,17 +690,22 @@ local finalized, finalError = pcall(function()
     session.registry = registry
     session.state = store:Get()
     session.store = store
-    local menuToggleConnection = UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-        local bindingSettled = os.clock() - (session.menuKeyChangedAt or -math.huge) > 0.2
-        if bindingSettled and MenuToggle.shouldToggle(
-            input,
-            gameProcessedEvent,
-            UserInputService,
-            store:Get().settings.menuKey
-        ) then
-            session:toggleMenu()
+    local menuToggleConnection = UserInputService.InputBegan:Connect(
+        function(input, gameProcessedEvent)
+            local bindingSettled = os.clock() - (session.menuKeyChangedAt or -math.huge) > 0.2
+            if
+                bindingSettled
+                and MenuToggle.shouldToggle(
+                    input,
+                    gameProcessedEvent,
+                    UserInputService,
+                    store:Get().settings.menuKey
+                )
+            then
+                session:toggleMenu()
+            end
         end
-    end)
+    )
     session:Add(function()
         menuToggleConnection:Disconnect()
     end)
@@ -767,7 +795,11 @@ local finalized, finalError = pcall(function()
         if not ok or type(source) ~= "string" then
             return ""
         end
-        return tostring(#source) .. ":" .. string.sub(source, 1, 48) .. ":" .. string.sub(source, -48)
+        return tostring(#source)
+            .. ":"
+            .. string.sub(source, 1, 48)
+            .. ":"
+            .. string.sub(source, -48)
     end
 
     local function forget(path)
@@ -817,7 +849,8 @@ local finalized, finalError = pcall(function()
     end
 
     local function reloadUi(options)
-        local restageMenu = options == nil or (type(options) == "table" and options.restageMenu == true)
+        local restageMenu = options == nil
+            or (type(options) == "table" and options.restageMenu == true)
         if restageMenu then
             restageCompiledMenu()
         end

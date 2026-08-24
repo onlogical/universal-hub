@@ -17,7 +17,8 @@ function AutoDeflect.lookFrom(character)
 end
 
 function AutoDeflect.bodyPoint(character)
-    local root = character and (character.HumanoidRootPart or character.RootPart or character.PrimaryPart)
+    local root = character
+        and (character.HumanoidRootPart or character.RootPart or character.PrimaryPart)
     if not root and character and type(character.FindFirstChild) == "function" then
         root = character:FindFirstChild("HumanoidRootPart")
     end
@@ -55,7 +56,11 @@ function AutoDeflect.ready(item, itemNow)
     if type(item) ~= "table" then
         return false
     end
-    if type(itemNow) == "number" and type(item._deflect_cooldown) == "number" and itemNow < item._deflect_cooldown then
+    if
+        type(itemNow) == "number"
+        and type(item._deflect_cooldown) == "number"
+        and itemNow < item._deflect_cooldown
+    then
         return false
     end
     return true
@@ -65,10 +70,13 @@ function AutoDeflect.shouldBlock(localFighter, opponent, ctx)
     ctx = ctx or {}
     local WeaponPolicy = ctx.weaponPolicy
     local item = localFighter and localFighter.EquippedItem
-    if type(WeaponPolicy) ~= "table"
+    if
+        type(WeaponPolicy) ~= "table"
         or type(WeaponPolicy.isDeflector) ~= "function"
         or WeaponPolicy.isDeflector(item) ~= true
-        or (type(WeaponPolicy.isActivelyDeflecting) == "function" and WeaponPolicy.isActivelyDeflecting(item))
+        or (type(WeaponPolicy.isActivelyDeflecting) == "function" and WeaponPolicy.isActivelyDeflecting(
+            item
+        ))
         or not AutoDeflect.ready(item, ctx.itemClock and ctx.itemClock())
     then
         return false
@@ -82,7 +90,8 @@ function AutoDeflect.shouldBlock(localFighter, opponent, ctx)
     if type(distance) ~= "number" and origin and point then
         distance = (point - origin).Magnitude
     end
-    if not AutoDeflect.lethalShot(theirItem, ourHealth, distance, WeaponPolicy)
+    if
+        not AutoDeflect.lethalShot(theirItem, ourHealth, distance, WeaponPolicy)
         or not AutoDeflect.looksAt(origin, look, point, ctx.lookCosine)
     then
         return false
@@ -94,7 +103,8 @@ function AutoDeflect.shouldBlock(localFighter, opponent, ctx)
 end
 
 function AutoDeflect.update(settings, ctx)
-    if settings.autoDeflect ~= true
+    if
+        settings.autoDeflect ~= true
         or ctx.inputCaptured
         or not ctx.fighterActive
         or not ctx.inCombat

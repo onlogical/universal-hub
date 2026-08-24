@@ -47,10 +47,8 @@ assert(
     "Generic match loadout selection must suspend combat automation"
 )
 assert(
-    CombatState.isCombatEligible(
-        replica({ IsInShootingRange = true, CanPickWeapons = false }),
-        nil
-    ) == true,
+    CombatState.isCombatEligible(replica({ IsInShootingRange = true, CanPickWeapons = false }), nil)
+        == true,
     "The practice range must remain combat eligible without a duel object"
 )
 assert(
@@ -78,11 +76,7 @@ assert(
     "Auto Counter must accept only a started duel round"
 )
 assert(
-    CombatState.isRoundEligible(
-        replica({ IsInShootingRange = true }),
-        nil,
-        false
-    ) == false,
+    CombatState.isRoundEligible(replica({ IsInShootingRange = true }), nil, false) == false,
     "Auto Counter must not arm in the shooting range"
 )
 

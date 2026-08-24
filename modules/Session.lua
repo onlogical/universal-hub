@@ -102,7 +102,11 @@ function Session:setCosmeticMode(mode)
 end
 
 function Session:setMenuKey(value)
-    if typeof(value) ~= "EnumItem" or value.EnumType ~= Enum.KeyCode or value == Enum.KeyCode.Unknown then
+    if
+        typeof(value) ~= "EnumItem"
+        or value.EnumType ~= Enum.KeyCode
+        or value == Enum.KeyCode.Unknown
+    then
         return false
     end
     self.menuKeyChangedAt = os.clock()

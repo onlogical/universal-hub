@@ -1,15 +1,4 @@
-local function importDependency(path, relativePath)
-    if type(getgenv) == "function" then
-        local environment = getgenv()
-        local configuration = environment and environment.UniversalHubConfig
-        if configuration and type(configuration.Import) == "function" then
-            return configuration.Import(path)
-        end
-    end
-    return require(relativePath)
-end
-
-local ItemPolicy = importDependency("games/rivals/libraries/ItemPolicy", "./ItemPolicy")
+local ItemPolicy = require("./ItemPolicy")
 local ProjectileAim = {}
 
 local RICOCHET_BOUNCES = 2
@@ -41,10 +30,19 @@ local function clearToTarget(origin, target, raycast)
 
     local result = raycast(origin, displacement)
     return result == nil
-        or (result.Position - origin).Magnitude >= displacement.Magnitude - RICOCHET_SURFACE_OFFSET
+        or (result.Position - origin).Magnitude
+            >= displacement.Magnitude - RICOCHET_SURFACE_OFFSET
 end
 
-function ProjectileAim.traceRicochet(origin, direction, target, raycast, maxBounces, redirectAngle, maxDistance)
+function ProjectileAim.traceRicochet(
+    origin,
+    direction,
+    target,
+    raycast,
+    maxBounces,
+    redirectAngle,
+    maxDistance
+)
     local position = origin
     local rayDirection = direction.Unit
     local path = { origin }
@@ -105,7 +103,8 @@ function ProjectileAim.solveRicochet(origin, target, raycast, maxDistance)
     for _, probeDirection in ipairs(ricochetProbeDirections(forward)) do
         local sampledSurface = raycast(origin, probeDirection * maxDistance)
         if sampledSurface and sampledSurface.Normal and sampledSurface.Position then
-            local image = ProjectileAim.reflectPoint(target, sampledSurface.Position, sampledSurface.Normal)
+            local image =
+                ProjectileAim.reflectPoint(target, sampledSurface.Position, sampledSurface.Normal)
             local oneBounceDirection = (image - origin).Unit
             local oneBounce = ProjectileAim.traceRicochet(
                 origin,
@@ -122,11 +121,17 @@ function ProjectileAim.solveRicochet(origin, target, raycast, maxDistance)
 
             local firstSurface = raycast(origin, oneBounceDirection * maxDistance)
             if firstSurface and firstSurface.Normal and firstSurface.Position then
-                local firstReflection = ProjectileAim.reflectDirection(oneBounceDirection, firstSurface.Normal)
-                local secondOrigin = firstSurface.Position + firstReflection * RICOCHET_SURFACE_OFFSET
+                local firstReflection =
+                    ProjectileAim.reflectDirection(oneBounceDirection, firstSurface.Normal)
+                local secondOrigin = firstSurface.Position
+                    + firstReflection * RICOCHET_SURFACE_OFFSET
                 local secondSurface = raycast(secondOrigin, firstReflection * maxDistance)
                 if secondSurface and secondSurface.Normal and secondSurface.Position then
-                    local secondImage = ProjectileAim.reflectPoint(target, secondSurface.Position, secondSurface.Normal)
+                    local secondImage = ProjectileAim.reflectPoint(
+                        target,
+                        secondSurface.Position,
+                        secondSurface.Normal
+                    )
                     local firstImage = ProjectileAim.reflectPoint(
                         secondImage,
                         firstSurface.Position,
@@ -184,14 +189,14 @@ local function ballisticDirection(origin, target, speed, gravity)
 
     local speedSquared = speed * speed
     local discriminant = speedSquared * speedSquared
-        - gravity * (gravity * horizontalDistance * horizontalDistance + 2 * offset.Y * speedSquared)
+        - gravity
+            * (gravity * horizontalDistance * horizontalDistance + 2 * offset.Y * speedSquared)
     if discriminant < 0 then
         return nil
     end
 
-    local angle = math.atan(
-        (speedSquared - math.sqrt(discriminant)) / (gravity * horizontalDistance)
-    )
+    local angle =
+        math.atan((speedSquared - math.sqrt(discriminant)) / (gravity * horizontalDistance))
     local cosine = math.cos(angle)
     if cosine <= 1e-6 then
         return nil
@@ -206,9 +211,7 @@ local function traceProjectile(origin, direction, speed, acceleration, flightTim
     local previousTime = 0
     for step = 1, SPLASH_TRACE_STEPS do
         local time = flightTime * step / SPLASH_TRACE_STEPS
-        local position = origin
-            + direction * (speed * time)
-            + acceleration * (0.5 * time * time)
+        local position = origin + direction * (speed * time) + acceleration * (0.5 * time * time)
         local result = raycast(previous, position - previous)
         if result and result.Position then
             local segmentLength = (position - previous).Magnitude
@@ -228,11 +231,7 @@ local function clearBlastToTarget(impact, target, raycast)
     if displacement.Magnitude <= RICOCHET_SURFACE_OFFSET then
         return true
     end
-    return clearToTarget(
-        impact + displacement.Unit * RICOCHET_SURFACE_OFFSET,
-        target,
-        raycast
-    )
+    return clearToTarget(impact + displacement.Unit * RICOCHET_SURFACE_OFFSET, target, raycast)
 end
 
 local function observationVelocity(observation)
@@ -248,8 +247,7 @@ local function observationVelocity(observation)
 end
 
 local function directionFrame(origin, direction)
-    local reference = math.abs(direction:Dot(Vector3.yAxis)) < 0.999
-            and Vector3.yAxis
+    local reference = math.abs(direction:Dot(Vector3.yAxis)) < 0.999 and Vector3.yAxis
         or Vector3.xAxis
     local right = direction:Cross(reference).Unit
     local up = right:Cross(direction).Unit
@@ -268,17 +266,15 @@ end
 
 local function projectileCameraDirection(projectileDirection, info)
     local spawnOffset = info and info.ProjectileSpawnOffset
-    if typeof(spawnOffset) ~= "CFrame"
+    if
+        typeof(spawnOffset) ~= "CFrame"
         or spawnOffset.Rotation == CFrame.identity
         or projectileDirection.Magnitude <= 1e-6
     then
         return projectileDirection
     end
 
-    return (
-        directionFrame(Vector3.zero, projectileDirection)
-        * spawnOffset.Rotation:Inverse()
-    ).LookVector
+    return (directionFrame(Vector3.zero, projectileDirection) * spawnOffset.Rotation:Inverse()).LookVector
 end
 
 function ProjectileAim.solveProjectileAim(origin, observation, info, worldGravity, launchDelay)
@@ -290,12 +286,9 @@ function ProjectileAim.solveProjectileAim(origin, observation, info, worldGravit
 
     local targetVelocity = observationVelocity(observation)
     local gravity = (worldGravity or 196.2) * (info.ProjectileGravity or 0)
-    local lifetime = type(info.ProjectileLifetime) == "number" and info.ProjectileLifetime or math.huge
-    local delay = math.clamp(
-        type(launchDelay) == "number" and launchDelay or 0,
-        0,
-        0.25
-    )
+    local lifetime = type(info.ProjectileLifetime) == "number" and info.ProjectileLifetime
+        or math.huge
+    local delay = math.clamp(type(launchDelay) == "number" and launchDelay or 0, 0, 0.25)
     local predictedPosition = targetPosition + targetVelocity * delay
     local launchOrigin = origin
     local direction
@@ -330,24 +323,32 @@ function ProjectileAim.solveProjectileAim(origin, observation, info, worldGravit
     }
 end
 
-function ProjectileAim.solveSplashAim(origin, observation, info, raycast, worldGravity, networkLatency)
+function ProjectileAim.solveSplashAim(
+    origin,
+    observation,
+    info,
+    raycast,
+    worldGravity,
+    networkLatency
+)
     local targetPosition = observation and observation.position
     local speed = info and info.ProjectileSpeed
     local radius = info and info.ShootExplosionRadius
-    if not targetPosition or type(speed) ~= "number" or speed <= 0
-        or type(radius) ~= "number" or radius <= 0
+    if
+        not targetPosition
+        or type(speed) ~= "number"
+        or speed <= 0
+        or type(radius) ~= "number"
+        or radius <= 0
         or type(raycast) ~= "function"
     then
         return nil
     end
 
     local velocity = observationVelocity(observation)
-    local lifetime = type(info.ProjectileLifetime) == "number" and info.ProjectileLifetime or math.huge
-    local latency = math.clamp(
-        type(networkLatency) == "number" and networkLatency or 0,
-        0,
-        0.25
-    )
+    local lifetime = type(info.ProjectileLifetime) == "number" and info.ProjectileLifetime
+        or math.huge
+    local latency = math.clamp(type(networkLatency) == "number" and networkLatency or 0, 0, 0.25)
     local gravity = (worldGravity or 196.2) * (info.ProjectileGravity or 0)
     local predictedPosition = targetPosition
     for _ = 1, 4 do
@@ -408,17 +409,11 @@ function ProjectileAim.solveSplashAim(origin, observation, info, raycast, worldG
     for _, candidate in ipairs(candidates) do
         local direction, flightTime = ballisticDirection(origin, candidate.position, speed, gravity)
         if direction and flightTime and flightTime <= lifetime then
-            local impact, impactTime = traceProjectile(
-                origin,
-                direction,
-                speed,
-                acceleration,
-                flightTime + 1e-3,
-                raycast
-            )
-            local targetAtImpact = impactTime
-                and targetPosition + velocity * (impactTime + latency)
-            if impact
+            local impact, impactTime =
+                traceProjectile(origin, direction, speed, acceleration, flightTime + 1e-3, raycast)
+            local targetAtImpact = impactTime and targetPosition + velocity * (impactTime + latency)
+            if
+                impact
                 and targetAtImpact
                 and (impact - targetAtImpact).Magnitude <= radius
                 and clearBlastToTarget(impact, targetAtImpact, raycast)
@@ -440,7 +435,8 @@ function ProjectileAim.isSplashSolutionCurrent(origin, solution, info, raycast, 
     local speed = info and info.ProjectileSpeed
     local impact = solution and solution.impact
     local flightTime = solution and solution.flightTime
-    if not impact
+    if
+        not impact
         or not solution.direction
         or not solution.predictedPosition
         or type(speed) ~= "number"
@@ -461,8 +457,8 @@ function ProjectileAim.isSplashSolutionCurrent(origin, solution, info, raycast, 
         raycast
     )
     return currentImpact
-        and (currentImpact - impact).Magnitude <= RICOCHET_SURFACE_OFFSET
-        and clearBlastToTarget(currentImpact, solution.predictedPosition, raycast)
+            and (currentImpact - impact).Magnitude <= RICOCHET_SURFACE_OFFSET
+            and clearBlastToTarget(currentImpact, solution.predictedPosition, raycast)
         or false
 end
 
@@ -476,7 +472,14 @@ local function distanceToSegment(point, segmentStart, segmentEnd)
     return (point - (segmentStart + segment * alpha)).Magnitude
 end
 
-function ProjectileAim.simulateBouncingProjectile(origin, direction, target, info, raycast, worldGravity)
+function ProjectileAim.simulateBouncingProjectile(
+    origin,
+    direction,
+    target,
+    info,
+    raycast,
+    worldGravity
+)
     local speed = info.ProjectileSpeed
     local gravity = (worldGravity or 196.2) * (info.ProjectileGravity or 0)
     local lifetime = info.ProjectileLifetime or 5
@@ -494,7 +497,10 @@ function ProjectileAim.simulateBouncingProjectile(origin, direction, target, inf
         local nextPosition = position + velocity * step + acceleration * (0.5 * step * step)
         local result = raycast(position, nextPosition - position)
         local segmentEnd = result and result.Position or nextPosition
-        if bounces > 0 and distanceToSegment(target, position, segmentEnd) <= SLINGSHOT_TARGET_RADIUS then
+        if
+            bounces > 0
+            and distanceToSegment(target, position, segmentEnd) <= SLINGSHOT_TARGET_RADIUS
+        then
             table.insert(path, target)
             return {
                 bounces = bounces,
@@ -551,8 +557,7 @@ function ProjectileAim.solveBouncingProjectile(origin, observation, info, raycas
         table.insert(candidates, straightRicochet.direction)
     end
 
-    local reference = math.abs(baseDirection:Dot(Vector3.yAxis)) < 0.95
-        and Vector3.yAxis
+    local reference = math.abs(baseDirection:Dot(Vector3.yAxis)) < 0.95 and Vector3.yAxis
         or Vector3.xAxis
     local right = baseDirection:Cross(reference).Unit
     local up = right:Cross(baseDirection).Unit
@@ -597,7 +602,6 @@ function ProjectileAim.projectTrajectory(camera, path)
     end
     return segments
 end
-
 
 ProjectileAim.MAX_DISTANCE = RICOCHET_MAX_DISTANCE
 

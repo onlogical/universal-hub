@@ -158,6 +158,13 @@ assert(
     type(executionPlan) == "table" and type(executionPlan.compile) == "function",
     "Local loader must resolve the production Town dependency graph"
 )
+local itemInput = assert(getgenv().UniversalHubConfig.Import)(
+    "games/rivals/libraries/ItemInput"
+)
+assert(
+    type(itemInput) == "table" and type(itemInput.new) == "function",
+    "Local loader must resolve relative dependencies in their module context"
+)
 assert(
     type(getgenv().UniversalHubConfig.Limn.new) == "function",
     "Local loader must stage Limn before loading a game adapter"
@@ -229,8 +236,10 @@ assert(
 )
 assert(
     loadedCount("universal-hub/local/games/town/ExecutionPlan.lua") == 1
-        and loadedCount("universal-hub/local/games/town/Canonical.lua") == 1,
-    "The local loader must read nested Town modules from its selected local root"
+        and loadedCount("universal-hub/local/games/town/Canonical.lua") == 1
+        and loadedCount("universal-hub/local/games/rivals/libraries/ItemInput.lua") == 1
+        and loadedCount("universal-hub/local/games/rivals/libraries/ItemPolicy.lua") == 1,
+    "The local loader must read nested relative modules from its selected local root"
 )
 assert(duplicateDuringLoadResult == nil, "A duplicate local bootstrap during helper staging must coalesce")
 assert(type(environment.UniversalHubConfig.ReloadMenu) == "function", "Local loader must expose ReloadMenu")

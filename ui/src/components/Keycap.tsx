@@ -1,5 +1,6 @@
 import React from "@rbxts/react";
-import { KeybindInput, Text } from "@prism";
+import { KeybindInput } from "@prism/components/KeybindInput";
+import { Text } from "@prism/components/Text";
 import { theme } from "@prism/theme";
 
 function keycapLabel(value: Enum.KeyCode | Enum.UserInputType): string {

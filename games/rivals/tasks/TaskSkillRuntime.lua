@@ -2,7 +2,9 @@ local TaskSkillRuntime = {}
 TaskSkillRuntime.__index = TaskSkillRuntime
 
 local function healthOf(subject)
-    if not subject then return nil, nil end
+    if not subject then
+        return nil, nil
+    end
     local humanoid = subject
     if typeof(subject) == "Instance" then
         if not subject:IsA("Humanoid") then
@@ -13,7 +15,9 @@ local function healthOf(subject)
     end
     local health = humanoid and humanoid.Health
     local maximum = humanoid and humanoid.MaxHealth
-    if type(health) ~= "number" then return nil, nil end
+    if type(health) ~= "number" then
+        return nil, nil
+    end
     if type(maximum) ~= "number" or maximum <= 0 then
         return health, nil
     end
@@ -21,14 +25,18 @@ local function healthOf(subject)
 end
 
 local function attribute(player, name)
-    if not player or type(player.GetAttribute) ~= "function" then return nil end
+    if not player or type(player.GetAttribute) ~= "function" then
+        return nil
+    end
     local succeeded, value = pcall(player.GetAttribute, player, name)
     return succeeded and value or nil
 end
 
 local function playerStatThreat(localPlayer, opponent)
     local player = opponent and opponent.player
-    if not player then return nil, nil end
+    if not player then
+        return nil, nil
+    end
     local elo = attribute(player, "DisplayELO")
     local level = attribute(player, "Level")
     local streak = attribute(player, "StatisticDuelsWinStreak")
@@ -41,21 +49,23 @@ local function playerStatThreat(localPlayer, opponent)
     local values = {}
     if type(elo) == "number" then
         values[#values + 1] = type(localElo) == "number"
-            and math.clamp(0.5 + (elo - localElo) / 1600, 0, 1)
+                and math.clamp(0.5 + (elo - localElo) / 1600, 0, 1)
             or math.clamp((elo - 600) / 2000, 0, 1)
     end
     if type(level) == "number" then
         values[#values + 1] = type(localLevel) == "number"
-            and math.clamp(0.5 + (level - localLevel) / 300, 0, 1)
+                and math.clamp(0.5 + (level - localLevel) / 300, 0, 1)
             or math.clamp(level / 250, 0, 1)
     end
     if type(streak) == "number" then
         values[#values + 1] = type(localStreak) == "number"
-            and math.clamp(0.5 + (streak - localStreak) / 20, 0, 1)
+                and math.clamp(0.5 + (streak - localStreak) / 20, 0, 1)
             or math.clamp(streak / 12, 0, 1)
     end
     local total = 0
-    for _, value in ipairs(values) do total += value end
+    for _, value in ipairs(values) do
+        total += value
+    end
     return total / #values, { elo = elo, level = level, streak = streak }
 end
 
@@ -85,13 +95,19 @@ end
 
 function TaskSkillRuntime:update(localHumanoid, opponent, deltaTime)
     local localHealth, localMaximum = healthOf(localHumanoid)
-    local opponentHumanoid = opponent and opponent.character
+    local opponentHumanoid = opponent
+        and opponent.character
         and opponent.character.FindFirstChildOfClass
         and opponent.character:FindFirstChildOfClass("Humanoid")
     local opponentHealth, opponentMaximum = healthOf(opponentHumanoid)
-    if type(opponent and opponent.health) == "number" then opponentHealth = opponent.health end
-    if type(opponent and opponent.maxHealth) == "number" then opponentMaximum = opponent.maxHealth end
-    if type(opponentHealth) == "number"
+    if type(opponent and opponent.health) == "number" then
+        opponentHealth = opponent.health
+    end
+    if type(opponent and opponent.maxHealth) == "number" then
+        opponentMaximum = opponent.maxHealth
+    end
+    if
+        type(opponentHealth) == "number"
         and (type(opponentMaximum) ~= "number" or opponentMaximum <= 0)
     then
         opponentMaximum = nil
@@ -102,7 +118,9 @@ function TaskSkillRuntime:update(localHumanoid, opponent, deltaTime)
         self.lastOpponent = opponentKey
         self.lastOpponentHealth = opponentHealth
         self.samples = 0
-        if type(statThreat) == "number" then self.threat = statThreat end
+        if type(statThreat) == "number" then
+            self.threat = statThreat
+        end
     end
     self.statsReady = type(statThreat) == "number"
     self.opponentStats = opponentStats
@@ -114,13 +132,15 @@ function TaskSkillRuntime:update(localHumanoid, opponent, deltaTime)
     local dt = math.max(type(deltaTime) == "number" and deltaTime or 1 / 60, 1 / 120)
     local incoming = math.max(0, (self.lastLocalHealth or localHealth) - localHealth) / dt
     local outgoing = math.max(0, (self.lastOpponentHealth or opponentHealth) - opponentHealth) / dt
-    if incoming > 0 or outgoing > 0 then self.samples += 1 end
-    local healthPressure = math.clamp((opponentHealth / opponentMaximum - localHealth / localMaximum + 1) * 0.5, 0, 1)
-    local exchangePressure = (incoming + outgoing) > 0
-        and incoming / (incoming + outgoing)
+    if incoming > 0 or outgoing > 0 then
+        self.samples += 1
+    end
+    local healthPressure =
+        math.clamp((opponentHealth / opponentMaximum - localHealth / localMaximum + 1) * 0.5, 0, 1)
+    local exchangePressure = (incoming + outgoing) > 0 and incoming / (incoming + outgoing)
         or self.threat
     local observed = self.statsReady
-        and statThreat * 0.5 + healthPressure * 0.35 + exchangePressure * 0.15
+            and statThreat * 0.5 + healthPressure * 0.35 + exchangePressure * 0.15
         or healthPressure * 0.65 + exchangePressure * 0.35
     self.threat += (observed - self.threat) * math.min(1, dt * 2.5)
     self.lastLocalHealth = localHealth

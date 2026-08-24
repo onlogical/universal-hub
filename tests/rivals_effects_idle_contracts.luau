@@ -12,13 +12,20 @@ local root = {
 }
 local effects = Effects.new({
     lighting = root,
-    localPlayer = { FindFirstChildOfClass = function() return root end },
+    localPlayer = {
+        FindFirstChildOfClass = function()
+            return root
+        end,
+    },
     playerGui = root,
     projectileAim = {},
     workspace = { CurrentCamera = root },
 })
 effects:update({ noFlash = false, noSmoke = false })
-assert(traversals == 0, "disabled visual suppression must not traverse Lighting, Camera, or PlayerGui")
+assert(
+    traversals == 0,
+    "disabled visual suppression must not traverse Lighting, Camera, or PlayerGui"
+)
 effects:stop()
 
 local function signal()
@@ -66,12 +73,16 @@ local smokeRoot = {
     Parent = {},
     DescendantAdded = smokeAdded,
     DescendantRemoving = smokeRemoving,
-    GetTags = function() return { "SmokeCloud" } end,
+    GetTags = function()
+        return { "SmokeCloud" }
+    end,
     GetDescendants = function()
         smokeTraversals += 1
         return { smokeEffect }
     end,
-    IsA = function() return false end,
+    IsA = function()
+        return false
+    end,
 }
 smokeEffect.Parent = smokeRoot
 local globalTraversals = 0
@@ -88,7 +99,11 @@ local smokeEffects = Effects.new({
         end,
     },
     lighting = globalRoot,
-    localPlayer = { FindFirstChildOfClass = function() return globalRoot end },
+    localPlayer = {
+        FindFirstChildOfClass = function()
+            return globalRoot
+        end,
+    },
     playerGui = globalRoot,
     projectileAim = {},
     workspace = { CurrentCamera = globalRoot },
@@ -96,11 +111,15 @@ local smokeEffects = Effects.new({
 local noSmoke = { noFlash = false, noSmoke = true }
 smokeEffects:update(noSmoke)
 assert(globalTraversals == 0, "No Smoke must never traverse global Flash roots")
-assert(smokeTraversals == 1 and smokeWrites == 1 and smokeEnabled == false,
-    "No Smoke should traverse and suppress each tagged smoke root once")
+assert(
+    smokeTraversals == 1 and smokeWrites == 1 and smokeEnabled == false,
+    "No Smoke should traverse and suppress each tagged smoke root once"
+)
 smokeEffects:update(noSmoke)
-assert(globalTraversals == 0 and smokeTraversals == 1 and smokeWrites == 1,
-    "unchanged No Smoke must perform zero traversal and zero property writes")
+assert(
+    globalTraversals == 0 and smokeTraversals == 1 and smokeWrites == 1,
+    "unchanged No Smoke must perform zero traversal and zero property writes"
+)
 smokeEffects:update({ noFlash = false, noSmoke = false })
 assert(smokeEnabled == true, "disabling No Smoke must restore the native effect state")
 smokeEffects:stop()

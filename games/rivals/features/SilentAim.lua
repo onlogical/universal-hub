@@ -2,10 +2,7 @@ local SilentAim = {}
 
 function SilentAim.point(aligned, origin, distance)
     local solution = aligned
-        and (aligned.slingshot
-            or aligned.splashImpact
-            or aligned.projectileAim
-            or aligned.ricochet)
+        and (aligned.slingshot or aligned.splashImpact or aligned.projectileAim or aligned.ricochet)
     if solution and typeof(solution.direction) == "Vector3" then
         return origin + solution.direction.Unit * distance
     end
@@ -29,8 +26,7 @@ function SilentAim.update(session, presentation, libs)
         return
     end
     local origin = session.cameraOrigin
-    local point = origin
-        and SilentAim.point(session.aligned, origin, libs.maxDistance)
+    local point = origin and SilentAim.point(session.aligned, origin, libs.maxDistance)
     if not point or not presentation then
         SilentAim.clear(session, presentation)
         return

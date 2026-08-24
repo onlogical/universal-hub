@@ -37,14 +37,19 @@ function Catalog.collectEphemeralSettings(presentation)
     end
 
     function collector:option(sectionId, _rowIndex, id, _label, parent)
-        local section = assert(sections[sectionId], "Unknown presentation section: " .. tostring(sectionId))
-        if section.ephemeral or isEphemeral(section.page, type(parent) == "table" and parent or nil) then
+        local section =
+            assert(sections[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+        if
+            section.ephemeral
+            or isEphemeral(section.page, type(parent) == "table" and parent or nil)
+        then
             result[id] = true
         end
     end
 
     function collector:slider(sectionId, id, _label, spec)
-        local section = assert(sections[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+        local section =
+            assert(sections[sectionId], "Unknown presentation section: " .. tostring(sectionId))
         if section.ephemeral or isEphemeral(section.page, spec) then
             result[id] = true
         end
@@ -53,7 +58,8 @@ function Catalog.collectEphemeralSettings(presentation)
     function collector:button() end
 
     function collector:keybind(sectionId, id)
-        local section = assert(sections[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+        local section =
+            assert(sections[sectionId], "Unknown presentation section: " .. tostring(sectionId))
         if section.ephemeral then
             result[id] = true
         end
@@ -92,7 +98,10 @@ local function buildAvailability(capabilities)
 end
 
 function Catalog.new(context)
-    assert(type(context) == "table" and context.store, "Presentation catalog requires a Store context")
+    assert(
+        type(context) == "table" and context.store,
+        "Presentation catalog requires a Store context"
+    )
     return setmetatable({
         available = buildAvailability(context.capabilities),
         context = context,
@@ -179,8 +188,14 @@ local function segmentIsSupported(available, spec)
 end
 
 function Catalog:segmented(page, spec)
-    assert(type(spec) == "table" and type(spec.id) == "string", "Segmented presentation control requires an id")
-    assert(type(spec.options) == "table" and #spec.options > 1, "Segmented presentation control requires options")
+    assert(
+        type(spec) == "table" and type(spec.id) == "string",
+        "Segmented presentation control requires an id"
+    )
+    assert(
+        type(spec.options) == "table" and #spec.options > 1,
+        "Segmented presentation control requires options"
+    )
     assert(not self.segmentById[spec.id], "Duplicate segmented presentation control: " .. spec.id)
     if not segmentIsSupported(self.available, spec) then
         return
@@ -241,7 +256,8 @@ function Catalog:option(sectionId, rowIndex, id, label, parent, visibility)
     if not self.available[id] then
         return
     end
-    local group = assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+    local group =
+        assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
     local spec = type(parent) == "table" and parent or nil
     if spec then
         parent = spec.parent
@@ -280,7 +296,8 @@ function Catalog:slider(sectionId, id, label, spec)
     if not self.available[id] then
         return
     end
-    local group = assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+    local group =
+        assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
     spec = spec or {}
     local slider = {
         ephemeral = group.ephemeral or isEphemeral(group.page, spec),
@@ -301,7 +318,8 @@ function Catalog:slider(sectionId, id, label, spec)
 end
 
 function Catalog:keybind(sectionId, id, label, defaultValue)
-    local group = assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+    local group =
+        assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
     table.insert(group.keybinds, { id = id, label = label, defaultValue = defaultValue })
     if group.ephemeral then
         self.ephemeralSettings[id] = true
@@ -389,7 +407,8 @@ function Catalog:model(state)
                     kind = related.kind or "toggle",
                     label = related.label,
                     value = settings[related.id] == true,
-                    status = self.optionSupport[related.id] == false and "unavailable" or "available",
+                    status = self.optionSupport[related.id] == false and "unavailable"
+                        or "available",
                 })
             end
         end
@@ -426,16 +445,11 @@ function Catalog:model(state)
 
     if self.hasAim then
         local cameraMode = settings.shotAim ~= true
-        local fov = (cameraMode and settings.cameraFov or settings.shotFov)
-            or settings.fov
+        local fov = (cameraMode and settings.cameraFov or settings.shotFov) or settings.fov
         local fullScreenAim = cameraMode
-                and (settings.cameraFullScreenAim == nil
-                    and settings.fullScreenAim
-                    or settings.cameraFullScreenAim)
+                and (settings.cameraFullScreenAim == nil and settings.fullScreenAim or settings.cameraFullScreenAim)
             or not cameraMode
-                and (settings.shotFullScreenAim == nil
-                    and settings.fullScreenAim
-                    or settings.shotFullScreenAim)
+                and (settings.shotFullScreenAim == nil and settings.fullScreenAim or settings.shotFullScreenAim)
         append(sectionsByPage.Combat, {
             id = "targeting",
             label = "Targeting",
@@ -492,7 +506,9 @@ function Catalog:model(state)
                 })
             end
             for _, option in ipairs(group.options) do
-                local parentActive = not option.parent or option.parent == "audience" or settings[option.parent] == true
+                local parentActive = not option.parent
+                    or option.parent == "audience"
+                    or settings[option.parent] == true
                 local visible = option.visibility ~= "when-parent" or parentActive
                 if type(option.visibility) == "table" then
                     local expected = option.visibility.equals
@@ -598,12 +614,12 @@ function Catalog:model(state)
                     label = "Weapon preview",
                     height = 230,
                     key = type(self.context.getWeaponPreviewKey) == "function"
-                        and self.context.getWeaponPreviewKey(state)
+                            and self.context.getWeaponPreviewKey(state)
                         or tostring(state.previewRevision or 0),
                     resolve = type(self.context.getWeaponPreviewSubject) == "function"
-                        and function()
-                            return self.context.getWeaponPreviewSubject(state)
-                        end
+                            and function()
+                                return self.context.getWeaponPreviewSubject(state)
+                            end
                         or nil,
                 },
                 {
@@ -628,7 +644,8 @@ function Catalog:model(state)
                     id = "nextSkin",
                     kind = "action",
                     action = "nextSkin",
-                    label = "Next skin · " .. tostring(cosmetics.skinLabel or cosmetics.skin or "Stock"),
+                    label = "Next skin · "
+                        .. tostring(cosmetics.skinLabel or cosmetics.skin or "Stock"),
                 },
                 {
                     id = "cosmeticWear",
@@ -675,7 +692,11 @@ function Catalog:model(state)
                     id = "gloveWear",
                     kind = "slider",
                     label = "Glove wear",
-                    value = math.clamp(gloves.wear or minimumGloveWear, minimumGloveWear, maximumGloveWear),
+                    value = math.clamp(
+                        gloves.wear or minimumGloveWear,
+                        minimumGloveWear,
+                        maximumGloveWear
+                    ),
                     min = minimumGloveWear,
                     max = maximumGloveWear,
                     step = 0.01,
@@ -722,7 +743,7 @@ function Catalog:model(state)
                 preview.tone = "enemy"
                 local visualPolicy = self.context.visualPolicy
                 local defaultAlpha = preview.worldRenderer == "native"
-                    and (1 - (visualPolicy and visualPolicy.FILL_TRANSPARENCY or 0.42))
+                        and (1 - (visualPolicy and visualPolicy.FILL_TRANSPARENCY or 0.42))
                     or 0.18
                 local defaults = {
                     enemy = Color3.fromRGB(255, 118, 87),
@@ -739,12 +760,64 @@ function Catalog:model(state)
                         label = label,
                         fillAlpha = fillAlpha,
                         targets = {
-                            { id = "outline", label = "Outline", color = ColorPolicy.color(settings, "outline", primary, relationship), defaultColor = primary },
-                            { id = "fill", label = "Fill", color = ColorPolicy.color(settings, "fill", primary, relationship), alpha = fillAlpha, defaultColor = primary, defaultAlpha = defaultAlpha },
-                            { id = "name", label = "Name", color = ColorPolicy.color(settings, "name", primary, relationship), defaultColor = primary },
-                            { id = "weapon", label = "Weapon", color = ColorPolicy.color(settings, "weapon", defaults.weapon, relationship), defaultColor = defaults.weapon },
-                            { id = "healthLow", label = "Health Low", color = ColorPolicy.color(settings, "healthLow", defaults.healthLow, relationship), defaultColor = defaults.healthLow },
-                            { id = "healthHigh", label = "Health High", color = ColorPolicy.color(settings, "healthHigh", defaults.healthHigh, relationship), defaultColor = defaults.healthHigh },
+                            {
+                                id = "outline",
+                                label = "Outline",
+                                color = ColorPolicy.color(
+                                    settings,
+                                    "outline",
+                                    primary,
+                                    relationship
+                                ),
+                                defaultColor = primary,
+                            },
+                            {
+                                id = "fill",
+                                label = "Fill",
+                                color = ColorPolicy.color(settings, "fill", primary, relationship),
+                                alpha = fillAlpha,
+                                defaultColor = primary,
+                                defaultAlpha = defaultAlpha,
+                            },
+                            {
+                                id = "name",
+                                label = "Name",
+                                color = ColorPolicy.color(settings, "name", primary, relationship),
+                                defaultColor = primary,
+                            },
+                            {
+                                id = "weapon",
+                                label = "Weapon",
+                                color = ColorPolicy.color(
+                                    settings,
+                                    "weapon",
+                                    defaults.weapon,
+                                    relationship
+                                ),
+                                defaultColor = defaults.weapon,
+                            },
+                            {
+                                id = "healthLow",
+                                label = "Health Low",
+                                color = ColorPolicy.color(
+                                    settings,
+                                    "healthLow",
+                                    defaults.healthLow,
+                                    relationship
+                                ),
+                                defaultColor = defaults.healthLow,
+                            },
+                            {
+                                id = "healthHigh",
+                                label = "Health High",
+                                color = ColorPolicy.color(
+                                    settings,
+                                    "healthHigh",
+                                    defaults.healthHigh,
+                                    relationship
+                                ),
+                                defaultColor = defaults.healthHigh,
+                            },
                         },
                     }
                 end
@@ -759,7 +832,8 @@ function Catalog:model(state)
                         relationshipPalette("teammate", "Teammates"),
                     },
                 }
-                preview.nameLabel = self.context.localPlayer and self.context.localPlayer.Name or "Preview Player"
+                preview.nameLabel = self.context.localPlayer and self.context.localPlayer.Name
+                    or "Preview Player"
                 preview.weaponLabel = preview.weaponLabel or "Assault Rifle"
                 preview.boxes = settings.boxes == true
                 preview.chams = settings.chams == true
@@ -776,7 +850,7 @@ function Catalog:model(state)
                 end
                 if type(self.context.getPreviewSubject) == "function" then
                     preview.key = type(self.context.getPreviewKey) == "function"
-                        and self.context.getPreviewKey(state)
+                            and self.context.getPreviewKey(state)
                         or tostring(state.previewRevision or 0)
                     preview.resolve = function()
                         return self.context.getPreviewSubject(state)
@@ -854,7 +928,10 @@ function Catalog:model(state)
                 for _, option in ipairs(segment.options) do
                     if option.value == value then
                         for _, entry in ipairs(option.patch or {}) do
-                            if type(entry[2]) == "boolean" or type(self.context.setSetting) ~= "function" then
+                            if
+                                type(entry[2]) == "boolean"
+                                or type(self.context.setSetting) ~= "function"
+                            then
                                 self.context.setOption(entry[1], entry[2], shouldPersist)
                             else
                                 self.context.setSetting(entry[1], entry[2], shouldPersist)
@@ -876,10 +953,10 @@ function Catalog:model(state)
                             )
                             self.context.setOption(
                                 "fullScreenAim",
-                                (shotOnly
-                                        and settings.shotFullScreenAim
-                                    or not shotOnly
-                                        and settings.cameraFullScreenAim)
+                                (
+                                    shotOnly and settings.shotFullScreenAim
+                                    or not shotOnly and settings.cameraFullScreenAim
+                                )
                                     == true,
                                 shouldPersist
                             )
@@ -897,7 +974,9 @@ function Catalog:model(state)
             elseif id:sub(1, 9) == "espColor:" then
                 local relationship, target = id:match("^espColor:([^:]+):([^:]+)$")
                 local setting = relationship and ColorPolicy.settingName(relationship, target)
-                if setting then self.context.setSetting(setting, value, persist == true) end
+                if setting then
+                    self.context.setSetting(setting, value, persist == true)
+                end
             elseif id:sub(1, 9) == "espAlpha:" then
                 local relationship = id:match("^espAlpha:([^:]+)$")
                 local setting = relationship and ColorPolicy.settingName(relationship, "fillAlpha")
@@ -908,22 +987,39 @@ function Catalog:model(state)
             elseif id:sub(1, 21) == "resetEspRelationship:" then
                 local relationship = id:match("^resetEspRelationship:([^:]+)$")
                 for _, target in ipairs(ColorPolicy.TARGETS) do
-                    self.context.setSetting(ColorPolicy.settingName(relationship, target), "", persist == true)
+                    self.context.setSetting(
+                        ColorPolicy.settingName(relationship, target),
+                        "",
+                        persist == true
+                    )
                 end
-                self.context.setSetting(ColorPolicy.settingName(relationship, "fillAlpha"), -1, persist == true)
+                self.context.setSetting(
+                    ColorPolicy.settingName(relationship, "fillAlpha"),
+                    -1,
+                    persist == true
+                )
             elseif id == "resetEspAll" then
                 for _, relationship in ipairs(ColorPolicy.RELATIONSHIPS) do
                     for _, target in ipairs(ColorPolicy.TARGETS) do
-                        self.context.setSetting(ColorPolicy.settingName(relationship, target), "", persist == true)
+                        self.context.setSetting(
+                            ColorPolicy.settingName(relationship, target),
+                            "",
+                            persist == true
+                        )
                     end
-                    self.context.setSetting(ColorPolicy.settingName(relationship, "fillAlpha"), -1, persist == true)
+                    self.context.setSetting(
+                        ColorPolicy.settingName(relationship, "fillAlpha"),
+                        -1,
+                        persist == true
+                    )
                 end
             elseif id == "fullScreenAim" then
                 local settings = self.context.store:Get().settings
-                local name = settings.shotAim == true
-                        and "shotFullScreenAim"
+                local name = settings.shotAim == true and "shotFullScreenAim"
                     or "cameraFullScreenAim"
-                if settings[name] == nil then name = "fullScreenAim" end
+                if settings[name] == nil then
+                    name = "fullScreenAim"
+                end
                 self.context.setOption(name, value == "fullscreen", true)
                 if name ~= "fullScreenAim" then
                     self.context.setOption("fullScreenAim", value == "fullscreen", true)
@@ -932,12 +1028,16 @@ function Catalog:model(state)
                 local cosmetics = self.context.store:Get().cosmetics or {}
                 local minimum = cosmetics.minimumWear or 0
                 local maximum = cosmetics.maximumWear or 1
-                self.context.setWear(maximum > minimum and (value - minimum) / (maximum - minimum) or 0)
+                self.context.setWear(
+                    maximum > minimum and (value - minimum) / (maximum - minimum) or 0
+                )
             elseif id == "gloveWear" and self.context.setGloveWear then
                 local gloves = self.context.store:Get().gloves or {}
                 local minimum = gloves.minimumWear or 0
                 local maximum = gloves.maximumWear or 1
-                self.context.setGloveWear(maximum > minimum and (value - minimum) / (maximum - minimum) or 0)
+                self.context.setGloveWear(
+                    maximum > minimum and (value - minimum) / (maximum - minimum) or 0
+                )
             elseif id == "cosmeticStatTrak" and self.context.toggleStatTrak then
                 local cosmetics = self.context.store:Get().cosmetics or {}
                 if (cosmetics.statTrak == true) ~= (value == true) then

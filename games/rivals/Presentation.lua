@@ -66,7 +66,6 @@ function Presentation.mount(host)
         },
     })
 
-
     host:section("Combat", "trigger", "Trigger Bot", 64)
     host:option("trigger", 1, "triggerBot", "Trigger Bot")
     if type(host.slider) == "function" then
@@ -89,6 +88,7 @@ function Presentation.mount(host)
     host:option("movement", 1, "bhop", "Bunny Hop")
     host:option("movement", 2, "infiniteJump", "Infinite Jump")
     host:option("movement", 3, "wallNoclip", "Wall Noclip")
+    host:option("movement", 4, "redLightSafety", "Red Light Safety")
 
     host:section("Settings", "taskFarming", "TASK FARMING", 70)
     host:option("taskFarming", 1, "taskAutomationPaused", "Pause Task Farming")
@@ -103,10 +103,12 @@ function Presentation.mount(host)
     host:option("visuals", 1, "boxes", "Hitboxes")
     host:option("visuals", 1, "chams", "Chams")
     host:option("visuals", 2, "chamsExcludeAccessories", "Ignore Accessories", "chams", {
-        setting = "worldRenderer", equals = "native",
+        setting = "worldRenderer",
+        equals = "native",
     })
     host:option("visuals", 2, "chamsPerPart", "Part Highlights", "chams", {
-        setting = "worldRenderer", equals = "native",
+        setting = "worldRenderer",
+        equals = "native",
     })
     host:option("visuals", 3, "names", "Names")
     host:option("visuals", 3, "health", "Health")

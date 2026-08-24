@@ -1,5 +1,5 @@
 import React from "@rbxts/react";
-import { Text } from "@prism";
+import { Text } from "@prism/components/Text";
 import { theme } from "@prism/theme";
 import type { ModelViewerControl } from "../contracts";
 

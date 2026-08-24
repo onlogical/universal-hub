@@ -4,12 +4,18 @@ set -euo pipefail
 repository_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$repository_root"
 
-for required_tool in curl luau-lsp lune; do
+for required_tool in curl luau-lsp lune stylua; do
     if ! command -v "$required_tool" >/dev/null 2>&1; then
         printf 'Missing required tool: %s\n' "$required_tool" >&2
         exit 1
     fi
 done
+
+mapfile -t rivals_contracts < <(git ls-files 'tests/rivals_*_contracts.luau')
+stylua --check games/rivals "${rivals_contracts[@]}" \
+    tests/shot_presentation_binding_contracts.luau \
+    tests/scoped_accuracy_contracts.luau \
+    hub.lua init.lua
 
 roblox_types_commit="cfa5c378c6370f0eca852910e6fbdf8e4d8921c6"
 roblox_types="${LOCALAPPDATA:-${TMPDIR:-/tmp}}/hydroxide/typecheck/globalTypes-$roblox_types_commit.d.luau"

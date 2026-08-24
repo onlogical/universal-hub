@@ -16,7 +16,10 @@ for _, displayName in ipairs({
     "Bow",
     "Riot Shield",
 }) do
-    assert(not policySources:find('"' .. displayName .. '"', 1, true), displayName .. " must not select runtime behavior")
+    assert(
+        not policySources:find('"' .. displayName .. '"', 1, true),
+        displayName .. " must not select runtime behavior"
+    )
 end
 
 local throwable = {
@@ -33,8 +36,10 @@ assert(ItemPolicy.automationPolicy(firearm).silentAim == true)
 
 local continuous = { Info = { InternalUseCooldown = 0.25, MaxAmmo = 100 } }
 assert(ItemPolicy.isContinuous(continuous))
-assert(ItemPolicy.hasTargetedDamage(continuous),
-    "A stream weapon must be triggerable without a per-shot damage field")
+assert(
+    ItemPolicy.hasTargetedDamage(continuous),
+    "A stream weapon must be triggerable without a per-shot damage field"
+)
 assert(ItemPolicy.automationPolicy(continuous).triggerBot == true)
 assert(not ItemPolicy.isContinuous({ Info = { ShootDamage = 12 } }))
 
@@ -78,20 +83,47 @@ assert(ItemPolicy.isChargedBow({
 assert(not ItemPolicy.isChargedBow({ Name = "Bow", Info = { ChargeReleaseCooldown = 1 } }))
 assert(ItemPolicy.isTrueDamage({ Info = { DealsTrueDamage = true } }))
 assert(not ItemPolicy.isTrueDamage({ Name = "Spray", Info = {} }))
+local sprayCapabilities = ItemPolicy.capabilities({
+    Info = { Type = "Gun", Class = "Secondary", DealsTrueDamage = true, ShootDamage = 8 },
+})
+assert(sprayCapabilities.attack == "gun")
+assert(sprayCapabilities.bypassesDeflection == true)
+assert(sprayCapabilities.maxDoubleJumps == 0)
+local fistCapabilities = ItemPolicy.capabilities({
+    _attack_hash = 3,
+    Info = {
+        Type = "Melee",
+        Class = "Melee",
+        AttackDamage = 30,
+        AttackCooldown = 0.35,
+        MaxDoubleJumps = 1,
+    },
+})
+assert(fistCapabilities.attack == "melee")
+assert(fistCapabilities.bypassesDeflection == true)
+assert(fistCapabilities.maxDoubleJumps == 1)
+assert(ItemPolicy.capabilities({
+    Info = { Type = "Gun", Class = "Primary", ShootDamage = 12 },
+}).bypassesDeflection == false)
 assert(ItemPolicy.isAbsorber({ Info = { MaxAbsorption = 500 } }))
 assert(not ItemPolicy.isAbsorber({ Name = "Riot Shield", Info = {} }))
 local deflectInfo = { DeflectDuration = 1, DeflectCooldown = 4 }
 assert(ItemPolicy.hasDeflectCapability({ Info = deflectInfo }))
 assert(ItemPolicy.isDeflector({ _deflect_hash = 0, Info = deflectInfo }))
-assert(not ItemPolicy.isDeflector({ Info = deflectInfo }),
-    "A catalog-shaped deflector must still require a live deflect hash")
-assert(ItemPolicy.isActivelyDeflecting({
-    Info = deflectInfo,
-    Get = function()
-        return 0
-    end,
-    Data = { FOVOffset = 5 },
-}), "A default Get must not hide a replicated block FOV")
+assert(
+    not ItemPolicy.isDeflector({ Info = deflectInfo }),
+    "A catalog-shaped deflector must still require a live deflect hash"
+)
+assert(
+    ItemPolicy.isActivelyDeflecting({
+        Info = deflectInfo,
+        Get = function()
+            return 0
+        end,
+        Data = { FOVOffset = 5 },
+    }),
+    "A default Get must not hide a replicated block FOV"
+)
 assert(ItemPolicy.isActivelyDeflecting({
     Info = deflectInfo,
     Get = function()
@@ -106,9 +138,21 @@ assert(not ItemPolicy.isActivelyDeflecting({
     end,
     Data = { FOVOffset = 0 },
 }))
-assert(policySources:find("FighterController.GetFighter", 1, true), "fighter lookup must prefer the public GetFighter seam")
-assert(policySources:find("CameraController.GetCurrentSubject", 1, true), "active-subject checks must prefer GetCurrentSubject")
-assert(policySources:find("WeaponPolicy.isFanFirearm", 1, true), "Revolver trigger must use the fan-firearm policy")
-assert(policySources:find("WeaponPolicy.isChargedBow", 1, true), "Bow trigger must use the charged-projectile policy")
+assert(
+    policySources:find("FighterController.GetFighter", 1, true),
+    "fighter lookup must prefer the public GetFighter seam"
+)
+assert(
+    policySources:find("CameraController.GetCurrentSubject", 1, true),
+    "active-subject checks must prefer GetCurrentSubject"
+)
+assert(
+    policySources:find("WeaponPolicy.isFanFirearm", 1, true),
+    "Revolver trigger must use the fan-firearm policy"
+)
+assert(
+    policySources:find("WeaponPolicy.isChargedBow", 1, true),
+    "Bow trigger must use the charged-projectile policy"
+)
 
 print("rivals-item-policy-contracts-ok")

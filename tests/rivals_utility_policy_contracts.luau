@@ -23,7 +23,10 @@ local descriptor = UtilityPolicy.descriptor(tripmine)
 assert(descriptor.label == "TRIPMINE" and descriptor.markerStyle == "wireframeCube")
 assert(UtilityPolicy.descriptor(candidate("grenade", {})) == nil)
 assert(UtilityPolicy.descriptor(candidate("Effects", {})) == nil)
-assert(UtilityPolicy.descriptor(candidate("replicated", {}, { ThrowableOrientation = true })).label == "THROWABLE")
+assert(
+    UtilityPolicy.descriptor(candidate("replicated", {}, { ThrowableOrientation = true })).label
+        == "THROWABLE"
+)
 assert(UtilityPolicy.effectKind(candidate("Flashbang", {})) == "flash")
 assert(UtilityPolicy.effectKind(candidate("flash-ish", {})) == nil)
 assert(UtilityPolicy.effectKind(candidate("cloud", { "SmokeCloud" })) == "smoke")

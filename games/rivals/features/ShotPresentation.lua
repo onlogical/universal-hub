@@ -123,8 +123,7 @@ function ShotPresentation:update(rotation, target)
     end
     if not self.visibleFrame then
         self.visibleCamera = camera
-        self.visibleFrame =
-            camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame
+        self.visibleFrame = camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame
         self.visibleRotation = self.cameraController.Rotation
     end
     self.pendingTarget = target
@@ -146,7 +145,8 @@ function ShotPresentation:_prepareFrame()
 end
 
 function ShotPresentation:_maskFrame()
-    if self.stopped
+    if
+        self.stopped
         or not self.logicalRotation
         or not self.visibleFrame
         or not self.visibleRotation
@@ -167,7 +167,8 @@ function ShotPresentation:_maskFrame()
 end
 
 function ShotPresentation:_applyVisibleRotationDelta(delta)
-    if self.stopped
+    if
+        self.stopped
         or not self.visibleFrame
         or not self.visibleRotation
         or typeof(delta) ~= "Vector2"
@@ -177,14 +178,11 @@ function ShotPresentation:_applyVisibleRotationDelta(delta)
 
     local previousRotation = self.visibleRotation
     local visible = previousRotation + delta
-    local nextRotation = Vector2.new(
-        math.clamp(visible.X, -1.5690509975429023, 1.5690509975429023),
-        visible.Y
-    )
+    local nextRotation =
+        Vector2.new(math.clamp(visible.X, -1.5690509975429023, 1.5690509975429023), visible.Y)
     local previousBase = CFrame.Angles(0, previousRotation.Y, 0)
         * CFrame.Angles(previousRotation.X, 0, 0)
-    local nextBase = CFrame.Angles(0, nextRotation.Y, 0)
-        * CFrame.Angles(nextRotation.X, 0, 0)
+    local nextBase = CFrame.Angles(0, nextRotation.Y, 0) * CFrame.Angles(nextRotation.X, 0, 0)
     self.visibleFrame = CFrame.new(self.visibleFrame.Position)
         * nextBase
         * previousBase:ToObjectSpace(self.visibleFrame.Rotation)
@@ -225,7 +223,8 @@ function ShotPresentation:refreshHook()
     self.cameraDataTarget = target
     local original
     original = self.hookFunction(target, function(fighterSelf, ...)
-        if self.stopped
+        if
+            self.stopped
             or not self.isEnabled()
             or fighterSelf ~= self.getFighter()
             or self.isInputCaptured()
@@ -234,7 +233,8 @@ function ShotPresentation:refreshHook()
         end
 
         local camera = self.workspace.CurrentCamera
-        if not camera
+        if
+            not camera
             or camera ~= self.visibleCamera
             or not self.targetFrame
             or not self.frameRotation

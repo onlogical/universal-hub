@@ -76,6 +76,10 @@ function writeJson(filePath, value) {
 	fs.writeFileSync(filePath, `${JSON.stringify(value, null, "\t")}\n`);
 }
 
+function normalizeLf(source) {
+	return source.replace(/\r\n?/g, "\n");
+}
+
 function ensureNpmPackage(directory, binaryName) {
 	const binary = path.join(
 		directory,
@@ -122,7 +126,6 @@ function main() {
 		compilerOptions: {
 			rootDirs: ["src", posixRelative(uiRoot, prismSourceRoot)],
 			paths: {
-				"@prism": ["prismCompat"],
 				"@prism/*": [`${prismLib}/*`],
 			},
 		},
@@ -193,14 +196,14 @@ function main() {
 		prismRoot,
 	);
 
-	const bundled = fs.readFileSync(distLua, "utf8");
+	const bundled = normalizeLf(fs.readFileSync(distLua, "utf8"));
 	if (bundled.includes('ReplicatedStorage:WaitForChild("Prism")')) {
 		fail("Wax bundle includes Prism playground code that reads the live DataModel");
 	}
 	const virtualImports = bundled
 		.replaceAll('game:GetService("ReplicatedStorage")', "wax.shared.ReplicatedStorage")
 		.replace(
-			/(for _, Object in next, ObjectTree do\r?\n\s*CreateRefFromObject\(Object, RealObjectRoot\)\r?\nend)/,
+			/(for _, Object in next, ObjectTree do\n\s*CreateRefFromObject\(Object, RealObjectRoot\)\nend)/,
 			'$1\nSharedEnvironment.ReplicatedStorage = RealObjectRoot:GetChildren()[1].ReplicatedStorage',
 		);
 	if (
@@ -221,7 +224,7 @@ function main() {
 		fail("Wax bundle epilogue could not target the UniversalHubMenu entry module");
 	}
 	const schedulerPatched = entrypointPatched.replace(
-		/local function wrapPerformWorkWithCoroutine\(performWork\)[\s\S]*?\nend\r?\nperformWorkUntilDeadline = wrapPerformWorkWithCoroutine/,
+		/local function wrapPerformWorkWithCoroutine\(performWork\)[\s\S]*?\nend\nperformWorkUntilDeadline = wrapPerformWorkWithCoroutine/,
 		"local function wrapPerformWorkWithCoroutine(performWork)\n\treturn performWork\nend\nperformWorkUntilDeadline = wrapPerformWorkWithCoroutine",
 	);
 	if (schedulerPatched === entrypointPatched) {

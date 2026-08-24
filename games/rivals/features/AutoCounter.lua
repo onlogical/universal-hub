@@ -11,8 +11,7 @@ function AutoCounter.weaponReady(item, target, distance, ctx)
         and WeaponPolicy.automationPolicy(item).triggerBot == true
         and (WeaponPolicy.ammo(item) or 0) > 0
         and item.IsEquipping ~= true
-        and not (type(data) == "table"
-            and (data.IsReloading == true or data.Reloading == true))
+        and not (type(data) == "table" and (data.IsReloading == true or data.Reloading == true))
         and not (type(item._shoot_cooldown) == "number" and now < item._shoot_cooldown)
         and not ctx.isDeflecting(target.player)
         and WeaponPolicy.triggerDamageReady(item, target, distance)
@@ -27,7 +26,8 @@ function AutoCounter.weaponReady(item, target, distance, ctx)
 end
 
 function AutoCounter.fire(settings, ctx)
-    if settings.autoCounter ~= true
+    if
+        settings.autoCounter ~= true
         or not ctx.runtime:isReady()
         or ctx.inFlight
         or ctx.inputCaptured
@@ -42,7 +42,8 @@ function AutoCounter.fire(settings, ctx)
     local target = ctx.selectTarget(nil, false, true)
     local camera = ctx.camera
     local aimOptions = camera and ctx.headAimOptions() or nil
-    if not target
+    if
+        not target
         or target.visible ~= true
         or not ctx.isTargetable(target.player, target.character)
         or not camera
@@ -51,11 +52,8 @@ function AutoCounter.fire(settings, ctx)
         return false
     end
 
-    local bodyPosition, bodyPart = ctx.targeting.visibleBodyPoint(
-        target,
-        aimOptions.origin,
-        aimOptions.raycast
-    )
+    local bodyPosition, bodyPart =
+        ctx.targeting.visibleBodyPoint(target, aimOptions.origin, aimOptions.raycast)
     if not bodyPosition or not bodyPart then
         return false
     end
@@ -74,10 +72,8 @@ function AutoCounter.fire(settings, ctx)
     local rotation = ctx.targeting.rotationToward(aimOptions.origin, bodyPosition)
     ctx.setAimRotation(rotation, true, target.character)
     local info = item.Info
-    local cooldown = math.max(
-        ctx.interval,
-        info.ShootCooldown or info.AttackCooldown or ctx.interval
-    )
+    local cooldown =
+        math.max(ctx.interval, info.ShootCooldown or info.AttackCooldown or ctx.interval)
     ctx.runtime:consume(ctx.clock(), cooldown)
     local succeeded, actionError = pcall(ctx.click)
     if typeof(originalRotation) == "Vector2" then

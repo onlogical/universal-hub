@@ -1,15 +1,4 @@
-local function importDependency(path, relativePath)
-    if type(getgenv) == "function" then
-        local environment = getgenv()
-        local configuration = environment and environment.UniversalHubConfig
-        if configuration and type(configuration.Import) == "function" then
-            return configuration.Import(path)
-        end
-    end
-    return require(relativePath)
-end
-
-local ItemPolicy = importDependency("games/rivals/libraries/ItemPolicy", "./ItemPolicy")
+local ItemPolicy = require("./ItemPolicy")
 local WeaponPolicy = {}
 
 local AUTOMATIC_SHOOT_COOLDOWN = 0.15
@@ -48,10 +37,14 @@ function WeaponPolicy.isScoped(item)
 end
 
 function WeaponPolicy.isAiming(item)
-    if not item then return false end
+    if not item then
+        return false
+    end
     if type(item.Get) == "function" then
         local succeeded, value = pcall(item.Get, item, "IsAiming")
-        if succeeded and type(value) == "boolean" then return value end
+        if succeeded and type(value) == "boolean" then
+            return value
+        end
     end
     local data = item.Data
     return type(data) == "table" and data.IsAiming == true
@@ -106,10 +99,14 @@ function WeaponPolicy.isTrueDamage(item)
 end
 
 function WeaponPolicy.ammo(item)
-    if not item then return nil end
+    if not item then
+        return nil
+    end
     if type(item.Get) == "function" then
         local succeeded, value = pcall(item.Get, item, "Ammo")
-        if succeeded and type(value) == "number" then return value end
+        if succeeded and type(value) == "number" then
+            return value
+        end
     end
     local data = item.Data
     return type(data) == "table" and type(data.Ammo) == "number" and data.Ammo or nil
@@ -164,7 +161,8 @@ function WeaponPolicy.backstabPlan(localPosition, observation, info, acquisition
     local health = observation and observation.health
     local character = observation and observation.character
     local targetRoot = character and character:FindFirstChild("HumanoidRootPart")
-    if type(health) ~= "number"
+    if
+        type(health) ~= "number"
         or type(info) ~= "table"
         or type(info.CriticalDamage) ~= "number"
         or health > info.CriticalDamage
@@ -192,8 +190,7 @@ function WeaponPolicy.backstabPlan(localPosition, observation, info, acquisition
     end
 
     local approachDistance = math.clamp(reach * 0.65, 3.5, 5)
-    local approachPosition = targetRoot.Position
-        - targetRoot.CFrame.LookVector * approachDistance
+    local approachPosition = targetRoot.Position - targetRoot.CFrame.LookVector * approachDistance
     return {
         aimPosition = ready and observation.position or approachPosition,
         approachPosition = approachPosition,
@@ -224,7 +221,8 @@ function WeaponPolicy.backstabTriggerReady(fighter, item, target, allowAirborne)
     elseif type(isGrounded) == "boolean" then
         grounded = isGrounded
     end
-    if not localRoot
+    if
+        not localRoot
         or typeof(localRoot.Position) ~= "Vector3"
         or allowAirborne ~= true and grounded ~= true
         or type(item) ~= "table"
@@ -241,8 +239,11 @@ end
 function WeaponPolicy.adsSettled(cameraController, item)
     local info = item and item.Info
     local data = item and item.Data
-    if type(info) ~= "table" or info.AimScopePercent == nil
-        or type(data) ~= "table" or data.IsAiming ~= true
+    if
+        type(info) ~= "table"
+        or info.AimScopePercent == nil
+        or type(data) ~= "table"
+        or data.IsAiming ~= true
     then
         return true
     end
@@ -288,7 +289,8 @@ function WeaponPolicy.sniperTriggerReady(
     local part = observation and observation.part
     local size = part and part.Size
     local spread = info.ShootSpread
-    if type(distance) ~= "number"
+    if
+        type(distance) ~= "number"
         or distance <= 0
         or typeof(size) ~= "Vector3"
         or type(spread) ~= "number"
@@ -302,8 +304,7 @@ function WeaponPolicy.sniperTriggerReady(
         return false
     end
 
-    local maximumSpread = math.rad(spread)
-        * (crouching and CROUCH_SPREAD_MULTIPLIER or 1)
+    local maximumSpread = math.rad(spread) * (crouching and CROUCH_SPREAD_MULTIPLIER or 1)
     local targetAngularRadius = math.atan(targetRadius / distance)
     return targetAngularRadius / maximumSpread >= SNIPER_NOSCOPE_MIN_HIT_CHANCE
 end
@@ -311,7 +312,8 @@ end
 function WeaponPolicy.holdToFire(item)
     local info = item and item.Info
     local inputSpamming = type(info) == "table" and info.InputSpammingEnabled
-    if type(inputSpamming) ~= "table"
+    if
+        type(inputSpamming) ~= "table"
         or type(inputSpamming.StartShooting) ~= "number"
         or info.IsProjectile == true
     then
@@ -332,7 +334,8 @@ function WeaponPolicy.gunbladeMode(item)
     local getMobileInputSettings = item and item.GetMobileInputSettings
     local bladeSettings = type(info) == "table" and info.BladeModeMobileInputSettings
     local gunSettings = type(info) == "table" and info.MobileInputSettings
-    if type(getMobileInputSettings) ~= "function"
+    if
+        type(getMobileInputSettings) ~= "function"
         or type(bladeSettings) ~= "table"
         or type(gunSettings) ~= "table"
     then
@@ -370,10 +373,7 @@ function WeaponPolicy.gunbladeDashRange(item)
     local reach = info and info.BladeReach
     local dashSpeed = info and info.DashSpeed
     local dashDuration = info and info.DashDuration
-    if type(reach) ~= "number"
-        or type(dashSpeed) ~= "number"
-        or type(dashDuration) ~= "number"
-    then
+    if type(reach) ~= "number" or type(dashSpeed) ~= "number" or type(dashDuration) ~= "number" then
         return nil
     end
     return reach + dashSpeed * dashDuration
@@ -403,7 +403,8 @@ function WeaponPolicy.gunbladeTriggerAction(state, item, target, distance, now)
     local dashRange = WeaponPolicy.gunbladeDashRange(item)
     local info = item and item.Info
     local bladeReach = info and info.BladeReach
-    if not mode
+    if
+        not mode
         or not target
         or type(distance) ~= "number"
         or type(now) ~= "number"
@@ -420,35 +421,31 @@ function WeaponPolicy.gunbladeTriggerAction(state, item, target, distance, now)
     local phase = state and state.phase
     local readyAt = state and state.readyAt or 0
     local dashReadyAt = state and state.dashReadyAt or 0
-    local transitionCooldown = type(info.TransitionCooldown) == "number"
-            and info.TransitionCooldown
+    local transitionCooldown = type(info.TransitionCooldown) == "number" and info.TransitionCooldown
         or 0
 
     if mode == "gun" then
-        if phase == "awaitBlade"
-            or (phase == "awaitGun" and now < readyAt)
-        then
+        if phase == "awaitBlade" or (phase == "awaitGun" and now < readyAt) then
             return state, nil
         end
 
-        local shootCooldown = type(info.ShootCooldown) == "number" and info.ShootCooldown or TRIGGER_INTERVAL
+        local shootCooldown = type(info.ShootCooldown) == "number" and info.ShootCooldown
+            or TRIGGER_INTERVAL
         return gunbladeState(
             item,
             target,
             "awaitBlade",
             now + math.max(shootCooldown, transitionCooldown),
             dashReadyAt
-        ), {
-            cooldown = shootCooldown,
-            kind = "shoot",
-        }
+        ),
+            {
+                cooldown = shootCooldown,
+                kind = "shoot",
+            }
     end
 
     if phase == "strike" then
-        if now < readyAt
-            or distance > bladeReach
-            or not gunbladeQuickAttackReady(item)
-        then
+        if now < readyAt or distance > bladeReach or not gunbladeQuickAttackReady(item) then
             return state, nil
         end
     elseif phase == "awaitGun" then
@@ -458,46 +455,45 @@ function WeaponPolicy.gunbladeTriggerAction(state, item, target, distance, now)
             return state, nil
         end
 
-        local dashCooldown = type(info.DashCooldown) == "number" and info.DashCooldown or TRIGGER_INTERVAL
-        return gunbladeState(
-            item,
-            target,
-            "strike",
-            now,
-            now + dashCooldown
-        ), {
-            cooldown = dashCooldown,
-            kind = "dash",
-        }
+        local dashCooldown = type(info.DashCooldown) == "number" and info.DashCooldown
+            or TRIGGER_INTERVAL
+        return gunbladeState(item, target, "strike", now, now + dashCooldown),
+            {
+                cooldown = dashCooldown,
+                kind = "dash",
+            }
     end
 
-    local bladeCooldown = type(info.BladeCooldown) == "number" and info.BladeCooldown or TRIGGER_INTERVAL
+    local bladeCooldown = type(info.BladeCooldown) == "number" and info.BladeCooldown
+        or TRIGGER_INTERVAL
     return gunbladeState(
         item,
         target,
         "awaitGun",
         now + math.max(bladeCooldown, transitionCooldown),
         dashReadyAt
-    ), {
-        cooldown = bladeCooldown,
-        kind = "strike",
-    }
+    ),
+        {
+            cooldown = bladeCooldown,
+            kind = "strike",
+        }
 end
 
 function WeaponPolicy.damageAtDistance(item, observation, distance)
     local info = item and item.Info
-    local startDistance =
-        info and (info.DamageFallOffStartDist or info.RaycastDamageDropoffStartDistance)
+    local startDistance = info
+        and (info.DamageFallOffStartDist or info.RaycastDamageDropoffStartDistance)
     local endDistance = info and (info.DamageFallOffEndDist or info.RaycastDamageDropoffEndDistance)
-    local minimumMultiplier =
-        info and (info.DamageFallOffMultiplier or info.RaycastDamageDropoffMultiplier)
+    local minimumMultiplier = info
+        and (info.DamageFallOffMultiplier or info.RaycastDamageDropoffMultiplier)
     local part = observation and observation.part
     local baseDamage = WeaponPolicy.isCriticalPart(part) and info and info.CriticalDamage
         or info and info.ShootDamage
     if type(baseDamage) ~= "number" then
         return nil
     end
-    if type(startDistance) ~= "number"
+    if
+        type(startDistance) ~= "number"
         or type(endDistance) ~= "number"
         or endDistance <= startDistance
         or type(minimumMultiplier) ~= "number"
@@ -552,12 +548,13 @@ function WeaponPolicy.triggerDamageReady(item, observation, distance)
         -- for near-full per-shot damage at the edge of falloff.
         return true
     end
-    local startDistance =
-        info and (info.DamageFallOffStartDist or info.RaycastDamageDropoffStartDistance)
+    local startDistance = info
+        and (info.DamageFallOffStartDist or info.RaycastDamageDropoffStartDistance)
     local endDistance = info and (info.DamageFallOffEndDist or info.RaycastDamageDropoffEndDistance)
-    local minimumMultiplier =
-        info and (info.DamageFallOffMultiplier or info.RaycastDamageDropoffMultiplier)
-    if type(info) ~= "table"
+    local minimumMultiplier = info
+        and (info.DamageFallOffMultiplier or info.RaycastDamageDropoffMultiplier)
+    if
+        type(info) ~= "table"
         or type(startDistance) ~= "number"
         or type(endDistance) ~= "number"
         or type(minimumMultiplier) ~= "number"
@@ -571,8 +568,10 @@ function WeaponPolicy.triggerDamageReady(item, observation, distance)
     local health = observation and observation.health
     return type(baseDamage) == "number"
         and type(damage) == "number"
-        and (damage >= baseDamage * TRIGGER_DAMAGE_RETENTION
-            or type(health) == "number" and damage >= health)
+        and (
+            damage >= baseDamage * TRIGGER_DAMAGE_RETENTION
+            or type(health) == "number" and damage >= health
+        )
 end
 
 function WeaponPolicy.bowChargeTime(item, observation)
@@ -592,7 +591,8 @@ function WeaponPolicy.bowChargeTime(item, observation)
 
     for level, timestamp in ipairs(timestamps) do
         local multiplier = multipliers[level]
-        if type(timestamp) == "number"
+        if
+            type(timestamp) == "number"
             and type(multiplier) == "number"
             and baseDamage * multiplier >= health
         then
@@ -665,7 +665,8 @@ end
 
 function WeaponPolicy.revolverTriggerAction(item, observation, distance, now)
     local info = item and item.Info
-    if not item
+    if
+        not item
         or not ItemPolicy.isRevolver(item)
         or type(info) ~= "table"
         or not revolverCanShoot(item, now)
@@ -681,11 +682,11 @@ function WeaponPolicy.revolverTriggerAction(item, observation, distance, now)
 
     local preciseLockedUntil = item._is_revolver_quick_shooting
     local preciseReady = type(preciseLockedUntil) ~= "number" or now >= preciseLockedUntil
-    local preciseFits =
-        targetFitsRevolverSpread(observation, distance, info.ShootSpread)
+    local preciseFits = targetFitsRevolverSpread(observation, distance, info.ShootSpread)
     local preciseDamage = WeaponPolicy.damageAtDistance(item, observation, distance)
     local health = observation and observation.health
-    if preciseReady
+    if
+        preciseReady
         and preciseFits
         and type(preciseDamage) == "number"
         and type(health) == "number"
@@ -711,6 +712,5 @@ function WeaponPolicy.revolverTriggerAction(item, observation, distance, now)
     end
     return nil
 end
-
 
 return WeaponPolicy

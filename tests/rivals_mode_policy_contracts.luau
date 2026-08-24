@@ -17,12 +17,9 @@ assert(ModePolicy.resolve(replica({ IsGunGame = true })) == "gun-game")
 assert(ModePolicy.resolve(replica({ IsGunGame = false })) == "standard")
 assert(ModePolicy.resolve(replica({})) == nil)
 assert(ModePolicy.resolve(nil) == nil)
-assert(
-    ModePolicy.resolve(replica({ IsGunGame = false }, function(_self, key)
-        return key == "IsGunGame" and true or nil
-    end)) == "gun-game",
-    "the live replicated getter must be authoritative over the backing data table"
-)
+assert(ModePolicy.resolve(replica({ IsGunGame = false }, function(_self, key)
+    return key == "IsGunGame" and true or nil
+end)) == "gun-game", "the live replicated getter must be authoritative over the backing data table")
 local gunGame = replica({ IsGunGame = true })
 local standard = replica({ IsGunGame = false })
 local controller = {
@@ -33,7 +30,11 @@ local controller = {
 assert(ModePolicy.fromController(controller, "gun-game-player") == "gun-game")
 assert(ModePolicy.fromController(controller, "standard-player") == "standard")
 assert(ModePolicy.fromController({}, "gun-game-player") == nil)
-assert(ModePolicy.fromController({ GetDuel = function() error("not ready") end }) == nil)
+assert(ModePolicy.fromController({
+    GetDuel = function()
+        error("not ready")
+    end,
+}) == nil)
 assert(ModePolicy.controllerIsGunGame(controller, "gun-game-player") == true)
 assert(ModePolicy.controllerIsGunGame(controller, "standard-player") == false)
 

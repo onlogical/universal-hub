@@ -60,16 +60,20 @@ assert(AutoDeflect.shouldBlock({ EquippedItem = katana }, opponent, {
         return 1
     end,
 }) == true)
-assert(AutoDeflect.shouldBlock({
-    EquippedItem = { _deflect_hash = 1, _deflect_cooldown = 2, Info = katana.Info },
-}, opponent, {
-    weaponPolicy = WeaponPolicy,
-    health = 100,
-    character = ours,
-    itemClock = function()
-        return 1
-    end,
-}) == false)
+assert(AutoDeflect.shouldBlock(
+    {
+        EquippedItem = { _deflect_hash = 1, _deflect_cooldown = 2, Info = katana.Info },
+    },
+    opponent,
+    {
+        weaponPolicy = WeaponPolicy,
+        health = 100,
+        character = ours,
+        itemClock = function()
+            return 1
+        end,
+    }
+) == false)
 assert(AutoDeflect.ready({ _deflect_cooldown = 2 }, 1) == false)
 assert(AutoDeflect.ready({ _deflect_cooldown = 1 }, 1) == true)
 

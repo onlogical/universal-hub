@@ -41,9 +41,15 @@ end
 function WorldPolicy.new(options)
     assert(type(options) == "table", "RIVALS world policy requires options")
     assert(options.workspace, "RIVALS world policy requires Workspace")
-    assert(type(options.getLocalFighter) == "function", "RIVALS world policy requires a fighter getter")
+    assert(
+        type(options.getLocalFighter) == "function",
+        "RIVALS world policy requires a fighter getter"
+    )
     assert(type(options.isOpponent) == "function", "RIVALS world policy requires opponent policy")
-    assert(type(options.getPlayerTone) == "function", "RIVALS world policy requires player-tone policy")
+    assert(
+        type(options.getPlayerTone) == "function",
+        "RIVALS world policy requires player-tone policy"
+    )
     assert(type(options.getWeapon) == "function", "RIVALS world policy requires weapon labels")
 
     local workspace = options.workspace
@@ -55,10 +61,17 @@ function WorldPolicy.new(options)
         connectPlayerChanged = function(player, invalidate)
             local connections = {}
             if player and player.GetAttributeChangedSignal then
-                table.insert(connections, player:GetAttributeChangedSignal("EnvironmentID"):Connect(invalidate))
-                table.insert(connections, player:GetAttributeChangedSignal("TeamID"):Connect(invalidate))
+                table.insert(
+                    connections,
+                    player:GetAttributeChangedSignal("EnvironmentID"):Connect(invalidate)
+                )
+                table.insert(
+                    connections,
+                    player:GetAttributeChangedSignal("TeamID"):Connect(invalidate)
+                )
             end
-            local fighter = type(options.getFighter) == "function" and options.getFighter(player) or nil
+            local fighter = type(options.getFighter) == "function" and options.getFighter(player)
+                or nil
             local equippedChanged = fighter and fighter.EquippedItemChanged
             local equippedConnection = connect(equippedChanged, invalidate)
             if equippedConnection then
@@ -113,7 +126,12 @@ function WorldPolicy.new(options)
                 end
                 local humanoid = entity:FindFirstChildOfClass("Humanoid")
                 local rootPart = entity:FindFirstChild("HumanoidRootPart")
-                if not humanoid or not rootPart or type(humanoid.Health) ~= "number" or humanoid.Health <= 0 then
+                if
+                    not humanoid
+                    or not rootPart
+                    or type(humanoid.Health) ~= "number"
+                    or humanoid.Health <= 0
+                then
                     return nil
                 end
                 local fighter = getLocalFighter()
@@ -167,35 +185,54 @@ function WorldPolicy.new(options)
                 local owned = {}
                 entityConnections[entity] = owned
                 if entity.GetAttributeChangedSignal then
-                    remember(connect(entity:GetAttributeChangedSignal("EnvironmentID"), function()
-                        syncEntity(entity)
-                    end), owned)
+                    remember(
+                        connect(entity:GetAttributeChangedSignal("EnvironmentID"), function()
+                            syncEntity(entity)
+                        end),
+                        owned
+                    )
                 end
                 if entity.ChildAdded then
-                    remember(connect(entity.ChildAdded, function()
-                        syncEntity(entity)
-                    end), owned)
+                    remember(
+                        connect(entity.ChildAdded, function()
+                            syncEntity(entity)
+                        end),
+                        owned
+                    )
                 end
                 if entity.ChildRemoved then
-                    remember(connect(entity.ChildRemoved, function()
-                        syncEntity(entity)
-                    end), owned)
+                    remember(
+                        connect(entity.ChildRemoved, function()
+                            syncEntity(entity)
+                        end),
+                        owned
+                    )
                 end
-                local humanoid = entity.FindFirstChildOfClass and entity:FindFirstChildOfClass("Humanoid")
+                local humanoid = entity.FindFirstChildOfClass
+                    and entity:FindFirstChildOfClass("Humanoid")
                 if humanoid then
                     if humanoid.HealthChanged then
-                        remember(connect(humanoid.HealthChanged, function()
-                            syncEntity(entity)
-                        end), owned)
+                        remember(
+                            connect(humanoid.HealthChanged, function()
+                                syncEntity(entity)
+                            end),
+                            owned
+                        )
                     elseif humanoid.GetPropertyChangedSignal then
-                        remember(connect(humanoid:GetPropertyChangedSignal("Health"), function()
-                            syncEntity(entity)
-                        end), owned)
+                        remember(
+                            connect(humanoid:GetPropertyChangedSignal("Health"), function()
+                                syncEntity(entity)
+                            end),
+                            owned
+                        )
                     end
                     if humanoid.Died then
-                        remember(connect(humanoid.Died, function()
-                            syncEntity(entity)
-                        end), owned)
+                        remember(
+                            connect(humanoid.Died, function()
+                                syncEntity(entity)
+                            end),
+                            owned
+                        )
                     end
                 end
                 syncEntity(entity)
@@ -266,18 +303,24 @@ function WorldPolicy.new(options)
                 end
                 rangeActive = true
                 if workspace.ChildAdded then
-                    remember(connect(workspace.ChildAdded, function(child)
-                        if child.Name == "ShootingRangeEntities" then
-                            attachFolder(child)
-                        end
-                    end), activeConnections)
+                    remember(
+                        connect(workspace.ChildAdded, function(child)
+                            if child.Name == "ShootingRangeEntities" then
+                                attachFolder(child)
+                            end
+                        end),
+                        activeConnections
+                    )
                 end
                 if workspace.ChildRemoved then
-                    remember(connect(workspace.ChildRemoved, function(child)
-                        if child == folder then
-                            detachFolder()
-                        end
-                    end), activeConnections)
+                    remember(
+                        connect(workspace.ChildRemoved, function(child)
+                            if child == folder then
+                                detachFolder()
+                            end
+                        end),
+                        activeConnections
+                    )
                 end
                 attachFolder(workspace:FindFirstChild("ShootingRangeEntities"))
             end

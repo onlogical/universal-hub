@@ -1,5 +1,9 @@
 import React from "@rbxts/react";
-import { Box, ColorPicker, MultiSelect, Popover, Stack, Switch, Text, colorToHex } from "@prism";
+import { Box } from "@prism/components/Box";
+import { Popover } from "@prism/components/Popover";
+import { Stack } from "@prism/components/Stack";
+import { Switch } from "@prism/components/Switch";
+import { Text } from "@prism/components/Text";
 import { theme } from "@prism/theme";
 import type {
 	CharacterPreviewPaletteRelationship,
@@ -9,6 +13,8 @@ import type {
 	UniversalHubMenuModel,
 } from "../contracts";
 import { ControlView } from "../components/ControlView";
+import { AudienceMultiSelect } from "../components/AudienceMultiSelect";
+import { EspColorPicker, colorToHex } from "../components/EspColorPicker";
 import { ModelViewer } from "../preview/ModelViewer";
 import { ViewportDummy } from "../preview/ViewportDummy";
 
@@ -189,7 +195,7 @@ function Audience({
 	const toggles = controls.filter((control) => control.kind === "toggle");
 	const value = toggles.filter((control) => control.value).map((control) => control.id);
 	return (
-		<MultiSelect
+		<AudienceMultiSelect
 			options={toggles.map((control, index) => ({
 				value: control.id,
 				label: control.label,
@@ -205,9 +211,6 @@ function Audience({
 			}}
 			onOpenedChange={onOpenChange}
 			placeholder="Select visibility"
-			maxSelectedLabels={2}
-			maxVisibleOptions={2}
-			fullWidth
 			width={200}
 			height={34}
 			zIndex={80}
@@ -289,7 +292,7 @@ function TargetPicker({
 	React.useEffect(() => setColor(target.color), [target.color]);
 	React.useEffect(() => setDraftAlpha(alpha), [alpha]);
 	return (
-		<ColorPicker
+		<EspColorPicker
 			value={color}
 			alpha={draftAlpha}
 			alphaEnabled={fill}
@@ -300,12 +303,10 @@ function TargetPicker({
 			previousValue={target.defaultColor}
 			previousAlpha={target.defaultAlpha ?? relationship.fillAlpha}
 			checkerboardImage={checkerboardImage}
-			placement="left"
 			width={34}
 			height={34}
 			position={new UDim2(1, -42, 0, 1)}
 			zIndex={100}
-			slotProps={{ triggerLabel: { Visible: false } }}
 		/>
 	);
 }

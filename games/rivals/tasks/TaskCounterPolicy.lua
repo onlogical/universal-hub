@@ -1,15 +1,4 @@
-local function importDependency(path, relativePath)
-    if type(getgenv) == "function" then
-        local environment = getgenv()
-        local configuration = environment and environment.UniversalHubConfig
-        if configuration and type(configuration.Import) == "function" then
-            return configuration.Import(path)
-        end
-    end
-    return require(relativePath)
-end
-
-local ItemPolicy = importDependency("games/rivals/libraries/ItemPolicy", "../libraries/ItemPolicy")
+local ItemPolicy = require("../libraries/ItemPolicy")
 local TaskCounterPolicy = {}
 TaskCounterPolicy.__index = TaskCounterPolicy
 
@@ -20,7 +9,9 @@ end
 function TaskCounterPolicy.hasShieldOrKatana(items)
     for key, value in pairs(items or {}) do
         local item = type(value) == "table" and value or type(key) == "table" and key or nil
-        if TaskCounterPolicy.isDefensiveItem(item) then return true end
+        if TaskCounterPolicy.isDefensiveItem(item) then
+            return true
+        end
     end
     return false
 end
@@ -30,7 +21,7 @@ function TaskCounterPolicy.shouldSelectSpray(items)
 end
 
 function TaskCounterPolicy.shouldForceSpray(item, opponentEquippedItem)
-    return ItemPolicy.isTrueDamage(item)
+    return ItemPolicy.capabilities(item).bypassesDeflection
         and TaskCounterPolicy.isDefensiveItem(opponentEquippedItem)
 end
 

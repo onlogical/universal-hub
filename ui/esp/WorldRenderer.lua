@@ -35,8 +35,8 @@ function WorldRenderer:render(observations, mousePosition, utilityObservations)
     end
     local settings = self.context.store:Get().settings or {}
     if self.context.highlightsSupported ~= false and settings.worldRenderer == "native" then
-        local remainder = self.highlights:render(observations)
-        self.drawing:render(remainder or {}, mousePosition, utilityObservations)
+        self.highlights:render(observations)
+        self.drawing:render({}, mousePosition, {})
     else
         self.highlights:render(nil)
         self.drawing:render(observations, mousePosition, utilityObservations)

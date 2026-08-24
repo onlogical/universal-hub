@@ -25,7 +25,10 @@ local source = fs.readFile("games/rivals/features/TeleportBehind.lua")
 local adapter = fs.readFile("games/rivals/Adapter.lua")
 assert(not string.find(source, "importDependency", 1, true))
 assert(not string.find(source, "FireServer", 1, true))
-assert(not string.find(source, "Anchored", 1, true), "Anchoring the root stops CFrame from replicating")
+assert(
+    not string.find(source, "Anchored", 1, true),
+    "Anchoring the root stops CFrame from replicating"
+)
 assert(string.find(source, "CFrame.lookAt(position, lookAt)", 1, true))
 assert(string.find(source, "TeleportBehind.pullIn", 1, true))
 assert(string.find(source, "TeleportBehind.canSee", 1, true))
@@ -34,12 +37,23 @@ assert(string.find(adapter, "if settings.teleportBehind == true then", 1, true))
 assert(string.find(adapter, "startTeleportPhysics()", 1, true))
 assert(string.find(adapter, "TeleportBehind.update(session", 1, true))
 assert(
-    not string.find(adapter, "settings.teleportBehind == true or not settingsSubscription", 1, true)
-        and not string.find(adapter, "or not settingsSubscription then\n            startTeleportPhysics", 1, true),
+    not string.find(
+            adapter,
+            "settings.teleportBehind == true or not settingsSubscription",
+            1,
+            true
+        )
+        and not string.find(
+            adapter,
+            "or not settingsSubscription then\n            startTeleportPhysics",
+            1,
+            true
+        ),
     "Warp must not start physics on the first frame before settings have subscribed"
 )
 assert(string.find(adapter, "raycast = function(origin, displacement)", 1, true))
-local environmentAssign = string.find(adapter, "local environmentRaycast = context.environmentRaycast", 1, true)
+local environmentAssign =
+    string.find(adapter, "local environmentRaycast = context.environmentRaycast", 1, true)
 local teleportRaycast = string.find(adapter, "local cast = environmentRaycast()", 1, true)
 assert(
     environmentAssign and teleportRaycast and environmentAssign < teleportRaycast,
@@ -56,7 +70,15 @@ assert(string.find(adapter, "setAimRotation(", 1, true))
 assert(string.find(adapter, "RunService.Heartbeat:Connect", 1, true))
 assert(string.find(adapter, "RunService.Stepped:Connect", 1, true))
 assert(string.find(adapter, "alignedTarget.aimSettled = true", 1, true))
-assert(not string.find(adapter, "alignedTarget = alignCamera(false, taskCombatActive)\n                if not alignedTarget and settings.shotAim then\n                    alignedTarget = alignCamera(true, taskCombatActive)\n                end\n                session.aligned = alignedTarget\n            end\n        elseif settingsSubscription then", 1, true), "A second Camera Aim pass after the hop uses the stale camera")
+assert(
+    not string.find(
+        adapter,
+        "alignedTarget = alignCamera(false, taskCombatActive)\n                if not alignedTarget and settings.shotAim then\n                    alignedTarget = alignCamera(true, taskCombatActive)\n                end\n                session.aligned = alignedTarget\n            end\n        elseif settingsSubscription then",
+        1,
+        true
+    ),
+    "A second Camera Aim pass after the hop uses the stale camera"
+)
 assert(TeleportBehind.OOB_TAG == "OutOfBoundsPart")
 
 local targetRoot = {
@@ -90,14 +112,14 @@ assert(nextSlot)
 local firstPlanar = offsetFrom(first.Position)
 local nextPlanar = offsetFrom(nextSlot.Position)
 assert(firstPlanar.Magnitude > 1 and nextPlanar.Magnitude > 1)
-assert(
-    firstPlanar.Unit:Dot(nextPlanar.Unit) < 0.5,
-    "Hops must choose a new side around the enemy"
-)
+assert(firstPlanar.Unit:Dot(nextPlanar.Unit) < 0.5, "Hops must choose a new side around the enemy")
 local stacked = Session.new()
 assert(TeleportBehind.focusY(stacked, 2) == 2)
 targetRoot.CFrame = CFrame.lookAt(Vector3.new(10, 80, 0), Vector3.new(11, 80, 0))
-assert(TeleportBehind.focusY(stacked, 80) == 2, "Do not stack height on another airborne teleporter")
+assert(
+    TeleportBehind.focusY(stacked, 80) == 2,
+    "Do not stack height on another airborne teleporter"
+)
 local grounded = TeleportBehind.destination(target, 0, 56, 64, nil, 0, 2)
 assert(grounded.Position.Y == 66)
 targetRoot.CFrame = CFrame.lookAt(Vector3.new(10, 2, 0), Vector3.new(11, 2, 0))
@@ -110,11 +132,7 @@ local function wallBlocks(position)
     return TeleportBehind.insidePart(wall, position)
 end
 assert(TeleportBehind.clear(wall.CFrame.Position, wallBlocks) == false)
-local pulled = TeleportBehind.pullIn(
-    targetRoot.CFrame.Position,
-    wall.CFrame.Position,
-    wallBlocks
-)
+local pulled = TeleportBehind.pullIn(targetRoot.CFrame.Position, wall.CFrame.Position, wallBlocks)
 assert(pulled)
 assert(TeleportBehind.insidePart(wall, pulled) == false)
 assert((pulled - targetRoot.CFrame.Position).Magnitude >= TeleportBehind.MIN_DISTANCE)
@@ -167,7 +185,10 @@ assert(
     (knife.Position - facing.Position).Magnitude < 12,
     "Knife One Shot must stand in backstab reach"
 )
-assert(facing.LookVector:Dot((knife.Position - facing.Position).Unit) < 0, "Knife One Shot must stand behind")
+assert(
+    facing.LookVector:Dot((knife.Position - facing.Position).Unit) < 0,
+    "Knife One Shot must stand behind"
+)
 targetRoot.CFrame = CFrame.lookAt(Vector3.new(10, 2, 0), Vector3.new(11, 2, 0))
 
 local shielded = {
@@ -250,14 +271,20 @@ libs.selectTarget = function()
     return nil
 end
 localRoot.CFrame = CFrame.new(0, 2, 0)
-assert(TeleportBehind.update(session, libs) == true, "A missing target must keep the last safe hold")
+assert(
+    TeleportBehind.update(session, libs) == true,
+    "A missing target must keep the last safe hold"
+)
 assert((localRoot.CFrame.Position - held.Position).Magnitude < 1e-4)
 assert(TeleportBehind.hold(session, libs) == true)
 
 session.inCombat = false
 session.active = false
 localRoot.CFrame = CFrame.new(0, 2, 0)
-assert(TeleportBehind.update(session, libs) == true, "Once engaged, combat flicker must not drop the hold")
+assert(
+    TeleportBehind.update(session, libs) == true,
+    "Once engaged, combat flicker must not drop the hold"
+)
 
 session.aligned = target
 libs.selectTarget = function()

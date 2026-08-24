@@ -1,17 +1,6 @@
-local function importDependency(path, relativePath)
-    if type(getgenv) == "function" then
-        local environment = getgenv()
-        local configuration = environment and environment.UniversalHubConfig
-        if configuration and type(configuration.Import) == "function" then
-            return configuration.Import(path)
-        end
-    end
-    return require(relativePath)
-end
-
-local ScopedAccuracy = importDependency("games/rivals/features/ScopedAccuracy", "../features/ScopedAccuracy")
-local ShotPresentation = importDependency("games/rivals/features/ShotPresentation", "../features/ShotPresentation")
-local SkipBlocks = importDependency("games/rivals/features/SkipBlocks", "../features/SkipBlocks")
+local ScopedAccuracy = require("../features/ScopedAccuracy")
+local ShotPresentation = require("../features/ShotPresentation")
+local SkipBlocks = require("../features/SkipBlocks")
 local HookRuntime = {}
 HookRuntime.__index = HookRuntime
 
@@ -22,8 +11,12 @@ end
 local NullPresentation = {}
 function NullPresentation:refreshHook() end
 function NullPresentation:clear() end
-function NullPresentation:update() return false end
-function NullPresentation:getPresentedTarget() return nil end
+function NullPresentation:update()
+    return false
+end
+function NullPresentation:getPresentedTarget()
+    return nil
+end
 function NullPresentation:stop() end
 
 local NullScoped = {}

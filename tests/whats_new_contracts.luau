@@ -31,7 +31,10 @@ local menuSource = fs.readFile("ui/src/UniversalHubMenu.tsx")
 assert(menuSource:find("WhatsNewModal", 1, true), "Shell must mount the extracted What's New modal")
 
 local modalSource = fs.readFile("ui/src/components/WhatsNewModal.tsx")
-assert(modalSource:find("from \"@prism\"", 1, true) or modalSource:find("from '@prism'", 1, true))
+assert(
+    modalSource:find('from "@prism/components/Modal"', 1, true)
+        or modalSource:find("from '@prism/components/Modal'", 1, true)
+)
 assert(modalSource:find("Modal", 1, true), "What's New must use the Prism Modal")
 assert(modalSource:find("whatsNewDismiss", 1, true))
 assert(modalSource:find("whatsNewDontShowAgain", 1, true))

@@ -1,43 +1,49 @@
-local function importDependency(path, relativePath)
-    if type(getgenv) == "function" then
-        local environment = getgenv()
-        local configuration = environment and environment.UniversalHubConfig
-        if configuration and type(configuration.Import) == "function" then
-            return configuration.Import(path)
-        end
-    end
-    return require(relativePath)
-end
-
-local TaskPolicy = importDependency("games/rivals/tasks/TaskPolicy", "./TaskPolicy")
+local TaskPolicy = require("./TaskPolicy")
 
 local TaskFarmRuntime = {}
 TaskFarmRuntime.__index = TaskFarmRuntime
 
 local function read(replica, key)
-    if type(replica) ~= "table" then return nil end
+    if type(replica) ~= "table" then
+        return nil
+    end
     if type(replica.Get) == "function" then
         local ok, result = pcall(replica.Get, replica, key)
-        if ok then return result end
+        if ok then
+            return result
+        end
     end
-    if type(replica.Data) == "table" then return replica.Data[key] end
+    if type(replica.Data) == "table" then
+        return replica.Data[key]
+    end
     return replica[key]
 end
 
 local function connect(connections, signal, callback)
     if signal and type(signal.Connect) == "function" then
         local ok, connection = pcall(signal.Connect, signal, callback)
-        if ok and connection then table.insert(connections, connection); return connection end
+        if ok and connection then
+            table.insert(connections, connection)
+            return connection
+        end
     end
     return nil
 end
 
 local function changedSignal(replica, key)
-    if type(replica) ~= "table" then return nil end
-    for _, method in ipairs({ "GetDataChangedSignal", "GetChangedSignal", "GetPropertyChangedSignal" }) do
+    if type(replica) ~= "table" then
+        return nil
+    end
+    for _, method in ipairs({
+        "GetDataChangedSignal",
+        "GetChangedSignal",
+        "GetPropertyChangedSignal",
+    }) do
         if type(replica[method]) == "function" then
             local ok, result = pcall(replica[method], replica, key)
-            if ok and result then return result end
+            if ok and result then
+                return result
+            end
         end
     end
     return replica.Changed
@@ -82,21 +88,42 @@ function TaskFarmRuntime.new(options)
     }, TaskFarmRuntime)
 
     if self.practiceDriver and type(self.practiceDriver.setChanged) == "function" then
-        self.practiceDriver:setChanged(function() self:_notifyActivity() end)
+        self.practiceDriver:setChanged(function()
+            self:_notifyActivity()
+        end)
     end
-    local function onNativeChange() self:_reconcile(false) end
-    local groups = options.taskLibrary.TASKS_DATA_NAMES or {
-        "Tasks", "BonusTasks", "EventTasks", "SpecialChallenges", "LimitedTasks",
-    }
+    local function onNativeChange()
+        self:_reconcile(false)
+    end
+    local groups = options.taskLibrary.TASKS_DATA_NAMES
+        or {
+            "Tasks",
+            "BonusTasks",
+            "EventTasks",
+            "SpecialChallenges",
+            "LimitedTasks",
+        }
     for _, group in ipairs(groups) do
         if type(options.playerDataController.GetDataChangedSignal) == "function" then
-            local ok, signal = pcall(options.playerDataController.GetDataChangedSignal, options.playerDataController, group)
-            if ok then connect(self.connections, signal, onNativeChange) end
+            local ok, signal = pcall(
+                options.playerDataController.GetDataChangedSignal,
+                options.playerDataController,
+                group
+            )
+            if ok then
+                connect(self.connections, signal, onNativeChange)
+            end
         end
     end
     if type(options.playerDataController.GetDataChangedSignal) == "function" then
-        local ok, signal = pcall(options.playerDataController.GetDataChangedSignal, options.playerDataController, "BeginnerTasksCompleted")
-        if ok then connect(self.connections, signal, onNativeChange) end
+        local ok, signal = pcall(
+            options.playerDataController.GetDataChangedSignal,
+            options.playerDataController,
+            "BeginnerTasksCompleted"
+        )
+        if ok then
+            connect(self.connections, signal, onNativeChange)
+        end
     end
     local fighter = self:_fighter()
     connect(self.connections, changedSignal(fighter, "IsInDuel"), onNativeChange)
@@ -110,35 +137,49 @@ function TaskFarmRuntime.new(options)
 end
 
 function TaskFarmRuntime:_fighter()
-    if type(self.context.getFighter) == "function" then return self.context.getFighter() end
+    if type(self.context.getFighter) == "function" then
+        return self.context.getFighter()
+    end
     return self.fighterController and self.fighterController.LocalFighter or nil
 end
 
 function TaskFarmRuntime:_duel()
-    if type(self.context.getDuel) == "function" then return self.context.getDuel() end
+    if type(self.context.getDuel) == "function" then
+        return self.context.getDuel()
+    end
     if self.duelController and type(self.duelController.GetDuel) == "function" then
         local ok, duel = pcall(self.duelController.GetDuel, self.duelController, self.localPlayer)
-        if ok then return duel end
+        if ok then
+            return duel
+        end
     end
     return nil
 end
 
 function TaskFarmRuntime:_bindDuel()
     for _, connection in ipairs(self.contextConnections) do
-        if connection and type(connection.Disconnect) == "function" then connection:Disconnect() end
+        if connection and type(connection.Disconnect) == "function" then
+            connection:Disconnect()
+        end
     end
     self.contextConnections = {}
     local duel = self:_duel()
-    connect(self.contextConnections, changedSignal(duel, "Status"), function() self:_reconcile(false) end)
+    connect(self.contextConnections, changedSignal(duel, "Status"), function()
+        self:_reconcile(false)
+    end)
 end
 
 function TaskFarmRuntime:_inDuel()
-    if type(self.context.isInDuel) == "function" then return self.context.isInDuel() == true end
+    if type(self.context.isInDuel) == "function" then
+        return self.context.isInDuel() == true
+    end
     return read(self:_fighter(), "IsInDuel") == true
 end
 
 function TaskFarmRuntime:_inRange()
-    if type(self.context.isInRange) == "function" then return self.context.isInRange() == true end
+    if type(self.context.isInRange) == "function" then
+        return self.context.isInRange() == true
+    end
     return read(self:_fighter(), "IsInShootingRange") == true
 end
 
@@ -146,17 +187,23 @@ function TaskFarmRuntime:_isMatchmadeDuel()
     if type(self.context.isMatchmadeDuel) == "function" then
         return self.context.isMatchmadeDuel(self:_duel()) == true
     end
-    if self.queueAccepted or self:_isQueued() then return true end
+    if self.queueAccepted or self:_isQueued() then
+        return true
+    end
     local controller = self.matchmakingController
     if type(controller.Get) == "function" then
         for _, key in ipairs({ "MatchmadeStatus", "MatchmadeGameOver", "MatchmadeConnectedPlayers" }) do
             local ok, value = pcall(controller.Get, controller, key)
-            if ok and value ~= nil then return true end
+            if ok and value ~= nil then
+                return true
+            end
         end
     end
     if type(controller.IsMatchmadeDuelOver) == "function" then
         local ok, value = pcall(controller.IsMatchmadeDuelOver, controller)
-        if ok and value == true then return true end
+        if ok and value == true then
+            return true
+        end
     end
     return read(controller, "MatchmadeStatus") ~= nil
         or read(controller, "MatchmadeGameOver") ~= nil
@@ -164,7 +211,9 @@ function TaskFarmRuntime:_isMatchmadeDuel()
 end
 
 function TaskFarmRuntime:_isQueued()
-    if type(self.context.isQueued) == "function" then return self.context.isQueued() == true end
+    if type(self.context.isQueued) == "function" then
+        return self.context.isQueued() == true
+    end
     if type(self.context.getQueueName) == "function" then
         return self.context.getQueueName() ~= nil
     end
@@ -176,24 +225,32 @@ function TaskFarmRuntime:_isQueued()
 end
 
 function TaskFarmRuntime:_wins()
-    if type(self.context.getWins) == "function" then return self.context.getWins() or 0 end
+    if type(self.context.getWins) == "function" then
+        return self.context.getWins() or 0
+    end
     if type(self.playerDataController.GetStatistic) == "function" then
         local ok, value = pcall(
             self.playerDataController.GetStatistic,
             self.playerDataController,
             "StatisticDuelsWon"
         )
-        if ok and type(value) == "number" then return value end
+        if ok and type(value) == "number" then
+            return value
+        end
     end
     for _, key in ipairs({ "Wins", "DuelWins", "TotalWins" }) do
         local value = read(self.playerDataController, key)
-        if type(value) == "number" then return value end
+        if type(value) == "number" then
+            return value
+        end
     end
     for _, containerKey in ipairs({ "Stats", "Statistics", "PlayerStats" }) do
         local container = read(self.playerDataController, containerKey)
         if type(container) == "table" then
             for _, key in ipairs({ "Wins", "DuelWins", "TotalWins" }) do
-                if type(container[key]) == "number" then return container[key] end
+                if type(container[key]) == "number" then
+                    return container[key]
+                end
             end
         end
     end
@@ -203,7 +260,9 @@ end
 function TaskFarmRuntime:_queueName()
     local cap = self.constants.BEGINNER_QUEUE_WINS
     local beginner = self.constants.BEGINNER_QUEUE_NAME
-    if beginner and type(cap) == "number" and self:_wins() < cap then return beginner end
+    if beginner and type(cap) == "number" and self:_wins() < cap then
+        return beginner
+    end
     return "1v1"
 end
 
@@ -219,17 +278,25 @@ function TaskFarmRuntime:_cancelRetries()
 end
 
 function TaskFarmRuntime:_scheduleRetry(generation)
-    if type(self.delay) ~= "function" or self.attempts >= self.maxQueueAttempts then return end
+    if type(self.delay) ~= "function" or self.attempts >= self.maxQueueAttempts then
+        return
+    end
     local token = { active = true }
     local handle
     local function retry()
         token.active = false
-        if handle ~= nil then self.retryHandles[handle] = nil end
-        if self.stopped or self.paused or generation ~= self.generation then return end
+        if handle ~= nil then
+            self.retryHandles[handle] = nil
+        end
+        if self.stopped or self.paused or generation ~= self.generation then
+            return
+        end
         self:_reconcile(true)
     end
     handle = self.delay(self.retryDelay, retry)
-    if token.active and handle ~= nil then self.retryHandles[handle] = true end
+    if token.active and handle ~= nil then
+        self.retryHandles[handle] = true
+    end
 end
 
 function TaskFarmRuntime:_tryLeaveQueue()
@@ -240,26 +307,32 @@ function TaskFarmRuntime:_tryLeaveQueue()
 end
 
 function TaskFarmRuntime:_cancelOwnedQueue()
-    if not self.queueAccepted then return end
+    if not self.queueAccepted then
+        return
+    end
     self.queueAccepted = false
     self.queuedTaskName = nil
     self:_tryLeaveQueue()
 end
 
 function TaskFarmRuntime:_requestQueue(generation)
-    if self.stopped or self.paused or generation ~= self.generation then return end
-    if self.attempts >= self.maxQueueAttempts then self.state = "retry-exhausted"; return end
+    if self.stopped or self.paused or generation ~= self.generation then
+        return
+    end
+    if self.attempts >= self.maxQueueAttempts then
+        self.state = "retry-exhausted"
+        return
+    end
     self.attempts += 1
     self.state = "queueing"
     -- This is deliberately the sole state-changing boundary in the runtime.
-    local ok, result = pcall(
-        self.matchmakingController.QueueInto,
-        self.matchmakingController,
-        self:_queueName()
-    )
+    local ok, result =
+        pcall(self.matchmakingController.QueueInto, self.matchmakingController, self:_queueName())
     local accepted = ok and (result == true or result == "Success")
     if self.stopped or self.paused or generation ~= self.generation then
-        if accepted then self:_tryLeaveQueue() end
+        if accepted then
+            self:_tryLeaveQueue()
+        end
         return
     end
     if accepted then
@@ -271,12 +344,15 @@ function TaskFarmRuntime:_requestQueue(generation)
     self:_scheduleRetry(generation)
 end
 
-
 function TaskFarmRuntime:_notifyActivity()
     local status = self:status()
-    if type(self.onStatusChanged) == "function" then pcall(self.onStatusChanged, status) end
+    if type(self.onStatusChanged) == "function" then
+        pcall(self.onStatusChanged, status)
+    end
     local active = self:isCombatActive() == true
-    if active == self.lastCombatActive then return end
+    if active == self.lastCombatActive then
+        return
+    end
     self.lastCombatActive = active
     if type(self.onActivityChanged) == "function" then
         pcall(self.onActivityChanged, active, status)
@@ -284,7 +360,9 @@ function TaskFarmRuntime:_notifyActivity()
 end
 
 function TaskFarmRuntime:_reconcile(isRetry)
-    if self.stopped then return end
+    if self.stopped then
+        return
+    end
     if not isRetry then
         self:_cancelRetries()
         self.generation += 1
@@ -302,7 +380,9 @@ function TaskFarmRuntime:_reconcile(isRetry)
     end
     if self.practiceDriver and type(self.practiceDriver.setTask) == "function" then
         local practiceTask = self.currentTask
-        if practiceTask and TaskPolicy.requiresCombat(practiceTask) then practiceTask = nil end
+        if practiceTask and TaskPolicy.requiresCombat(practiceTask) then
+            practiceTask = nil
+        end
         self.practiceDriver:setTask(practiceTask)
         if self.paused and type(self.practiceDriver.pause) == "function" then
             self.practiceDriver:pause()
@@ -316,7 +396,9 @@ function TaskFarmRuntime:_reconcile(isRetry)
     if inDuel and not self:_isMatchmadeDuel() and not self.wasInDuel then
         self.wasInDuel = true
         self:pause("manual-duel")
-        if type(self.onManualDuel) == "function" then pcall(self.onManualDuel) end
+        if type(self.onManualDuel) == "function" then
+            pcall(self.onManualDuel)
+        end
         return
     end
     if self.wasInDuel and not inDuel then
@@ -328,8 +410,14 @@ function TaskFarmRuntime:_reconcile(isRetry)
         self.state = state
         self:_notifyActivity()
     end
-    if self.paused then finish("paused"); return end
-    if not self.currentTask then finish("idle"); return end
+    if self.paused then
+        finish("paused")
+        return
+    end
+    if not self.currentTask then
+        finish("idle")
+        return
+    end
     if not TaskPolicy.requiresCombat(self.currentTask) then
         local practiceStatus = self.practiceDriver and self.practiceDriver:status() or nil
         finish(practiceStatus and practiceStatus.state or "practice-pending")
@@ -337,9 +425,7 @@ function TaskFarmRuntime:_reconcile(isRetry)
     end
     local duelStatus = read(self:_duel(), "Status")
     if inDuel and duelStatus == "GameOver" and self:_isMatchmadeDuel() then
-        if self:_isQueued()
-            or (self.queueAccepted and self.queuedTaskName == currentTaskName)
-        then
+        if self:_isQueued() or (self.queueAccepted and self.queuedTaskName == currentTaskName) then
             finish("queued")
             return
         end
@@ -351,10 +437,11 @@ function TaskFarmRuntime:_reconcile(isRetry)
         finish(self:isCombatActive() and "combat" or "duel-waiting")
         return
     end
-    if self:_inRange() then finish("range-waiting"); return end
-    if self:_isQueued()
-        or (self.queueAccepted and self.queuedTaskName == currentTaskName)
-    then
+    if self:_inRange() then
+        finish("range-waiting")
+        return
+    end
+    if self:_isQueued() or (self.queueAccepted and self.queuedTaskName == currentTaskName) then
         finish("queued")
         return
     end
@@ -363,8 +450,11 @@ function TaskFarmRuntime:_reconcile(isRetry)
 end
 
 function TaskFarmRuntime:isCombatActive()
-    if self.stopped or self.paused then return false end
-    if self.practiceDriver
+    if self.stopped or self.paused then
+        return false
+    end
+    if
+        self.practiceDriver
         and type(self.practiceDriver.isCombatActive) == "function"
         and self.practiceDriver:isCombatActive()
     then
@@ -399,36 +489,48 @@ function TaskFarmRuntime:setStatusChanged(callback)
 end
 
 function TaskFarmRuntime:pause(reason)
-    if self.stopped then return end
+    if self.stopped then
+        return
+    end
     self:_cancelRetries()
     self.generation += 1
     self.paused = true
     self.pauseReason = reason or "paused"
     self.state = "paused"
     self:_cancelOwnedQueue()
-    if self.practiceDriver and type(self.practiceDriver.pause) == "function" then self.practiceDriver:pause() end
+    if self.practiceDriver and type(self.practiceDriver.pause) == "function" then
+        self.practiceDriver:pause()
+    end
     self:_notifyActivity()
 end
 
 function TaskFarmRuntime:resume()
-    if self.stopped or not self.paused then return end
+    if self.stopped or not self.paused then
+        return
+    end
     self.paused = false
     self.pauseReason = nil
     self:_reconcile(false)
 end
 
 function TaskFarmRuntime:stop()
-    if self.stopped then return end
+    if self.stopped then
+        return
+    end
     self.stopped = true
     self:_cancelRetries()
     self.generation += 1
     self.state = "stopped"
     self.currentTask = nil
-    if self.practiceDriver and type(self.practiceDriver.stop) == "function" then self.practiceDriver:stop() end
+    if self.practiceDriver and type(self.practiceDriver.stop) == "function" then
+        self.practiceDriver:stop()
+    end
     self:_notifyActivity()
     for _, list in ipairs({ self.connections, self.contextConnections }) do
         for _, connection in ipairs(list) do
-            if connection and type(connection.Disconnect) == "function" then connection:Disconnect() end
+            if connection and type(connection.Disconnect) == "function" then
+                connection:Disconnect()
+            end
         end
         table.clear(list)
     end

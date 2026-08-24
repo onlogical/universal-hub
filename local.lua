@@ -28,7 +28,9 @@ end
 local configuration
 
 local function hideStaleMenu()
-    if type(gethui) ~= "function" then return end
+    if type(gethui) ~= "function" then
+        return
+    end
     local succeeded, hiddenUi = pcall(gethui)
     local staleMenu = succeeded and hiddenUi and hiddenUi:FindFirstChild("UniversalHubNative")
     if staleMenu then
@@ -38,7 +40,9 @@ local function hideStaleMenu()
     end
 end
 
-if teleportBootstrap then hideStaleMenu() end
+if teleportBootstrap then
+    hideStaleMenu()
+end
 
 local function loadWorkspaceModule(path, chunkName)
     if type(loadfile) == "function" then
@@ -90,7 +94,9 @@ local function loadHub()
 end
 
 local function waitForNativeGameReady()
-    if game.GameId ~= 6035872082 then return end
+    if game.GameId ~= 6035872082 then
+        return
+    end
     local Players = game:GetService("Players")
     local RunService = game:GetService("RunService")
     local player = Players.LocalPlayer
@@ -158,10 +164,30 @@ local function startBootstrap()
     end
     configuration.HotReload = configuration.HotReload ~= false
     local importCache = {}
+    local nativeRequire = require
+    local function resolveImport(path, importer)
+        if path:sub(1, 1) ~= "." then
+            return path
+        end
+        local resolved = {}
+        for segment in (importer:match("^(.*)/") or ""):gmatch("[^/]+") do
+            table.insert(resolved, segment)
+        end
+        for segment in path:gmatch("[^/]+") do
+            if segment == ".." then
+                assert(#resolved > 0, "Local hub module path escapes source root: " .. path)
+                table.remove(resolved)
+            elseif segment ~= "." and segment ~= "" then
+                table.insert(resolved, segment)
+            end
+        end
+        return table.concat(resolved, "/")
+    end
     configuration.Forget = function(path)
         importCache[path] = nil
     end
-    configuration.Import = function(path)
+    local function import(path, importer)
+        path = resolveImport(path, importer or "")
         assert(
             type(path) == "string"
                 and path:match("^[%w_/%-]+$") ~= nil
@@ -174,10 +200,23 @@ local function startBootstrap()
         local file = path .. ".lua"
         local source = readfile(configuration.LocalRoot .. "/" .. file)
         local chunk, compileError = loadstring(source, file)
-        local result = assert(chunk, compileError)()
+        assert(chunk, compileError)
+        local chunkEnvironment = getfenv(chunk)
+        local moduleEnvironment = {
+            require = function(target)
+                if type(target) == "string" then
+                    return import(target, path)
+                end
+                return nativeRequire(target)
+            end,
+        }
+        setmetatable(moduleEnvironment, { __index = chunkEnvironment })
+        setfenv(chunk, moduleEnvironment)
+        local result = chunk()
         importCache[path] = result
         return result
     end
+    configuration.Import = import
     local hydroxideModules = {
         ["modules/Closure"] = true,
         ["modules/Lifecycle"] = true,
@@ -185,7 +224,10 @@ local function startBootstrap()
     }
     local hydroxideCache = {}
     configuration.HydroxideImport = function(path)
-        assert(hydroxideModules[path] == true, "Unknown Hydroxide helper module: " .. tostring(path))
+        assert(
+            hydroxideModules[path] == true,
+            "Unknown Hydroxide helper module: " .. tostring(path)
+        )
         if hydroxideCache[path] ~= nil then
             return hydroxideCache[path]
         end
@@ -202,7 +244,8 @@ local function startBootstrap()
     local queue = type(environment.queue_on_teleport) == "function"
             and environment.queue_on_teleport
         or type(environment.queueonteleport) == "function" and environment.queueonteleport
-        or type(synapse) == "table" and type(synapse.queue_on_teleport) == "function"
+        or type(synapse) == "table"
+            and type(synapse.queue_on_teleport) == "function"
             and synapse.queue_on_teleport
     if queue then
         pcall(queue, ([[

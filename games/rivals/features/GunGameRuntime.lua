@@ -5,7 +5,8 @@ local SCAN_INTERVAL = 0.1
 local RETRY_INTERVAL = 0.5
 
 function GunGameRuntime.pickupType(instance)
-    if not instance
+    if
+        not instance
         or instance.Name ~= "_drop"
         or type(instance.IsA) ~= "function"
         or not instance:IsA("BasePart")
@@ -100,10 +101,16 @@ function GunGameRuntime.new(options)
             addCandidate(candidate)
         end
     end
-    if options.workspace.ChildAdded and type(options.workspace.ChildAdded.Connect) == "function" then
+    if
+        options.workspace.ChildAdded
+        and type(options.workspace.ChildAdded.Connect) == "function"
+    then
         table.insert(self.connections, options.workspace.ChildAdded:Connect(addCandidate))
     end
-    if options.workspace.ChildRemoved and type(options.workspace.ChildRemoved.Connect) == "function" then
+    if
+        options.workspace.ChildRemoved
+        and type(options.workspace.ChildRemoved.Connect) == "function"
+    then
         table.insert(self.connections, options.workspace.ChildRemoved:Connect(removeCandidate))
     end
 
@@ -115,7 +122,8 @@ function GunGameRuntime:update()
         return
     end
     local settings = self.store:Get().settings
-    if settings.autoPickup ~= true
+    if
+        settings.autoPickup ~= true
         or not self.isGunGame()
         or type(self.fireTouchInterest) ~= "function"
         or self.isActive and not self.isActive()
@@ -136,7 +144,8 @@ function GunGameRuntime:update()
     end
     for candidate, kind in pairs(self.candidates) do
         local lastAttemptAt = self.attemptedAt[candidate]
-        if kind
+        if
+            kind
             and candidate.Parent == self.workspace
             and GunGameRuntime.shouldCollect(kind, fighter)
             and (lastAttemptAt == nil or now - lastAttemptAt >= RETRY_INTERVAL)

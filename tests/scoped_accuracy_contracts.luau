@@ -53,8 +53,14 @@ assert(
 enabled = true
 alwaysScoped:refreshHook()
 local replacement = replacements[nativeIsFullyAiming]
-assert(type(replacement) == "function", "enabling Always Scoped must install the native scoped-state hook")
-assert(replacement(eligibleItem) == true, "enabled Always Scoped must report an eligible shot as scoped")
+assert(
+    type(replacement) == "function",
+    "enabling Always Scoped must install the native scoped-state hook"
+)
+assert(
+    replacement(eligibleItem) == true,
+    "enabled Always Scoped must report an eligible shot as scoped"
+)
 assert(
     eligibleItem.Data.IsAiming == false
         and eligibleItem.ViewModel.CurrentAimValue == 0
@@ -102,7 +108,10 @@ local ineligibleAlwaysScoped = ScopedAccuracy.new({
     restoreFunction = function() end,
 })
 ineligibleAlwaysScoped:refreshHook()
-assert(ineligibleHooks == 0, "items without a positive numeric AimScopePercent must never be hooked")
+assert(
+    ineligibleHooks == 0,
+    "items without a positive numeric AimScopePercent must never be hooked"
+)
 ineligibleAlwaysScoped:stop()
 
 fighter.EquippedItem = eligibleItem

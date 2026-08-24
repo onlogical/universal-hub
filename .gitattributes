@@ -1,1 +1,4 @@
 vendor/Limn.lua text eol=lf
+ui/dist/Menu.lua text eol=lf
+ui/dist/Menu.provenance text eol=lf
+scripts/*.sh text eol=lf

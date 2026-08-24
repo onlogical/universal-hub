@@ -2,10 +2,14 @@ local TaskWeaponSwap = {}
 TaskWeaponSwap.__index = TaskWeaponSwap
 
 local function ammo(item)
-    if type(item) ~= "table" then return nil end
+    if type(item) ~= "table" then
+        return nil
+    end
     if type(item.Get) == "function" then
         local succeeded, value = pcall(item.Get, item, "Ammo")
-        if succeeded and type(value) == "number" then return value end
+        if succeeded and type(value) == "number" then
+            return value
+        end
     end
     local data = item.Data
     return type(data) == "table" and type(data.Ammo) == "number" and data.Ammo or nil
@@ -49,7 +53,10 @@ function TaskWeaponSwap:update(active, fighter, target, distance)
         end
     end
     local currentAmmo = ammo(current)
-    if active ~= true or now < self.nextAt or not fighter
+    if
+        active ~= true
+        or now < self.nextAt
+        or not fighter
         or type(fighter.EquipItem) ~= "function"
     then
         return false
@@ -66,13 +73,19 @@ function TaskWeaponSwap:update(active, fighter, target, distance)
         and type(targetHealth) == "number"
         and type(currentInfo) == "table"
         and currentInfo.Class == "Primary"
-    if not empty and not tacticalSecondary then return false end
+    if not empty and not tacticalSecondary then
+        return false
+    end
     local candidates = fighter.Items
     if type(candidates) ~= "table" and type(fighter.GetEquippedItems) == "function" then
         local succeeded, equipped = pcall(fighter.GetEquippedItems, fighter)
-        if succeeded and type(equipped) == "table" then candidates = equipped end
+        if succeeded and type(equipped) == "table" then
+            candidates = equipped
+        end
     end
-    if type(candidates) ~= "table" then return false end
+    if type(candidates) ~= "table" then
+        return false
+    end
     for key, candidate in pairs(candidates) do
         if type(candidate) ~= "table" then
             if type(key) == "table" then
@@ -80,14 +93,14 @@ function TaskWeaponSwap:update(active, fighter, target, distance)
             elseif type(fighter.GetItem) == "function" then
                 local identifier = candidate ~= true and candidate or key
                 local succeeded, item = pcall(fighter.GetItem, fighter, identifier)
-                if succeeded then candidate = item end
+                if succeeded then
+                    candidate = item
+                end
             end
         end
         local candidateInfo = type(candidate) == "table" and candidate.Info or nil
         local candidateAmmo = ammo(candidate)
-        local candidateDamage = type(candidateInfo) == "table"
-            and candidateInfo.ShootDamage
-            or nil
+        local candidateDamage = type(candidateInfo) == "table" and candidateInfo.ShootDamage or nil
         if type(candidateDamage) ~= "number" and type(candidate) == "table" then
             candidateDamage = self.weaponPolicy.damageAtDistance(candidate, target, distance)
         end
@@ -97,12 +110,12 @@ function TaskWeaponSwap:update(active, fighter, target, distance)
                 and type(candidateAmmo) == "number"
                 and candidateDamage * candidateAmmo >= targetHealth
         local desiredClass = type(currentInfo) == "table"
-            and currentInfo.Class == "Secondary"
-            and "Primary"
+                and currentInfo.Class == "Secondary"
+                and "Primary"
             or "Secondary"
-        local eligibleSlot = type(candidateInfo) == "table"
-            and candidateInfo.Class == desiredClass
-        if type(candidate) == "table"
+        local eligibleSlot = type(candidateInfo) == "table" and candidateInfo.Class == desiredClass
+        if
+            type(candidate) == "table"
             and candidate ~= current
             and eligibleSlot
             and canFinishClip

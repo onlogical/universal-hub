@@ -9,15 +9,19 @@ CameraAim.__index = CameraAim
 function CameraAim.enabled(settings, shotOnly, taskCombatActive)
     settings = settings or {}
     local cameraAimEnabled = settings.silentAim == true or taskCombatActive == true
-    return shotOnly and settings.shotAim == true
-        or (cameraAimEnabled and settings.shotAim ~= true)
+    return shotOnly and settings.shotAim == true or (cameraAimEnabled and settings.shotAim ~= true)
 end
 
-function CameraAim.shouldClearRetention(settings, taskCombatActive, inputCaptured, fighterActive, inCombat)
+function CameraAim.shouldClearRetention(
+    settings,
+    taskCombatActive,
+    inputCaptured,
+    fighterActive,
+    inCombat
+)
     settings = settings or {}
     local cameraAimEnabled = settings.silentAim == true or taskCombatActive == true
-    return not cameraAimEnabled
-        and settings.shotAim ~= true
+    return not cameraAimEnabled and settings.shotAim ~= true
         or (inputCaptured and taskCombatActive ~= true)
         or not fighterActive
         or not inCombat
@@ -45,18 +49,21 @@ function CameraAim:align(ctx)
     local enabled = CameraAim.enabled(settings, shotOnly, taskCombatActive)
     local fighterActive = ctx.fighterActive
     local inCombat = ctx.inCombat
-    if not enabled
+    if
+        not enabled
         or (ctx.inputCaptured and taskCombatActive ~= true)
         or not fighterActive
         or not inCombat
     then
-        if CameraAim.shouldClearRetention(
-            settings,
-            taskCombatActive,
-            ctx.inputCaptured,
-            fighterActive,
-            inCombat
-        ) then
+        if
+            CameraAim.shouldClearRetention(
+                settings,
+                taskCombatActive,
+                ctx.inputCaptured,
+                fighterActive,
+                inCombat
+            )
+        then
             ctx.clearRetention()
         end
         return nil
@@ -65,12 +72,7 @@ function CameraAim:align(ctx)
         if shotOnly then
             return true
         end
-        return ctx.setAimRotation(
-            rotation,
-            instant,
-            character,
-            maximumSmoothness
-        )
+        return ctx.setAimRotation(rotation, instant, character, maximumSmoothness)
     end
 
     local fighter = ctx.fighter
@@ -131,7 +133,8 @@ function CameraAim:align(ctx)
     local cameraFrame = camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame
     local origin = cameraFrame.Position
     local now = ctx.clock()
-    if not shotOnly
+    if
+        not shotOnly
         and not knife
         and target.visible ~= true
         and typeof(target.position) == "Vector3"
@@ -151,11 +154,8 @@ function CameraAim:align(ctx)
     end
     if knife then
         local plan = target.backstabPlan
-        local aimSettled = settleAim(
-            Targeting.rotationToward(origin, plan.aimPosition),
-            true,
-            target.character
-        )
+        local aimSettled =
+            settleAim(Targeting.rotationToward(origin, plan.aimPosition), true, target.character)
         local aligned = {}
         for key, value in pairs(target) do
             aligned[key] = value
@@ -168,15 +168,14 @@ function CameraAim:align(ctx)
     end
     local taskRates
     if taskCombatActive == true then
-        local observedRates = ctx.taskSkillRuntime:update(
-            entity and entity.Humanoid,
-            target,
-            ctx.renderDelta
-        )
+        local observedRates =
+            ctx.taskSkillRuntime:update(entity and entity.Humanoid, target, ctx.renderDelta)
         if taskDebug then
             taskDebug.adaptiveRates = observedRates
         end
-        if observedRates.ready == true then taskRates = observedRates end
+        if observedRates.ready == true then
+            taskRates = observedRates
+        end
     end
     target = ctx.plannedAimTarget(target, item, taskRates)
     if taskDebug then
@@ -250,13 +249,7 @@ function CameraAim:align(ctx)
                 expiresAt = now + SPLASH_CACHE_INTERVAL,
                 item = item,
                 origin = origin,
-                solution = ctx.solveSplashAim(
-                    origin,
-                    target,
-                    item.Info,
-                    raycast,
-                    ctx.gravity
-                ),
+                solution = ctx.solveSplashAim(origin, target, item.Info, raycast, ctx.gravity),
                 target = target.character,
                 targetPosition = target.position,
             }
@@ -310,11 +303,8 @@ function CameraAim:align(ctx)
     end
 
     if target.visible then
-        local aimSettled = settleAim(
-            Targeting.rotationToward(origin, target.position),
-            false,
-            target.character
-        )
+        local aimSettled =
+            settleAim(Targeting.rotationToward(origin, target.position), false, target.character)
         self.ricochetCache = nil
         local aligned = table.clone(target)
         aligned.aimSettled = aimSettled

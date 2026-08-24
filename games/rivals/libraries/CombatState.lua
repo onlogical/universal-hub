@@ -18,8 +18,7 @@ function CombatState.isRoundEligible(fighter, duel, loadoutOpen)
         return false
     end
 
-    return value(fighter, "IsInDuel") == true
-        and value(duel, "Status") == "RoundStarted"
+    return value(fighter, "IsInDuel") == true and value(duel, "Status") == "RoundStarted"
 end
 
 function CombatState.isCombatEligible(fighter, duel, loadoutOpen)

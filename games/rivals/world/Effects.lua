@@ -1,17 +1,6 @@
-local function importDependency(path, relativePath)
-    if type(getgenv) == "function" then
-        local environment = getgenv()
-        local configuration = environment and environment.UniversalHubConfig
-        if configuration and type(configuration.Import) == "function" then
-            return configuration.Import(path)
-        end
-    end
-    return require(relativePath)
-end
-
-local UtilityPolicy = importDependency("games/rivals/world/UtilityPolicy", "./UtilityPolicy")
-local VisualSuppression = importDependency("games/rivals/world/VisualSuppression", "./VisualSuppression")
-local TrajectoryRenderer = importDependency("games/rivals/world/TrajectoryRenderer", "./TrajectoryRenderer")
+local UtilityPolicy = require("./UtilityPolicy")
+local VisualSuppression = require("./VisualSuppression")
+local TrajectoryRenderer = require("./TrajectoryRenderer")
 local Effects = {}
 Effects.__index = Effects
 
@@ -93,11 +82,9 @@ local function projectWireframeCube(camera, boundsFrame, boundsSize)
     local maximumX = -math.huge
     local anyOnScreen = false
     for _, offset in ipairs(WIREFRAME_CUBE_OFFSETS) do
-        local worldPosition = boundsFrame:PointToWorldSpace(Vector3.new(
-            offset.X * boundsSize.X,
-            offset.Y * boundsSize.Y,
-            offset.Z * boundsSize.Z
-        ))
+        local worldPosition = boundsFrame:PointToWorldSpace(
+            Vector3.new(offset.X * boundsSize.X, offset.Y * boundsSize.Y, offset.Z * boundsSize.Z)
+        )
         local point, onScreen = camera:WorldToViewportPoint(worldPosition)
         if point.Z <= 0 then
             return nil
@@ -133,7 +120,11 @@ function Effects.throwableObservation(camera, candidate, environmentID, worldRoo
         return nil
     end
     local observedEnvironment = hierarchyAttribute(root, "EnvironmentID")
-    if environmentID ~= nil and observedEnvironment ~= nil and observedEnvironment ~= environmentID then
+    if
+        environmentID ~= nil
+        and observedEnvironment ~= nil
+        and observedEnvironment ~= environmentID
+    then
         return nil
     end
 
@@ -395,7 +386,8 @@ function Effects:_startFlashVisuals()
 
     -- Camera replacement is rare, but must also remain event-driven.
     if self.workspace.GetPropertyChangedSignal then
-        local succeeded, signal = pcall(self.workspace.GetPropertyChangedSignal, self.workspace, "CurrentCamera")
+        local succeeded, signal =
+            pcall(self.workspace.GetPropertyChangedSignal, self.workspace, "CurrentCamera")
         if succeeded then
             local connection = connectSignal(signal, function()
                 if self.visualNoFlash then

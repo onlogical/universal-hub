@@ -36,8 +36,12 @@ local function drop(kind)
     return {
         Name = "_drop",
         Parent = nil,
-        FindFirstChild = function(_self, name) return name == kind and {} or nil end,
-        IsA = function(_self, name) return name == "BasePart" end,
+        FindFirstChild = function(_self, name)
+            return name == kind and {} or nil
+        end,
+        IsA = function(_self, name)
+            return name == "BasePart"
+        end,
     }
 end
 
@@ -58,20 +62,36 @@ local workspace = {
     end,
 }
 healthDrop.Parent = workspace
-local store = { Get = function() return { settings = { autoPickup = enabled } } end }
+local store = {
+    Get = function()
+        return { settings = { autoPickup = enabled } }
+    end,
+}
 local fighter = {
     Entity = { Humanoid = { Health = 50, MaxHealth = 100 }, RootPart = {} },
 }
 local runtime = GunGameRuntime.new({
-    clock = function() return now end,
+    clock = function()
+        return now
+    end,
     fireTouchInterest = function(part, target, toggle)
         table.insert(touches, { part = part, target = target, toggle = toggle })
     end,
-    getFighter = function() return fighter end,
-    isActive = function() return true end,
-    isGunGame = function() return nativeGunGame end,
-    isInCombat = function() return true end,
-    spawn = function(callback) callback() end,
+    getFighter = function()
+        return fighter
+    end,
+    isActive = function()
+        return true
+    end,
+    isGunGame = function()
+        return nativeGunGame
+    end,
+    isInCombat = function()
+        return true
+    end,
+    spawn = function(callback)
+        callback()
+    end,
     store = store,
     wait = function() end,
     workspace = workspace,
@@ -107,7 +127,10 @@ assert(#touches == 8, "ChildRemoved pickups must leave the registry")
 
 assert(childAdded:count() == 1 and childRemoved:count() == 1)
 runtime:stop()
-assert(childAdded:count() == 0 and childRemoved:count() == 0, "stop must disconnect registry listeners")
+assert(
+    childAdded:count() == 0 and childRemoved:count() == 0,
+    "stop must disconnect registry listeners"
+)
 local afterStop = drop("Health")
 afterStop.Parent = workspace
 childAdded:Fire(afterStop)

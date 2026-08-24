@@ -30,7 +30,9 @@ local removed = {}
 local getTaggedCalls = 0
 local initialSmoke = {
     Parent = {},
-    GetTags = function() return { "SmokeCloud" } end,
+    GetTags = function()
+        return { "SmokeCloud" }
+    end,
 }
 local collectionService = {
     GetInstanceAddedSignal = function(_self, tag)
@@ -61,7 +63,11 @@ local visualRoot = {
 local effects = Effects.new({
     collectionService = collectionService,
     lighting = visualRoot,
-    localPlayer = { FindFirstChildOfClass = function() return nil end },
+    localPlayer = {
+        FindFirstChildOfClass = function()
+            return nil
+        end,
+    },
     projectileAim = {},
     workspace = { CurrentCamera = nil },
 })
@@ -85,7 +91,9 @@ assert(traversals == firstTraversals, "unchanged suppression state must not retr
 local addedFlash = {
     Name = "FlashbangGui",
     Visible = true,
-    IsA = function(_self, className) return className == "Frame" end,
+    IsA = function(_self, className)
+        return className == "Frame"
+    end,
 }
 descendantAdded:Fire(addedFlash)
 assert(addedFlash.Visible == false, "native hierarchy additions should be suppressed directly")

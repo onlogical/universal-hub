@@ -5,7 +5,9 @@ function SkipBlocks.shouldBlock(item, target, ctx)
     if not target or type(ctx) ~= "table" or type(ctx.isDeflecting) ~= "function" then
         return false
     end
-    local targetFighter = target.player and type(ctx.fighterFor) == "function" and ctx.fighterFor(target.player)
+    local targetFighter = target.player
+        and type(ctx.fighterFor) == "function"
+        and ctx.fighterFor(target.player)
     local counter = ctx.taskCounterPolicy
     local sprayCounter = targetFighter
         and type(counter) == "table"
@@ -64,8 +66,8 @@ function SkipBlocks:refreshHook()
     end
 
     local fighter = self.getFighter()
-    local item = fighter and fighter.EquippedItem
-    local target = type(item) == "table" and type(item.StartShooting) == "function" and item.StartShooting or nil
+    local target = type(fighter) == "table" and type(fighter.Input) == "function" and fighter.Input
+        or nil
     if target == self.hookTarget then
         return
     end
@@ -77,17 +79,18 @@ function SkipBlocks:refreshHook()
 
     self.hookTarget = target
     local original
-    original = self.hookFunction(target, function(itemSelf, ...)
+    original = self.hookFunction(target, function(fighterSelf, action, ...)
         local currentFighter = self.getFighter()
-        if not self.stopped
+        if
+            not self.stopped
             and self.isEnabled()
-            and currentFighter
-            and itemSelf == currentFighter.EquippedItem
-            and self.shouldBlock(itemSelf)
+            and fighterSelf == currentFighter
+            and action == "StartShooting"
+            and self.shouldBlock(currentFighter.EquippedItem)
         then
             return
         end
-        return original(itemSelf, ...)
+        return original(fighterSelf, action, ...)
     end)
 end
 
@@ -95,7 +98,9 @@ function SkipBlocks.update(item, target, ctx)
     if not SkipBlocks.shouldBlock(item, target, ctx) then
         return false
     end
-    if type(ctx.releaseFire) == "function" and (SkipBlocks.isFiring(item) or ctx.fireHeld == true) then
+    if
+        type(ctx.releaseFire) == "function" and (SkipBlocks.isFiring(item) or ctx.fireHeld == true)
+    then
         ctx.releaseFire()
     end
     return true

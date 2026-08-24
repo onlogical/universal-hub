@@ -188,7 +188,10 @@ end
 local Catalog = require("../games/Catalog")
 assert(#Catalog >= #expectedCatalog, "Catalog must preserve the current games")
 for index, path in ipairs(expectedCatalog) do
-    assert(Catalog[index] == path, "Catalog order and current definition paths must remain explicit")
+    assert(
+        Catalog[index] == path,
+        "Catalog order and current definition paths must remain explicit"
+    )
 end
 
 local definitions = {}
@@ -199,7 +202,10 @@ for _, path in ipairs(Catalog) do
     Registry.Validate(rawDefinition)
     local definition = Compatibility.Compose(rawDefinition)
     Registry.Validate(definition)
-    assert(definition.factory == nil and definition.match == nil, path .. " must not contain runtime callbacks")
+    assert(
+        definition.factory == nil and definition.match == nil,
+        path .. " must not contain runtime callbacks"
+    )
     assert(type(definition.defaults) == "table", path .. " must compose defaults")
     assert(type(definition.initialState) == "table", path .. " must compose initial state")
     if legacyIds[definition.id] then
@@ -208,18 +214,21 @@ for _, path in ipairs(Catalog) do
         if definition.id == "rivals" then
             expected = Compatibility.Defaults()
             expected.autoCounter = false
+            expected.redLightSafety = false
             expected.taskAutomationPaused = true
             expected.taskAutomationEmergencyKey = "End"
             expected.infiniteJump = false
             expected.wallNoclip = false
-            expected.wallPhase = false
             expected.teleportBehind = false
             expected.skipDeflect = false
             expected.autoDeflect = false
             expected.triggerDelay = 0
             expectedState = Compatibility.InitialState()
         end
-        assert(deepEqual(definition.defaults, expected), path .. " must preserve the existing config defaults")
+        assert(
+            deepEqual(definition.defaults, expected),
+            path .. " must preserve the existing config defaults"
+        )
         assert(
             deepEqual(definition.initialState, expectedState),
             path .. " must preserve the selected-game initial state shape"
@@ -268,14 +277,16 @@ for _, id in ipairs({ "counterblox", "rivals", "town" }) do
     local initialStateIsSparse = next(rawDefinitions[id].initialState) == nil
     if id == "rivals" then
         local count = 0
-        for _ in pairs(rawDefinitions[id].defaults) do count += 1 end
+        for _ in pairs(rawDefinitions[id].defaults) do
+            count += 1
+        end
         defaultsAreSparse = count == 10
             and rawDefinitions[id].defaults.autoCounter == false
+            and rawDefinitions[id].defaults.redLightSafety == false
             and rawDefinitions[id].defaults.taskAutomationPaused == true
             and rawDefinitions[id].defaults.taskAutomationEmergencyKey == "End"
             and rawDefinitions[id].defaults.infiniteJump == false
             and rawDefinitions[id].defaults.wallNoclip == false
-            and rawDefinitions[id].defaults.wallPhase == false
             and rawDefinitions[id].defaults.teleportBehind == false
             and rawDefinitions[id].defaults.skipDeflect == false
             and rawDefinitions[id].defaults.autoDeflect == false
@@ -346,7 +357,10 @@ for _, path in ipairs({
 }) do
     local source = fs.readFile(path)
     assert(not source:find(".factory =", 1, true), path .. " must not expose registration metadata")
-    assert(not source:find(".sources =", 1, true), path .. " must not expose source inventory metadata")
+    assert(
+        not source:find(".sources =", 1, true),
+        path .. " must not expose source inventory metadata"
+    )
 end
 
 print("catalog-contracts-ok")

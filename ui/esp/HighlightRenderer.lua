@@ -1,16 +1,5 @@
-local function importDependency(path, relativePath)
-    if type(getgenv) == "function" then
-        local environment = getgenv()
-        local configuration = environment and environment.UniversalHubConfig
-        if configuration and type(configuration.Import) == "function" then
-            return configuration.Import(path)
-        end
-    end
-    return require(relativePath)
-end
-
-local VisualPolicy = importDependency("ui/esp/VisualPolicy", "./VisualPolicy")
-local ColorPolicy = importDependency("ui/esp/ColorPolicy", "./ColorPolicy")
+local VisualPolicy = require("./VisualPolicy")
+local ColorPolicy = require("./ColorPolicy")
 local HighlightRenderer = {}
 HighlightRenderer.__index = HighlightRenderer
 
@@ -91,15 +80,18 @@ local function label(create, parent, name, size, color, position)
     node.Name = name
     node.AnchorPoint = Vector2.new(0.5, 0)
     node.BackgroundTransparency = 1
+    node.BorderSizePixel = 0
     node.Font = Enum.Font.GothamBold
     node.Position = position
     node.Size = UDim2.new(1, -20, 0, size + 3)
     node.TextColor3 = color
+    node.TextScaled = false
     node.TextSize = size
     node.TextStrokeColor3 = Color3.new(0, 0, 0)
     node.TextStrokeTransparency = 0.2
     node.TextTruncate = Enum.TextTruncate.None
     node.TextXAlignment = Enum.TextXAlignment.Center
+    node.TextYAlignment = Enum.TextYAlignment.Center
     node.Parent = parent
     return node
 end
@@ -108,8 +100,10 @@ function HighlightRenderer.new(context)
     assert(context and context.guiParent, "HighlightRenderer requires guiParent")
     assert(context.store, "HighlightRenderer requires a store")
     assert(context.players, "HighlightRenderer requires Players")
-    assert(context.runService and context.runService.Heartbeat,
-        "HighlightRenderer requires RunService.Heartbeat")
+    assert(
+        context.runService and context.runService.Heartbeat,
+        "HighlightRenderer requires RunService.Heartbeat"
+    )
 
     local rawCreate = context.createInstance or Instance.new
     local self = setmetatable({
@@ -188,8 +182,10 @@ end
 
 function HighlightRenderer:_newHighlight(subject, adornee)
     restoreExecutorThread()
-    if self.highlightCount >= HighlightRenderer.HIGHLIGHT_BUDGET
-        or #subject.highlights >= (subject.highlightBudget or 1) then
+    if
+        self.highlightCount >= HighlightRenderer.HIGHLIGHT_BUDGET
+        or #subject.highlights >= (subject.highlightBudget or 1)
+    then
         return nil
     end
     local highlight = self.create("Highlight")
@@ -215,11 +211,15 @@ function HighlightRenderer:_configureHighlights(subject)
     local perPart = (settings.boxes == true or settings.chams == true)
         and settings.chamsPerPart == true
     local excludeAccessories = settings.chamsExcludeAccessories == true
-    if subject.highlightConfigured and subject.perPart == perPart
+    if
+        subject.highlightConfigured
+        and subject.perPart == perPart
         and subject.excludeAccessories == excludeAccessories
-        and (#subject.highlights > 0
+        and (
+            #subject.highlights > 0
             or (perPart and (subject.highlightBudget or 0) <= 0)
-            or not (settings.boxes == true or settings.chams == true))
+            or not (settings.boxes == true or settings.chams == true)
+        )
     then
         return
     end
@@ -290,12 +290,19 @@ function HighlightRenderer:_configureHighlights(subject)
     end
     subject.rebuildHighlights = rebuild
     local descendantAdded = subject.character.DescendantAdded or subject.character.ChildAdded
-    local descendantRemoving = subject.character.DescendantRemoving or subject.character.ChildRemoved
+    local descendantRemoving = subject.character.DescendantRemoving
+        or subject.character.ChildRemoved
     if descendantAdded then
-        table.insert(subject.hierarchyConnections, descendantAdded:Connect(onExecutorThread(rebuild)))
+        table.insert(
+            subject.hierarchyConnections,
+            descendantAdded:Connect(onExecutorThread(rebuild))
+        )
     end
     if descendantRemoving then
-        table.insert(subject.hierarchyConnections, descendantRemoving:Connect(onExecutorThread(rebuild)))
+        table.insert(
+            subject.hierarchyConnections,
+            descendantRemoving:Connect(onExecutorThread(rebuild))
+        )
     end
     rebuild()
 end
@@ -336,12 +343,15 @@ function HighlightRenderer:_refreshHighlightDistances()
     end
     local localRoot = self:_localRootPart()
     local enterDistanceSquared = HighlightRenderer.HIGHLIGHT_DISTANCE ^ 2
-    local exitDistanceSquared = (HighlightRenderer.HIGHLIGHT_DISTANCE
-        + HighlightRenderer.HIGHLIGHT_DISTANCE_HYSTERESIS) ^ 2
+    local exitDistanceSquared = (
+        HighlightRenderer.HIGHLIGHT_DISTANCE
+        + HighlightRenderer.HIGHLIGHT_DISTANCE_HYSTERESIS
+    ) ^ 2
     local candidates = {}
     for _, subject in pairs(self.subjects) do
         local subjectDistanceSquared = distanceSquared(localRoot, subject.rootPart)
-        local threshold = subject.withinHighlightDistance and exitDistanceSquared or enterDistanceSquared
+        local threshold = subject.withinHighlightDistance and exitDistanceSquared
+            or enterDistanceSquared
         subject.withinHighlightDistance = subjectDistanceSquared ~= nil
             and subjectDistanceSquared <= threshold
         subject.highlightDistanceSquared = subjectDistanceSquared
@@ -357,12 +367,15 @@ function HighlightRenderer:_refreshHighlightDistances()
     end)
 
     local poolCount = math.min(#candidates, HighlightRenderer.HIGHLIGHT_BUDGET)
-    local baseBudget = poolCount > 0 and math.min(
-        HighlightRenderer.SUBJECT_HIGHLIGHT_BUDGET,
-        math.floor(HighlightRenderer.HIGHLIGHT_BUDGET / poolCount)
-    ) or 0
+    local baseBudget = poolCount > 0
+            and math.min(
+                HighlightRenderer.SUBJECT_HIGHLIGHT_BUDGET,
+                math.floor(HighlightRenderer.HIGHLIGHT_BUDGET / poolCount)
+            )
+        or 0
     local remainder = baseBudget < HighlightRenderer.SUBJECT_HIGHLIGHT_BUDGET
-        and HighlightRenderer.HIGHLIGHT_BUDGET - baseBudget * poolCount or 0
+            and HighlightRenderer.HIGHLIGHT_BUDGET - baseBudget * poolCount
+        or 0
     local budgets = {}
     for index = 1, poolCount do
         budgets[candidates[index]] = baseBudget + (index <= remainder and 1 or 0)
@@ -405,18 +418,19 @@ function HighlightRenderer:_syncDistanceRefresh()
         return
     end
     self:_refreshHighlightDistances()
-    self.distanceConnection = self.context.runService.Heartbeat:Connect(onExecutorThread(function(deltaTime)
-        if not self:_perPartRelevant(self:_settings()) then
-            self:_stopDistanceRefresh()
-            return
-        end
-        self.distanceAccumulator += deltaTime
-        if self.distanceAccumulator < HighlightRenderer.DISTANCE_REFRESH_INTERVAL then
-            return
-        end
-        self.distanceAccumulator %= HighlightRenderer.DISTANCE_REFRESH_INTERVAL
-        self:_refreshHighlightDistances()
-    end))
+    self.distanceConnection =
+        self.context.runService.Heartbeat:Connect(onExecutorThread(function(deltaTime)
+            if not self:_perPartRelevant(self:_settings()) then
+                self:_stopDistanceRefresh()
+                return
+            end
+            self.distanceAccumulator += deltaTime
+            if self.distanceAccumulator < HighlightRenderer.DISTANCE_REFRESH_INTERVAL then
+                return
+            end
+            self.distanceAccumulator %= HighlightRenderer.DISTANCE_REFRESH_INTERVAL
+            self:_refreshHighlightDistances()
+        end))
 end
 
 function HighlightRenderer:_rebalanceHighlights()
@@ -443,7 +457,8 @@ function HighlightRenderer:_styleHighlights(subject, color)
     subject.highlightColor = color
     local outlineColor = ColorPolicy.color(settings, "outline", color, subject.tone)
     local fillColor = ColorPolicy.color(settings, "fill", color, subject.tone)
-    local fillAlpha = ColorPolicy.fillAlpha(settings, 1 - VisualPolicy.FILL_TRANSPARENCY, subject.tone)
+    local fillAlpha =
+        ColorPolicy.fillAlpha(settings, 1 - VisualPolicy.FILL_TRANSPARENCY, subject.tone)
     for _, highlight in ipairs(subject.highlights) do
         highlight.Enabled = settings.boxes == true or settings.chams == true
         highlight.OutlineColor = outlineColor
@@ -457,11 +472,18 @@ function HighlightRenderer:_connectCharacterPolicy(subject)
     clearConnections(subject.policyConnections)
     local connector = subject.player and self.policy.connectCharacterChanged
     if connector then
-        hold(subject.policyConnections, connector(subject.player, subject.character, onExecutorThread(function()
-            if self.active and self.subjects[subject.key] == subject then
-                self:_invalidatePlayer(subject.player)
-            end
-        end)))
+        hold(
+            subject.policyConnections,
+            connector(
+                subject.player,
+                subject.character,
+                onExecutorThread(function()
+                    if self.active and self.subjects[subject.key] == subject then
+                        self:_invalidatePlayer(subject.player)
+                    end
+                end)
+            )
+        )
     end
 end
 
@@ -482,7 +504,9 @@ function HighlightRenderer:_makeSubject(key, descriptor, player)
     local character = descriptor.character
     local humanoid = descriptor.humanoid or findChild(character, "Humanoid", "Humanoid")
     local namedRoot = character.FindFirstChild and character:FindFirstChild("HumanoidRootPart")
-    local rootPart = descriptor.rootPart or character.PrimaryPart or namedRoot
+    local rootPart = descriptor.rootPart
+        or character.PrimaryPart
+        or namedRoot
         or findChild(character, "BasePart")
 
     self:_ensureRoot()
@@ -496,23 +520,27 @@ function HighlightRenderer:_makeSubject(key, descriptor, player)
     billboard.ResetOnSpawn = false
     billboard.Size = UDim2.fromOffset(240, 132)
     billboard.StudsOffsetWorldSpace = Vector3.new(0, 3.25, 0)
+    billboard.Enabled = false
     billboard.Parent = self.context.guiParent
 
     local canvas = self.create("Frame")
     canvas.Name = "BodyCanvas"
     canvas.BackgroundTransparency = 1
+    canvas.BorderSizePixel = 0
     canvas.Size = UDim2.fromScale(1, 1)
     canvas.Parent = billboard
 
-    local name = label(self.create, canvas, "Name", 13, COLORS.text, UDim2.new(0.5, 6, 0, 2))
-    local healthValue = label(self.create, canvas, "HealthValue", 12, COLORS.signal, UDim2.new(0.5, 6, 0, 98))
-    local weapon = label(self.create, canvas, "Weapon", 12, COLORS.secondary, UDim2.new(0.5, 6, 0, 114))
+    local name = label(self.create, canvas, "Name", 13, COLORS.text, UDim2.new(0.5, 0, 0, -10))
+    local healthValue =
+        label(self.create, canvas, "HealthValue", 12, COLORS.signal, UDim2.new(0.5, 0, 0, 106))
+    local weapon =
+        label(self.create, canvas, "Weapon", 12, COLORS.secondary, UDim2.new(0.5, 0, 0, 122))
 
     local healthTrack = self.create("Frame")
     healthTrack.Name = "HealthRail"
     healthTrack.BackgroundColor3 = COLORS.track
     healthTrack.BorderSizePixel = 0
-    healthTrack.Position = UDim2.fromOffset(4, 20)
+    healthTrack.Position = UDim2.new(0.5, -34, 0, 20)
     healthTrack.Size = UDim2.fromOffset(6, 76)
     healthTrack.Parent = canvas
 
@@ -553,6 +581,7 @@ function HighlightRenderer:_makeSubject(key, descriptor, player)
         hierarchyConnections = {},
         highlights = {},
         billboard = billboard,
+        canvas = canvas,
         name = name,
         healthValue = healthValue,
         weapon = weapon,
@@ -567,18 +596,27 @@ function HighlightRenderer:_makeSubject(key, descriptor, player)
 
     if humanoid then
         if humanoid.HealthChanged then
-            table.insert(subject.connections, humanoid.HealthChanged:Connect(onExecutorThread(function()
-                self:_updateHealth(subject)
-            end)))
+            table.insert(
+                subject.connections,
+                humanoid.HealthChanged:Connect(onExecutorThread(function()
+                    self:_updateHealth(subject)
+                end))
+            )
         elseif humanoid.GetPropertyChangedSignal then
-            table.insert(subject.connections, humanoid:GetPropertyChangedSignal("Health"):Connect(onExecutorThread(function()
-                self:_updateHealth(subject)
-            end)))
+            table.insert(
+                subject.connections,
+                humanoid:GetPropertyChangedSignal("Health"):Connect(onExecutorThread(function()
+                    self:_updateHealth(subject)
+                end))
+            )
         end
         if humanoid.GetPropertyChangedSignal then
-            table.insert(subject.connections, humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(onExecutorThread(function()
-                self:_updateHealth(subject)
-            end)))
+            table.insert(
+                subject.connections,
+                humanoid:GetPropertyChangedSignal("MaxHealth"):Connect(onExecutorThread(function()
+                    self:_updateHealth(subject)
+                end))
+            )
         end
     end
     self:_updateSubject(subject)
@@ -630,20 +668,31 @@ function HighlightRenderer:_updateHealth(subject, observation)
     if type(maximum) ~= "number" then
         maximum = humanoid and humanoid.MaxHealth or 0
     end
-    local infinite = health == math.huge
+    local finite = health == health
+        and maximum == maximum
+        and health ~= math.huge
+        and health ~= -math.huge
+        and maximum ~= math.huge
+        and maximum ~= -math.huge
     local fraction
-    if infinite or maximum == math.huge then
-        fraction = 1
-    elseif maximum > 0 then
+    if finite and maximum > 0 then
         fraction = math.clamp(health / maximum, 0, 1)
     else
         fraction = 0
     end
-    local color = ColorPolicy.healthColor(self:_settings(), fraction, COLORS.danger, COLORS.signal, subject.tone)
+    local color = ColorPolicy.healthColor(
+        self:_settings(),
+        fraction,
+        COLORS.danger,
+        COLORS.signal,
+        subject.tone
+    )
     subject.healthFill.Size = UDim2.new(0, 4, fraction, 0)
     subject.healthFill.BackgroundColor3 = color
     subject.healthValue.TextColor3 = color
-    subject.healthValue.Text = infinite and "∞ HP" or ("%d HP"):format(math.ceil(health))
+    subject.healthValue.Text = finite and ("%d HP"):format(math.ceil(health)) or ""
+    subject.healthTrack.Visible = self:_settings().health == true and finite
+    subject.healthValue.Visible = self:_settings().health == true and finite
 end
 
 function HighlightRenderer:_updateSubject(subject, observation)
@@ -652,14 +701,17 @@ function HighlightRenderer:_updateSubject(subject, observation)
     local presentation = observation and observation.presentation or subject.presentation or {}
     subject.presentation = presentation
     local tone = observation and observation.tone or subject.tone
-    local color = presentation.color or (tone and COLORS[tone])
+    local color = presentation.color
+        or (tone and COLORS[tone])
         or ((observation and observation.visible == true) and COLORS.signal or COLORS.danger)
 
     self:_configureHighlights(subject)
     self:_styleHighlights(subject, color)
 
-    subject.name.Text = presentation.name or subject.descriptor.name
-        or (subject.player and subject.player.Name) or tostring(subject.key)
+    subject.name.Text = presentation.name
+        or subject.descriptor.name
+        or (subject.player and subject.player.Name)
+        or tostring(subject.key)
     subject.name.TextColor3 = ColorPolicy.color(settings, "name", color, tone)
     subject.name.Visible = settings.names == true
     local hasHealth = subject.humanoid ~= nil
@@ -670,9 +722,10 @@ function HighlightRenderer:_updateSubject(subject, observation)
     subject.weapon.Text = weapon == nil and "" or tostring(weapon)
     subject.weapon.TextColor3 = ColorPolicy.color(settings, "weapon", color, tone)
     subject.weapon.Visible = settings.weapon == true and weapon ~= nil and tostring(weapon) ~= ""
-    subject.billboard.Enabled = subject.rootPart ~= nil
-        and (subject.name.Visible or subject.healthTrack.Visible or subject.weapon.Visible)
     self:_updateHealth(subject, observation)
+    subject.billboard.Enabled = observation ~= nil
+        and subject.rootPart ~= nil
+        and (subject.name.Visible or subject.healthTrack.Visible or subject.weapon.Visible)
 end
 
 function HighlightRenderer:_attachCharacter(player, character)
@@ -706,34 +759,49 @@ function HighlightRenderer:_connectPlayerPolicy(player)
     local connections = {}
     self.playerPolicyConnections[player] = connections
     if self.policy.connectPlayerChanged then
-        hold(connections, self.policy.connectPlayerChanged(player, onExecutorThread(function()
-            self:_invalidatePlayer(player)
-        end)))
+        hold(
+            connections,
+            self.policy.connectPlayerChanged(
+                player,
+                onExecutorThread(function()
+                    self:_invalidatePlayer(player)
+                end)
+            )
+        )
     end
 end
 
 function HighlightRenderer:_trackPlayer(player)
-    if player == self.context.localPlayer or player == self.context.players.LocalPlayer
-        or self.playerConnections[player] then
+    if
+        player == self.context.localPlayer
+        or player == self.context.players.LocalPlayer
+        or self.playerConnections[player]
+    then
         return
     end
     local connections = {}
     self.playerConnections[player] = connections
     self:_connectPlayerPolicy(player)
     if player.CharacterAdded then
-        table.insert(connections, player.CharacterAdded:Connect(onExecutorThread(function(character)
-            if self.active then
-                self:_attachCharacter(player, character)
-            end
-        end)))
+        table.insert(
+            connections,
+            player.CharacterAdded:Connect(onExecutorThread(function(character)
+                if self.active then
+                    self:_attachCharacter(player, character)
+                end
+            end))
+        )
     end
     if player.CharacterRemoving then
-        table.insert(connections, player.CharacterRemoving:Connect(onExecutorThread(function(character)
-            local subject = self.subjects[player]
-            if subject and subject.character == character then
-                self:_removeSubject(player)
-            end
-        end)))
+        table.insert(
+            connections,
+            player.CharacterRemoving:Connect(onExecutorThread(function(character)
+                local subject = self.subjects[player]
+                if subject and subject.character == character then
+                    self:_removeSubject(player)
+                end
+            end))
+        )
     end
     if player.Character then
         self:_attachCharacter(player, player.Character)
@@ -767,9 +835,12 @@ end
 
 function HighlightRenderer:_subscribePolicyChanged()
     if self.policy.subscribeChanged then
-        hold(self.policyConnections, self.policy.subscribeChanged(onExecutorThread(function()
-            self:_invalidatePolicy()
-        end)))
+        hold(
+            self.policyConnections,
+            self.policy.subscribeChanged(onExecutorThread(function()
+                self:_invalidatePolicy()
+            end))
+        )
     end
 end
 
@@ -778,19 +849,22 @@ function HighlightRenderer:_subscribeExtras()
     if not subscribe then
         return
     end
-    self.extraCleanup = subscribe(onExecutorThread(function(descriptor)
-        if descriptor and descriptor.key ~= nil then
-            self.extraKeys[descriptor.key] = true
-            self:_removeSubject(descriptor.key)
-            self:_makeSubject(descriptor.key, descriptor, nil)
-        end
-    end), onExecutorThread(function(keyOrDescriptor)
-        local key = type(keyOrDescriptor) == "table" and keyOrDescriptor.key or keyOrDescriptor
-        if key ~= nil then
-            self.extraKeys[key] = nil
-            self:_removeSubject(key)
-        end
-    end))
+    self.extraCleanup = subscribe(
+        onExecutorThread(function(descriptor)
+            if descriptor and descriptor.key ~= nil then
+                self.extraKeys[descriptor.key] = true
+                self:_removeSubject(descriptor.key)
+                self:_makeSubject(descriptor.key, descriptor, nil)
+            end
+        end),
+        onExecutorThread(function(keyOrDescriptor)
+            local key = type(keyOrDescriptor) == "table" and keyOrDescriptor.key or keyOrDescriptor
+            if key ~= nil then
+                self.extraKeys[key] = nil
+                self:_removeSubject(key)
+            end
+        end)
+    )
 end
 
 function HighlightRenderer:_clearExtras()
@@ -865,7 +939,8 @@ function HighlightRenderer:_applyState(state)
         return
     end
     local highlights = self.context.highlightsSupported ~= false
-        and state.settings and state.settings.worldRenderer == "native"
+        and state.settings
+        and state.settings.worldRenderer == "native"
     if highlights then
         local showEnemies = state.settings.showEnemies ~= false
         local showTeammates = state.settings.showTeammates == true
@@ -917,13 +992,20 @@ end
 
 function HighlightRenderer:render(observations)
     local unclaimed = {}
+    local seen = {}
     for _, observation in ipairs(observations or {}) do
         local key = observation.key or observation.player
         local subject = not self.destroyed and self.active and key and self.subjects[key]
         if subject then
+            seen[key] = true
             self:_updateSubject(subject, observation)
         else
             table.insert(unclaimed, observation)
+        end
+    end
+    for key, subject in pairs(self.subjects) do
+        if not seen[key] then
+            subject.billboard.Enabled = false
         end
     end
     return unclaimed

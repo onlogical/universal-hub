@@ -5,17 +5,26 @@ local function contains(needle, message)
 end
 contains("local function frameWorkEnabled(state)")
 contains("settingsSubscription = store:Subscribe(reconcileFrameLifecycle)")
-contains('TaskFarmRuntime = importDependency("games/rivals/tasks/TaskFarmRuntime"')
-contains('PracticeTaskDriver = importDependency("games/rivals/tasks/PracticeTaskDriver"')
+contains('TaskFarmRuntime = require("./tasks/TaskFarmRuntime")')
+contains('PracticeTaskDriver = require("./tasks/PracticeTaskDriver")')
 contains("ShootingRangeController:Enter()")
 contains("fighter:GetItem(name)")
 contains("fighter:EquipItem(item)")
 contains("MechanicsController:Slide()")
 contains("taskFarmRuntime:isCombatActive() == true")
 contains("onActivityChanged = taskActivityChanged")
-contains('playerGui:FindFirstChild("LoadingScreen")', "RIVALS must wait for native controller bootstrap before requiring match controllers")
-contains("reconcileFrameLifecycle(store:Get())", "frame lifecycle must initialize without waiting for a patch")
-contains('settings.worldRenderer ~= "native" or state.menuVisible ~= false', "hidden Native ESP must remain event-driven")
+contains(
+    'playerGui:FindFirstChild("LoadingScreen")',
+    "RIVALS must wait for native controller bootstrap before requiring match controllers"
+)
+contains(
+    "reconcileFrameLifecycle(store:Get())",
+    "frame lifecycle must initialize without waiting for a patch"
+)
+contains(
+    'settings.worldRenderer ~= "native" or state.menuVisible ~= false',
+    "hidden Native ESP must remain event-driven"
+)
 contains("disconnectFrame()")
 contains("effects:renderTrajectory(nil)")
 contains("runTriggerBot(nil, false)")

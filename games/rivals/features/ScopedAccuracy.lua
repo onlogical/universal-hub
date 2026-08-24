@@ -58,7 +58,8 @@ function ScopedAccuracy:refreshHook()
     local original
     original = self.hookFunction(target, function(itemSelf, ...)
         local currentFighter = self.getFighter()
-        if not self.stopped
+        if
+            not self.stopped
             and self.isEnabled()
             and currentFighter
             and itemSelf == currentFighter.EquippedItem

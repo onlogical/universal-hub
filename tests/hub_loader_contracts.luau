@@ -125,6 +125,7 @@ assert(type(configuration.Import) == "function", "Hub loader must install its ow
 local first = configuration.Import("modules/Store")
 local second = configuration.Import("modules/Store")
 assert(first == second, "Hub importer must cache Universal Hub modules")
+assert(type(first.RelativeConfig) == "table", "Remote modules must resolve ordinary relative require paths")
 local requestCount = getgenv().RequestCount
 configuration.Import("games/Counterblox")
 assert(
@@ -155,7 +156,7 @@ return "hub-loader-ok"
         return [[
 local environment = getgenv()
 environment.StoreExecutions = (environment.StoreExecutions or 0) + 1
-return {}
+return { RelativeConfig = require("./Config") }
 ]]
     end
 

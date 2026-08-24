@@ -51,11 +51,59 @@ assert(ItemInput.equipAction({ Info = { Class = "Secondary" } }) == "EquipSecond
 assert(ItemInput.equipAction({ Info = { Class = "Melee" } }) == nil)
 assert(ItemInput.equipAction({}) == nil)
 
+local gatedActions = {}
+local equippedItem = { Info = { Type = "Gun", Class = "Primary", ShootDamage = 12 } }
+local gatedFighter = {
+    EquippedItem = equippedItem,
+    Input = function(_self, action)
+        table.insert(gatedActions, action)
+        return true
+    end,
+}
+local input = ItemInput.new(function()
+    return gatedFighter
+end)
+assert(input:fire() == true)
+assert(input:isFireHeld() == false, "a fire pulse must not become held input")
+assert(input:pressFire() == true)
+assert(input:isFireHeld() == true)
+input:setDeflecting(true)
+assert(input:isFireHeld() == false)
+assert(gatedActions[1] == ItemInput.START_SHOOTING)
+assert(gatedActions[2] == ItemInput.START_SHOOTING)
+assert(gatedActions[3] == ItemInput.FINISH_SHOOTING)
+assert(input:pressFire() == false, "ordinary firearms must be held during deflection")
+
+equippedItem =
+    { Info = { Type = "Gun", Class = "Secondary", DealsTrueDamage = true, ShootDamage = 8 } }
+gatedFighter.EquippedItem = equippedItem
+assert(input:pressFire() == true, "true damage must bypass deflection")
+input:releaseAll()
+
+equippedItem = {
+    _attack_hash = 3,
+    Info = { Type = "Melee", Class = "Melee", AttackDamage = 30, MaxDoubleJumps = 1 },
+}
+gatedFighter.EquippedItem = equippedItem
+assert(input:pressFire() == true, "unarmed mobility melee must bypass deflection")
+input:releaseAll()
+assert(input:isFireHeld() == false)
+assert(input:isAimHeld() == false)
+
 local adapter = fs.readFile("games/rivals/Adapter.lua")
 assert(adapter:find("ItemInput.dispatch", 1, true), "Adapter must dispatch through ItemInput")
-assert(not adapter:find("context.click", 1, true), "Adapter must not fire through simulated primary click")
-assert(not adapter:find("context.aimClick", 1, true), "Adapter must not fire through simulated secondary click")
-assert(not adapter:find("context.keyPress", 1, true), "Adapter must not equip through simulated keypress")
+assert(
+    not adapter:find("context.click", 1, true),
+    "Adapter must not fire through simulated primary click"
+)
+assert(
+    not adapter:find("context.aimClick", 1, true),
+    "Adapter must not fire through simulated secondary click"
+)
+assert(
+    not adapter:find("context.keyPress", 1, true),
+    "Adapter must not equip through simulated keypress"
+)
 assert(not adapter:find("mouse1click", 1, true))
 assert(not adapter:find("mouse2click", 1, true))
 

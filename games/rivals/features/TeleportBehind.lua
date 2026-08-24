@@ -25,10 +25,10 @@ local heldHumanoid
 local function rootFrame(target)
     local character = target and target.character
     local root = target and target.root
-        or character and (
-            character:FindFirstChild("HumanoidRootPart")
-            or character:FindFirstChild("RootPart")
-        )
+        or character
+            and (character:FindFirstChild("HumanoidRootPart") or character:FindFirstChild(
+                "RootPart"
+            ))
     local frame = root and root.CFrame
     if typeof(frame) ~= "CFrame" then
         return nil
@@ -300,7 +300,8 @@ function TeleportBehind.pullIn(center, position, isOutOfBounds)
     for step = 9, 2, -1 do
         local pulled = center:Lerp(position, step / 10)
         local planar = Vector3.new(pulled.X - center.X, 0, pulled.Z - center.Z)
-        if planar.Magnitude >= TeleportBehind.MIN_DISTANCE
+        if
+            planar.Magnitude >= TeleportBehind.MIN_DISTANCE
             and TeleportBehind.clear(pulled, isOutOfBounds)
         then
             return pulled
@@ -310,15 +311,22 @@ function TeleportBehind.pullIn(center, position, isOutOfBounds)
 end
 
 local function slotCFrame(center, lookAt, yaw, distance, height)
-    local position = center + Vector3.new(
-        math.cos(yaw) * distance,
-        height,
-        math.sin(yaw) * distance
-    )
+    local position = center
+        + Vector3.new(math.cos(yaw) * distance, height, math.sin(yaw) * distance)
     return CFrame.lookAt(position, lookAt)
 end
 
-function TeleportBehind.destination(target, clock, distance, height, isOutOfBounds, yaw, focusY, raycast, closeOnly)
+function TeleportBehind.destination(
+    target,
+    clock,
+    distance,
+    height,
+    isOutOfBounds,
+    yaw,
+    focusY,
+    raycast,
+    closeOnly
+)
     local frame = rootFrame(target)
     if not frame then
         return nil
@@ -349,19 +357,15 @@ function TeleportBehind.destination(target, clock, distance, height, isOutOfBoun
         { 0, 0.55, 12 },
     }
     for _, attempt in ipairs(attempts) do
-        local destination = slotCFrame(
-            center,
-            lookAt,
-            yaw + attempt[1],
-            distance * attempt[2],
-            height + attempt[3]
-        )
+        local destination =
+            slotCFrame(center, lookAt, yaw + attempt[1], distance * attempt[2], height + attempt[3])
         local pulled = TeleportBehind.pullIn(center, destination.Position, isOutOfBounds)
         if pulled and TeleportBehind.canSee(pulled, lookAt, raycast) then
             return CFrame.lookAt(pulled, lookAt)
         end
     end
-    if closeOnly ~= true
+    if
+        closeOnly ~= true
         and (
             distance > TeleportBehind.CLOSE_DISTANCE + 1
             or height > TeleportBehind.CLOSE_HEIGHT + 1
@@ -484,11 +488,7 @@ function TeleportBehind.hold(session, libs)
     if not root or typeof(destination) ~= "CFrame" then
         return false
     end
-    apply(
-        root,
-        destination,
-        type(libs.getHumanoid) == "function" and libs.getHumanoid()
-    )
+    apply(root, destination, type(libs.getHumanoid) == "function" and libs.getHumanoid())
     return true
 end
 
@@ -506,8 +506,8 @@ function TeleportBehind.update(session, libs)
         return false
     end
     if session.teleportEngaged ~= true then
-    if session.active ~= true or session.inCombat ~= true then
-        return false
+        if session.active ~= true or session.inCombat ~= true then
+            return false
         end
         session.teleportEngaged = true
     end
@@ -536,19 +536,11 @@ function TeleportBehind.update(session, libs)
     local oneShot = TeleportBehind.oneShotMode(session, libs)
     local destination
     if oneShot == "knife" then
-        destination = TeleportBehind.knifeDestination(
-            target,
-            libs.isOutOfBounds,
-            libs.raycast,
-            focusY
-        )
-    elseif oneShot == "sniper"
-        and TeleportBehind.slotOpen(
-            session.teleportSafe,
-            target,
-            libs.isOutOfBounds,
-            libs.raycast
-        )
+        destination =
+            TeleportBehind.knifeDestination(target, libs.isOutOfBounds, libs.raycast, focusY)
+    elseif
+        oneShot == "sniper"
+        and TeleportBehind.slotOpen(session.teleportSafe, target, libs.isOutOfBounds, libs.raycast)
     then
         local lookAt = TeleportBehind.lookPoint(target)
         destination = CFrame.lookAt(session.teleportSafe.Position, lookAt)
@@ -556,10 +548,8 @@ function TeleportBehind.update(session, libs)
         local hop = TeleportBehind.hopIndex(clock)
         if session.teleportHop ~= hop or type(session.teleportYaw) ~= "number" then
             local around = frame and TeleportBehind.bearing(root.Position, frame.Position)
-            local yaw, hopDistance, hopHeight = TeleportBehind.pose(
-                clock,
-                around or session.teleportYaw
-            )
+            local yaw, hopDistance, hopHeight =
+                TeleportBehind.pose(clock, around or session.teleportYaw)
             session.teleportHop = hop
             session.teleportYaw = yaw
             session.teleportDistance = hopDistance
@@ -582,11 +572,7 @@ function TeleportBehind.update(session, libs)
     if typeof(session.teleportSafe) ~= "CFrame" then
         return false
     end
-    apply(
-        root,
-        session.teleportSafe,
-        type(libs.getHumanoid) == "function" and libs.getHumanoid()
-    )
+    apply(root, session.teleportSafe, type(libs.getHumanoid) == "function" and libs.getHumanoid())
     return true
 end
 

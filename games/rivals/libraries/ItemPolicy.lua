@@ -66,8 +66,7 @@ function ItemPolicy.hasDeflectCapability(item)
 end
 
 function ItemPolicy.isDeflector(item)
-    return ItemPolicy.hasDeflectCapability(item)
-        and type(item._deflect_hash) == "number"
+    return ItemPolicy.hasDeflectCapability(item) and type(item._deflect_hash) == "number"
 end
 
 function ItemPolicy.isActivelyDeflecting(item)
@@ -120,6 +119,35 @@ end
 function ItemPolicy.isTrueDamage(item)
     local itemInfo = info(item)
     return itemInfo ~= nil and itemInfo.DealsTrueDamage == true
+end
+
+function ItemPolicy.capabilities(item)
+    local itemInfo = info(item)
+    if not itemInfo then
+        return {
+            attack = nil,
+            bypassesDeflection = false,
+            maxDoubleJumps = 0,
+            targetedDamage = false,
+        }
+    end
+
+    local maxDoubleJumps = type(itemInfo.MaxDoubleJumps) == "number"
+            and math.max(0, itemInfo.MaxDoubleJumps)
+        or 0
+    local unarmedMobilityMelee = itemInfo.Type == "Melee"
+        and itemInfo.Class == "Melee"
+        and positive(itemInfo.AttackDamage)
+        and type(item._attack_hash) == "number"
+        and maxDoubleJumps > 0
+    return {
+        attack = itemInfo.Type == "Gun" and "gun" or itemInfo.Type == "Melee" and "melee" or nil,
+        bypassesDeflection = itemInfo.DealsTrueDamage == true or unarmedMobilityMelee,
+        maxDoubleJumps = maxDoubleJumps,
+        targetedDamage = positive(itemInfo.ShootDamage)
+            or positive(itemInfo.AttackDamage)
+            or positive(itemInfo.CriticalDamage),
+    }
 end
 
 function ItemPolicy.isAbsorber(item)

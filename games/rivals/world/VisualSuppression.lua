@@ -1,15 +1,4 @@
-local function importDependency(path, relativePath)
-    if type(getgenv) == "function" then
-        local environment = getgenv()
-        local configuration = environment and environment.UniversalHubConfig
-        if configuration and type(configuration.Import) == "function" then
-            return configuration.Import(path)
-        end
-    end
-    return require(relativePath)
-end
-
-local UtilityPolicy = importDependency("games/rivals/world/UtilityPolicy", "./UtilityPolicy")
+local UtilityPolicy = require("./UtilityPolicy")
 local VisualSuppression = {}
 
 local VISUAL_EFFECT_CLASSES = {
@@ -36,11 +25,15 @@ local function effectStateProperty(instance)
     if not supported then
         return nil
     end
-    local enabledOk, enabled = pcall(function() return instance.Enabled end)
+    local enabledOk, enabled = pcall(function()
+        return instance.Enabled
+    end)
     if enabledOk and type(enabled) == "boolean" then
         return "Enabled", enabled
     end
-    local visibleOk, visible = pcall(function() return instance.Visible end)
+    local visibleOk, visible = pcall(function()
+        return instance.Visible
+    end)
     if visibleOk and type(visible) == "boolean" then
         return "Visible", visible
     end

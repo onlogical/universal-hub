@@ -44,6 +44,7 @@ function TriggerBot.hubReady(state, now)
 end
 
 TriggerBot.MAX_DELAY_MS = 250
+TriggerBot.TARGET_GRACE_SECONDS = 0.1
 
 function TriggerBot.delaySeconds(settings)
     local ms = settings and settings.triggerDelay
@@ -57,6 +58,7 @@ function TriggerBot.delayReady(state, now, delay, targetKey)
     if type(delay) ~= "number" or delay <= 0 then
         if state then
             state.armedAt = nil
+            state.armedDelay = nil
             state.armedKey = nil
         end
         return true
@@ -64,11 +66,29 @@ function TriggerBot.delayReady(state, now, delay, targetKey)
     if type(now) ~= "number" then
         return true
     end
-    if state.armedKey ~= targetKey or type(state.armedAt) ~= "number" then
+    if
+        state.armedKey ~= targetKey
+        or state.armedDelay ~= delay
+        or type(state.armedAt) ~= "number"
+        or type(state.lostAt) == "number"
+            and now - state.lostAt > TriggerBot.TARGET_GRACE_SECONDS
+    then
         state.armedAt = now
+        state.armedDelay = delay
         state.armedKey = targetKey
     end
+    state.lostAt = nil
     return now >= state.armedAt + delay
+end
+
+function TriggerBot.delayLost(state, now)
+    if
+        type(state) == "table"
+        and type(state.armedAt) == "number"
+        and type(state.lostAt) ~= "number"
+    then
+        state.lostAt = now
+    end
 end
 
 function TriggerBot.holdDropped(item, now, fallback)
@@ -111,8 +131,7 @@ end
 
 local function cameraOrigin(ctx)
     local camera = ctx and ctx.camera
-    local frame = camera
-        and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
+    local frame = camera and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
     return frame and frame.Position or nil
 end
 
@@ -143,7 +162,8 @@ function TriggerBot.pathReady(target, item, ctx)
     end
     local WeaponPolicy = ctx.weaponPolicy or {}
     local ProjectileAim = ctx.projectileAim or {}
-    if policyFlag(WeaponPolicy, "isBackstabKnife", item)
+    if
+        policyFlag(WeaponPolicy, "isBackstabKnife", item)
         or policyFlag(WeaponPolicy, "isDualModeBlade", item)
     then
         return true
@@ -151,24 +171,29 @@ function TriggerBot.pathReady(target, item, ctx)
     if TriggerBot.solvedPath(target) then
         return true
     end
-    local usesArc = (type(ProjectileAim.isSplashProjectile) == "function"
-            and ProjectileAim.isSplashProjectile(item))
-        or (type(ProjectileAim.isDirectProjectile) == "function"
-            and ProjectileAim.isDirectProjectile(item))
+    local usesArc = (
+        type(ProjectileAim.isSplashProjectile) == "function"
+        and ProjectileAim.isSplashProjectile(item)
+    )
+        or (type(ProjectileAim.isDirectProjectile) == "function" and ProjectileAim.isDirectProjectile(
+            item
+        ))
         or policyFlag(WeaponPolicy, "isRicochetWeapon", item)
         or policyFlag(WeaponPolicy, "isBouncingProjectile", item)
     if usesArc then
-        if type(ProjectileAim.isDirectProjectile) == "function"
+        if
+            type(ProjectileAim.isDirectProjectile) == "function"
             and ProjectileAim.isDirectProjectile(item)
             and type(ProjectileAim.solveProjectileAim) == "function"
         then
             local origin = cameraOrigin(ctx)
-            local solution = origin and ProjectileAim.solveProjectileAim(
-                origin,
-                target,
-                item and item.Info,
-                ctx.gravity
-            )
+            local solution = origin
+                and ProjectileAim.solveProjectileAim(
+                    origin,
+                    target,
+                    item and item.Info,
+                    ctx.gravity
+                )
             if solution then
                 target.projectileAim = solution
                 return true
@@ -183,7 +208,9 @@ function TriggerBot.shouldHoldForDeflect(target, item, ctx)
     if not target or type(ctx) ~= "table" or type(ctx.isDeflecting) ~= "function" then
         return false
     end
-    local targetFighter = target.player and type(ctx.fighterFor) == "function" and ctx.fighterFor(target.player)
+    local targetFighter = target.player
+        and type(ctx.fighterFor) == "function"
+        and ctx.fighterFor(target.player)
     local counter = ctx.taskCounterPolicy
     local sprayCounter = targetFighter
         and type(counter) == "table"
@@ -206,7 +233,8 @@ function TriggerBot.update(session, ctx)
         taskDebug.triggerStage = "entered"
         taskDebug.triggerAt = ctx.clock()
     end
-    if settings.triggerBot ~= true and taskCombatActive ~= true
+    if
+        settings.triggerBot ~= true and taskCombatActive ~= true
         or (ctx.inputCaptured and taskCombatActive ~= true)
         or not ctx.fighterActive
         or not ctx.inCombat
@@ -216,7 +244,9 @@ function TriggerBot.update(session, ctx)
         end
         state.gunblade = nil
         state.armedAt = nil
+        state.armedDelay = nil
         state.armedKey = nil
+        state.lostAt = nil
         ctx.releaseFire()
         if state.held then
             ctx.aimRelease()
@@ -233,6 +263,10 @@ function TriggerBot.update(session, ctx)
         end
         state.gunblade = nil
         ctx.clearAimPlan()
+        state.armedAt = nil
+        state.armedDelay = nil
+        state.armedKey = nil
+        state.lostAt = nil
         ctx.releaseFire()
         if state.held then
             ctx.aimRelease()
@@ -256,6 +290,7 @@ function TriggerBot.update(session, ctx)
             if state.fireHeld then
                 return
             end
+            TriggerBot.delayLost(state, ctx.clock())
             ctx.releaseFire()
             return
         end
@@ -280,7 +315,9 @@ function TriggerBot.update(session, ctx)
         end
         state.gunblade = nil
         state.armedAt = nil
+        state.armedDelay = nil
         state.armedKey = nil
+        state.lostAt = nil
         ctx.releaseFire()
         if state.held then
             ctx.aimRelease()
@@ -297,8 +334,7 @@ function TriggerBot.update(session, ctx)
             return
         end
         state.gunblade = nil
-        state.armedAt = nil
-        state.armedKey = nil
+        TriggerBot.delayLost(state, ctx.clock())
         ctx.releaseFire()
         if state.held then
             ctx.aimRelease()
@@ -340,9 +376,7 @@ function TriggerBot.update(session, ctx)
         local cameraFrame = camera
             and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
         local cameraPosition = cameraFrame and cameraFrame.Position
-        local cameraOffset = cameraPosition
-            and targetPosition
-            and targetPosition - cameraPosition
+        local cameraOffset = cameraPosition and targetPosition and targetPosition - cameraPosition
         local visibleFrame = camera and camera.CFrame
         local visibleRotation = ctx.cameraController.Rotation
         if cameraOffset and cameraOffset.Magnitude > 1e-3 then
@@ -366,7 +400,8 @@ function TriggerBot.update(session, ctx)
         return
     end
     state.gunblade = nil
-    if ProjectileAim.isSplashProjectile(item)
+    if
+        ProjectileAim.isSplashProjectile(item)
         and not (alignedTarget and alignedTarget.splashImpact)
     then
         ctx.releaseFire()
@@ -374,12 +409,7 @@ function TriggerBot.update(session, ctx)
     end
     if WeaponPolicy.isBackstabKnife(item) then
         ctx.releaseFire()
-        if not WeaponPolicy.backstabTriggerReady(
-            fighter,
-            item,
-            alignedTarget,
-            ctx.isGunGame()
-        ) then
+        if not WeaponPolicy.backstabTriggerReady(fighter, item, alignedTarget, ctx.isGunGame()) then
             return
         end
         if state.held then
@@ -403,7 +433,9 @@ function TriggerBot.update(session, ctx)
     local targetDistance = cameraFrame
         and target.position
         and (target.position - cameraFrame.Position).Magnitude
-    if targetDistance and not sprayCounter
+    if
+        targetDistance
+        and not sprayCounter
         and not WeaponPolicy.triggerDamageReady(item, target, targetDistance)
     then
         if taskDebug then
@@ -412,16 +444,17 @@ function TriggerBot.update(session, ctx)
         ctx.releaseFire()
         return
     end
-    local sniperCrouching = WeaponPolicy.isScoped(item)
-        and ctx.localFighterIsCrouching(fighter)
-    if not WeaponPolicy.sniperTriggerReady(
-        ctx.cameraController,
-        item,
-        target,
-        targetDistance,
-        sniperCrouching,
-        settings.alwaysScoped == true
-    ) then
+    local sniperCrouching = WeaponPolicy.isScoped(item) and ctx.localFighterIsCrouching(fighter)
+    if
+        not WeaponPolicy.sniperTriggerReady(
+            ctx.cameraController,
+            item,
+            target,
+            targetDistance,
+            sniperCrouching,
+            settings.alwaysScoped == true
+        )
+    then
         if taskDebug then
             taskDebug.triggerStage = "precision-gate"
         end
@@ -434,7 +467,9 @@ function TriggerBot.update(session, ctx)
     end
     local targetKey = target.character or target.player or target
     local previousKey = state.armedKey
-    if not TriggerBot.delayReady(state, ctx.clock(), TriggerBot.delaySeconds(settings), targetKey) then
+    if
+        not TriggerBot.delayReady(state, ctx.clock(), TriggerBot.delaySeconds(settings), targetKey)
+    then
         if taskDebug then
             taskDebug.triggerStage = "delay"
         end
@@ -546,7 +581,9 @@ function TriggerBot.update(session, ctx)
 
     ctx.releaseFire()
     local fireClock = type(ctx.itemClock) == "function" and ctx.itemClock() or ctx.clock()
-    if not TriggerBot.weaponReady(item, fireClock) or not TriggerBot.hubReady(state, ctx.clock()) then
+    if
+        not TriggerBot.weaponReady(item, fireClock) or not TriggerBot.hubReady(state, ctx.clock())
+    then
         return
     end
     if not WeaponPolicy.adsSettled(ctx.cameraController, item) then
