@@ -9,7 +9,7 @@ function ServerHop.new(options)
     if options.persistVisited then
         options.persistVisited()
     end
-    return setmetatable({
+    local self = setmetatable({
         decode = options.decode,
         httpGet = options.httpGet,
         jobId = options.jobId,
@@ -24,6 +24,25 @@ function ServerHop.new(options)
         running = false,
         stopped = false,
     }, ServerHop)
+    local failedSignal = options.teleportService.TeleportInitFailed
+    if failedSignal and type(failedSignal.Connect) == "function" then
+        self.teleportFailedConnection = failedSignal:Connect(function(player, result, message)
+            if player ~= self.localPlayer or not self.pendingTeleport then
+                return
+            end
+            local pending = self.pendingTeleport
+            self.pendingTeleport = nil
+            self:_log("warn", "destination rejected; trying another", {
+                error = message,
+                result = tostring(result),
+                serverId = pending.serverId,
+            })
+            if pending.completed then
+                pending.completed(false, message or tostring(result))
+            end
+        end)
+    end
+    return self
 end
 
 function ServerHop:_log(level, message, fields)
@@ -80,6 +99,10 @@ function ServerHop:run(maxPing, completed, isActive, populationMode)
                 serverId = best.id,
             })
             assert(not self.stopped and (not isActive or isActive()), "Server hop cancelled")
+            self.pendingTeleport = {
+                completed = completed,
+                serverId = best.id,
+            }
             self.teleportService:TeleportToPlaceInstance(self.placeId, best.id, self.localPlayer)
             self.visitedServerIds[best.id] = true
             if self.persistVisited then
@@ -88,6 +111,7 @@ function ServerHop:run(maxPing, completed, isActive, populationMode)
         end)
         self.running = false
         if not ok then
+            self.pendingTeleport = nil
             self:_log("error", "failed", { error = result })
         end
         if completed then
@@ -98,6 +122,11 @@ end
 
 function ServerHop:stop()
     self.stopped = true
+    self.pendingTeleport = nil
+    if self.teleportFailedConnection then
+        pcall(self.teleportFailedConnection.Disconnect, self.teleportFailedConnection)
+        self.teleportFailedConnection = nil
+    end
 end
 
 return ServerHop

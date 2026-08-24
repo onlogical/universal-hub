@@ -1,5 +1,21 @@
 local ServerHop = require("../../games/stealanegg/features/ServerHop")
 
+local function signal()
+    local callback
+    return {
+        Connect = function(_, nextCallback)
+            callback = nextCallback
+            return { Disconnect = function() end }
+        end,
+        Fire = function(_, ...)
+            if callback then
+                callback(...)
+            end
+        end,
+    }
+end
+
+local teleportFailed = signal()
 local teleported
 local logs = {}
 local logger = {}
@@ -36,6 +52,7 @@ local hop = ServerHop.new({
     end,
     visitedServerIds = { seen = true },
     teleportService = {
+        TeleportInitFailed = teleportFailed,
         TeleportToPlaceInstance = function(_, placeId, serverId, player)
             teleported = { placeId = placeId, player = player, serverId = serverId }
         end,
@@ -51,6 +68,8 @@ assert(
     teleported.placeId == 123 and teleported.serverId == "lowest" and teleported.player == "player"
 )
 assert(logs[1].scope == "stealanegg.serverHop" and logs[1].fields.players == 2)
+teleportFailed:Fire("player", "Failure", "Error 279")
+assert(completed == false, "Teleport-init failures must be reported so Auto Farm can retry")
 hop:run(120, nil, nil, "high")
 assert(teleported.serverId == "busier", "High-population mode must prefer the busiest server")
 print("server-hop-ok")
