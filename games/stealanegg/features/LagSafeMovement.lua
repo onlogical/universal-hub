@@ -50,6 +50,10 @@ function LagSafeMovement:_shouldApply(humanoid, areaId, guardSpeed)
     return true
 end
 
+function LagSafeMovement:setPingThreshold(value)
+    self.pingThreshold = math.max(1, tonumber(value) or 170)
+end
+
 function LagSafeMovement:setEnabled(enabled)
     enabled = enabled == true
     if self.enabled == enabled then

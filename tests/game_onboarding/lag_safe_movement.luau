@@ -71,5 +71,8 @@ assert(humanoid.WalkSpeed == 100, "Low-ping servers must not apply High Ping Mod
 ping = 200
 callback()
 assert(humanoid.WalkSpeed == 65, "High ping plus a faster boss must apply the safety cap")
+movement:setPingThreshold(300)
+callback()
+assert(humanoid.WalkSpeed == 100, "The configured ping limit must control automatic activation")
 movement:stop()
 print("lag-safe-movement-ok")

@@ -211,6 +211,7 @@ function Adapter.new(context)
         hitAura:setIgnoreFriends(state.settings.hitAuraIgnoreFriends == true)
         hitAura:setEnabled(state.settings.hitAura == true)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
+        lagSafeMovement:setPingThreshold(state.settings.serverHopMaxPing)
         lagSafeMovement:setEnabled(
             farming or (state.settings.antiHit == true and state.settings.lagSafeMovement == true)
         )
