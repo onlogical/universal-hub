@@ -196,7 +196,12 @@ function Adapter.new(context)
             context.settingsChanged(context.store:Get().settings)
             return
         end
-        if settings.lagSafeMovement ~= true and ping > settings.serverHopMaxPing then
+        local latestSettings = context.store:Get().settings
+        if
+            latestSettings.lagSafeMovement ~= true
+            and latestSettings.lagSafePromptServer ~= context.jobId
+            and ping > latestSettings.serverHopMaxPing
+        then
             context.store:Patch({
                 notification = {
                     action = "lagSafeMovement",
@@ -208,7 +213,9 @@ function Adapter.new(context)
                     title = "High Ping Detected",
                     tone = "warning",
                 },
+                settings = { lagSafePromptServer = context.jobId },
             })
+            context.settingsChanged(context.store:Get().settings)
         end
     end)
 
