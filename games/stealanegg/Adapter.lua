@@ -181,23 +181,16 @@ function Adapter.new(context)
                 context.settingsChanged(context.store:Get().settings)
                 return
             end
-            if settings.serverHopAttempts < 5 then
-                context.store:Patch({
-                    settings = { serverHopAttempts = settings.serverHopAttempts + 1 },
-                })
-                context.settingsChanged(context.store:Get().settings)
-                serverHop:run(settings.serverHopMaxPing)
-                return
-            end
             context.store:Patch({
                 notification = {
                     action = "serverHop",
-                    confirmLabel = "Try Again",
+                    confirmLabel = "Try Another",
                     position = "bottom-right",
-                    text = ("No server below %d ms was found after 5 hops."):format(
+                    text = ("This server settled at %.0f ms, above your %d ms limit. Hop again?"):format(
+                        ping,
                         settings.serverHopMaxPing
                     ),
-                    title = "Ping Limit Not Met",
+                    title = "High Server Ping",
                     tone = "warning",
                 },
                 settings = { serverHopAttempts = 0, serverHopPingGuard = false },
