@@ -159,6 +159,21 @@ function Adapter.new(context)
         navigator = navigator,
         plotCmds = PlotCmds,
         players = context.players,
+        publishStatus = function(model)
+            if type(model) ~= "table" then
+                context.store:Patch({ floatingMonitor = false })
+                return
+            end
+            model.ping = 0
+            for _, metric in ipairs(context.store:Get().footerMetrics or {}) do
+                if metric.id == "ping" and type(metric.value) == "number" then
+                    model.ping = math.round(metric.value)
+                    break
+                end
+            end
+            model.players = #context.players:GetPlayers()
+            context.store:Patch({ floatingMonitor = model })
+        end,
         serverHop = serverHop,
         slotIdentity = SlotIdentity,
         workspace = Workspace,

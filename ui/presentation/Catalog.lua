@@ -240,7 +240,8 @@ function Catalog:button(sectionId, id, label, spec)
     if not self.available[id] then
         return
     end
-    local group = assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+    local group =
+        assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
     spec = type(spec) == "table" and spec or { variant = spec }
     table.insert(group.actions, {
         action = id,
@@ -482,7 +483,12 @@ function Catalog:model(state)
     end
 
     for _, group in ipairs(self.groups) do
-        if #group.actions > 0 or #group.options > 0 or #group.keybinds > 0 or #group.sliders > 0 then
+        if
+            #group.actions > 0
+            or #group.options > 0
+            or #group.keybinds > 0
+            or #group.sliders > 0
+        then
             local controls = {}
             for _, action in ipairs(group.actions) do
                 append(controls, {
@@ -899,11 +905,24 @@ function Catalog:model(state)
         })
     end
 
+    local floatingMonitor = type(state.floatingMonitor) == "table"
+            and table.clone(state.floatingMonitor)
+        or nil
+    if floatingMonitor then
+        for _, metric in ipairs(state.footerMetrics or {}) do
+            if metric.id == "ping" and type(metric.value) == "number" then
+                floatingMonitor.ping = math.round(metric.value)
+                break
+            end
+        end
+    end
+
     return {
         brandLabel = "universal-hub",
         brandIcon = self.context.brandIcon,
         gameLabel = self.context.gameLabel or "Universal",
         gameIcon = self.context.gameIcon,
+        floatingMonitor = floatingMonitor,
         notification = type(state.notification) == "table" and state.notification or nil,
         enemyAudienceIcon = self.context.enemyAudienceIcon,
         allyAudienceIcon = self.context.allyAudienceIcon,

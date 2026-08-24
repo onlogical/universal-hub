@@ -18,6 +18,7 @@ function AutoFarm.new(options)
         navigator = options.navigator,
         plotCmds = options.plotCmds,
         players = options.players,
+        publishStatus = options.publishStatus,
         serverHop = options.serverHop,
         slotIdentity = options.slotIdentity,
         spawn = options.spawn or task.spawn,
@@ -43,6 +44,53 @@ function AutoFarm:_log(level, message, fields)
     if type(write) == "function" then
         write(self.logger, "stealanegg.autoFarm", message, fields)
     end
+end
+
+function AutoFarm:_publish(stage, detail, targetUid)
+    if type(self.publishStatus) ~= "function" then
+        return
+    end
+    local eggs = {}
+    local candidates = 0
+    local snapshot = self.eggCmds.GetAreaEggSnapshot()
+    for _, record in ipairs(snapshot.Records) do
+        local rarityNumber, rarityName = self:_rarity(record)
+        local asset = self.assets.Directory[record.AssetCategory]
+        local available = record.State == "Slot" or record.State == "Dropped"
+        if available and self.targetRarities[rarityName] == true then
+            candidates += 1
+        end
+        table.insert(eggs, {
+            uid = record.Uid,
+            name = asset and asset.DisplayName or record.AssetCategory,
+            rarity = rarityName,
+            rarityNumber = rarityNumber,
+            area = record.AreaId or "Unknown",
+            size = tonumber(record.AssetScale) or 1,
+            state = record.State,
+            target = record.Uid == targetUid,
+        })
+    end
+    table.sort(eggs, function(left, right)
+        if left.target ~= right.target then
+            return left.target == true
+        end
+        if left.rarityNumber ~= right.rarityNumber then
+            return left.rarityNumber > right.rarityNumber
+        end
+        return left.name < right.name
+    end)
+    for _, egg in ipairs(eggs) do
+        egg.rarityNumber = nil
+    end
+    self.publishStatus({
+        visible = self.enabled,
+        stage = stage,
+        detail = detail,
+        mode = self.highPopulation and "High population" or "Low population",
+        candidates = candidates,
+        eggs = eggs,
+    })
 end
 
 function AutoFarm:_active(token)
@@ -194,7 +242,7 @@ end
 function AutoFarm:_waitForClaim(uid, token)
     local deadline = self.workspace:GetServerTimeNow() + 10
     while self:_active(token) and self.workspace:GetServerTimeNow() <= deadline do
-        if self.claimed or self.eggCmds.GetAreaEggRecord(uid) == nil then
+        if self.eggCmds.GetAreaEggRecord(uid) == nil then
             return true
         end
         self.wait(0.1)
@@ -207,6 +255,10 @@ function AutoFarm:_hop(token)
         if succeeded or not self:_active(token) then
             return
         end
+        self:_publish(
+            "Waiting to retry",
+            "No eligible server answered yet. Trying again in 5 seconds."
+        )
         self.spawn(function()
             self.wait(5)
             if self:_active(token) then
@@ -224,11 +276,13 @@ function AutoFarm:_run(token)
         return
     end
     pcall(self.eggCmds.RequestAreaEggSnapshot)
+    self:_publish("Scanning server", "Checking every egg against your selected rarities.")
     local target = self:_selectCarried()
     local alreadyCarried = target ~= nil
     if not target then
         if not self.targetRarities.Eternal and not self.targetRarities.Secret then
             self:_log("warn", "no target rarities selected")
+            self:_publish("Waiting for targets", "Select Eternal Eggs, Secret Eggs, or both.")
             return
         end
         target = self:_selectTarget()
@@ -238,6 +292,10 @@ function AutoFarm:_run(token)
             eternal = self.targetRarities.Eternal,
             secret = self.targetRarities.Secret,
         })
+        self:_publish(
+            "Finding another server",
+            "No selected rarity spawned here. Requesting another server."
+        )
         self:_hop(token)
         return
     end
@@ -251,6 +309,11 @@ function AutoFarm:_run(token)
                 player = competitor.Name,
                 userId = competitor.UserId,
             })
+            self:_publish(
+                "Avoiding competition",
+                "Another active player has the better route to this egg.",
+                record.Uid
+            )
             self:_hop(token)
             return
         end
@@ -260,17 +323,32 @@ function AutoFarm:_run(token)
             rarity = target.rarityName,
             uid = record.Uid,
         })
+        self:_publish(
+            "Walking to target",
+            ("%s %s · %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
+            record.Uid
+        )
         local reached, reason = self.navigator:walkTo(record.BottomCFrame.Position, function()
             return self:_active(token)
         end, 7)
         if not reached then
             self:_log("warn", "target walk failed", { reason = reason, uid = record.Uid })
+            self:_publish(
+                "Route failed",
+                "The target path was blocked. Moving to another server.",
+                record.Uid
+            )
             if self:_active(token) then
                 self:_hop(token)
             end
             return
         end
 
+        self:_publish(
+            "Claiming egg",
+            "In pickup range. Waiting for the server to confirm carry.",
+            record.Uid
+        )
         local carried, carryReason = self:_claim(record, token)
         if not carried then
             self:_log("warn", "claim failed", { reason = carryReason, uid = record.Uid })
@@ -281,6 +359,11 @@ function AutoFarm:_run(token)
         end
     end
 
+    self:_publish(
+        "Returning with egg",
+        "Walking to the safe boundary and avoiding the treadmill.",
+        record.Uid
+    )
     local secured = false
     while self:_active(token) and not secured do
         local home = self:_homePosition()
@@ -296,9 +379,19 @@ function AutoFarm:_run(token)
                     reason = returnReason,
                     uid = record.Uid,
                 })
+                self:_publish(
+                    "Retrying return",
+                    "The route stalled. Rebuilding the safe path without dropping the egg.",
+                    record.Uid
+                )
             end
         else
             self:_log("warn", "home unavailable; retrying", { uid = record.Uid })
+            self:_publish(
+                "Waiting for base",
+                "Base data is still loading. The carried egg stays prioritized.",
+                record.Uid
+            )
         end
         if not secured then
             self.wait(2)
@@ -309,6 +402,7 @@ function AutoFarm:_run(token)
     end
 
     self:_log("info", "egg secured; hopping", { uid = record.Uid })
+    self:_publish("Egg secured", "Deposit confirmed. Preparing the next server.")
     self.wait(1)
     if self:_active(token) then
         self:_hop(token)
@@ -356,13 +450,19 @@ function AutoFarm:setEnabled(enabled)
     self.token += 1
     self:_log("info", enabled and "enabled" or "disabled")
     if enabled then
+        self:_publish("Starting", "Reading the current server and preparing the farm.")
         self:_startRun()
+    elseif type(self.publishStatus) == "function" then
+        self.publishStatus(false)
     end
 end
 
 function AutoFarm:stop()
     self.enabled = false
     self.token += 1
+    if type(self.publishStatus) == "function" then
+        self.publishStatus(false)
+    end
     if self.claimConnection then
         pcall(self.claimConnection.Disconnect, self.claimConnection)
         self.claimConnection = nil

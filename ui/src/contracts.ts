@@ -191,12 +191,34 @@ export interface ActionNotificationModel {
 	readonly title: string;
 }
 
+export interface FarmMonitorEgg {
+	readonly uid: string;
+	readonly name: string;
+	readonly rarity: string;
+	readonly area: string;
+	readonly size: number;
+	readonly state: string;
+	readonly target?: boolean;
+}
+
+export interface FloatingMonitorModel {
+	readonly visible: boolean;
+	readonly stage: string;
+	readonly detail: string;
+	readonly mode: "Low population" | "High population";
+	readonly ping: number;
+	readonly players: number;
+	readonly candidates: number;
+	readonly eggs: readonly FarmMonitorEgg[];
+}
+
 export interface UniversalHubMenuModel {
 	readonly brandLabel: string;
 	readonly brandIcon?: string;
 	readonly gameLabel: string;
 	readonly gameIcon?: string;
 	readonly footer?: readonly FooterItem[];
+	readonly floatingMonitor?: FloatingMonitorModel;
 	readonly notification?: ActionNotificationModel;
 	readonly enemyAudienceIcon?: string;
 	readonly allyAudienceIcon?: string;

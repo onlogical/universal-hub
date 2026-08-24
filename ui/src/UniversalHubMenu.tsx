@@ -7,6 +7,7 @@ import { ThemeProvider } from "@prism/theme";
 import { theme } from "@prism/theme";
 import type { UniversalHubMenuModel } from "./contracts";
 import { ActionNotification } from "./components/ActionNotification";
+import { FloatingFarmMonitor } from "./components/FloatingFarmMonitor";
 import { HubFooter } from "./components/HubFooter";
 import { SectionList } from "./components/SectionList";
 import { WhatsNewModal } from "./components/WhatsNewModal";
@@ -115,6 +116,7 @@ export function UniversalHubMenu({
   return (
     <ThemeProvider theme={HUB_THEME}>
       <WhatsNewModal notice={model.whatsNew} onAction={model.onAction} />
+      <FloatingFarmMonitor monitor={model.floatingMonitor} />
       <ActionNotification
         notification={model.notification}
         onDismiss={model.onDismissNotification}
