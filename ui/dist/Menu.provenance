@@ -1,5 +1,5 @@
 artifact=ui/dist/Menu.lua
-sha256=842b9c15aeee587ee1507e0afe942eb55601fa3aba9cc6def13c7527c80a57f6
+sha256=4cc1b5d5454123849d5a506cc3509b5452de28af6e3004e19f0c25d0553afcde
 prism_repository=https://github.com/3xjn/prism
 prism_commit=baebebb089fa29bd2dae8af039be408af7e95ec1
 bundler=https://github.com/latte-soft/wax

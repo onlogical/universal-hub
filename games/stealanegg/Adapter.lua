@@ -184,7 +184,7 @@ function Adapter.new(context)
                 notification = {
                     action = "serverHop",
                     confirmLabel = "Try Again",
-                    position = "bottom-left",
+                    position = "bottom-right",
                     text = ("No server below %d ms was found after 5 hops."):format(
                         settings.serverHopMaxPing
                     ),
@@ -201,7 +201,7 @@ function Adapter.new(context)
                 notification = {
                     action = "lagSafeMovement",
                     confirmLabel = "Enable",
-                    position = "bottom-left",
+                    position = "bottom-right",
                     text = ("Ping is %.0f ms. Use safer movement while carrying eggs near fast bosses?"):format(
                         ping
                     ),
