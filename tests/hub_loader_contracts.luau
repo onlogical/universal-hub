@@ -17,8 +17,10 @@ for _, definitionPath in ipairs(Catalog) do
     local definition = require("../" .. definitionPath)
     for _, modulePath in ipairs(definition.sources) do
         local file = modulePath .. ".lua"
-        firstDeclaredSource = firstDeclaredSource or file
-        table.insert(expectedHubPaths, file)
+        if definition.id == "bloxstrike" then
+            firstDeclaredSource = firstDeclaredSource or file
+            table.insert(expectedHubPaths, file)
+        end
         assert(
             not source:find('"' .. file .. '"', 1, true),
             "Packaged game sources must come from definitions, not hub.lua: " .. file
@@ -76,8 +78,7 @@ function game:HttpGet(url, noCache)
         return [[return { mountUniversalHubMenu = function() end }]]
     end
 
-    local hydroxideRoot =
-        "https://raw.githubusercontent.com/3xjn/hydroxide/"
+    local hydroxideRoot = "https://raw.githubusercontent.com/3xjn/hydroxide/"
         .. hydroxideCommit
         .. "/"
     if url == hydroxideRoot .. "modules/Helpers.lua" then
@@ -101,7 +102,8 @@ return {
     if url == hydroxideRoot .. "modules/Targeting.lua" then
         return [[return { nearestPlayer = function() end }]]
     end
-    if url == hydroxideRoot .. "modules/Closure.lua"
+    if
+        url == hydroxideRoot .. "modules/Closure.lua"
         or url == hydroxideRoot .. "modules/Lifecycle.lua"
     then
         return [[return {}]]
@@ -176,10 +178,7 @@ local expectedUrls = {
     [sourceBaseUrl .. "ui/dist/Menu.lua"] = true,
     [sourceBaseUrl .. "changelog.json"] = true,
 }
-local hydroxideRoot =
-    "https://raw.githubusercontent.com/3xjn/hydroxide/"
-    .. hydroxideCommit
-    .. "/"
+local hydroxideRoot = "https://raw.githubusercontent.com/3xjn/hydroxide/" .. hydroxideCommit .. "/"
 for _, path in ipairs({
     "modules/Helpers.lua",
     "modules/Closure.lua",
@@ -218,10 +217,14 @@ for url in pairs(seen) do
         )
     end
 end
-assert(hydroxideRequestCount == 4, "Packaged bootstrap must fetch only Helpers and three stable leaves")
+assert(
+    hydroxideRequestCount == 4,
+    "Packaged bootstrap must fetch only Helpers and three stable leaves"
+)
 local lastDefinitionAt = 0
 for _, path in ipairs(Catalog) do
-    lastDefinitionAt = math.max(lastDefinitionAt, assert(requestedAt[sourceBaseUrl .. path .. ".lua"]))
+    lastDefinitionAt =
+        math.max(lastDefinitionAt, assert(requestedAt[sourceBaseUrl .. path .. ".lua"]))
 end
 assert(
     lastDefinitionAt < assert(requestedAt[sourceBaseUrl .. firstDeclaredSource]),
@@ -258,11 +261,7 @@ local originalHttpGet = game.HttpGet
 function game:HttpGet(url, noCache)
     local result = originalHttpGet(self, url, noCache)
     if url == sourceBaseUrl .. "games/rivals/Definition.lua" then
-        return result:gsub(
-            'sources = {',
-            'sources = {\n        "games/Town",',
-            1
-        )
+        return result:gsub("sources = {", 'sources = {\n        "games/Town",', 1)
     end
     return result
 end

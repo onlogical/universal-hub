@@ -101,6 +101,8 @@ if type(bootTiming) == "table" then
         hydroxideSeconds = seconds(bootTiming.hydroxideSeconds),
         inventorySeconds = seconds(bootTiming.inventorySeconds),
         limnSeconds = seconds(bootTiming.limnSeconds),
+        menuCompileSeconds = seconds(bootTiming.menuCompileSeconds),
+        menuExecuteSeconds = seconds(bootTiming.menuExecuteSeconds),
         menuSeconds = seconds(bootTiming.menuSeconds),
         mode = bootTiming.mode,
         preInitSeconds = seconds(bootTiming.preInitSeconds),
@@ -396,7 +398,10 @@ end
 
 local adapterCapabilityContext = {
     fireTouchInterestAvailable = type(environment.firetouchinterest) == "function",
+    getConnectionsAvailable = type(getconnections) == "function",
+    getNamecallMethodAvailable = type(getnamecallmethod) == "function",
     hookFunctionAvailable = type(hookfunction) == "function",
+    hookMetaMethodAvailable = type(hookmetamethod) == "function",
     restoreFunctionAvailable = type(restorefunction) == "function",
     gameId = game.GameId,
     placeId = game.PlaceId,
@@ -588,7 +593,10 @@ local adapterContext = {
     gcObjects = function()
         return getgc(true)
     end,
+    getConnections = getconnections,
+    getNamecallMethod = getnamecallmethod,
     hookFunction = hookfunction,
+    hookMetaMethod = hookmetamethod,
     isInputCaptured = function()
         return inputCapture:IsEnabled()
     end,
@@ -639,6 +647,7 @@ local adapterContext = {
     end,
     localPlayer = LocalPlayer,
     jobId = game.JobId,
+    newCClosure = newcclosure,
     now = os.time,
     placeId = game.PlaceId,
     players = Players,
@@ -712,7 +721,13 @@ local finalized, finalError = pcall(function()
 
     local readyStatus = ("%s ready"):format(adapterDefinition.label)
     store:Patch({ status = readyStatus })
-    logger:info("bootstrap", "ready", { adapter = adapterDefinition.id })
+    if type(bootTiming) == "table" and type(bootTiming.startedAt) == "number" then
+        bootTiming.totalSeconds = os.clock() - bootTiming.startedAt
+    end
+    logger:info("bootstrap", "ready", {
+        adapter = adapterDefinition.id,
+        totalSeconds = type(bootTiming) == "table" and bootTiming.totalSeconds or nil,
+    })
     print("[Universal Hub]", readyStatus)
 
     local lastUsedStore = Config.new({

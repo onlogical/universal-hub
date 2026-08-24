@@ -158,9 +158,6 @@ function main() {
 				UniversalHubMenu: {
 					$path: posixRelative(generatedRoot, path.join(uiRoot, "out")),
 				},
-				Prism: {
-					$path: posixRelative(generatedRoot, path.join(prismRoot, "out", "lib")),
-				},
 				rbxts_include: {
 					$path: posixRelative(generatedRoot, includePath),
 					node_modules: {
@@ -230,7 +227,7 @@ function main() {
 	if (schedulerPatched === entrypointPatched) {
 		fail("Wax bundle is missing wrapPerformWorkWithCoroutine; cannot keep Instance work on the executor thread");
 	}
-	fs.writeFileSync(distLua, schedulerPatched);
+	fs.writeFileSync(distLua, schedulerPatched.replace(/[ \t]+$/gm, ""));
 
 	const sha256 = crypto.createHash("sha256").update(fs.readFileSync(distLua)).digest("hex");
 	fs.writeFileSync(

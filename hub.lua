@@ -8,9 +8,10 @@ type HttpGame = typeof(game) & {
     HttpGet: (self: typeof(game), url: string, noCache: boolean?) -> string,
 }
 local httpGame = game :: HttpGame
-local fetchSource = type(configuration.Fetch) == "function" and configuration.Fetch or function(url)
-    return httpGame:HttpGet(url, true)
-end
+local fetchSource = type(configuration.Fetch) == "function" and configuration.Fetch
+    or function(url)
+        return httpGame:HttpGet(url, true)
+    end
 
 local bootTiming = configuration.BootTiming or { mode = "remote", startedAt = os.clock() }
 configuration.BootTiming = bootTiming
@@ -26,8 +27,12 @@ if type(previousSession) == "table" and type(previousSession.stop) == "function"
         environment.UniversalHubSession = nil
     end
 end
+phaseStartedAt = os.clock()
 local menuChunk, menuError = loadstring(menuSource, "ui/dist/Menu.lua")
+bootTiming.menuCompileSeconds = os.clock() - phaseStartedAt
+phaseStartedAt = os.clock()
 local Menu = assert(menuChunk, menuError)()
+bootTiming.menuExecuteSeconds = os.clock() - phaseStartedAt
 assert(
     type(Menu) == "table" and type(Menu.mountUniversalHubMenu) == "function",
     "Universal Hub requires the compiled Prism menu"
@@ -41,8 +46,9 @@ assert(type(Limn) == "table" and type(Limn.new) == "function", "Universal Hub re
 bootTiming.limnSeconds = os.clock() - phaseStartedAt
 
 local hydroxideCommit = "38778f8a78762d48fba916cade6eb93399e7c404"
-local hydroxideSourceBaseUrl =
-    ("https://raw.githubusercontent.com/3xjn/hydroxide/%s/"):format(hydroxideCommit)
+local hydroxideSourceBaseUrl = ("https://raw.githubusercontent.com/3xjn/hydroxide/%s/"):format(
+    hydroxideCommit
+)
 phaseStartedAt = os.clock()
 local hydroxideSources = {}
 for _, path in ipairs({
@@ -119,14 +125,16 @@ assert(
         tostring(game.PlaceId)
     )
 )
+local allowedImports = inventory:Allow(selectedDefinition.id)
 phaseStartedAt = os.clock()
 for _, modulePath in ipairs(inventory:All()) do
-    fetch(modulePath .. ".lua")
+    if allowedImports[modulePath] then
+        fetch(modulePath .. ".lua")
+    end
 end
 bootTiming.inventorySeconds = os.clock() - phaseStartedAt
 environment.UniversalHubConfig = configuration
 local importCache = {}
-local allowedImports = inventory:Allow(selectedDefinition.id)
 local nativeRequire = require
 local function resolveImport(path, importer)
     if path:sub(1, 1) ~= "." then
