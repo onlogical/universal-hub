@@ -1,4 +1,5 @@
 import React from "@rbxts/react";
+import { Icon } from "@prism/components/Icon";
 import type { FloatingMonitorModel } from "../contracts";
 
 const UserInputService = game.GetService("UserInputService");
@@ -10,26 +11,29 @@ function readableRarity(color: Color3): Color3 {
 	return luminance < 0.28 ? color.Lerp(Color3.fromRGB(244, 247, 249), 0.55) : color;
 }
 
-function Metric({ label, value }: { readonly label: string; readonly value: string }): React.ReactElement {
+function Metric({
+	icon,
+	value,
+}: {
+	readonly icon: "egg" | "target" | "users";
+	readonly value: string;
+}): React.ReactElement {
 	return (
 		<frame Size={new UDim2(0.333, -5, 1, 0)} BackgroundTransparency={1}>
+			<uilistlayout
+				FillDirection={Enum.FillDirection.Horizontal}
+				VerticalAlignment={Enum.VerticalAlignment.Center}
+				Padding={new UDim(0, 7)}
+			/>
+			<Icon name={icon} size={17} color={Color3.fromRGB(177, 188, 199)} layoutOrder={1} />
 			<textlabel
-				Size={new UDim2(1, 0, 0, 16)}
+				LayoutOrder={2}
+				Size={UDim2.fromOffset(44, 24)}
 				BackgroundTransparency={1}
 				Text={value}
 				TextColor3={Color3.fromRGB(244, 247, 249)}
 				TextSize={14}
 				Font={Enum.Font.BuilderSansBold}
-				TextXAlignment={Enum.TextXAlignment.Left}
-			/>
-			<textlabel
-				Position={UDim2.fromOffset(0, 17)}
-				Size={new UDim2(1, 0, 0, 14)}
-				BackgroundTransparency={1}
-				Text={label}
-				TextColor3={Color3.fromRGB(103, 115, 126)}
-				TextSize={11}
-				Font={Enum.Font.BuilderSans}
 				TextXAlignment={Enum.TextXAlignment.Left}
 			/>
 		</frame>
@@ -131,9 +135,9 @@ export function FloatingFarmMonitor({ monitor }: { readonly monitor?: FloatingMo
 					<textlabel Position={UDim2.fromOffset(14, 12)} Size={new UDim2(1, -28, 0, 34)} BackgroundTransparency={1} Text={monitor.detail} TextColor3={Color3.fromRGB(244, 247, 249)} TextSize={13} Font={Enum.Font.BuilderSansMedium} TextWrapped TextXAlignment={Enum.TextXAlignment.Left} TextYAlignment={Enum.TextYAlignment.Top} />
 					<frame Position={UDim2.fromOffset(14, 54)} Size={new UDim2(1, -28, 0, 34)} BackgroundTransparency={1}>
 						<uilistlayout FillDirection={Enum.FillDirection.Horizontal} Padding={new UDim(0, 8)} />
-						<Metric label="candidates" value={tostring(monitor.candidates)} />
-						<Metric label="players" value={tostring(monitor.players)} />
-						<Metric label={monitor.mode} value={`${math.round(monitor.ping)} ms`} />
+						<Metric icon="egg" value={tostring(monitor.eggs.size())} />
+						<Metric icon="target" value={tostring(monitor.targets)} />
+						<Metric icon="users" value={tostring(monitor.players)} />
 					</frame>
 					<frame Position={UDim2.fromOffset(14, 98)} Size={new UDim2(1, -28, 0, 1)} BackgroundColor3={Color3.fromRGB(48, 48, 52)} BorderSizePixel={0} />
 					<textlabel Position={UDim2.fromOffset(14, 110)} Size={new UDim2(1, -28, 0, 18)} BackgroundTransparency={1} Text={`SERVER EGGS  ·  ${monitor.eggs.size()}`} TextColor3={Color3.fromRGB(103, 115, 126)} TextSize={11} Font={Enum.Font.BuilderSansBold} TextXAlignment={Enum.TextXAlignment.Left} />

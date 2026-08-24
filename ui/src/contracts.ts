@@ -207,10 +207,8 @@ export interface FloatingMonitorModel {
 	readonly visible: boolean;
 	readonly stage: string;
 	readonly detail: string;
-	readonly mode: "Low population" | "High population";
-	readonly ping: number;
 	readonly players: number;
-	readonly candidates: number;
+	readonly targets: number;
 	readonly eggs: readonly FarmMonitorEgg[];
 }
 

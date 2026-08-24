@@ -199,7 +199,6 @@ function Adapter.new(context)
                 context.store:Patch({ floatingMonitor = false })
                 return
             end
-            model.ping = math.round(currentPing())
             model.players = #context.players:GetPlayers()
             context.store:Patch({ floatingMonitor = model })
         end,

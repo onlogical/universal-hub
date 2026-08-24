@@ -54,14 +54,14 @@ function AutoFarm:_publish(stage, detail, targetUid)
         return
     end
     local eggs = {}
-    local candidates = 0
+    local targets = 0
     local snapshot = self.eggCmds.GetAreaEggSnapshot()
     for _, record in ipairs(snapshot.Records) do
         local rarityNumber, rarityName = self:_rarity(record)
         local asset = self.assets.Directory[record.AssetCategory]
         local available = record.State == "Slot" or record.State == "Dropped"
         if available and self.targetRarities[rarityName] == true then
-            candidates += 1
+            targets += 1
         end
         table.insert(eggs, {
             uid = record.Uid,
@@ -93,8 +93,7 @@ function AutoFarm:_publish(stage, detail, targetUid)
         visible = self.enabled,
         stage = stage,
         detail = detail,
-        mode = self.highPopulation and "High population" or "Low population",
-        candidates = candidates,
+        targets = targets,
         eggs = eggs,
     })
 end

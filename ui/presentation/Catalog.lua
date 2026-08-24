@@ -905,24 +905,12 @@ function Catalog:model(state)
         })
     end
 
-    local floatingMonitor = type(state.floatingMonitor) == "table"
-            and table.clone(state.floatingMonitor)
-        or nil
-    if floatingMonitor then
-        for _, metric in ipairs(state.footerMetrics or {}) do
-            if metric.id == "ping" and type(metric.value) == "number" then
-                floatingMonitor.ping = math.round(metric.value)
-                break
-            end
-        end
-    end
-
     return {
         brandLabel = "universal-hub",
         brandIcon = self.context.brandIcon,
         gameLabel = self.context.gameLabel or "Universal",
         gameIcon = self.context.gameIcon,
-        floatingMonitor = floatingMonitor,
+        floatingMonitor = type(state.floatingMonitor) == "table" and state.floatingMonitor or nil,
         notification = type(state.notification) == "table" and state.notification or nil,
         enemyAudienceIcon = self.context.enemyAudienceIcon,
         allyAudienceIcon = self.context.allyAudienceIcon,

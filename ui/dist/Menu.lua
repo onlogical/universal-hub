@@ -85713,6 +85713,7 @@ end)() end,
     [314] = function()local wax,script,require=ImportGlobals(314)local ImportGlobals return (function(...)-- Compiled with roblox-ts v3.0.0
 local TS = require(wax.shared.ReplicatedStorage:WaitForChild("rbxts_include"):WaitForChild("RuntimeLib"))
 local React = TS.import(script, wax.shared.ReplicatedStorage, "rbxts_include", "node_modules", "@rbxts", "react")
+local Icon = TS.import(script, wax.shared.ReplicatedStorage, "UniversalHubMenu", ".generated", "prism-src", "lib", "components", "Icon").Icon
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local TweenService = game:GetService("TweenService")
@@ -85721,27 +85722,28 @@ local function readableRarity(color)
 	return if luminance < 0.28 then color:Lerp(Color3.fromRGB(244, 247, 249), 0.55) else color
 end
 local function Metric(_param)
-	local label = _param.label
+	local icon = _param.icon
 	local value = _param.value
 	return React.createElement("frame", {
 		Size = UDim2.new(0.333, -5, 1, 0),
 		BackgroundTransparency = 1,
-	}, React.createElement("textlabel", {
-		Size = UDim2.new(1, 0, 0, 16),
+	}, React.createElement("uilistlayout", {
+		FillDirection = Enum.FillDirection.Horizontal,
+		VerticalAlignment = Enum.VerticalAlignment.Center,
+		Padding = UDim.new(0, 7),
+	}), React.createElement(Icon, {
+		name = icon,
+		size = 17,
+		color = Color3.fromRGB(177, 188, 199),
+		layoutOrder = 1,
+	}), React.createElement("textlabel", {
+		LayoutOrder = 2,
+		Size = UDim2.fromOffset(44, 24),
 		BackgroundTransparency = 1,
 		Text = value,
 		TextColor3 = Color3.fromRGB(244, 247, 249),
 		TextSize = 14,
 		Font = Enum.Font.BuilderSansBold,
-		TextXAlignment = Enum.TextXAlignment.Left,
-	}), React.createElement("textlabel", {
-		Position = UDim2.fromOffset(0, 17),
-		Size = UDim2.new(1, 0, 0, 14),
-		BackgroundTransparency = 1,
-		Text = label,
-		TextColor3 = Color3.fromRGB(103, 115, 126),
-		TextSize = 11,
-		Font = Enum.Font.BuilderSans,
 		TextXAlignment = Enum.TextXAlignment.Left,
 	}))
 end
@@ -85923,14 +85925,14 @@ local function FloatingFarmMonitor(_param)
 			FillDirection = Enum.FillDirection.Horizontal,
 			Padding = UDim.new(0, 8),
 		}), React.createElement(Metric, {
-			label = "candidates",
-			value = tostring(monitor.candidates),
+			icon = "egg",
+			value = tostring(#monitor.eggs),
 		}), React.createElement(Metric, {
-			label = "players",
+			icon = "target",
+			value = tostring(monitor.targets),
+		}), React.createElement(Metric, {
+			icon = "users",
 			value = tostring(monitor.players),
-		}), React.createElement(Metric, {
-			label = monitor.mode,
-			value = `{math.round(monitor.ping)} ms`,
 		}))
 		local _exp_6 = React.createElement("frame", {
 			Position = UDim2.fromOffset(14, 98),
@@ -139912,1345 +139914,1821 @@ local ObjectTree = {
                 },
                 {
                     {
-                        3,
-                        2,
+                        326,
+                        1,
                         {
-                            "Prism"
+                            "rbxts_include"
                         },
                         {
                             {
-                                183,
+                                328,
                                 2,
                                 {
-                                    "utils"
-                                },
-                                {
-                                    {
-                                        184,
-                                        2,
-                                        {
-                                            "__test__"
-                                        }
-                                    },
-                                    {
-                                        185,
-                                        2,
-                                        {
-                                            "diagnostics"
-                                        }
-                                    },
-                                    {
-                                        186,
-                                        2,
-                                        {
-                                            "units"
-                                        }
-                                    }
+                                    "RuntimeLib"
                                 }
                             },
                             {
-                                174,
-                                2,
-                                {
-                                    "styled"
-                                }
-                            },
-                            {
-                                177,
-                                2,
-                                {
-                                    "theme"
-                                },
-                                {
-                                    {
-                                        180,
-                                        2,
-                                        {
-                                            "refs"
-                                        }
-                                    },
-                                    {
-                                        178,
-                                        2,
-                                        {
-                                            "ThemeProvider"
-                                        }
-                                    },
-                                    {
-                                        179,
-                                        2,
-                                        {
-                                            "defaults"
-                                        }
-                                    },
-                                    {
-                                        182,
-                                        2,
-                                        {
-                                            "types"
-                                        }
-                                    },
-                                    {
-                                        181,
-                                        2,
-                                        {
-                                            "resolveToken"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                5,
-                                2,
-                                {
-                                    "bridge"
-                                },
-                                {
-                                    {
-                                        6,
-                                        2,
-                                        {
-                                            "LuauBridge"
-                                        }
-                                    },
-                                    {
-                                        7,
-                                        2,
-                                        {
-                                            "__typecheck__"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                4,
-                                2,
-                                {
-                                    "__typecheck__"
-                                }
-                            },
-                            {
-                                168,
-                                2,
-                                {
-                                    "motion"
-                                },
-                                {
-                                    {
-                                        173,
-                                        2,
-                                        {
-                                            "useMotion"
-                                        }
-                                    },
-                                    {
-                                        171,
-                                        2,
-                                        {
-                                            "transitions"
-                                        }
-                                    },
-                                    {
-                                        169,
-                                        2,
-                                        {
-                                            "__typecheck__"
-                                        }
-                                    },
-                                    {
-                                        170,
-                                        2,
-                                        {
-                                            "signatures"
-                                        }
-                                    },
-                                    {
-                                        172,
-                                        2,
-                                        {
-                                            "types"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                166,
-                                2,
-                                {
-                                    "icons"
-                                },
-                                {
-                                    {
-                                        167,
-                                        2,
-                                        {
-                                            "lucide"
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                8,
+                                329,
                                 1,
                                 {
-                                    "components"
+                                    "node_modules"
                                 },
                                 {
                                     {
-                                        133,
-                                        2,
-                                        {
-                                            "Text"
-                                        },
-                                        {
-                                            {
-                                                136,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                135,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                134,
-                                                2,
-                                                {
-                                                    "Text"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        74,
-                                        2,
-                                        {
-                                            "Popover"
-                                        },
-                                        {
-                                            {
-                                                80,
-                                                2,
-                                                {
-                                                    "utils"
-                                                }
-                                            },
-                                            {
-                                                75,
-                                                2,
-                                                {
-                                                    "Popover"
-                                                }
-                                            },
-                                            {
-                                                76,
-                                                2,
-                                                {
-                                                    "PopoverOverlayPanel"
-                                                }
-                                            },
-                                            {
-                                                78,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                77,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                79,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        35,
-                                        2,
-                                        {
-                                            "CircularProgress"
-                                        },
-                                        {
-                                            {
-                                                37,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                38,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                39,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                36,
-                                                2,
-                                                {
-                                                    "CircularProgress"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        143,
-                                        2,
-                                        {
-                                            "WorldPortal"
-                                        },
-                                        {
-                                            {
-                                                146,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                144,
-                                                2,
-                                                {
-                                                    "WorldPortal"
-                                                }
-                                            },
-                                            {
-                                                145,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        17,
-                                        2,
-                                        {
-                                            "Box"
-                                        },
-                                        {
-                                            {
-                                                19,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                18,
-                                                2,
-                                                {
-                                                    "Box"
-                                                }
-                                            },
-                                            {
-                                                20,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        90,
-                                        2,
-                                        {
-                                            "ScrollArea"
-                                        },
-                                        {
-                                            {
-                                                93,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                92,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                91,
-                                                2,
-                                                {
-                                                    "ScrollArea"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        26,
-                                        2,
-                                        {
-                                            "Card"
-                                        },
-                                        {
-                                            {
-                                                28,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                27,
-                                                2,
-                                                {
-                                                    "Card"
-                                                }
-                                            },
-                                            {
-                                                29,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        147,
+                                        330,
                                         1,
                                         {
-                                            "_shared"
+                                            "@rbxts"
                                         },
                                         {
                                             {
-                                                158,
-                                                2,
+                                                337,
+                                                1,
                                                 {
-                                                    "textFont"
+                                                    "types"
+                                                },
+                                                {
+                                                    {
+                                                        340,
+                                                        2,
+                                                        {
+                                                            "package"
+                                                        }
+                                                    },
+                                                    {
+                                                        338,
+                                                        1,
+                                                        {
+                                                            "include"
+                                                        },
+                                                        {
+                                                            {
+                                                                339,
+                                                                1,
+                                                                {
+                                                                    "generated"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                156,
+                                                334,
                                                 2,
                                                 {
-                                                    "slotProps"
+                                                    "react"
+                                                },
+                                                {
+                                                    {
+                                                        335,
+                                                        2,
+                                                        {
+                                                            "tags"
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                152,
+                                                336,
                                                 2,
                                                 {
-                                                    "interaction"
+                                                    "react-roblox"
                                                 }
                                             },
                                             {
-                                                155,
-                                                2,
+                                                331,
+                                                1,
                                                 {
-                                                    "overlayLayerPolicy"
-                                                }
-                                            },
-                                            {
-                                                151,
-                                                2,
+                                                    "compiler-types"
+                                                },
                                                 {
-                                                    "frameSize"
-                                                }
-                                            },
-                                            {
-                                                162,
-                                                2,
-                                                {
-                                                    "usePressInteraction"
-                                                }
-                                            },
-                                            {
-                                                157,
-                                                2,
-                                                {
-                                                    "styleOverride"
-                                                }
-                                            },
-                                            {
-                                                164,
-                                                2,
-                                                {
-                                                    "useRootCursor"
-                                                }
-                                            },
-                                            {
-                                                161,
-                                                2,
-                                                {
-                                                    "usePresence"
-                                                }
-                                            },
-                                            {
-                                                165,
-                                                2,
-                                                {
-                                                    "visual"
-                                                }
-                                            },
-                                            {
-                                                149,
-                                                2,
-                                                {
-                                                    "elevation"
-                                                }
-                                            },
-                                            {
-                                                159,
-                                                2,
-                                                {
-                                                    "useControllableState"
-                                                }
-                                            },
-                                            {
-                                                153,
-                                                2,
-                                                {
-                                                    "layering"
-                                                }
-                                            },
-                                            {
-                                                163,
-                                                2,
-                                                {
-                                                    "useResolvedStyleProps"
-                                                }
-                                            },
-                                            {
-                                                148,
-                                                2,
-                                                {
-                                                    "TriggerOverlayLayer"
-                                                }
-                                            },
-                                            {
-                                                150,
-                                                2,
-                                                {
-                                                    "foundationDecorators"
-                                                }
-                                            },
-                                            {
-                                                160,
-                                                2,
-                                                {
-                                                    "useDelayedCallback"
-                                                }
-                                            },
-                                            {
-                                                154,
-                                                2,
-                                                {
-                                                    "mergeSharedStyleProps"
+                                                    {
+                                                        332,
+                                                        2,
+                                                        {
+                                                            "package"
+                                                        }
+                                                    },
+                                                    {
+                                                        333,
+                                                        1,
+                                                        {
+                                                            "types"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
                                     },
                                     {
-                                        40,
-                                        2,
+                                        341,
+                                        1,
                                         {
-                                            "Divider"
+                                            "@rbxts-js"
                                         },
                                         {
                                             {
-                                                42,
+                                                344,
                                                 2,
                                                 {
-                                                    "types"
+                                                    "Collections"
+                                                },
+                                                {
+                                                    {
+                                                        376,
+                                                        2,
+                                                        {
+                                                            "Object"
+                                                        },
+                                                        {
+                                                            {
+                                                                377,
+                                                                2,
+                                                                {
+                                                                    "None"
+                                                                }
+                                                            },
+                                                            {
+                                                                379,
+                                                                2,
+                                                                {
+                                                                    "entries"
+                                                                }
+                                                            },
+                                                            {
+                                                                382,
+                                                                2,
+                                                                {
+                                                                    "isFrozen"
+                                                                }
+                                                            },
+                                                            {
+                                                                385,
+                                                                2,
+                                                                {
+                                                                    "seal"
+                                                                }
+                                                            },
+                                                            {
+                                                                386,
+                                                                2,
+                                                                {
+                                                                    "values"
+                                                                }
+                                                            },
+                                                            {
+                                                                383,
+                                                                2,
+                                                                {
+                                                                    "keys"
+                                                                }
+                                                            },
+                                                            {
+                                                                378,
+                                                                2,
+                                                                {
+                                                                    "assign"
+                                                                }
+                                                            },
+                                                            {
+                                                                380,
+                                                                2,
+                                                                {
+                                                                    "freeze"
+                                                                }
+                                                            },
+                                                            {
+                                                                384,
+                                                                2,
+                                                                {
+                                                                    "preventExtensions"
+                                                                }
+                                                            },
+                                                            {
+                                                                381,
+                                                                2,
+                                                                {
+                                                                    "is"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        387,
+                                                        2,
+                                                        {
+                                                            "Set"
+                                                        }
+                                                    },
+                                                    {
+                                                        345,
+                                                        2,
+                                                        {
+                                                            "Array"
+                                                        },
+                                                        {
+                                                            {
+                                                                350,
+                                                                2,
+                                                                {
+                                                                    "findIndex"
+                                                                }
+                                                            },
+                                                            {
+                                                                353,
+                                                                2,
+                                                                {
+                                                                    "forEach"
+                                                                }
+                                                            },
+                                                            {
+                                                                346,
+                                                                2,
+                                                                {
+                                                                    "concat"
+                                                                }
+                                                            },
+                                                            {
+                                                                359,
+                                                                2,
+                                                                {
+                                                                    "includes"
+                                                                }
+                                                            },
+                                                            {
+                                                                360,
+                                                                2,
+                                                                {
+                                                                    "indexOf"
+                                                                }
+                                                            },
+                                                            {
+                                                                354,
+                                                                2,
+                                                                {
+                                                                    "from"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        355,
+                                                                        2,
+                                                                        {
+                                                                            "fromArray"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        358,
+                                                                        2,
+                                                                        {
+                                                                            "fromString"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        356,
+                                                                        2,
+                                                                        {
+                                                                            "fromMap"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        357,
+                                                                        2,
+                                                                        {
+                                                                            "fromSet"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                363,
+                                                                2,
+                                                                {
+                                                                    "map"
+                                                                }
+                                                            },
+                                                            {
+                                                                371,
+                                                                2,
+                                                                {
+                                                                    "unshift"
+                                                                }
+                                                            },
+                                                            {
+                                                                351,
+                                                                2,
+                                                                {
+                                                                    "flat"
+                                                                }
+                                                            },
+                                                            {
+                                                                348,
+                                                                2,
+                                                                {
+                                                                    "filter"
+                                                                }
+                                                            },
+                                                            {
+                                                                370,
+                                                                2,
+                                                                {
+                                                                    "splice"
+                                                                }
+                                                            },
+                                                            {
+                                                                369,
+                                                                2,
+                                                                {
+                                                                    "sort"
+                                                                }
+                                                            },
+                                                            {
+                                                                368,
+                                                                2,
+                                                                {
+                                                                    "some"
+                                                                }
+                                                            },
+                                                            {
+                                                                352,
+                                                                2,
+                                                                {
+                                                                    "flatMap"
+                                                                }
+                                                            },
+                                                            {
+                                                                347,
+                                                                2,
+                                                                {
+                                                                    "every"
+                                                                }
+                                                            },
+                                                            {
+                                                                349,
+                                                                2,
+                                                                {
+                                                                    "find"
+                                                                }
+                                                            },
+                                                            {
+                                                                362,
+                                                                2,
+                                                                {
+                                                                    "join"
+                                                                }
+                                                            },
+                                                            {
+                                                                361,
+                                                                2,
+                                                                {
+                                                                    "isArray"
+                                                                }
+                                                            },
+                                                            {
+                                                                366,
+                                                                2,
+                                                                {
+                                                                    "shift"
+                                                                }
+                                                            },
+                                                            {
+                                                                365,
+                                                                2,
+                                                                {
+                                                                    "reverse"
+                                                                }
+                                                            },
+                                                            {
+                                                                367,
+                                                                2,
+                                                                {
+                                                                    "slice"
+                                                                }
+                                                            },
+                                                            {
+                                                                364,
+                                                                2,
+                                                                {
+                                                                    "reduce"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        388,
+                                                        2,
+                                                        {
+                                                            "WeakMap"
+                                                        }
+                                                    },
+                                                    {
+                                                        389,
+                                                        2,
+                                                        {
+                                                            "inspect"
+                                                        }
+                                                    },
+                                                    {
+                                                        372,
+                                                        2,
+                                                        {
+                                                            "Map"
+                                                        },
+                                                        {
+                                                            {
+                                                                373,
+                                                                2,
+                                                                {
+                                                                    "Map"
+                                                                }
+                                                            },
+                                                            {
+                                                                374,
+                                                                2,
+                                                                {
+                                                                    "coerceToMap"
+                                                                }
+                                                            },
+                                                            {
+                                                                375,
+                                                                2,
+                                                                {
+                                                                    "coerceToTable"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                41,
+                                                342,
                                                 2,
                                                 {
-                                                    "Divider"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        137,
-                                        2,
-                                        {
-                                            "Tooltip"
-                                        },
-                                        {
-                                            {
-                                                139,
-                                                2,
+                                                    "Boolean"
+                                                },
                                                 {
-                                                    "TooltipOverlayBubble"
+                                                    {
+                                                        343,
+                                                        2,
+                                                        {
+                                                            "toJSBoolean"
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                140,
+                                                502,
                                                 2,
                                                 {
-                                                    "__typecheck__"
+                                                    "Scheduler"
+                                                },
+                                                {
+                                                    {
+                                                        504,
+                                                        2,
+                                                        {
+                                                            "Scheduler"
+                                                        }
+                                                    },
+                                                    {
+                                                        509,
+                                                        2,
+                                                        {
+                                                            "SchedulerProfiling"
+                                                        }
+                                                    },
+                                                    {
+                                                        507,
+                                                        2,
+                                                        {
+                                                            "SchedulerMinHeap"
+                                                        }
+                                                    },
+                                                    {
+                                                        511,
+                                                        2,
+                                                        {
+                                                            "TracingSubscriptions"
+                                                        }
+                                                    },
+                                                    {
+                                                        515,
+                                                        2,
+                                                        {
+                                                            "unstable_mock"
+                                                        }
+                                                    },
+                                                    {
+                                                        510,
+                                                        2,
+                                                        {
+                                                            "Tracing"
+                                                        }
+                                                    },
+                                                    {
+                                                        508,
+                                                        2,
+                                                        {
+                                                            "SchedulerPriorities"
+                                                        }
+                                                    },
+                                                    {
+                                                        503,
+                                                        2,
+                                                        {
+                                                            "NoYield"
+                                                        }
+                                                    },
+                                                    {
+                                                        512,
+                                                        1,
+                                                        {
+                                                            "forks"
+                                                        },
+                                                        {
+                                                            {
+                                                                514,
+                                                                2,
+                                                                {
+                                                                    "SchedulerHostConfig.mock"
+                                                                }
+                                                            },
+                                                            {
+                                                                513,
+                                                                2,
+                                                                {
+                                                                    "SchedulerHostConfig.default"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        505,
+                                                        2,
+                                                        {
+                                                            "SchedulerFeatureFlags"
+                                                        }
+                                                    },
+                                                    {
+                                                        506,
+                                                        2,
+                                                        {
+                                                            "SchedulerHostConfig"
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                142,
+                                                392,
                                                 2,
                                                 {
-                                                    "types"
+                                                    "ES7Types"
                                                 }
                                             },
                                             {
-                                                141,
+                                                390,
                                                 2,
                                                 {
-                                                    "styles"
+                                                    "Console"
+                                                },
+                                                {
+                                                    {
+                                                        391,
+                                                        2,
+                                                        {
+                                                            "makeConsoleImpl"
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                138,
+                                                395,
                                                 2,
                                                 {
-                                                    "Tooltip"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        128,
-                                        2,
-                                        {
-                                            "Tabs"
-                                        },
-                                        {
-                                            {
-                                                130,
-                                                2,
+                                                    "LuauPolyfill"
+                                                },
                                                 {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                131,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                129,
-                                                2,
-                                                {
-                                                    "Tabs"
-                                                }
-                                            },
-                                            {
-                                                132,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        43,
-                                        2,
-                                        {
-                                            "Draggable"
-                                        },
-                                        {
-                                            {
-                                                45,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                46,
-                                                2,
-                                                {
-                                                    "types"
+                                                    {
+                                                        396,
+                                                        2,
+                                                        {
+                                                            "AssertionError"
+                                                        },
+                                                        {
+                                                            {
+                                                                397,
+                                                                2,
+                                                                {
+                                                                    "AssertionError.global"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        401,
+                                                        2,
+                                                        {
+                                                            "encodeURIComponent"
+                                                        }
+                                                    },
+                                                    {
+                                                        402,
+                                                        2,
+                                                        {
+                                                            "extends"
+                                                        }
+                                                    },
+                                                    {
+                                                        400,
+                                                        2,
+                                                        {
+                                                            "Promise"
+                                                        }
+                                                    },
+                                                    {
+                                                        398,
+                                                        2,
+                                                        {
+                                                            "Error"
+                                                        },
+                                                        {
+                                                            {
+                                                                399,
+                                                                2,
+                                                                {
+                                                                    "Error.global"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                44,
+                                                413,
                                                 2,
                                                 {
-                                                    "Draggable"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        123,
-                                        2,
-                                        {
-                                            "Switch"
-                                        },
-                                        {
-                                            {
-                                                126,
-                                                2,
+                                                    "React"
+                                                },
                                                 {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                124,
-                                                2,
-                                                {
-                                                    "Switch"
-                                                }
-                                            },
-                                            {
-                                                125,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                127,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        60,
-                                        2,
-                                        {
-                                            "KeybindInput"
-                                        },
-                                        {
-                                            {
-                                                61,
-                                                2,
-                                                {
-                                                    "KeybindInput"
-                                                }
-                                            },
-                                            {
-                                                62,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                63,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                64,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        30,
-                                        2,
-                                        {
-                                            "Checkbox"
-                                        },
-                                        {
-                                            {
-                                                31,
-                                                2,
-                                                {
-                                                    "Checkbox"
-                                                }
-                                            },
-                                            {
-                                                32,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                33,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                34,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        114,
-                                        2,
-                                        {
-                                            "Stack"
-                                        },
-                                        {
-                                            {
-                                                116,
-                                                2,
-                                                {
-                                                    "types"
+                                                    {
+                                                        418,
+                                                        2,
+                                                        {
+                                                            "ReactChildren"
+                                                        }
+                                                    },
+                                                    {
+                                                        422,
+                                                        2,
+                                                        {
+                                                            "ReactElementValidator"
+                                                        }
+                                                    },
+                                                    {
+                                                        419,
+                                                        2,
+                                                        {
+                                                            "ReactContext"
+                                                        }
+                                                    },
+                                                    {
+                                                        427,
+                                                        2,
+                                                        {
+                                                            "ReactMutableSource"
+                                                        }
+                                                    },
+                                                    {
+                                                        421,
+                                                        2,
+                                                        {
+                                                            "ReactElement"
+                                                        }
+                                                    },
+                                                    {
+                                                        426,
+                                                        2,
+                                                        {
+                                                            "ReactMemo"
+                                                        }
+                                                    },
+                                                    {
+                                                        417,
+                                                        2,
+                                                        {
+                                                            "ReactBinding.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        414,
+                                                        2,
+                                                        {
+                                                            "None.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        415,
+                                                        2,
+                                                        {
+                                                            "React"
+                                                        }
+                                                    },
+                                                    {
+                                                        425,
+                                                        2,
+                                                        {
+                                                            "ReactLazy"
+                                                        }
+                                                    },
+                                                    {
+                                                        416,
+                                                        2,
+                                                        {
+                                                            "ReactBaseClasses"
+                                                        }
+                                                    },
+                                                    {
+                                                        424,
+                                                        2,
+                                                        {
+                                                            "ReactHooks"
+                                                        }
+                                                    },
+                                                    {
+                                                        423,
+                                                        2,
+                                                        {
+                                                            "ReactForwardRef"
+                                                        }
+                                                    },
+                                                    {
+                                                        428,
+                                                        2,
+                                                        {
+                                                            "ReactNoopUpdateQueue"
+                                                        }
+                                                    },
+                                                    {
+                                                        420,
+                                                        2,
+                                                        {
+                                                            "ReactCreateRef"
+                                                        }
+                                                    },
+                                                    {
+                                                        429,
+                                                        2,
+                                                        {
+                                                            "createSignal.roblox"
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                115,
+                                                557,
                                                 2,
                                                 {
-                                                    "Stack"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        117,
-                                        2,
-                                        {
-                                            "StepperInput"
-                                        },
-                                        {
-                                            {
-                                                121,
-                                                2,
+                                                    "String"
+                                                },
                                                 {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                120,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                118,
-                                                2,
-                                                {
-                                                    "StepperInput"
-                                                }
-                                            },
-                                            {
-                                                119,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                122,
-                                                2,
-                                                {
-                                                    "utils"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        107,
-                                        2,
-                                        {
-                                            "Slider"
-                                        },
-                                        {
-                                            {
-                                                113,
-                                                2,
-                                                {
-                                                    "utils"
-                                                }
-                                            },
-                                            {
-                                                108,
-                                                2,
-                                                {
-                                                    "Slider"
-                                                }
-                                            },
-                                            {
-                                                110,
-                                                2,
-                                                {
-                                                    "controllerInput"
-                                                }
-                                            },
-                                            {
-                                                111,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                109,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                112,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        81,
-                                        2,
-                                        {
-                                            "Pressable"
-                                        },
-                                        {
-                                            {
-                                                84,
-                                                2,
-                                                {
-                                                    "types"
+                                                    {
+                                                        558,
+                                                        2,
+                                                        {
+                                                            "charCodeAt"
+                                                        }
+                                                    },
+                                                    {
+                                                        570,
+                                                        2,
+                                                        {
+                                                            "trimStart"
+                                                        }
+                                                    },
+                                                    {
+                                                        562,
+                                                        2,
+                                                        {
+                                                            "indexOf"
+                                                        }
+                                                    },
+                                                    {
+                                                        560,
+                                                        2,
+                                                        {
+                                                            "findOr"
+                                                        }
+                                                    },
+                                                    {
+                                                        569,
+                                                        2,
+                                                        {
+                                                            "trimEnd"
+                                                        }
+                                                    },
+                                                    {
+                                                        563,
+                                                        2,
+                                                        {
+                                                            "lastIndexOf"
+                                                        }
+                                                    },
+                                                    {
+                                                        567,
+                                                        2,
+                                                        {
+                                                            "substr"
+                                                        }
+                                                    },
+                                                    {
+                                                        559,
+                                                        2,
+                                                        {
+                                                            "endsWith"
+                                                        }
+                                                    },
+                                                    {
+                                                        568,
+                                                        2,
+                                                        {
+                                                            "trim"
+                                                        }
+                                                    },
+                                                    {
+                                                        564,
+                                                        2,
+                                                        {
+                                                            "slice"
+                                                        }
+                                                    },
+                                                    {
+                                                        565,
+                                                        2,
+                                                        {
+                                                            "split"
+                                                        }
+                                                    },
+                                                    {
+                                                        561,
+                                                        2,
+                                                        {
+                                                            "includes"
+                                                        }
+                                                    },
+                                                    {
+                                                        566,
+                                                        2,
+                                                        {
+                                                            "startsWith"
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                83,
+                                                405,
                                                 2,
                                                 {
-                                                    "__typecheck__"
+                                                    "Number"
+                                                },
+                                                {
+                                                    {
+                                                        406,
+                                                        2,
+                                                        {
+                                                            "MAX_SAFE_INTEGER"
+                                                        }
+                                                    },
+                                                    {
+                                                        411,
+                                                        2,
+                                                        {
+                                                            "isSafeInteger"
+                                                        }
+                                                    },
+                                                    {
+                                                        412,
+                                                        2,
+                                                        {
+                                                            "toExponential"
+                                                        }
+                                                    },
+                                                    {
+                                                        410,
+                                                        2,
+                                                        {
+                                                            "isNaN"
+                                                        }
+                                                    },
+                                                    {
+                                                        408,
+                                                        2,
+                                                        {
+                                                            "isFinite"
+                                                        }
+                                                    },
+                                                    {
+                                                        409,
+                                                        2,
+                                                        {
+                                                            "isInteger"
+                                                        }
+                                                    },
+                                                    {
+                                                        407,
+                                                        2,
+                                                        {
+                                                            "MIN_SAFE_INTEGER"
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                82,
+                                                574,
                                                 2,
                                                 {
-                                                    "Pressable"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        55,
-                                        2,
-                                        {
-                                            "Input"
-                                        },
-                                        {
-                                            {
-                                                59,
-                                                2,
+                                                    "Timers"
+                                                },
                                                 {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                56,
-                                                2,
-                                                {
-                                                    "Input"
+                                                    {
+                                                        575,
+                                                        2,
+                                                        {
+                                                            "makeIntervalImpl"
+                                                        }
+                                                    },
+                                                    {
+                                                        576,
+                                                        2,
+                                                        {
+                                                            "makeTimerImpl"
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                57,
+                                                430,
                                                 2,
                                                 {
-                                                    "__typecheck__"
+                                                    "ReactGlobals"
+                                                },
+                                                {
+                                                    {
+                                                        431,
+                                                        2,
+                                                        {
+                                                            "ReactGlobals.global"
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                58,
+                                                516,
                                                 2,
                                                 {
-                                                    "styles"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        51,
-                                        2,
-                                        {
-                                            "Image"
-                                        },
-                                        {
-                                            {
-                                                53,
-                                                2,
+                                                    "Shared"
+                                                },
                                                 {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                54,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                52,
-                                                2,
-                                                {
-                                                    "Image"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        94,
-                                        2,
-                                        {
-                                            "SegmentedControl"
-                                        },
-                                        {
-                                            {
-                                                95,
-                                                2,
-                                                {
-                                                    "SegmentedControl"
-                                                }
-                                            },
-                                            {
-                                                96,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                98,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                97,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        85,
-                                        2,
-                                        {
-                                            "Progress"
-                                        },
-                                        {
-                                            {
-                                                89,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                86,
-                                                2,
-                                                {
-                                                    "Progress"
-                                                }
-                                            },
-                                            {
-                                                87,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                88,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        99,
-                                        2,
-                                        {
-                                            "Select"
-                                        },
-                                        {
-                                            {
-                                                103,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                100,
-                                                2,
-                                                {
-                                                    "Select"
-                                                }
-                                            },
-                                            {
-                                                102,
-                                                2,
-                                                {
-                                                    "SelectOptionRow"
-                                                }
-                                            },
-                                            {
-                                                101,
-                                                2,
-                                                {
-                                                    "SelectDropdown"
-                                                }
-                                            },
-                                            {
-                                                104,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                105,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                106,
-                                                2,
-                                                {
-                                                    "utils"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        21,
-                                        2,
-                                        {
-                                            "Button"
-                                        },
-                                        {
-                                            {
-                                                24,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            },
-                                            {
-                                                23,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                25,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                22,
-                                                2,
-                                                {
-                                                    "Button"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        9,
-                                        2,
-                                        {
-                                            "Avatar"
-                                        },
-                                        {
-                                            {
-                                                11,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                12,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                10,
-                                                2,
-                                                {
-                                                    "Avatar"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        13,
-                                        2,
-                                        {
-                                            "Backdrop"
-                                        },
-                                        {
-                                            {
-                                                14,
-                                                2,
-                                                {
-                                                    "Backdrop"
-                                                }
-                                            },
-                                            {
-                                                15,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                16,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        65,
-                                        2,
-                                        {
-                                            "Menu"
-                                        },
-                                        {
-                                            {
-                                                66,
-                                                2,
-                                                {
-                                                    "Menu"
-                                                }
-                                            },
-                                            {
-                                                69,
-                                                2,
-                                                {
-                                                    "types"
-                                                }
-                                            },
-                                            {
-                                                67,
-                                                2,
-                                                {
-                                                    "__typecheck__"
-                                                }
-                                            },
-                                            {
-                                                68,
-                                                2,
-                                                {
-                                                    "styles"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        47,
-                                        2,
-                                        {
-                                            "Icon"
-                                        },
-                                        {
-                                            {
-                                                49,
-                                                2,
-                                                {
-                                                    "__typecheck__"
+                                                    {
+                                                        549,
+                                                        2,
+                                                        {
+                                                            "flowtypes.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        527,
+                                                        2,
+                                                        {
+                                                            "ReactFeatureFlags"
+                                                        }
+                                                    },
+                                                    {
+                                                        541,
+                                                        2,
+                                                        {
+                                                            "ReactVersion"
+                                                        }
+                                                    },
+                                                    {
+                                                        532,
+                                                        2,
+                                                        {
+                                                            "ReactInstanceMap"
+                                                        }
+                                                    },
+                                                    {
+                                                        518,
+                                                        2,
+                                                        {
+                                                            "ErrorHandling.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        547,
+                                                        2,
+                                                        {
+                                                            "consoleWithStackDev"
+                                                        }
+                                                    },
+                                                    {
+                                                        555,
+                                                        2,
+                                                        {
+                                                            "objectIs"
+                                                        }
+                                                    },
+                                                    {
+                                                        544,
+                                                        2,
+                                                        {
+                                                            "UninitializedState.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        517,
+                                                        2,
+                                                        {
+                                                            "ConsolePatchingDev.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        553,
+                                                        2,
+                                                        {
+                                                            "invokeGuardedCallbackImpl"
+                                                        }
+                                                    },
+                                                    {
+                                                        543,
+                                                        2,
+                                                        {
+                                                            "Type.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        552,
+                                                        2,
+                                                        {
+                                                            "invariant"
+                                                        }
+                                                    },
+                                                    {
+                                                        551,
+                                                        2,
+                                                        {
+                                                            "getComponentName"
+                                                        }
+                                                    },
+                                                    {
+                                                        556,
+                                                        2,
+                                                        {
+                                                            "shallowEqual"
+                                                        }
+                                                    },
+                                                    {
+                                                        545,
+                                                        2,
+                                                        {
+                                                            "checkPropTypes"
+                                                        }
+                                                    },
+                                                    {
+                                                        550,
+                                                        2,
+                                                        {
+                                                            "formatProdErrorMessage"
+                                                        }
+                                                    },
+                                                    {
+                                                        546,
+                                                        2,
+                                                        {
+                                                            "console"
+                                                        }
+                                                    },
+                                                    {
+                                                        548,
+                                                        2,
+                                                        {
+                                                            "enqueueTask.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        554,
+                                                        2,
+                                                        {
+                                                            "isValidElementType"
+                                                        }
+                                                    },
+                                                    {
+                                                        528,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHostConfig"
+                                                        },
+                                                        {
+                                                            {
+                                                                529,
+                                                                2,
+                                                                {
+                                                                    "WithNoHydration"
+                                                                }
+                                                            },
+                                                            {
+                                                                531,
+                                                                2,
+                                                                {
+                                                                    "WithNoTestSelectors"
+                                                                }
+                                                            },
+                                                            {
+                                                                530,
+                                                                2,
+                                                                {
+                                                                    "WithNoPersistence"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        539,
+                                                        2,
+                                                        {
+                                                            "ReactSymbols"
+                                                        }
+                                                    },
+                                                    {
+                                                        519,
+                                                        2,
+                                                        {
+                                                            "ExecutionEnvironment"
+                                                        }
+                                                    },
+                                                    {
+                                                        526,
+                                                        2,
+                                                        {
+                                                            "ReactErrorUtils"
+                                                        }
+                                                    },
+                                                    {
+                                                        542,
+                                                        2,
+                                                        {
+                                                            "Symbol.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        540,
+                                                        2,
+                                                        {
+                                                            "ReactTypes"
+                                                        }
+                                                    },
+                                                    {
+                                                        520,
+                                                        1,
+                                                        {
+                                                            "PropMarkers"
+                                                        },
+                                                        {
+                                                            {
+                                                                521,
+                                                                2,
+                                                                {
+                                                                    "Change"
+                                                                }
+                                                            },
+                                                            {
+                                                                522,
+                                                                2,
+                                                                {
+                                                                    "Event"
+                                                                }
+                                                            },
+                                                            {
+                                                                523,
+                                                                2,
+                                                                {
+                                                                    "Tag"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        524,
+                                                        2,
+                                                        {
+                                                            "ReactComponentStackFrame"
+                                                        }
+                                                    },
+                                                    {
+                                                        525,
+                                                        2,
+                                                        {
+                                                            "ReactElementType"
+                                                        }
+                                                    },
+                                                    {
+                                                        533,
+                                                        2,
+                                                        {
+                                                            "ReactSharedInternals"
+                                                        },
+                                                        {
+                                                            {
+                                                                534,
+                                                                2,
+                                                                {
+                                                                    "IsSomeRendererActing"
+                                                                }
+                                                            },
+                                                            {
+                                                                536,
+                                                                2,
+                                                                {
+                                                                    "ReactCurrentDispatcher"
+                                                                }
+                                                            },
+                                                            {
+                                                                537,
+                                                                2,
+                                                                {
+                                                                    "ReactCurrentOwner"
+                                                                }
+                                                            },
+                                                            {
+                                                                535,
+                                                                2,
+                                                                {
+                                                                    "ReactCurrentBatchConfig"
+                                                                }
+                                                            },
+                                                            {
+                                                                538,
+                                                                2,
+                                                                {
+                                                                    "ReactDebugCurrentFrame"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                48,
+                                                393,
                                                 2,
                                                 {
-                                                    "Icon"
+                                                    "InstanceOf"
+                                                },
+                                                {
+                                                    {
+                                                        394,
+                                                        2,
+                                                        {
+                                                            "instanceof"
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                50,
+                                                501,
                                                 2,
                                                 {
-                                                    "types"
-                                                }
-                                            }
-                                        }
-                                    },
-                                    {
-                                        70,
-                                        2,
-                                        {
-                                            "Modal"
-                                        },
-                                        {
-                                            {
-                                                73,
-                                                2,
-                                                {
-                                                    "types"
+                                                    "SafeFlags"
                                                 }
                                             },
                                             {
-                                                72,
+                                                432,
                                                 2,
                                                 {
-                                                    "__typecheck__"
+                                                    "ReactReconciler"
+                                                },
+                                                {
+                                                    {
+                                                        474,
+                                                        2,
+                                                        {
+                                                            "ReactPortal"
+                                                        }
+                                                    },
+                                                    {
+                                                        434,
+                                                        2,
+                                                        {
+                                                            "MaxInts"
+                                                        }
+                                                    },
+                                                    {
+                                                        470,
+                                                        2,
+                                                        {
+                                                            "ReactFiberWorkLoop.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        460,
+                                                        2,
+                                                        {
+                                                            "ReactFiberRoot.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        450,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHostConfig"
+                                                        }
+                                                    },
+                                                    {
+                                                        457,
+                                                        2,
+                                                        {
+                                                            "ReactFiberOffscreenComponent"
+                                                        }
+                                                    },
+                                                    {
+                                                        438,
+                                                        2,
+                                                        {
+                                                            "ReactFiber.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        463,
+                                                        2,
+                                                        {
+                                                            "ReactFiberSuspenseComponent.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        454,
+                                                        2,
+                                                        {
+                                                            "ReactFiberLane"
+                                                        }
+                                                    },
+                                                    {
+                                                        472,
+                                                        2,
+                                                        {
+                                                            "ReactInternalTypes"
+                                                        }
+                                                    },
+                                                    {
+                                                        485,
+                                                        1,
+                                                        {
+                                                            "forks"
+                                                        },
+                                                        {
+                                                            {
+                                                                486,
+                                                                2,
+                                                                {
+                                                                    "ReactFiberHostConfig.test"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        439,
+                                                        2,
+                                                        {
+                                                            "ReactFiberBeginWork.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        478,
+                                                        2,
+                                                        {
+                                                            "ReactTestSelectors"
+                                                        }
+                                                    },
+                                                    {
+                                                        451,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHostContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        476,
+                                                        2,
+                                                        {
+                                                            "ReactRootTags"
+                                                        }
+                                                    },
+                                                    {
+                                                        437,
+                                                        2,
+                                                        {
+                                                            "ReactCurrentFiber"
+                                                        }
+                                                    },
+                                                    {
+                                                        443,
+                                                        2,
+                                                        {
+                                                            "ReactFiberComponentStack"
+                                                        }
+                                                    },
+                                                    {
+                                                        447,
+                                                        2,
+                                                        {
+                                                            "ReactFiberErrorLogger"
+                                                        }
+                                                    },
+                                                    {
+                                                        473,
+                                                        2,
+                                                        {
+                                                            "ReactMutableSource.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        466,
+                                                        2,
+                                                        {
+                                                            "ReactFiberTransition"
+                                                        }
+                                                    },
+                                                    {
+                                                        444,
+                                                        2,
+                                                        {
+                                                            "ReactFiberContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        484,
+                                                        2,
+                                                        {
+                                                            "SchedulingProfiler"
+                                                        }
+                                                    },
+                                                    {
+                                                        483,
+                                                        2,
+                                                        {
+                                                            "SchedulerWithReactIntegration.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        461,
+                                                        2,
+                                                        {
+                                                            "ReactFiberSchedulerPriorities.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        441,
+                                                        2,
+                                                        {
+                                                            "ReactFiberCommitWork.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        433,
+                                                        2,
+                                                        {
+                                                            "DebugTracing"
+                                                        }
+                                                    },
+                                                    {
+                                                        462,
+                                                        2,
+                                                        {
+                                                            "ReactFiberStack.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        440,
+                                                        2,
+                                                        {
+                                                            "ReactFiberClassComponent.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        459,
+                                                        2,
+                                                        {
+                                                            "ReactFiberReconciler.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        481,
+                                                        2,
+                                                        {
+                                                            "ReactWorkTags"
+                                                        }
+                                                    },
+                                                    {
+                                                        480,
+                                                        2,
+                                                        {
+                                                            "ReactUpdateQueue.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        435,
+                                                        2,
+                                                        {
+                                                            "ReactCapturedValue"
+                                                        }
+                                                    },
+                                                    {
+                                                        479,
+                                                        2,
+                                                        {
+                                                            "ReactTypeOfMode"
+                                                        }
+                                                    },
+                                                    {
+                                                        471,
+                                                        2,
+                                                        {
+                                                            "ReactHookEffectTags"
+                                                        }
+                                                    },
+                                                    {
+                                                        477,
+                                                        2,
+                                                        {
+                                                            "ReactStrictModeWarnings.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        452,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHotReloading.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        453,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHydrationContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        468,
+                                                        2,
+                                                        {
+                                                            "ReactFiberUnwindWork.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        456,
+                                                        2,
+                                                        {
+                                                            "ReactFiberNewContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        465,
+                                                        2,
+                                                        {
+                                                            "ReactFiberThrow.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        475,
+                                                        2,
+                                                        {
+                                                            "ReactProfilerTimer.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        442,
+                                                        2,
+                                                        {
+                                                            "ReactFiberCompleteWork.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        467,
+                                                        2,
+                                                        {
+                                                            "ReactFiberTreeReflection"
+                                                        }
+                                                    },
+                                                    {
+                                                        464,
+                                                        2,
+                                                        {
+                                                            "ReactFiberSuspenseContext.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        446,
+                                                        2,
+                                                        {
+                                                            "ReactFiberErrorDialog"
+                                                        }
+                                                    },
+                                                    {
+                                                        448,
+                                                        2,
+                                                        {
+                                                            "ReactFiberFlags"
+                                                        }
+                                                    },
+                                                    {
+                                                        449,
+                                                        2,
+                                                        {
+                                                            "ReactFiberHooks.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        469,
+                                                        2,
+                                                        {
+                                                            "ReactFiberWorkInProgress"
+                                                        }
+                                                    },
+                                                    {
+                                                        436,
+                                                        2,
+                                                        {
+                                                            "ReactChildFiber.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        445,
+                                                        2,
+                                                        {
+                                                            "ReactFiberDevToolsHook.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        458,
+                                                        2,
+                                                        {
+                                                            "ReactFiberReconciler"
+                                                        }
+                                                    },
+                                                    {
+                                                        455,
+                                                        2,
+                                                        {
+                                                            "ReactFiberLazyComponent.new"
+                                                        }
+                                                    },
+                                                    {
+                                                        482,
+                                                        2,
+                                                        {
+                                                            "RobloxReactProfiling"
+                                                        }
+                                                    }
                                                 }
                                             },
                                             {
-                                                71,
+                                                500,
                                                 2,
                                                 {
-                                                    "Modal"
+                                                    "Promise"
+                                                }
+                                            },
+                                            {
+                                                403,
+                                                2,
+                                                {
+                                                    "Math"
+                                                },
+                                                {
+                                                    {
+                                                        404,
+                                                        2,
+                                                        {
+                                                            "clz32"
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                487,
+                                                2,
+                                                {
+                                                    "ReactRoblox"
+                                                },
+                                                {
+                                                    {
+                                                        488,
+                                                        2,
+                                                        {
+                                                            "ReactReconciler.roblox"
+                                                        }
+                                                    },
+                                                    {
+                                                        489,
+                                                        1,
+                                                        {
+                                                            "client"
+                                                        },
+                                                        {
+                                                            {
+                                                                494,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxHostTypes.roblox"
+                                                                }
+                                                            },
+                                                            {
+                                                                495,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxRoot"
+                                                                }
+                                                            },
+                                                            {
+                                                                490,
+                                                                2,
+                                                                {
+                                                                    "ReactRoblox"
+                                                                }
+                                                            },
+                                                            {
+                                                                496,
+                                                                1,
+                                                                {
+                                                                    "roblox"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        497,
+                                                                        2,
+                                                                        {
+                                                                            "RobloxComponentProps"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        498,
+                                                                        2,
+                                                                        {
+                                                                            "SingleEventManager"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        499,
+                                                                        2,
+                                                                        {
+                                                                            "getDefaultInstanceProperty"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                493,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxHostConfig"
+                                                                }
+                                                            },
+                                                            {
+                                                                492,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxComponentTree"
+                                                                }
+                                                            },
+                                                            {
+                                                                491,
+                                                                2,
+                                                                {
+                                                                    "ReactRobloxComponent"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                571,
+                                                2,
+                                                {
+                                                    "Symbol"
+                                                },
+                                                {
+                                                    {
+                                                        572,
+                                                        2,
+                                                        {
+                                                            "Registry.global"
+                                                        }
+                                                    },
+                                                    {
+                                                        573,
+                                                        2,
+                                                        {
+                                                            "Symbol"
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -141258,19 +141736,10 @@ local ObjectTree = {
                                 }
                             },
                             {
-                                175,
-                                1,
+                                327,
+                                2,
                                 {
-                                    "testing"
-                                },
-                                {
-                                    {
-                                        176,
-                                        2,
-                                        {
-                                            "typeContracts"
-                                        }
-                                    }
+                                    "Promise"
                                 }
                             }
                         }
@@ -141304,54 +141773,70 @@ local ObjectTree = {
                                                 },
                                                 {
                                                     {
-                                                        298,
+                                                        304,
                                                         2,
                                                         {
-                                                            "theme"
+                                                            "utils"
                                                         },
                                                         {
                                                             {
-                                                                300,
+                                                                305,
                                                                 2,
                                                                 {
-                                                                    "defaults"
+                                                                    "diagnostics"
                                                                 }
                                                             },
                                                             {
-                                                                303,
+                                                                306,
+                                                                2,
+                                                                {
+                                                                    "units"
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+                                                    {
+                                                        191,
+                                                        1,
+                                                        {
+                                                            "bridge"
+                                                        }
+                                                    },
+                                                    {
+                                                        292,
+                                                        2,
+                                                        {
+                                                            "motion"
+                                                        },
+                                                        {
+                                                            {
+                                                                293,
+                                                                2,
+                                                                {
+                                                                    "signatures"
+                                                                }
+                                                            },
+                                                            {
+                                                                294,
+                                                                2,
+                                                                {
+                                                                    "transitions"
+                                                                }
+                                                            },
+                                                            {
+                                                                295,
                                                                 2,
                                                                 {
                                                                     "types"
                                                                 }
                                                             },
                                                             {
-                                                                302,
+                                                                296,
                                                                 2,
                                                                 {
-                                                                    "resolveToken"
-                                                                }
-                                                            },
-                                                            {
-                                                                299,
-                                                                2,
-                                                                {
-                                                                    "ThemeProvider"
-                                                                }
-                                                            },
-                                                            {
-                                                                301,
-                                                                2,
-                                                                {
-                                                                    "refs"
+                                                                    "useMotion"
                                                                 }
                                                             }
-                                                        }
-                                                    },
-                                                    {
-                                                        297,
-                                                        1,
-                                                        {
-                                                            "testing"
                                                         }
                                                     },
                                                     {
@@ -141371,40 +141856,10 @@ local ObjectTree = {
                                                         }
                                                     },
                                                     {
-                                                        292,
-                                                        2,
+                                                        297,
+                                                        1,
                                                         {
-                                                            "motion"
-                                                        },
-                                                        {
-                                                            {
-                                                                296,
-                                                                2,
-                                                                {
-                                                                    "useMotion"
-                                                                }
-                                                            },
-                                                            {
-                                                                295,
-                                                                2,
-                                                                {
-                                                                    "types"
-                                                                }
-                                                            },
-                                                            {
-                                                                293,
-                                                                2,
-                                                                {
-                                                                    "signatures"
-                                                                }
-                                                            },
-                                                            {
-                                                                294,
-                                                                2,
-                                                                {
-                                                                    "transitions"
-                                                                }
-                                                            }
+                                                            "testing"
                                                         }
                                                     },
                                                     {
@@ -141415,24 +141870,100 @@ local ObjectTree = {
                                                         },
                                                         {
                                                             {
-                                                                193,
-                                                                1,
+                                                                219,
+                                                                2,
                                                                 {
-                                                                    "Avatar"
+                                                                    "Modal"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        221,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        220,
+                                                                        2,
+                                                                        {
+                                                                            "Modal"
+                                                                        }
+                                                                    }
                                                                 }
                                                             },
                                                             {
-                                                                229,
+                                                                206,
                                                                 1,
                                                                 {
-                                                                    "Progress"
+                                                                    "CircularProgress"
                                                                 }
                                                             },
                                                             {
-                                                                207,
+                                                                265,
+                                                                2,
+                                                                {
+                                                                    "Tooltip"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        268,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        269,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        267,
+                                                                        2,
+                                                                        {
+                                                                            "TooltipOverlayBubble"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        266,
+                                                                        2,
+                                                                        {
+                                                                            "Tooltip"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                197,
+                                                                2,
+                                                                {
+                                                                    "Box"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        199,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        198,
+                                                                        2,
+                                                                        {
+                                                                            "Box"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                213,
                                                                 1,
                                                                 {
-                                                                    "Divider"
+                                                                    "Input"
                                                                 }
                                                             },
                                                             {
@@ -141457,17 +141988,10 @@ local ObjectTree = {
                                                                         }
                                                                     },
                                                                     {
-                                                                        281,
+                                                                        279,
                                                                         2,
                                                                         {
-                                                                            "styleOverride"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        273,
-                                                                        2,
-                                                                        {
-                                                                            "elevation"
+                                                                            "overlayLayerPolicy"
                                                                         }
                                                                     },
                                                                     {
@@ -141478,17 +142002,31 @@ local ObjectTree = {
                                                                         }
                                                                     },
                                                                     {
-                                                                        277,
+                                                                        288,
                                                                         2,
                                                                         {
-                                                                            "layering"
+                                                                            "useRootCursor"
                                                                         }
                                                                     },
                                                                     {
-                                                                        283,
+                                                                        275,
                                                                         2,
                                                                         {
-                                                                            "useControllableState"
+                                                                            "frameSize"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        286,
+                                                                        2,
+                                                                        {
+                                                                            "usePressInteraction"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        278,
+                                                                        2,
+                                                                        {
+                                                                            "mergeSharedStyleProps"
                                                                         }
                                                                     },
                                                                     {
@@ -141513,10 +142051,10 @@ local ObjectTree = {
                                                                         }
                                                                     },
                                                                     {
-                                                                        288,
+                                                                        273,
                                                                         2,
                                                                         {
-                                                                            "useRootCursor"
+                                                                            "elevation"
                                                                         }
                                                                     },
                                                                     {
@@ -141527,17 +142065,17 @@ local ObjectTree = {
                                                                         }
                                                                     },
                                                                     {
-                                                                        275,
+                                                                        277,
                                                                         2,
                                                                         {
-                                                                            "frameSize"
+                                                                            "layering"
                                                                         }
                                                                     },
                                                                     {
-                                                                        278,
+                                                                        283,
                                                                         2,
                                                                         {
-                                                                            "mergeSharedStyleProps"
+                                                                            "useControllableState"
                                                                         }
                                                                     },
                                                                     {
@@ -141548,17 +142086,10 @@ local ObjectTree = {
                                                                         }
                                                                     },
                                                                     {
-                                                                        279,
+                                                                        281,
                                                                         2,
                                                                         {
-                                                                            "overlayLayerPolicy"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        286,
-                                                                        2,
-                                                                        {
-                                                                            "usePressInteraction"
+                                                                            "styleOverride"
                                                                         }
                                                                     },
                                                                     {
@@ -141571,54 +142102,17 @@ local ObjectTree = {
                                                                 }
                                                             },
                                                             {
-                                                                204,
+                                                                205,
                                                                 1,
                                                                 {
-                                                                    "Card"
+                                                                    "Checkbox"
                                                                 }
                                                             },
                                                             {
-                                                                265,
-                                                                2,
-                                                                {
-                                                                    "Tooltip"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        269,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        266,
-                                                                        2,
-                                                                        {
-                                                                            "Tooltip"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        267,
-                                                                        2,
-                                                                        {
-                                                                            "TooltipOverlayBubble"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        268,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                212,
+                                                                270,
                                                                 1,
                                                                 {
-                                                                    "Image"
+                                                                    "WorldPortal"
                                                                 }
                                                             },
                                                             {
@@ -141647,6 +142141,117 @@ local ObjectTree = {
                                                                         2,
                                                                         {
                                                                             "styles"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                233,
+                                                                2,
+                                                                {
+                                                                    "SegmentedControl"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        235,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        236,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        234,
+                                                                        2,
+                                                                        {
+                                                                            "SegmentedControl"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                204,
+                                                                1,
+                                                                {
+                                                                    "Card"
+                                                                }
+                                                            },
+                                                            {
+                                                                244,
+                                                                2,
+                                                                {
+                                                                    "Slider"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        246,
+                                                                        2,
+                                                                        {
+                                                                            "controllerInput"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        247,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        249,
+                                                                        2,
+                                                                        {
+                                                                            "utils"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        248,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        245,
+                                                                        2,
+                                                                        {
+                                                                            "Slider"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                207,
+                                                                1,
+                                                                {
+                                                                    "Divider"
+                                                                }
+                                                            },
+                                                            {
+                                                                230,
+                                                                2,
+                                                                {
+                                                                    "ScrollArea"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        231,
+                                                                        2,
+                                                                        {
+                                                                            "ScrollArea"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        232,
+                                                                        2,
+                                                                        {
+                                                                            "types"
                                                                         }
                                                                     }
                                                                 }
@@ -141682,70 +142287,10 @@ local ObjectTree = {
                                                                 }
                                                             },
                                                             {
-                                                                262,
-                                                                2,
-                                                                {
-                                                                    "Text"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        264,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        263,
-                                                                        2,
-                                                                        {
-                                                                            "Text"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                258,
-                                                                2,
-                                                                {
-                                                                    "Tabs"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        259,
-                                                                        2,
-                                                                        {
-                                                                            "Tabs"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        260,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        261,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                213,
+                                                                253,
                                                                 1,
                                                                 {
-                                                                    "Input"
-                                                                }
-                                                            },
-                                                            {
-                                                                270,
-                                                                1,
-                                                                {
-                                                                    "WorldPortal"
+                                                                    "StepperInput"
                                                                 }
                                                             },
                                                             {
@@ -141772,241 +142317,10 @@ local ObjectTree = {
                                                                 }
                                                             },
                                                             {
-                                                                214,
-                                                                2,
-                                                                {
-                                                                    "KeybindInput"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        215,
-                                                                        2,
-                                                                        {
-                                                                            "KeybindInput"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        216,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        217,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                208,
+                                                                212,
                                                                 1,
                                                                 {
-                                                                    "Draggable"
-                                                                }
-                                                            },
-                                                            {
-                                                                194,
-                                                                2,
-                                                                {
-                                                                    "Backdrop"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        195,
-                                                                        2,
-                                                                        {
-                                                                            "Backdrop"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        196,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                233,
-                                                                2,
-                                                                {
-                                                                    "SegmentedControl"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        236,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        235,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        234,
-                                                                        2,
-                                                                        {
-                                                                            "SegmentedControl"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                218,
-                                                                1,
-                                                                {
-                                                                    "Menu"
-                                                                }
-                                                            },
-                                                            {
-                                                                253,
-                                                                1,
-                                                                {
-                                                                    "StepperInput"
-                                                                }
-                                                            },
-                                                            {
-                                                                209,
-                                                                2,
-                                                                {
-                                                                    "Icon"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        210,
-                                                                        2,
-                                                                        {
-                                                                            "Icon"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        211,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                206,
-                                                                1,
-                                                                {
-                                                                    "CircularProgress"
-                                                                }
-                                                            },
-                                                            {
-                                                                230,
-                                                                2,
-                                                                {
-                                                                    "ScrollArea"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        232,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        231,
-                                                                        2,
-                                                                        {
-                                                                            "ScrollArea"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                222,
-                                                                2,
-                                                                {
-                                                                    "Popover"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        227,
-                                                                        2,
-                                                                        {
-                                                                            "utils"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        226,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        225,
-                                                                        2,
-                                                                        {
-                                                                            "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        223,
-                                                                        2,
-                                                                        {
-                                                                            "Popover"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        224,
-                                                                        2,
-                                                                        {
-                                                                            "PopoverOverlayPanel"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                228,
-                                                                1,
-                                                                {
-                                                                    "Pressable"
-                                                                }
-                                                            },
-                                                            {
-                                                                219,
-                                                                2,
-                                                                {
-                                                                    "Modal"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        220,
-                                                                        2,
-                                                                        {
-                                                                            "Modal"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        221,
-                                                                        2,
-                                                                        {
-                                                                            "types"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                205,
-                                                                1,
-                                                                {
-                                                                    "Checkbox"
+                                                                    "Image"
                                                                 }
                                                             },
                                                             {
@@ -142021,20 +142335,6 @@ local ObjectTree = {
                                                                         2,
                                                                         {
                                                                             "styles"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        238,
-                                                                        2,
-                                                                        {
-                                                                            "Select"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        240,
-                                                                        2,
-                                                                        {
-                                                                            "SelectOptionRow"
                                                                         }
                                                                     },
                                                                     {
@@ -142057,104 +142357,273 @@ local ObjectTree = {
                                                                         {
                                                                             "types"
                                                                         }
+                                                                    },
+                                                                    {
+                                                                        238,
+                                                                        2,
+                                                                        {
+                                                                            "Select"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        240,
+                                                                        2,
+                                                                        {
+                                                                            "SelectOptionRow"
+                                                                        }
                                                                     }
                                                                 }
                                                             },
                                                             {
-                                                                197,
+                                                                262,
                                                                 2,
                                                                 {
-                                                                    "Box"
+                                                                    "Text"
                                                                 },
                                                                 {
                                                                     {
-                                                                        199,
+                                                                        263,
+                                                                        2,
+                                                                        {
+                                                                            "Text"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        264,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                258,
+                                                                2,
+                                                                {
+                                                                    "Tabs"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        261,
                                                                         2,
                                                                         {
                                                                             "types"
                                                                         }
                                                                     },
                                                                     {
-                                                                        198,
-                                                                        2,
-                                                                        {
-                                                                            "Box"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                244,
-                                                                2,
-                                                                {
-                                                                    "Slider"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        245,
-                                                                        2,
-                                                                        {
-                                                                            "Slider"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        247,
+                                                                        260,
                                                                         2,
                                                                         {
                                                                             "styles"
                                                                         }
                                                                     },
                                                                     {
-                                                                        249,
+                                                                        259,
                                                                         2,
                                                                         {
-                                                                            "utils"
+                                                                            "Tabs"
                                                                         }
-                                                                    },
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                209,
+                                                                2,
+                                                                {
+                                                                    "Icon"
+                                                                },
+                                                                {
                                                                     {
-                                                                        248,
+                                                                        211,
                                                                         2,
                                                                         {
                                                                             "types"
                                                                         }
                                                                     },
                                                                     {
-                                                                        246,
+                                                                        210,
                                                                         2,
                                                                         {
-                                                                            "controllerInput"
+                                                                            "Icon"
                                                                         }
                                                                     }
+                                                                }
+                                                            },
+                                                            {
+                                                                229,
+                                                                1,
+                                                                {
+                                                                    "Progress"
+                                                                }
+                                                            },
+                                                            {
+                                                                208,
+                                                                1,
+                                                                {
+                                                                    "Draggable"
+                                                                }
+                                                            },
+                                                            {
+                                                                228,
+                                                                1,
+                                                                {
+                                                                    "Pressable"
+                                                                }
+                                                            },
+                                                            {
+                                                                222,
+                                                                2,
+                                                                {
+                                                                    "Popover"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        225,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        227,
+                                                                        2,
+                                                                        {
+                                                                            "utils"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        223,
+                                                                        2,
+                                                                        {
+                                                                            "Popover"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        226,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        224,
+                                                                        2,
+                                                                        {
+                                                                            "PopoverOverlayPanel"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                194,
+                                                                2,
+                                                                {
+                                                                    "Backdrop"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        196,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        195,
+                                                                        2,
+                                                                        {
+                                                                            "Backdrop"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                214,
+                                                                2,
+                                                                {
+                                                                    "KeybindInput"
+                                                                },
+                                                                {
+                                                                    {
+                                                                        217,
+                                                                        2,
+                                                                        {
+                                                                            "types"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        215,
+                                                                        2,
+                                                                        {
+                                                                            "KeybindInput"
+                                                                        }
+                                                                    },
+                                                                    {
+                                                                        216,
+                                                                        2,
+                                                                        {
+                                                                            "styles"
+                                                                        }
+                                                                    }
+                                                                }
+                                                            },
+                                                            {
+                                                                218,
+                                                                1,
+                                                                {
+                                                                    "Menu"
+                                                                }
+                                                            },
+                                                            {
+                                                                193,
+                                                                1,
+                                                                {
+                                                                    "Avatar"
                                                                 }
                                                             }
                                                         }
                                                     },
                                                     {
-                                                        191,
-                                                        1,
-                                                        {
-                                                            "bridge"
-                                                        }
-                                                    },
-                                                    {
-                                                        304,
+                                                        298,
                                                         2,
                                                         {
-                                                            "utils"
+                                                            "theme"
                                                         },
                                                         {
                                                             {
-                                                                305,
+                                                                301,
                                                                 2,
                                                                 {
-                                                                    "diagnostics"
+                                                                    "refs"
                                                                 }
                                                             },
                                                             {
-                                                                306,
+                                                                303,
                                                                 2,
                                                                 {
-                                                                    "units"
+                                                                    "types"
+                                                                }
+                                                            },
+                                                            {
+                                                                302,
+                                                                2,
+                                                                {
+                                                                    "resolveToken"
+                                                                }
+                                                            },
+                                                            {
+                                                                300,
+                                                                2,
+                                                                {
+                                                                    "defaults"
+                                                                }
+                                                            },
+                                                            {
+                                                                299,
+                                                                2,
+                                                                {
+                                                                    "ThemeProvider"
                                                                 }
                                                             }
                                                         }
@@ -142173,19 +142642,24 @@ local ObjectTree = {
                                 },
                                 {
                                     {
-                                        324,
-                                        1,
+                                        323,
+                                        2,
                                         {
-                                            "visuals"
-                                        },
+                                            "theme"
+                                        }
+                                    },
+                                    {
+                                        319,
+                                        2,
                                         {
-                                            {
-                                                325,
-                                                2,
-                                                {
-                                                    "VisualsPage"
-                                                }
-                                            }
+                                            "contracts"
+                                        }
+                                    },
+                                    {
+                                        308,
+                                        2,
+                                        {
+                                            "UniversalHubMenu"
                                         }
                                     },
                                     {
@@ -142212,13 +142686,6 @@ local ObjectTree = {
                                         }
                                     },
                                     {
-                                        308,
-                                        2,
-                                        {
-                                            "UniversalHubMenu"
-                                        }
-                                    },
-                                    {
                                         309,
                                         1,
                                         {
@@ -142226,10 +142693,10 @@ local ObjectTree = {
                                         },
                                         {
                                             {
-                                                312,
+                                                316,
                                                 2,
                                                 {
-                                                    "ControlView"
+                                                    "Keycap"
                                                 }
                                             },
                                             {
@@ -142240,10 +142707,24 @@ local ObjectTree = {
                                                 }
                                             },
                                             {
+                                                312,
+                                                2,
+                                                {
+                                                    "ControlView"
+                                                }
+                                            },
+                                            {
                                                 311,
                                                 2,
                                                 {
                                                     "AudienceMultiSelect"
+                                                }
+                                            },
+                                            {
+                                                310,
+                                                2,
+                                                {
+                                                    "ActionNotification"
                                                 }
                                             },
                                             {
@@ -142254,10 +142735,10 @@ local ObjectTree = {
                                                 }
                                             },
                                             {
-                                                318,
+                                                317,
                                                 2,
                                                 {
-                                                    "WhatsNewModal"
+                                                    "SectionList"
                                                 }
                                             },
                                             {
@@ -142268,40 +142749,28 @@ local ObjectTree = {
                                                 }
                                             },
                                             {
-                                                317,
+                                                318,
                                                 2,
                                                 {
-                                                    "SectionList"
-                                                }
-                                            },
-                                            {
-                                                316,
-                                                2,
-                                                {
-                                                    "Keycap"
-                                                }
-                                            },
-                                            {
-                                                310,
-                                                2,
-                                                {
-                                                    "ActionNotification"
+                                                    "WhatsNewModal"
                                                 }
                                             }
                                         }
                                     },
                                     {
-                                        323,
-                                        2,
+                                        324,
+                                        1,
                                         {
-                                            "theme"
-                                        }
-                                    },
-                                    {
-                                        319,
-                                        2,
+                                            "visuals"
+                                        },
                                         {
-                                            "contracts"
+                                            {
+                                                325,
+                                                2,
+                                                {
+                                                    "VisualsPage"
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -142309,1830 +142778,1363 @@ local ObjectTree = {
                         }
                     },
                     {
-                        326,
-                        1,
+                        3,
+                        2,
                         {
-                            "rbxts_include"
+                            "Prism"
                         },
                         {
                             {
-                                328,
+                                5,
                                 2,
                                 {
-                                    "RuntimeLib"
-                                }
-                            },
-                            {
-                                327,
-                                2,
-                                {
-                                    "Promise"
-                                }
-                            },
-                            {
-                                329,
-                                1,
-                                {
-                                    "node_modules"
+                                    "bridge"
                                 },
                                 {
                                     {
-                                        341,
-                                        1,
+                                        7,
+                                        2,
                                         {
-                                            "@rbxts-js"
+                                            "__typecheck__"
+                                        }
+                                    },
+                                    {
+                                        6,
+                                        2,
+                                        {
+                                            "LuauBridge"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                174,
+                                2,
+                                {
+                                    "styled"
+                                }
+                            },
+                            {
+                                4,
+                                2,
+                                {
+                                    "__typecheck__"
+                                }
+                            },
+                            {
+                                8,
+                                1,
+                                {
+                                    "components"
+                                },
+                                {
+                                    {
+                                        43,
+                                        2,
+                                        {
+                                            "Draggable"
                                         },
                                         {
                                             {
-                                                557,
+                                                45,
                                                 2,
                                                 {
-                                                    "String"
-                                                },
-                                                {
-                                                    {
-                                                        569,
-                                                        2,
-                                                        {
-                                                            "trimEnd"
-                                                        }
-                                                    },
-                                                    {
-                                                        570,
-                                                        2,
-                                                        {
-                                                            "trimStart"
-                                                        }
-                                                    },
-                                                    {
-                                                        559,
-                                                        2,
-                                                        {
-                                                            "endsWith"
-                                                        }
-                                                    },
-                                                    {
-                                                        568,
-                                                        2,
-                                                        {
-                                                            "trim"
-                                                        }
-                                                    },
-                                                    {
-                                                        562,
-                                                        2,
-                                                        {
-                                                            "indexOf"
-                                                        }
-                                                    },
-                                                    {
-                                                        566,
-                                                        2,
-                                                        {
-                                                            "startsWith"
-                                                        }
-                                                    },
-                                                    {
-                                                        563,
-                                                        2,
-                                                        {
-                                                            "lastIndexOf"
-                                                        }
-                                                    },
-                                                    {
-                                                        558,
-                                                        2,
-                                                        {
-                                                            "charCodeAt"
-                                                        }
-                                                    },
-                                                    {
-                                                        565,
-                                                        2,
-                                                        {
-                                                            "split"
-                                                        }
-                                                    },
-                                                    {
-                                                        567,
-                                                        2,
-                                                        {
-                                                            "substr"
-                                                        }
-                                                    },
-                                                    {
-                                                        560,
-                                                        2,
-                                                        {
-                                                            "findOr"
-                                                        }
-                                                    },
-                                                    {
-                                                        561,
-                                                        2,
-                                                        {
-                                                            "includes"
-                                                        }
-                                                    },
-                                                    {
-                                                        564,
-                                                        2,
-                                                        {
-                                                            "slice"
-                                                        }
-                                                    }
+                                                    "__typecheck__"
                                                 }
                                             },
                                             {
-                                                405,
+                                                44,
                                                 2,
                                                 {
-                                                    "Number"
-                                                },
-                                                {
-                                                    {
-                                                        408,
-                                                        2,
-                                                        {
-                                                            "isFinite"
-                                                        }
-                                                    },
-                                                    {
-                                                        411,
-                                                        2,
-                                                        {
-                                                            "isSafeInteger"
-                                                        }
-                                                    },
-                                                    {
-                                                        410,
-                                                        2,
-                                                        {
-                                                            "isNaN"
-                                                        }
-                                                    },
-                                                    {
-                                                        406,
-                                                        2,
-                                                        {
-                                                            "MAX_SAFE_INTEGER"
-                                                        }
-                                                    },
-                                                    {
-                                                        407,
-                                                        2,
-                                                        {
-                                                            "MIN_SAFE_INTEGER"
-                                                        }
-                                                    },
-                                                    {
-                                                        409,
-                                                        2,
-                                                        {
-                                                            "isInteger"
-                                                        }
-                                                    },
-                                                    {
-                                                        412,
-                                                        2,
-                                                        {
-                                                            "toExponential"
-                                                        }
-                                                    }
+                                                    "Draggable"
                                                 }
                                             },
                                             {
-                                                390,
+                                                46,
                                                 2,
                                                 {
-                                                    "Console"
-                                                },
-                                                {
-                                                    {
-                                                        391,
-                                                        2,
-                                                        {
-                                                            "makeConsoleImpl"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                403,
-                                                2,
-                                                {
-                                                    "Math"
-                                                },
-                                                {
-                                                    {
-                                                        404,
-                                                        2,
-                                                        {
-                                                            "clz32"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                500,
-                                                2,
-                                                {
-                                                    "Promise"
-                                                }
-                                            },
-                                            {
-                                                502,
-                                                2,
-                                                {
-                                                    "Scheduler"
-                                                },
-                                                {
-                                                    {
-                                                        508,
-                                                        2,
-                                                        {
-                                                            "SchedulerPriorities"
-                                                        }
-                                                    },
-                                                    {
-                                                        515,
-                                                        2,
-                                                        {
-                                                            "unstable_mock"
-                                                        }
-                                                    },
-                                                    {
-                                                        504,
-                                                        2,
-                                                        {
-                                                            "Scheduler"
-                                                        }
-                                                    },
-                                                    {
-                                                        506,
-                                                        2,
-                                                        {
-                                                            "SchedulerHostConfig"
-                                                        }
-                                                    },
-                                                    {
-                                                        507,
-                                                        2,
-                                                        {
-                                                            "SchedulerMinHeap"
-                                                        }
-                                                    },
-                                                    {
-                                                        509,
-                                                        2,
-                                                        {
-                                                            "SchedulerProfiling"
-                                                        }
-                                                    },
-                                                    {
-                                                        503,
-                                                        2,
-                                                        {
-                                                            "NoYield"
-                                                        }
-                                                    },
-                                                    {
-                                                        505,
-                                                        2,
-                                                        {
-                                                            "SchedulerFeatureFlags"
-                                                        }
-                                                    },
-                                                    {
-                                                        512,
-                                                        1,
-                                                        {
-                                                            "forks"
-                                                        },
-                                                        {
-                                                            {
-                                                                513,
-                                                                2,
-                                                                {
-                                                                    "SchedulerHostConfig.default"
-                                                                }
-                                                            },
-                                                            {
-                                                                514,
-                                                                2,
-                                                                {
-                                                                    "SchedulerHostConfig.mock"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        511,
-                                                        2,
-                                                        {
-                                                            "TracingSubscriptions"
-                                                        }
-                                                    },
-                                                    {
-                                                        510,
-                                                        2,
-                                                        {
-                                                            "Tracing"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                574,
-                                                2,
-                                                {
-                                                    "Timers"
-                                                },
-                                                {
-                                                    {
-                                                        575,
-                                                        2,
-                                                        {
-                                                            "makeIntervalImpl"
-                                                        }
-                                                    },
-                                                    {
-                                                        576,
-                                                        2,
-                                                        {
-                                                            "makeTimerImpl"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                342,
-                                                2,
-                                                {
-                                                    "Boolean"
-                                                },
-                                                {
-                                                    {
-                                                        343,
-                                                        2,
-                                                        {
-                                                            "toJSBoolean"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                430,
-                                                2,
-                                                {
-                                                    "ReactGlobals"
-                                                },
-                                                {
-                                                    {
-                                                        431,
-                                                        2,
-                                                        {
-                                                            "ReactGlobals.global"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                344,
-                                                2,
-                                                {
-                                                    "Collections"
-                                                },
-                                                {
-                                                    {
-                                                        389,
-                                                        2,
-                                                        {
-                                                            "inspect"
-                                                        }
-                                                    },
-                                                    {
-                                                        388,
-                                                        2,
-                                                        {
-                                                            "WeakMap"
-                                                        }
-                                                    },
-                                                    {
-                                                        387,
-                                                        2,
-                                                        {
-                                                            "Set"
-                                                        }
-                                                    },
-                                                    {
-                                                        372,
-                                                        2,
-                                                        {
-                                                            "Map"
-                                                        },
-                                                        {
-                                                            {
-                                                                373,
-                                                                2,
-                                                                {
-                                                                    "Map"
-                                                                }
-                                                            },
-                                                            {
-                                                                374,
-                                                                2,
-                                                                {
-                                                                    "coerceToMap"
-                                                                }
-                                                            },
-                                                            {
-                                                                375,
-                                                                2,
-                                                                {
-                                                                    "coerceToTable"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        345,
-                                                        2,
-                                                        {
-                                                            "Array"
-                                                        },
-                                                        {
-                                                            {
-                                                                364,
-                                                                2,
-                                                                {
-                                                                    "reduce"
-                                                                }
-                                                            },
-                                                            {
-                                                                367,
-                                                                2,
-                                                                {
-                                                                    "slice"
-                                                                }
-                                                            },
-                                                            {
-                                                                371,
-                                                                2,
-                                                                {
-                                                                    "unshift"
-                                                                }
-                                                            },
-                                                            {
-                                                                351,
-                                                                2,
-                                                                {
-                                                                    "flat"
-                                                                }
-                                                            },
-                                                            {
-                                                                350,
-                                                                2,
-                                                                {
-                                                                    "findIndex"
-                                                                }
-                                                            },
-                                                            {
-                                                                363,
-                                                                2,
-                                                                {
-                                                                    "map"
-                                                                }
-                                                            },
-                                                            {
-                                                                359,
-                                                                2,
-                                                                {
-                                                                    "includes"
-                                                                }
-                                                            },
-                                                            {
-                                                                354,
-                                                                2,
-                                                                {
-                                                                    "from"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        357,
-                                                                        2,
-                                                                        {
-                                                                            "fromSet"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        356,
-                                                                        2,
-                                                                        {
-                                                                            "fromMap"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        358,
-                                                                        2,
-                                                                        {
-                                                                            "fromString"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        355,
-                                                                        2,
-                                                                        {
-                                                                            "fromArray"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                347,
-                                                                2,
-                                                                {
-                                                                    "every"
-                                                                }
-                                                            },
-                                                            {
-                                                                353,
-                                                                2,
-                                                                {
-                                                                    "forEach"
-                                                                }
-                                                            },
-                                                            {
-                                                                360,
-                                                                2,
-                                                                {
-                                                                    "indexOf"
-                                                                }
-                                                            },
-                                                            {
-                                                                368,
-                                                                2,
-                                                                {
-                                                                    "some"
-                                                                }
-                                                            },
-                                                            {
-                                                                366,
-                                                                2,
-                                                                {
-                                                                    "shift"
-                                                                }
-                                                            },
-                                                            {
-                                                                361,
-                                                                2,
-                                                                {
-                                                                    "isArray"
-                                                                }
-                                                            },
-                                                            {
-                                                                369,
-                                                                2,
-                                                                {
-                                                                    "sort"
-                                                                }
-                                                            },
-                                                            {
-                                                                365,
-                                                                2,
-                                                                {
-                                                                    "reverse"
-                                                                }
-                                                            },
-                                                            {
-                                                                346,
-                                                                2,
-                                                                {
-                                                                    "concat"
-                                                                }
-                                                            },
-                                                            {
-                                                                370,
-                                                                2,
-                                                                {
-                                                                    "splice"
-                                                                }
-                                                            },
-                                                            {
-                                                                352,
-                                                                2,
-                                                                {
-                                                                    "flatMap"
-                                                                }
-                                                            },
-                                                            {
-                                                                362,
-                                                                2,
-                                                                {
-                                                                    "join"
-                                                                }
-                                                            },
-                                                            {
-                                                                349,
-                                                                2,
-                                                                {
-                                                                    "find"
-                                                                }
-                                                            },
-                                                            {
-                                                                348,
-                                                                2,
-                                                                {
-                                                                    "filter"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        376,
-                                                        2,
-                                                        {
-                                                            "Object"
-                                                        },
-                                                        {
-                                                            {
-                                                                377,
-                                                                2,
-                                                                {
-                                                                    "None"
-                                                                }
-                                                            },
-                                                            {
-                                                                382,
-                                                                2,
-                                                                {
-                                                                    "isFrozen"
-                                                                }
-                                                            },
-                                                            {
-                                                                384,
-                                                                2,
-                                                                {
-                                                                    "preventExtensions"
-                                                                }
-                                                            },
-                                                            {
-                                                                379,
-                                                                2,
-                                                                {
-                                                                    "entries"
-                                                                }
-                                                            },
-                                                            {
-                                                                385,
-                                                                2,
-                                                                {
-                                                                    "seal"
-                                                                }
-                                                            },
-                                                            {
-                                                                378,
-                                                                2,
-                                                                {
-                                                                    "assign"
-                                                                }
-                                                            },
-                                                            {
-                                                                381,
-                                                                2,
-                                                                {
-                                                                    "is"
-                                                                }
-                                                            },
-                                                            {
-                                                                383,
-                                                                2,
-                                                                {
-                                                                    "keys"
-                                                                }
-                                                            },
-                                                            {
-                                                                380,
-                                                                2,
-                                                                {
-                                                                    "freeze"
-                                                                }
-                                                            },
-                                                            {
-                                                                386,
-                                                                2,
-                                                                {
-                                                                    "values"
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                571,
-                                                2,
-                                                {
-                                                    "Symbol"
-                                                },
-                                                {
-                                                    {
-                                                        573,
-                                                        2,
-                                                        {
-                                                            "Symbol"
-                                                        }
-                                                    },
-                                                    {
-                                                        572,
-                                                        2,
-                                                        {
-                                                            "Registry.global"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                487,
-                                                2,
-                                                {
-                                                    "ReactRoblox"
-                                                },
-                                                {
-                                                    {
-                                                        489,
-                                                        1,
-                                                        {
-                                                            "client"
-                                                        },
-                                                        {
-                                                            {
-                                                                491,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxComponent"
-                                                                }
-                                                            },
-                                                            {
-                                                                494,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxHostTypes.roblox"
-                                                                }
-                                                            },
-                                                            {
-                                                                496,
-                                                                1,
-                                                                {
-                                                                    "roblox"
-                                                                },
-                                                                {
-                                                                    {
-                                                                        497,
-                                                                        2,
-                                                                        {
-                                                                            "RobloxComponentProps"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        498,
-                                                                        2,
-                                                                        {
-                                                                            "SingleEventManager"
-                                                                        }
-                                                                    },
-                                                                    {
-                                                                        499,
-                                                                        2,
-                                                                        {
-                                                                            "getDefaultInstanceProperty"
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            {
-                                                                495,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxRoot"
-                                                                }
-                                                            },
-                                                            {
-                                                                493,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxHostConfig"
-                                                                }
-                                                            },
-                                                            {
-                                                                490,
-                                                                2,
-                                                                {
-                                                                    "ReactRoblox"
-                                                                }
-                                                            },
-                                                            {
-                                                                492,
-                                                                2,
-                                                                {
-                                                                    "ReactRobloxComponentTree"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        488,
-                                                        2,
-                                                        {
-                                                            "ReactReconciler.roblox"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                392,
-                                                2,
-                                                {
-                                                    "ES7Types"
-                                                }
-                                            },
-                                            {
-                                                413,
-                                                2,
-                                                {
-                                                    "React"
-                                                },
-                                                {
-                                                    {
-                                                        423,
-                                                        2,
-                                                        {
-                                                            "ReactForwardRef"
-                                                        }
-                                                    },
-                                                    {
-                                                        419,
-                                                        2,
-                                                        {
-                                                            "ReactContext"
-                                                        }
-                                                    },
-                                                    {
-                                                        424,
-                                                        2,
-                                                        {
-                                                            "ReactHooks"
-                                                        }
-                                                    },
-                                                    {
-                                                        417,
-                                                        2,
-                                                        {
-                                                            "ReactBinding.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        426,
-                                                        2,
-                                                        {
-                                                            "ReactMemo"
-                                                        }
-                                                    },
-                                                    {
-                                                        427,
-                                                        2,
-                                                        {
-                                                            "ReactMutableSource"
-                                                        }
-                                                    },
-                                                    {
-                                                        415,
-                                                        2,
-                                                        {
-                                                            "React"
-                                                        }
-                                                    },
-                                                    {
-                                                        414,
-                                                        2,
-                                                        {
-                                                            "None.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        425,
-                                                        2,
-                                                        {
-                                                            "ReactLazy"
-                                                        }
-                                                    },
-                                                    {
-                                                        416,
-                                                        2,
-                                                        {
-                                                            "ReactBaseClasses"
-                                                        }
-                                                    },
-                                                    {
-                                                        418,
-                                                        2,
-                                                        {
-                                                            "ReactChildren"
-                                                        }
-                                                    },
-                                                    {
-                                                        428,
-                                                        2,
-                                                        {
-                                                            "ReactNoopUpdateQueue"
-                                                        }
-                                                    },
-                                                    {
-                                                        429,
-                                                        2,
-                                                        {
-                                                            "createSignal.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        422,
-                                                        2,
-                                                        {
-                                                            "ReactElementValidator"
-                                                        }
-                                                    },
-                                                    {
-                                                        421,
-                                                        2,
-                                                        {
-                                                            "ReactElement"
-                                                        }
-                                                    },
-                                                    {
-                                                        420,
-                                                        2,
-                                                        {
-                                                            "ReactCreateRef"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                501,
-                                                2,
-                                                {
-                                                    "SafeFlags"
-                                                }
-                                            },
-                                            {
-                                                516,
-                                                2,
-                                                {
-                                                    "Shared"
-                                                },
-                                                {
-                                                    {
-                                                        527,
-                                                        2,
-                                                        {
-                                                            "ReactFeatureFlags"
-                                                        }
-                                                    },
-                                                    {
-                                                        551,
-                                                        2,
-                                                        {
-                                                            "getComponentName"
-                                                        }
-                                                    },
-                                                    {
-                                                        549,
-                                                        2,
-                                                        {
-                                                            "flowtypes.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        542,
-                                                        2,
-                                                        {
-                                                            "Symbol.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        543,
-                                                        2,
-                                                        {
-                                                            "Type.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        547,
-                                                        2,
-                                                        {
-                                                            "consoleWithStackDev"
-                                                        }
-                                                    },
-                                                    {
-                                                        550,
-                                                        2,
-                                                        {
-                                                            "formatProdErrorMessage"
-                                                        }
-                                                    },
-                                                    {
-                                                        556,
-                                                        2,
-                                                        {
-                                                            "shallowEqual"
-                                                        }
-                                                    },
-                                                    {
-                                                        555,
-                                                        2,
-                                                        {
-                                                            "objectIs"
-                                                        }
-                                                    },
-                                                    {
-                                                        554,
-                                                        2,
-                                                        {
-                                                            "isValidElementType"
-                                                        }
-                                                    },
-                                                    {
-                                                        544,
-                                                        2,
-                                                        {
-                                                            "UninitializedState.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        525,
-                                                        2,
-                                                        {
-                                                            "ReactElementType"
-                                                        }
-                                                    },
-                                                    {
-                                                        552,
-                                                        2,
-                                                        {
-                                                            "invariant"
-                                                        }
-                                                    },
-                                                    {
-                                                        519,
-                                                        2,
-                                                        {
-                                                            "ExecutionEnvironment"
-                                                        }
-                                                    },
-                                                    {
-                                                        541,
-                                                        2,
-                                                        {
-                                                            "ReactVersion"
-                                                        }
-                                                    },
-                                                    {
-                                                        548,
-                                                        2,
-                                                        {
-                                                            "enqueueTask.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        546,
-                                                        2,
-                                                        {
-                                                            "console"
-                                                        }
-                                                    },
-                                                    {
-                                                        545,
-                                                        2,
-                                                        {
-                                                            "checkPropTypes"
-                                                        }
-                                                    },
-                                                    {
-                                                        518,
-                                                        2,
-                                                        {
-                                                            "ErrorHandling.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        553,
-                                                        2,
-                                                        {
-                                                            "invokeGuardedCallbackImpl"
-                                                        }
-                                                    },
-                                                    {
-                                                        539,
-                                                        2,
-                                                        {
-                                                            "ReactSymbols"
-                                                        }
-                                                    },
-                                                    {
-                                                        533,
-                                                        2,
-                                                        {
-                                                            "ReactSharedInternals"
-                                                        },
-                                                        {
-                                                            {
-                                                                536,
-                                                                2,
-                                                                {
-                                                                    "ReactCurrentDispatcher"
-                                                                }
-                                                            },
-                                                            {
-                                                                535,
-                                                                2,
-                                                                {
-                                                                    "ReactCurrentBatchConfig"
-                                                                }
-                                                            },
-                                                            {
-                                                                538,
-                                                                2,
-                                                                {
-                                                                    "ReactDebugCurrentFrame"
-                                                                }
-                                                            },
-                                                            {
-                                                                534,
-                                                                2,
-                                                                {
-                                                                    "IsSomeRendererActing"
-                                                                }
-                                                            },
-                                                            {
-                                                                537,
-                                                                2,
-                                                                {
-                                                                    "ReactCurrentOwner"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        540,
-                                                        2,
-                                                        {
-                                                            "ReactTypes"
-                                                        }
-                                                    },
-                                                    {
-                                                        532,
-                                                        2,
-                                                        {
-                                                            "ReactInstanceMap"
-                                                        }
-                                                    },
-                                                    {
-                                                        524,
-                                                        2,
-                                                        {
-                                                            "ReactComponentStackFrame"
-                                                        }
-                                                    },
-                                                    {
-                                                        526,
-                                                        2,
-                                                        {
-                                                            "ReactErrorUtils"
-                                                        }
-                                                    },
-                                                    {
-                                                        517,
-                                                        2,
-                                                        {
-                                                            "ConsolePatchingDev.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        528,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHostConfig"
-                                                        },
-                                                        {
-                                                            {
-                                                                531,
-                                                                2,
-                                                                {
-                                                                    "WithNoTestSelectors"
-                                                                }
-                                                            },
-                                                            {
-                                                                529,
-                                                                2,
-                                                                {
-                                                                    "WithNoHydration"
-                                                                }
-                                                            },
-                                                            {
-                                                                530,
-                                                                2,
-                                                                {
-                                                                    "WithNoPersistence"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        520,
-                                                        1,
-                                                        {
-                                                            "PropMarkers"
-                                                        },
-                                                        {
-                                                            {
-                                                                522,
-                                                                2,
-                                                                {
-                                                                    "Event"
-                                                                }
-                                                            },
-                                                            {
-                                                                523,
-                                                                2,
-                                                                {
-                                                                    "Tag"
-                                                                }
-                                                            },
-                                                            {
-                                                                521,
-                                                                2,
-                                                                {
-                                                                    "Change"
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                432,
-                                                2,
-                                                {
-                                                    "ReactReconciler"
-                                                },
-                                                {
-                                                    {
-                                                        450,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHostConfig"
-                                                        }
-                                                    },
-                                                    {
-                                                        455,
-                                                        2,
-                                                        {
-                                                            "ReactFiberLazyComponent.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        470,
-                                                        2,
-                                                        {
-                                                            "ReactFiberWorkLoop.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        446,
-                                                        2,
-                                                        {
-                                                            "ReactFiberErrorDialog"
-                                                        }
-                                                    },
-                                                    {
-                                                        457,
-                                                        2,
-                                                        {
-                                                            "ReactFiberOffscreenComponent"
-                                                        }
-                                                    },
-                                                    {
-                                                        459,
-                                                        2,
-                                                        {
-                                                            "ReactFiberReconciler.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        454,
-                                                        2,
-                                                        {
-                                                            "ReactFiberLane"
-                                                        }
-                                                    },
-                                                    {
-                                                        461,
-                                                        2,
-                                                        {
-                                                            "ReactFiberSchedulerPriorities.roblox"
-                                                        }
-                                                    },
-                                                    {
-                                                        435,
-                                                        2,
-                                                        {
-                                                            "ReactCapturedValue"
-                                                        }
-                                                    },
-                                                    {
-                                                        485,
-                                                        1,
-                                                        {
-                                                            "forks"
-                                                        },
-                                                        {
-                                                            {
-                                                                486,
-                                                                2,
-                                                                {
-                                                                    "ReactFiberHostConfig.test"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        449,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHooks.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        484,
-                                                        2,
-                                                        {
-                                                            "SchedulingProfiler"
-                                                        }
-                                                    },
-                                                    {
-                                                        444,
-                                                        2,
-                                                        {
-                                                            "ReactFiberContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        483,
-                                                        2,
-                                                        {
-                                                            "SchedulerWithReactIntegration.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        482,
-                                                        2,
-                                                        {
-                                                            "RobloxReactProfiling"
-                                                        }
-                                                    },
-                                                    {
-                                                        467,
-                                                        2,
-                                                        {
-                                                            "ReactFiberTreeReflection"
-                                                        }
-                                                    },
-                                                    {
-                                                        479,
-                                                        2,
-                                                        {
-                                                            "ReactTypeOfMode"
-                                                        }
-                                                    },
-                                                    {
-                                                        442,
-                                                        2,
-                                                        {
-                                                            "ReactFiberCompleteWork.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        452,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHotReloading.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        464,
-                                                        2,
-                                                        {
-                                                            "ReactFiberSuspenseContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        462,
-                                                        2,
-                                                        {
-                                                            "ReactFiberStack.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        481,
-                                                        2,
-                                                        {
-                                                            "ReactWorkTags"
-                                                        }
-                                                    },
-                                                    {
-                                                        456,
-                                                        2,
-                                                        {
-                                                            "ReactFiberNewContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        434,
-                                                        2,
-                                                        {
-                                                            "MaxInts"
-                                                        }
-                                                    },
-                                                    {
-                                                        469,
-                                                        2,
-                                                        {
-                                                            "ReactFiberWorkInProgress"
-                                                        }
-                                                    },
-                                                    {
-                                                        477,
-                                                        2,
-                                                        {
-                                                            "ReactStrictModeWarnings.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        439,
-                                                        2,
-                                                        {
-                                                            "ReactFiberBeginWork.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        476,
-                                                        2,
-                                                        {
-                                                            "ReactRootTags"
-                                                        }
-                                                    },
-                                                    {
-                                                        475,
-                                                        2,
-                                                        {
-                                                            "ReactProfilerTimer.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        474,
-                                                        2,
-                                                        {
-                                                            "ReactPortal"
-                                                        }
-                                                    },
-                                                    {
-                                                        473,
-                                                        2,
-                                                        {
-                                                            "ReactMutableSource.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        436,
-                                                        2,
-                                                        {
-                                                            "ReactChildFiber.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        438,
-                                                        2,
-                                                        {
-                                                            "ReactFiber.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        447,
-                                                        2,
-                                                        {
-                                                            "ReactFiberErrorLogger"
-                                                        }
-                                                    },
-                                                    {
-                                                        471,
-                                                        2,
-                                                        {
-                                                            "ReactHookEffectTags"
-                                                        }
-                                                    },
-                                                    {
-                                                        433,
-                                                        2,
-                                                        {
-                                                            "DebugTracing"
-                                                        }
-                                                    },
-                                                    {
-                                                        458,
-                                                        2,
-                                                        {
-                                                            "ReactFiberReconciler"
-                                                        }
-                                                    },
-                                                    {
-                                                        468,
-                                                        2,
-                                                        {
-                                                            "ReactFiberUnwindWork.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        480,
-                                                        2,
-                                                        {
-                                                            "ReactUpdateQueue.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        460,
-                                                        2,
-                                                        {
-                                                            "ReactFiberRoot.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        451,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHostContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        463,
-                                                        2,
-                                                        {
-                                                            "ReactFiberSuspenseComponent.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        437,
-                                                        2,
-                                                        {
-                                                            "ReactCurrentFiber"
-                                                        }
-                                                    },
-                                                    {
-                                                        441,
-                                                        2,
-                                                        {
-                                                            "ReactFiberCommitWork.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        466,
-                                                        2,
-                                                        {
-                                                            "ReactFiberTransition"
-                                                        }
-                                                    },
-                                                    {
-                                                        453,
-                                                        2,
-                                                        {
-                                                            "ReactFiberHydrationContext.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        448,
-                                                        2,
-                                                        {
-                                                            "ReactFiberFlags"
-                                                        }
-                                                    },
-                                                    {
-                                                        465,
-                                                        2,
-                                                        {
-                                                            "ReactFiberThrow.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        443,
-                                                        2,
-                                                        {
-                                                            "ReactFiberComponentStack"
-                                                        }
-                                                    },
-                                                    {
-                                                        478,
-                                                        2,
-                                                        {
-                                                            "ReactTestSelectors"
-                                                        }
-                                                    },
-                                                    {
-                                                        445,
-                                                        2,
-                                                        {
-                                                            "ReactFiberDevToolsHook.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        440,
-                                                        2,
-                                                        {
-                                                            "ReactFiberClassComponent.new"
-                                                        }
-                                                    },
-                                                    {
-                                                        472,
-                                                        2,
-                                                        {
-                                                            "ReactInternalTypes"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                395,
-                                                2,
-                                                {
-                                                    "LuauPolyfill"
-                                                },
-                                                {
-                                                    {
-                                                        396,
-                                                        2,
-                                                        {
-                                                            "AssertionError"
-                                                        },
-                                                        {
-                                                            {
-                                                                397,
-                                                                2,
-                                                                {
-                                                                    "AssertionError.global"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        400,
-                                                        2,
-                                                        {
-                                                            "Promise"
-                                                        }
-                                                    },
-                                                    {
-                                                        402,
-                                                        2,
-                                                        {
-                                                            "extends"
-                                                        }
-                                                    },
-                                                    {
-                                                        398,
-                                                        2,
-                                                        {
-                                                            "Error"
-                                                        },
-                                                        {
-                                                            {
-                                                                399,
-                                                                2,
-                                                                {
-                                                                    "Error.global"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        401,
-                                                        2,
-                                                        {
-                                                            "encodeURIComponent"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                393,
-                                                2,
-                                                {
-                                                    "InstanceOf"
-                                                },
-                                                {
-                                                    {
-                                                        394,
-                                                        2,
-                                                        {
-                                                            "instanceof"
-                                                        }
-                                                    }
+                                                    "types"
                                                 }
                                             }
                                         }
                                     },
                                     {
-                                        330,
+                                        147,
                                         1,
                                         {
-                                            "@rbxts"
+                                            "_shared"
                                         },
                                         {
                                             {
-                                                334,
+                                                152,
                                                 2,
                                                 {
-                                                    "react"
-                                                },
-                                                {
-                                                    {
-                                                        335,
-                                                        2,
-                                                        {
-                                                            "tags"
-                                                        }
-                                                    }
+                                                    "interaction"
                                                 }
                                             },
                                             {
-                                                337,
-                                                1,
-                                                {
-                                                    "types"
-                                                },
-                                                {
-                                                    {
-                                                        338,
-                                                        1,
-                                                        {
-                                                            "include"
-                                                        },
-                                                        {
-                                                            {
-                                                                339,
-                                                                1,
-                                                                {
-                                                                    "generated"
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    {
-                                                        340,
-                                                        2,
-                                                        {
-                                                            "package"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                331,
-                                                1,
-                                                {
-                                                    "compiler-types"
-                                                },
-                                                {
-                                                    {
-                                                        333,
-                                                        1,
-                                                        {
-                                                            "types"
-                                                        }
-                                                    },
-                                                    {
-                                                        332,
-                                                        2,
-                                                        {
-                                                            "package"
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                336,
+                                                164,
                                                 2,
                                                 {
-                                                    "react-roblox"
+                                                    "useRootCursor"
+                                                }
+                                            },
+                                            {
+                                                149,
+                                                2,
+                                                {
+                                                    "elevation"
+                                                }
+                                            },
+                                            {
+                                                162,
+                                                2,
+                                                {
+                                                    "usePressInteraction"
+                                                }
+                                            },
+                                            {
+                                                151,
+                                                2,
+                                                {
+                                                    "frameSize"
+                                                }
+                                            },
+                                            {
+                                                161,
+                                                2,
+                                                {
+                                                    "usePresence"
+                                                }
+                                            },
+                                            {
+                                                165,
+                                                2,
+                                                {
+                                                    "visual"
+                                                }
+                                            },
+                                            {
+                                                163,
+                                                2,
+                                                {
+                                                    "useResolvedStyleProps"
+                                                }
+                                            },
+                                            {
+                                                158,
+                                                2,
+                                                {
+                                                    "textFont"
+                                                }
+                                            },
+                                            {
+                                                155,
+                                                2,
+                                                {
+                                                    "overlayLayerPolicy"
+                                                }
+                                            },
+                                            {
+                                                154,
+                                                2,
+                                                {
+                                                    "mergeSharedStyleProps"
+                                                }
+                                            },
+                                            {
+                                                156,
+                                                2,
+                                                {
+                                                    "slotProps"
+                                                }
+                                            },
+                                            {
+                                                160,
+                                                2,
+                                                {
+                                                    "useDelayedCallback"
+                                                }
+                                            },
+                                            {
+                                                148,
+                                                2,
+                                                {
+                                                    "TriggerOverlayLayer"
+                                                }
+                                            },
+                                            {
+                                                150,
+                                                2,
+                                                {
+                                                    "foundationDecorators"
+                                                }
+                                            },
+                                            {
+                                                153,
+                                                2,
+                                                {
+                                                    "layering"
+                                                }
+                                            },
+                                            {
+                                                159,
+                                                2,
+                                                {
+                                                    "useControllableState"
+                                                }
+                                            },
+                                            {
+                                                157,
+                                                2,
+                                                {
+                                                    "styleOverride"
                                                 }
                                             }
+                                        }
+                                    },
+                                    {
+                                        9,
+                                        2,
+                                        {
+                                            "Avatar"
+                                        },
+                                        {
+                                            {
+                                                12,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                11,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                10,
+                                                2,
+                                                {
+                                                    "Avatar"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        70,
+                                        2,
+                                        {
+                                            "Modal"
+                                        },
+                                        {
+                                            {
+                                                73,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                71,
+                                                2,
+                                                {
+                                                    "Modal"
+                                                }
+                                            },
+                                            {
+                                                72,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        30,
+                                        2,
+                                        {
+                                            "Checkbox"
+                                        },
+                                        {
+                                            {
+                                                33,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                31,
+                                                2,
+                                                {
+                                                    "Checkbox"
+                                                }
+                                            },
+                                            {
+                                                34,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                32,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        55,
+                                        2,
+                                        {
+                                            "Input"
+                                        },
+                                        {
+                                            {
+                                                59,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                57,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                58,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                56,
+                                                2,
+                                                {
+                                                    "Input"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        114,
+                                        2,
+                                        {
+                                            "Stack"
+                                        },
+                                        {
+                                            {
+                                                116,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                115,
+                                                2,
+                                                {
+                                                    "Stack"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        143,
+                                        2,
+                                        {
+                                            "WorldPortal"
+                                        },
+                                        {
+                                            {
+                                                144,
+                                                2,
+                                                {
+                                                    "WorldPortal"
+                                                }
+                                            },
+                                            {
+                                                146,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                145,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        51,
+                                        2,
+                                        {
+                                            "Image"
+                                        },
+                                        {
+                                            {
+                                                54,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                52,
+                                                2,
+                                                {
+                                                    "Image"
+                                                }
+                                            },
+                                            {
+                                                53,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        47,
+                                        2,
+                                        {
+                                            "Icon"
+                                        },
+                                        {
+                                            {
+                                                48,
+                                                2,
+                                                {
+                                                    "Icon"
+                                                }
+                                            },
+                                            {
+                                                49,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                50,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        90,
+                                        2,
+                                        {
+                                            "ScrollArea"
+                                        },
+                                        {
+                                            {
+                                                91,
+                                                2,
+                                                {
+                                                    "ScrollArea"
+                                                }
+                                            },
+                                            {
+                                                92,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                93,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        21,
+                                        2,
+                                        {
+                                            "Button"
+                                        },
+                                        {
+                                            {
+                                                23,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                22,
+                                                2,
+                                                {
+                                                    "Button"
+                                                }
+                                            },
+                                            {
+                                                24,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                25,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        65,
+                                        2,
+                                        {
+                                            "Menu"
+                                        },
+                                        {
+                                            {
+                                                66,
+                                                2,
+                                                {
+                                                    "Menu"
+                                                }
+                                            },
+                                            {
+                                                67,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                68,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                69,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        13,
+                                        2,
+                                        {
+                                            "Backdrop"
+                                        },
+                                        {
+                                            {
+                                                14,
+                                                2,
+                                                {
+                                                    "Backdrop"
+                                                }
+                                            },
+                                            {
+                                                16,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                15,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        133,
+                                        2,
+                                        {
+                                            "Text"
+                                        },
+                                        {
+                                            {
+                                                136,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                135,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                134,
+                                                2,
+                                                {
+                                                    "Text"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        17,
+                                        2,
+                                        {
+                                            "Box"
+                                        },
+                                        {
+                                            {
+                                                18,
+                                                2,
+                                                {
+                                                    "Box"
+                                                }
+                                            },
+                                            {
+                                                19,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                20,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        128,
+                                        2,
+                                        {
+                                            "Tabs"
+                                        },
+                                        {
+                                            {
+                                                130,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                132,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                131,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                129,
+                                                2,
+                                                {
+                                                    "Tabs"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        74,
+                                        2,
+                                        {
+                                            "Popover"
+                                        },
+                                        {
+                                            {
+                                                80,
+                                                2,
+                                                {
+                                                    "utils"
+                                                }
+                                            },
+                                            {
+                                                76,
+                                                2,
+                                                {
+                                                    "PopoverOverlayPanel"
+                                                }
+                                            },
+                                            {
+                                                78,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                77,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                75,
+                                                2,
+                                                {
+                                                    "Popover"
+                                                }
+                                            },
+                                            {
+                                                79,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        94,
+                                        2,
+                                        {
+                                            "SegmentedControl"
+                                        },
+                                        {
+                                            {
+                                                96,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                98,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                95,
+                                                2,
+                                                {
+                                                    "SegmentedControl"
+                                                }
+                                            },
+                                            {
+                                                97,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        117,
+                                        2,
+                                        {
+                                            "StepperInput"
+                                        },
+                                        {
+                                            {
+                                                118,
+                                                2,
+                                                {
+                                                    "StepperInput"
+                                                }
+                                            },
+                                            {
+                                                120,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                119,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                122,
+                                                2,
+                                                {
+                                                    "utils"
+                                                }
+                                            },
+                                            {
+                                                121,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        107,
+                                        2,
+                                        {
+                                            "Slider"
+                                        },
+                                        {
+                                            {
+                                                111,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                108,
+                                                2,
+                                                {
+                                                    "Slider"
+                                                }
+                                            },
+                                            {
+                                                112,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                109,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                113,
+                                                2,
+                                                {
+                                                    "utils"
+                                                }
+                                            },
+                                            {
+                                                110,
+                                                2,
+                                                {
+                                                    "controllerInput"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        99,
+                                        2,
+                                        {
+                                            "Select"
+                                        },
+                                        {
+                                            {
+                                                101,
+                                                2,
+                                                {
+                                                    "SelectDropdown"
+                                                }
+                                            },
+                                            {
+                                                103,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                104,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                106,
+                                                2,
+                                                {
+                                                    "utils"
+                                                }
+                                            },
+                                            {
+                                                105,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                100,
+                                                2,
+                                                {
+                                                    "Select"
+                                                }
+                                            },
+                                            {
+                                                102,
+                                                2,
+                                                {
+                                                    "SelectOptionRow"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        26,
+                                        2,
+                                        {
+                                            "Card"
+                                        },
+                                        {
+                                            {
+                                                29,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                28,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                27,
+                                                2,
+                                                {
+                                                    "Card"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        123,
+                                        2,
+                                        {
+                                            "Switch"
+                                        },
+                                        {
+                                            {
+                                                126,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                124,
+                                                2,
+                                                {
+                                                    "Switch"
+                                                }
+                                            },
+                                            {
+                                                127,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                125,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        40,
+                                        2,
+                                        {
+                                            "Divider"
+                                        },
+                                        {
+                                            {
+                                                41,
+                                                2,
+                                                {
+                                                    "Divider"
+                                                }
+                                            },
+                                            {
+                                                42,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        60,
+                                        2,
+                                        {
+                                            "KeybindInput"
+                                        },
+                                        {
+                                            {
+                                                63,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                64,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                62,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                61,
+                                                2,
+                                                {
+                                                    "KeybindInput"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        81,
+                                        2,
+                                        {
+                                            "Pressable"
+                                        },
+                                        {
+                                            {
+                                                84,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                83,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                82,
+                                                2,
+                                                {
+                                                    "Pressable"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        137,
+                                        2,
+                                        {
+                                            "Tooltip"
+                                        },
+                                        {
+                                            {
+                                                138,
+                                                2,
+                                                {
+                                                    "Tooltip"
+                                                }
+                                            },
+                                            {
+                                                141,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                139,
+                                                2,
+                                                {
+                                                    "TooltipOverlayBubble"
+                                                }
+                                            },
+                                            {
+                                                142,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                140,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        35,
+                                        2,
+                                        {
+                                            "CircularProgress"
+                                        },
+                                        {
+                                            {
+                                                36,
+                                                2,
+                                                {
+                                                    "CircularProgress"
+                                                }
+                                            },
+                                            {
+                                                39,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                37,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            },
+                                            {
+                                                38,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        85,
+                                        2,
+                                        {
+                                            "Progress"
+                                        },
+                                        {
+                                            {
+                                                89,
+                                                2,
+                                                {
+                                                    "types"
+                                                }
+                                            },
+                                            {
+                                                86,
+                                                2,
+                                                {
+                                                    "Progress"
+                                                }
+                                            },
+                                            {
+                                                88,
+                                                2,
+                                                {
+                                                    "styles"
+                                                }
+                                            },
+                                            {
+                                                87,
+                                                2,
+                                                {
+                                                    "__typecheck__"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                183,
+                                2,
+                                {
+                                    "utils"
+                                },
+                                {
+                                    {
+                                        185,
+                                        2,
+                                        {
+                                            "diagnostics"
+                                        }
+                                    },
+                                    {
+                                        186,
+                                        2,
+                                        {
+                                            "units"
+                                        }
+                                    },
+                                    {
+                                        184,
+                                        2,
+                                        {
+                                            "__test__"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                168,
+                                2,
+                                {
+                                    "motion"
+                                },
+                                {
+                                    {
+                                        170,
+                                        2,
+                                        {
+                                            "signatures"
+                                        }
+                                    },
+                                    {
+                                        172,
+                                        2,
+                                        {
+                                            "types"
+                                        }
+                                    },
+                                    {
+                                        169,
+                                        2,
+                                        {
+                                            "__typecheck__"
+                                        }
+                                    },
+                                    {
+                                        171,
+                                        2,
+                                        {
+                                            "transitions"
+                                        }
+                                    },
+                                    {
+                                        173,
+                                        2,
+                                        {
+                                            "useMotion"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                166,
+                                2,
+                                {
+                                    "icons"
+                                },
+                                {
+                                    {
+                                        167,
+                                        2,
+                                        {
+                                            "lucide"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                177,
+                                2,
+                                {
+                                    "theme"
+                                },
+                                {
+                                    {
+                                        181,
+                                        2,
+                                        {
+                                            "resolveToken"
+                                        }
+                                    },
+                                    {
+                                        179,
+                                        2,
+                                        {
+                                            "defaults"
+                                        }
+                                    },
+                                    {
+                                        180,
+                                        2,
+                                        {
+                                            "refs"
+                                        }
+                                    },
+                                    {
+                                        178,
+                                        2,
+                                        {
+                                            "ThemeProvider"
+                                        }
+                                    },
+                                    {
+                                        182,
+                                        2,
+                                        {
+                                            "types"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                175,
+                                1,
+                                {
+                                    "testing"
+                                },
+                                {
+                                    {
+                                        176,
+                                        2,
+                                        {
+                                            "typeContracts"
                                         }
                                     }
                                 }
@@ -144434,252 +144436,252 @@ local LineOffsets = {
     [312] = 85088,
     [313] = 85496,
     [314] = 85713,
-    [315] = 86048,
-    [316] = 86138,
-    [317] = 86282,
-    [318] = 86357,
-    [319] = 86604,
-    [321] = 86681,
-    [322] = 86892,
-    [323] = 87681,
-    [325] = 87782,
-    [327] = 88604,
-    [328] = 90674,
-    [332] = 90936,
-    [334] = 90962,
-    [335] = 91041,
-    [336] = 91357,
-    [340] = 91360,
-    [342] = 91386,
-    [343] = 91392,
-    [344] = 91402,
-    [345] = 91432,
-    [346] = 91464,
-    [347] = 91521,
-    [348] = 91567,
-    [349] = 91619,
-    [350] = 91637,
-    [351] = 91655,
-    [352] = 91691,
-    [353] = 91720,
-    [354] = 91763,
-    [355] = 91814,
-    [356] = 91850,
-    [357] = 91888,
-    [358] = 91923,
-    [359] = 91961,
-    [360] = 91973,
-    [361] = 92006,
-    [362] = 92039,
-    [363] = 92059,
-    [364] = 92106,
-    [365] = 92150,
-    [366] = 92169,
-    [367] = 92192,
-    [368] = 92239,
-    [369] = 92275,
-    [370] = 92311,
-    [371] = 92363,
-    [372] = 92390,
-    [373] = 92407,
-    [374] = 92596,
-    [375] = 92616,
-    [376] = 92643,
-    [377] = 92661,
-    [378] = 92673,
-    [379] = 92738,
-    [380] = 92768,
-    [381] = 92782,
-    [382] = 92793,
-    [383] = 92810,
-    [384] = 92850,
-    [385] = 92879,
-    [386] = 92893,
-    [387] = 92926,
-    [388] = 93077,
-    [389] = 93120,
-    [390] = 93352,
-    [391] = 93358,
-    [392] = 93458,
-    [393] = 93528,
-    [394] = 93533,
-    [395] = 93581,
-    [396] = 93643,
-    [397] = 93650,
-    [398] = 94234,
-    [399] = 94239,
-    [400] = 94327,
-    [401] = 94362,
-    [402] = 94408,
-    [403] = 94459,
-    [404] = 94465,
-    [405] = 94468,
-    [406] = 94481,
-    [407] = 94486,
-    [408] = 94491,
-    [409] = 94497,
-    [410] = 94504,
-    [411] = 94511,
-    [412] = 94521,
-    [413] = 94557,
-    [414] = 94642,
-    [415] = 94668,
-    [416] = 94842,
-    [417] = 95283,
-    [418] = 95518,
-    [419] = 95880,
-    [420] = 96008,
-    [421] = 96080,
-    [422] = 96810,
-    [423] = 97464,
-    [424] = 97585,
-    [425] = 97911,
-    [426] = 98108,
-    [427] = 98250,
-    [428] = 98289,
-    [429] = 98396,
-    [430] = 98489,
-    [431] = 98494,
-    [432] = 98595,
-    [433] = 98645,
-    [434] = 98933,
-    [435] = 98950,
-    [436] = 98988,
-    [437] = 100672,
-    [438] = 100771,
-    [439] = 101795,
-    [440] = 105435,
-    [441] = 106870,
-    [442] = 109212,
-    [443] = 110831,
-    [444] = 110938,
-    [445] = 111340,
-    [446] = 111512,
-    [447] = 111536,
-    [448] = 111671,
-    [449] = 111772,
-    [450] = 115062,
-    [451] = 115112,
-    [452] = 115240,
-    [453] = 115758,
-    [454] = 116282,
-    [455] = 117253,
-    [456] = 117288,
-    [457] = 117724,
-    [458] = 117765,
-    [459] = 117780,
-    [460] = 118626,
-    [461] = 118755,
-    [462] = 118789,
-    [463] = 118911,
-    [464] = 119076,
-    [465] = 119175,
-    [466] = 119667,
-    [467] = 119692,
-    [468] = 120077,
-    [469] = 120271,
-    [470] = 120311,
-    [471] = 124443,
-    [472] = 124472,
-    [473] = 124839,
-    [474] = 124963,
-    [475] = 125006,
-    [476] = 125187,
-    [477] = 125207,
-    [478] = 125599,
-    [479] = 126178,
-    [480] = 126203,
-    [481] = 126946,
-    [482] = 126988,
-    [483] = 127224,
-    [484] = 127585,
-    [486] = 127849,
-    [487] = 127864,
-    [488] = 127880,
-    [490] = 127892,
-    [491] = 128225,
-    [492] = 128473,
-    [493] = 128775,
-    [494] = 130148,
-    [495] = 130246,
-    [497] = 130522,
-    [498] = 130901,
-    [499] = 131078,
-    [500] = 131153,
-    [501] = 133272,
-    [502] = 133315,
-    [503] = 133401,
-    [504] = 133453,
-    [505] = 134061,
-    [506] = 134078,
-    [507] = 134095,
-    [508] = 134203,
-    [509] = 134227,
-    [510] = 134390,
-    [511] = 134732,
-    [513] = 134924,
-    [514] = 135286,
-    [515] = 135563,
-    [516] = 135606,
-    [517] = 135749,
-    [518] = 135841,
-    [519] = 136061,
-    [521] = 136082,
-    [522] = 136136,
-    [523] = 136193,
-    [524] = 136217,
-    [525] = 136698,
-    [526] = 136749,
-    [527] = 136862,
-    [528] = 137006,
-    [529] = 137047,
-    [530] = 137104,
-    [531] = 137142,
-    [532] = 137179,
-    [533] = 137315,
-    [534] = 137378,
-    [535] = 137399,
-    [536] = 137421,
-    [537] = 137526,
-    [538] = 137556,
-    [539] = 137612,
-    [540] = 137725,
-    [541] = 137994,
-    [542] = 138007,
-    [543] = 138053,
-    [544] = 138108,
-    [545] = 138158,
-    [546] = 138353,
-    [547] = 138393,
-    [548] = 138456,
-    [549] = 138475,
-    [550] = 138711,
-    [551] = 138746,
-    [552] = 138904,
-    [553] = 138940,
-    [554] = 139157,
-    [555] = 139233,
-    [556] = 139258,
-    [557] = 139309,
-    [558] = 139329,
-    [559] = 139370,
-    [560] = 139391,
-    [561] = 139450,
-    [562] = 139487,
-    [563] = 139520,
-    [564] = 139559,
-    [565] = 139598,
-    [566] = 139668,
-    [567] = 139690,
-    [568] = 139699,
-    [569] = 139709,
-    [570] = 139715,
-    [571] = 139721,
-    [572] = 139745,
-    [573] = 139764,
-    [574] = 139795,
-    [575] = 139809,
-    [576] = 139863
+    [315] = 86050,
+    [316] = 86140,
+    [317] = 86284,
+    [318] = 86359,
+    [319] = 86606,
+    [321] = 86683,
+    [322] = 86894,
+    [323] = 87683,
+    [325] = 87784,
+    [327] = 88606,
+    [328] = 90676,
+    [332] = 90938,
+    [334] = 90964,
+    [335] = 91043,
+    [336] = 91359,
+    [340] = 91362,
+    [342] = 91388,
+    [343] = 91394,
+    [344] = 91404,
+    [345] = 91434,
+    [346] = 91466,
+    [347] = 91523,
+    [348] = 91569,
+    [349] = 91621,
+    [350] = 91639,
+    [351] = 91657,
+    [352] = 91693,
+    [353] = 91722,
+    [354] = 91765,
+    [355] = 91816,
+    [356] = 91852,
+    [357] = 91890,
+    [358] = 91925,
+    [359] = 91963,
+    [360] = 91975,
+    [361] = 92008,
+    [362] = 92041,
+    [363] = 92061,
+    [364] = 92108,
+    [365] = 92152,
+    [366] = 92171,
+    [367] = 92194,
+    [368] = 92241,
+    [369] = 92277,
+    [370] = 92313,
+    [371] = 92365,
+    [372] = 92392,
+    [373] = 92409,
+    [374] = 92598,
+    [375] = 92618,
+    [376] = 92645,
+    [377] = 92663,
+    [378] = 92675,
+    [379] = 92740,
+    [380] = 92770,
+    [381] = 92784,
+    [382] = 92795,
+    [383] = 92812,
+    [384] = 92852,
+    [385] = 92881,
+    [386] = 92895,
+    [387] = 92928,
+    [388] = 93079,
+    [389] = 93122,
+    [390] = 93354,
+    [391] = 93360,
+    [392] = 93460,
+    [393] = 93530,
+    [394] = 93535,
+    [395] = 93583,
+    [396] = 93645,
+    [397] = 93652,
+    [398] = 94236,
+    [399] = 94241,
+    [400] = 94329,
+    [401] = 94364,
+    [402] = 94410,
+    [403] = 94461,
+    [404] = 94467,
+    [405] = 94470,
+    [406] = 94483,
+    [407] = 94488,
+    [408] = 94493,
+    [409] = 94499,
+    [410] = 94506,
+    [411] = 94513,
+    [412] = 94523,
+    [413] = 94559,
+    [414] = 94644,
+    [415] = 94670,
+    [416] = 94844,
+    [417] = 95285,
+    [418] = 95520,
+    [419] = 95882,
+    [420] = 96010,
+    [421] = 96082,
+    [422] = 96812,
+    [423] = 97466,
+    [424] = 97587,
+    [425] = 97913,
+    [426] = 98110,
+    [427] = 98252,
+    [428] = 98291,
+    [429] = 98398,
+    [430] = 98491,
+    [431] = 98496,
+    [432] = 98597,
+    [433] = 98647,
+    [434] = 98935,
+    [435] = 98952,
+    [436] = 98990,
+    [437] = 100674,
+    [438] = 100773,
+    [439] = 101797,
+    [440] = 105437,
+    [441] = 106872,
+    [442] = 109214,
+    [443] = 110833,
+    [444] = 110940,
+    [445] = 111342,
+    [446] = 111514,
+    [447] = 111538,
+    [448] = 111673,
+    [449] = 111774,
+    [450] = 115064,
+    [451] = 115114,
+    [452] = 115242,
+    [453] = 115760,
+    [454] = 116284,
+    [455] = 117255,
+    [456] = 117290,
+    [457] = 117726,
+    [458] = 117767,
+    [459] = 117782,
+    [460] = 118628,
+    [461] = 118757,
+    [462] = 118791,
+    [463] = 118913,
+    [464] = 119078,
+    [465] = 119177,
+    [466] = 119669,
+    [467] = 119694,
+    [468] = 120079,
+    [469] = 120273,
+    [470] = 120313,
+    [471] = 124445,
+    [472] = 124474,
+    [473] = 124841,
+    [474] = 124965,
+    [475] = 125008,
+    [476] = 125189,
+    [477] = 125209,
+    [478] = 125601,
+    [479] = 126180,
+    [480] = 126205,
+    [481] = 126948,
+    [482] = 126990,
+    [483] = 127226,
+    [484] = 127587,
+    [486] = 127851,
+    [487] = 127866,
+    [488] = 127882,
+    [490] = 127894,
+    [491] = 128227,
+    [492] = 128475,
+    [493] = 128777,
+    [494] = 130150,
+    [495] = 130248,
+    [497] = 130524,
+    [498] = 130903,
+    [499] = 131080,
+    [500] = 131155,
+    [501] = 133274,
+    [502] = 133317,
+    [503] = 133403,
+    [504] = 133455,
+    [505] = 134063,
+    [506] = 134080,
+    [507] = 134097,
+    [508] = 134205,
+    [509] = 134229,
+    [510] = 134392,
+    [511] = 134734,
+    [513] = 134926,
+    [514] = 135288,
+    [515] = 135565,
+    [516] = 135608,
+    [517] = 135751,
+    [518] = 135843,
+    [519] = 136063,
+    [521] = 136084,
+    [522] = 136138,
+    [523] = 136195,
+    [524] = 136219,
+    [525] = 136700,
+    [526] = 136751,
+    [527] = 136864,
+    [528] = 137008,
+    [529] = 137049,
+    [530] = 137106,
+    [531] = 137144,
+    [532] = 137181,
+    [533] = 137317,
+    [534] = 137380,
+    [535] = 137401,
+    [536] = 137423,
+    [537] = 137528,
+    [538] = 137558,
+    [539] = 137614,
+    [540] = 137727,
+    [541] = 137996,
+    [542] = 138009,
+    [543] = 138055,
+    [544] = 138110,
+    [545] = 138160,
+    [546] = 138355,
+    [547] = 138395,
+    [548] = 138458,
+    [549] = 138477,
+    [550] = 138713,
+    [551] = 138748,
+    [552] = 138906,
+    [553] = 138942,
+    [554] = 139159,
+    [555] = 139235,
+    [556] = 139260,
+    [557] = 139311,
+    [558] = 139331,
+    [559] = 139372,
+    [560] = 139393,
+    [561] = 139452,
+    [562] = 139489,
+    [563] = 139522,
+    [564] = 139561,
+    [565] = 139600,
+    [566] = 139670,
+    [567] = 139692,
+    [568] = 139701,
+    [569] = 139711,
+    [570] = 139717,
+    [571] = 139723,
+    [572] = 139747,
+    [573] = 139766,
+    [574] = 139797,
+    [575] = 139811,
+    [576] = 139865
 }
 
 -- Misc AOT variable imports
