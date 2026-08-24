@@ -311,6 +311,37 @@ ownStartup(function()
     store:Destroy()
 end)
 environment.UniversalHubSettings = store:Get().settings
+local footerSubscriptions = {}
+local footerElapsed = 1
+local footerConnection = RunService.Heartbeat:Connect(function(deltaTime)
+    footerElapsed += deltaTime
+    if footerElapsed < 1 then
+        return
+    end
+    footerElapsed = 0
+    local metrics = {}
+    for id, subscription in pairs(footerSubscriptions) do
+        local ok, value = pcall(subscription.read)
+        if ok then
+            table.insert(metrics, {
+                id = id,
+                kind = subscription.kind,
+                label = subscription.label,
+                value = value,
+            })
+        end
+    end
+    store:Patch({ footerMetrics = metrics })
+end)
+local function subscribeFooterMetric(id, spec, read)
+    footerSubscriptions[id] = { kind = spec.kind, label = spec.label, read = read }
+    return function()
+        footerSubscriptions[id] = nil
+    end
+end
+ownStartup(function()
+    footerConnection:Disconnect()
+end)
 
 local inputCaptureCreated, inputCaptureResult = pcall(InputCapture.new, {
     releaseMouseOnDisable = composition.inputCapture.releaseMouseOnDisable == true,
@@ -577,6 +608,7 @@ local adapterContext = {
     settingsChanged = function(updatedSettings)
         configStore:save(updatedSettings)
     end,
+    subscribeFooterMetric = subscribeFooterMetric,
     setThirdPerson = setThirdPerson,
     gameId = game.GameId,
     generateGuid = function()

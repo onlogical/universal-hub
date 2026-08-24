@@ -48,6 +48,7 @@ export interface KeybindControl extends ControlBase {
 export interface ActionControl extends ControlBase {
 	readonly kind: "action";
 	readonly action: string;
+	readonly confirm?: string;
 	readonly variant?: "primary" | "secondary" | "danger";
 }
 
@@ -173,11 +174,29 @@ export interface WhatsNewModel {
 	readonly fresh?: { readonly [version: string]: boolean };
 }
 
+export interface FooterItem {
+	readonly id: string;
+	readonly icon?: "signal";
+	readonly label: string;
+	readonly tone?: "positive" | "warning" | "negative" | "neutral";
+	readonly value: string;
+}
+
+export interface ActionNotificationModel {
+	readonly action: string;
+	readonly tone?: "success" | "warning" | "error";
+	readonly confirmLabel?: string;
+	readonly text: string;
+	readonly title: string;
+}
+
 export interface UniversalHubMenuModel {
 	readonly brandLabel: string;
 	readonly brandIcon?: string;
 	readonly gameLabel: string;
 	readonly gameIcon?: string;
+	readonly footer?: readonly FooterItem[];
+	readonly notification?: ActionNotificationModel;
 	readonly enemyAudienceIcon?: string;
 	readonly allyAudienceIcon?: string;
 	readonly visible: boolean;
@@ -185,6 +204,7 @@ export interface UniversalHubMenuModel {
 	readonly pages: readonly MenuPage[];
 	readonly onValueChange: (id: string, value: MenuValue, persist: boolean) => void;
 	readonly onAction?: (name: string) => void;
+	readonly onDismissNotification?: () => void;
 }
 
 export interface UniversalHubMenuHandle {

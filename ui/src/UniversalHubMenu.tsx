@@ -6,6 +6,8 @@ import { Text } from "@prism/components/Text";
 import { ThemeProvider } from "@prism/theme";
 import { theme } from "@prism/theme";
 import type { UniversalHubMenuModel } from "./contracts";
+import { ActionNotification } from "./components/ActionNotification";
+import { HubFooter } from "./components/HubFooter";
 import { SectionList } from "./components/SectionList";
 import { WhatsNewModal } from "./components/WhatsNewModal";
 import { HUB_THEME } from "./theme";
@@ -113,6 +115,14 @@ export function UniversalHubMenu({
   return (
     <ThemeProvider theme={HUB_THEME}>
       <WhatsNewModal notice={model.whatsNew} onAction={model.onAction} />
+      <ActionNotification
+        notification={model.notification}
+        onDismiss={model.onDismissNotification}
+        onConfirm={(action) => {
+          model.onAction?.(action);
+          model.onDismissNotification?.();
+        }}
+      />
       <frame
         key="shell"
         ref={shellRef}
@@ -274,7 +284,7 @@ export function UniversalHubMenu({
           </frame>
           <ScrollArea
             width="100%"
-            height={new UDim(1, -110)}
+            height={new UDim(1, -142)}
             position={UDim2.fromOffset(0, 110)}
             direction="vertical"
             scrollbarSize={3}
@@ -287,6 +297,7 @@ export function UniversalHubMenu({
               )}
             </Box>
           </ScrollArea>
+          <HubFooter items={model.footer} />
         </frame>
       </frame>
     </ThemeProvider>

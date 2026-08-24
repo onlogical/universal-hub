@@ -8,7 +8,8 @@ function Presentation.mount(host)
 
     host:section("Tools", "survival", "SURVIVAL", 70)
     host:option("survival", 1, "antiHit", "Anti Hit")
-    host:option("survival", 2, "antiTrap", "Anti Trap")
+    host:option("survival", 2, "lagSafeMovement", "High Ping Mode", "antiHit")
+    host:option("survival", 3, "antiTrap", "Anti Trap")
 
     host:section("Tools", "combat", "COMBAT", 70)
     host:option("combat", 1, "hitAura", "Hit Aura")
@@ -28,7 +29,10 @@ function Presentation.mount(host)
         unit = "ms",
     })
     if type(host.button) == "function" then
-        host:button("server", "serverHop", "Hop to Low Population", "primary")
+        host:button("server", "serverHop", "Hop to Low Population", {
+            confirm = "Leave this server and hop to a low-population server?",
+            variant = "primary",
+        })
     end
 
     host:section("Visuals", "highlights", "HIGHLIGHTS", 70, false, 2, { treatment = "grid" })

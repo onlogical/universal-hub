@@ -2,6 +2,7 @@ import React from "@rbxts/react";
 import { Box } from "@prism/components/Box";
 import { Button } from "@prism/components/Button";
 import { KeybindInput } from "@prism/components/KeybindInput";
+import { Modal } from "@prism/components/Modal";
 import { SegmentedControl } from "@prism/components/SegmentedControl";
 import { Slider } from "@prism/components/Slider";
 import { Stack } from "@prism/components/Stack";
@@ -46,6 +47,7 @@ export function ControlView({
   readonly compact?: boolean;
   readonly layoutOrder?: number;
 }): React.ReactElement {
+  const [confirmationOpened, setConfirmationOpened] = React.useState(false);
   const disabled =
     control.disabled === true ||
     control.status === "unavailable" ||
@@ -329,15 +331,51 @@ export function ControlView({
     return <frame BackgroundTransparency={1} BorderSizePixel={0} />;
 
   return (
-    <Button
-      label={control.label}
-      variant={control.variant === "primary" ? "filled" : "outline"}
-      color={control.variant === "danger" ? "error" : "primary"}
-      disabled={disabled}
-      fullWidth
-      width="100%"
-      slotProps={{ root: { LayoutOrder: layoutOrder } }}
-      onPress={() => model.onAction?.(control.action)}
-    />
+    <>
+      <Button
+        label={control.label}
+        variant={control.variant === "primary" ? "filled" : "outline"}
+        color={control.variant === "danger" ? "error" : "primary"}
+        disabled={disabled}
+        fullWidth
+        width="100%"
+        slotProps={{ root: { LayoutOrder: layoutOrder } }}
+        onPress={() =>
+          control.confirm === undefined
+            ? model.onAction?.(control.action)
+            : setConfirmationOpened(true)
+        }
+      />
+      <Modal
+        opened={confirmationOpened}
+        onClose={() => setConfirmationOpened(false)}
+        title="Switch servers?"
+        size="md"
+        closeOnBackdropClick
+        withCloseButton
+      >
+        <Stack width="100%" gap="md">
+          <Text
+            text={control.confirm ?? ""}
+            size="md"
+            color={theme.text.secondary}
+            width="100%"
+            slotProps={{ root: { TextWrapped: true, TextXAlignment: Enum.TextXAlignment.Left } }}
+          />
+          <Stack width="100%" direction="horizontal" justify="spaceBetween" gap="sm">
+            <Button label="Stay Here" variant="outline" width="48%" onPress={() => setConfirmationOpened(false)} />
+            <Button
+              label="Switch Server"
+              variant="filled"
+              width="48%"
+              onPress={() => {
+                setConfirmationOpened(false);
+                model.onAction?.(control.action);
+              }}
+            />
+          </Stack>
+        </Stack>
+      </Modal>
+    </>
   );
 }

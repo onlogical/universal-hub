@@ -9,8 +9,11 @@ return {
         hitAura = false,
         hitAuraIgnoreFriends = true,
         instantPrompts = false,
+        lagSafeMovement = false,
         serverHop = false,
+        serverHopAttempts = 0,
         serverHopMaxPing = 120,
+        serverHopPingGuard = false,
         trapEsp = false,
     },
     features = {
@@ -24,6 +27,7 @@ return {
             "hitAura",
             "hitAuraIgnoreFriends",
             "instantPrompts",
+            "lagSafeMovement",
             "serverHop",
             "serverHopMaxPing",
             "trapEsp",
@@ -49,6 +53,7 @@ return {
         "games/stealanegg/features/HighlightEsp",
         "games/stealanegg/features/HitAura",
         "games/stealanegg/features/InstantPrompts",
+        "games/stealanegg/features/LagSafeMovement",
         "games/stealanegg/features/ServerHop",
     },
 }

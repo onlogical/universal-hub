@@ -221,12 +221,19 @@ function Catalog:section(page, id, label, lineOffset, includesRates, columns, sp
     table.insert(self.groups, group)
 end
 
-function Catalog:button(sectionId, id, label, variant)
+function Catalog:button(sectionId, id, label, spec)
     if not self.available[id] then
         return
     end
     local group = assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
-    table.insert(group.actions, { action = id, id = id, label = label, variant = variant })
+    spec = type(spec) == "table" and spec or { variant = spec }
+    table.insert(group.actions, {
+        action = id,
+        confirm = spec.confirm,
+        id = id,
+        label = label,
+        variant = spec.variant,
+    })
     self:_markPage(group.page)
 end
 
@@ -466,6 +473,7 @@ function Catalog:model(state)
             for _, action in ipairs(group.actions) do
                 append(controls, {
                     action = action.action,
+                    confirm = action.confirm,
                     id = action.id,
                     kind = "action",
                     label = action.label,
@@ -796,17 +804,42 @@ function Catalog:model(state)
     table.sort(pages, function(left, right)
         return pageRanks[left.id] < pageRanks[right.id]
     end)
+    local footer = {}
+    for _, metric in ipairs(state.footerMetrics or {}) do
+        local tone = "neutral"
+        local icon
+        local value = tostring(metric.value)
+        if metric.kind == "latency" and type(metric.value) == "number" then
+            icon = "signal"
+            tone = metric.value <= 80 and "positive"
+                or metric.value <= 150 and "warning"
+                or "negative"
+            value ..= " ms"
+        end
+        table.insert(footer, {
+            icon = icon,
+            id = metric.id,
+            label = metric.label,
+            tone = tone,
+            value = value,
+        })
+    end
 
     return {
         brandLabel = "universal-hub",
         brandIcon = self.context.brandIcon,
         gameLabel = self.context.gameLabel or "Universal",
         gameIcon = self.context.gameIcon,
+        notification = type(state.notification) == "table" and state.notification or nil,
         enemyAudienceIcon = self.context.enemyAudienceIcon,
         allyAudienceIcon = self.context.allyAudienceIcon,
         visible = state.menuVisible ~= false,
         whatsNew = WhatsNew.model(state.whatsNew),
         pages = pages,
+        footer = footer,
+        onDismissNotification = function()
+            self.context.store:Patch({ notification = false })
+        end,
         onValueChange = function(id, value, persist)
             local segment = self.segmentById[id]
             if segment then
