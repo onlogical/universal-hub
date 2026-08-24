@@ -23,6 +23,7 @@ function AutoFarm.new(options)
         players = options.players,
         publishStatus = options.publishStatus,
         serverHop = options.serverHop,
+        serverHopping = true,
         slotIdentity = options.slotIdentity,
         spawn = options.spawn or task.spawn,
         wait = options.wait or task.wait,
@@ -277,6 +278,19 @@ function AutoFarm:_hop(token)
         end)
         return
     end
+    if not self.serverHopping then
+        self:_publish(
+            "Waiting for targets",
+            "No selected egg is available here. Server Hopping is off; scanning again in 5 seconds."
+        )
+        self.spawn(function()
+            self.wait(5)
+            if self:_active(token) then
+                self:_run(token)
+            end
+        end)
+        return
+    end
     self.serverHop:run(self.maxPing, function(succeeded)
         if succeeded or not self:_active(token) then
             return
@@ -461,6 +475,10 @@ end
 
 function AutoFarm:setHighPopulation(enabled)
     self.highPopulation = enabled == true
+end
+
+function AutoFarm:setServerHopping(enabled)
+    self.serverHopping = enabled == true
 end
 
 function AutoFarm:setMaxPing(value)
