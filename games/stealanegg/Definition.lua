@@ -10,7 +10,6 @@ return {
         hitAuraIgnoreFriends = true,
         instantPrompts = false,
         lagSafeMovement = false,
-        lagSafePromptServer = "",
         serverHop = false,
         serverHopAttempts = 0,
         serverHopMaxPing = 120,

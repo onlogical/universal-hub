@@ -27,6 +27,15 @@ local Adapter = {}
 function Adapter.new(context)
     assert(context and context.store, "Steal An Egg adapter requires a reactive store")
 
+    local environment = type(getgenv) == "function" and getgenv() or _G
+    if type(environment.UniversalHubRuntimeState) ~= "table" then
+        environment.UniversalHubRuntimeState = {}
+    end
+    local runtimeState = environment.UniversalHubRuntimeState
+    if type(runtimeState.stealanegg) ~= "table" then
+        runtimeState.stealanegg = {}
+    end
+    local gameRuntime = runtimeState.stealanegg
     local Workspace = context.workspace or workspace
     local LocalPlayer = context.localPlayer or context.players.LocalPlayer
     local CollectionService = game:GetService("CollectionService")
@@ -199,9 +208,10 @@ function Adapter.new(context)
         local latestSettings = context.store:Get().settings
         if
             latestSettings.lagSafeMovement ~= true
-            and latestSettings.lagSafePromptServer ~= context.jobId
+            and gameRuntime.lagSafePromptServer ~= context.jobId
             and ping > latestSettings.serverHopMaxPing
         then
+            gameRuntime.lagSafePromptServer = context.jobId
             context.store:Patch({
                 notification = {
                     action = "lagSafeMovement",
@@ -213,9 +223,7 @@ function Adapter.new(context)
                     title = "High Ping Detected",
                     tone = "warning",
                 },
-                settings = { lagSafePromptServer = context.jobId },
             })
-            context.settingsChanged(context.store:Get().settings)
         end
     end)
 
