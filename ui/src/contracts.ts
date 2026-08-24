@@ -186,6 +186,7 @@ export interface ActionNotificationModel {
 	readonly action: string;
 	readonly tone?: "success" | "warning" | "error";
 	readonly confirmLabel?: string;
+	readonly position?: "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
 	readonly text: string;
 	readonly title: string;
 }
