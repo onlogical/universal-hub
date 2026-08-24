@@ -11,6 +11,7 @@ end
 
 local AntiHit = importDependency("games/stealanegg/features/AntiHit", "./features/AntiHit")
 local AntiTrap = importDependency("games/stealanegg/features/AntiTrap", "./features/AntiTrap")
+local AutoFarm = importDependency("games/stealanegg/features/AutoFarm", "./features/AutoFarm")
 local AutoOpenEggs =
     importDependency("games/stealanegg/features/AutoOpenEggs", "./features/AutoOpenEggs")
 local HighlightEsp =
@@ -21,6 +22,8 @@ local InstantPrompts =
 local LagSafeMovement =
     importDependency("games/stealanegg/features/LagSafeMovement", "./features/LagSafeMovement")
 local ServerHop = importDependency("games/stealanegg/features/ServerHop", "./features/ServerHop")
+local WalkNavigator =
+    importDependency("games/stealanegg/features/WalkNavigator", "./features/WalkNavigator")
 
 local Adapter = {}
 
@@ -36,17 +39,42 @@ function Adapter.new(context)
         runtimeState.stealanegg = {}
     end
     local gameRuntime = runtimeState.stealanegg
+    if type(gameRuntime.visitedServerIds) ~= "table" then
+        gameRuntime.visitedServerIds = {}
+    end
     local Workspace = context.workspace or workspace
     local LocalPlayer = context.localPlayer or context.players.LocalPlayer
     local CollectionService = game:GetService("CollectionService")
     local HttpService = game:GetService("HttpService")
+    local PathfindingService = game:GetService("PathfindingService")
     local ReplicatedStorage = game:GetService("ReplicatedStorage")
     local RunService = game:GetService("RunService")
     local Stats = game:GetService("Stats")
     local TeleportService = game:GetService("TeleportService")
+    local visitedSettingKey = "UniversalHubStealAnEggVisitedServers"
+    if next(gameRuntime.visitedServerIds) == nil then
+        local loaded, visited =
+            pcall(TeleportService.GetTeleportSetting, TeleportService, visitedSettingKey)
+        if loaded and type(visited) == "table" then
+            for serverId in pairs(visited) do
+                gameRuntime.visitedServerIds[serverId] = true
+            end
+        end
+    end
+    local function persistVisitedServers()
+        pcall(
+            TeleportService.SetTeleportSetting,
+            TeleportService,
+            visitedSettingKey,
+            gameRuntime.visitedServerIds
+        )
+    end
+    local Assets = require(ReplicatedStorage.Directory.Assets)
     local Constants = require(ReplicatedStorage.Library.Globals.Constants)
     local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
     local Network = require(ReplicatedStorage.Library.Client.Network)
+    local PlotCmds = require(ReplicatedStorage.Library.Client.PlotCmds)
+    local SlotIdentity = require(ReplicatedStorage.Library.Util.AreaEggSlotIdentity)
     local antiHit = AntiHit.new({
         eggCmds = EggCmds,
         guardHitEndpoint = Constants.NETWORK_MAP.Guards.FOREST_HIT,
@@ -55,7 +83,7 @@ function Adapter.new(context)
         network = Network,
         ragdoll = require(ReplicatedStorage.Library.Modules.Ragdoll),
         runService = RunService,
-        slotIdentity = require(ReplicatedStorage.Library.Util.AreaEggSlotIdentity),
+        slotIdentity = SlotIdentity,
         workspace = Workspace,
     })
     local antiTrap = AntiTrap.new({
@@ -69,7 +97,7 @@ function Adapter.new(context)
         runService = RunService,
     })
     local highlightEsp = HighlightEsp.new({
-        assets = require(ReplicatedStorage.Directory.Assets),
+        assets = Assets,
         collectionService = CollectionService,
         eggCmds = EggCmds,
         localPlayer = LocalPlayer,
@@ -108,7 +136,32 @@ function Adapter.new(context)
         localPlayer = LocalPlayer,
         logger = context.logger,
         placeId = context.placeId,
+        persistVisited = persistVisitedServers,
         teleportService = TeleportService,
+        visitedServerIds = gameRuntime.visitedServerIds,
+    })
+    local resetConnection = EggCmds.AreaEggResetStartCountdown:Connect(function()
+        table.clear(gameRuntime.visitedServerIds)
+        gameRuntime.visitedServerIds[context.jobId] = true
+        persistVisitedServers()
+    end)
+    local navigator = WalkNavigator.new({
+        localPlayer = LocalPlayer,
+        pathfindingService = PathfindingService,
+        runService = RunService,
+        workspace = Workspace,
+    })
+    local autoFarm = AutoFarm.new({
+        assets = Assets,
+        eggCmds = EggCmds,
+        localPlayer = LocalPlayer,
+        logger = context.logger,
+        navigator = navigator,
+        plotCmds = PlotCmds,
+        players = context.players,
+        serverHop = serverHop,
+        slotIdentity = SlotIdentity,
+        workspace = Workspace,
     })
     local unsubscribePing = context.subscribeFooterMetric("ping", {
         kind = "latency",
@@ -118,10 +171,11 @@ function Adapter.new(context)
         return math.round(item:GetValue())
     end)
     local function apply(state)
-        antiHit:setEnabled(state.settings.antiHit == true)
-        antiTrap:setEnabled(state.settings.antiTrap == true)
+        local farming = state.settings.autoFarm == true
+        antiHit:setEnabled(state.settings.antiHit == true or farming)
+        antiTrap:setEnabled(state.settings.antiTrap == true or farming)
         autoOpenEggs:setEnabled(state.settings.autoOpenEggs == true)
-        highlightEsp:setAntiTrapEnabled(state.settings.antiTrap == true)
+        highlightEsp:setAntiTrapEnabled(state.settings.antiTrap == true or farming)
         highlightEsp:setMinimumRarity(state.settings.eggEspMinimumRarity)
         highlightEsp:setMinimumSize(state.settings.eggEspMinimumSize)
         highlightEsp:setEggsEnabled(state.settings.eggEsp == true)
@@ -130,8 +184,12 @@ function Adapter.new(context)
         hitAura:setEnabled(state.settings.hitAura == true)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
         lagSafeMovement:setEnabled(
-            state.settings.antiHit == true and state.settings.lagSafeMovement == true
+            (state.settings.antiHit == true or farming) and state.settings.lagSafeMovement == true
         )
+        autoFarm:setTargetRarities(state.settings.autoFarmEternal, state.settings.autoFarmSecret)
+        autoFarm:setHighPopulation(state.settings.autoFarmHighPopulation)
+        autoFarm:setMaxPing(state.settings.serverHopMaxPing)
+        autoFarm:setEnabled(farming)
         if state.settings.serverHop == true then
             context.store:Patch({
                 settings = {
@@ -153,13 +211,16 @@ function Adapter.new(context)
         stopped = true
         pcall(unsubscribe)
         pcall(unsubscribePing)
+        pcall(resetConnection.Disconnect, resetConnection)
         pcall(antiHit.stop, antiHit)
         pcall(antiTrap.stop, antiTrap)
+        pcall(autoFarm.stop, autoFarm)
         pcall(autoOpenEggs.stop, autoOpenEggs)
         pcall(highlightEsp.stop, highlightEsp)
         pcall(hitAura.stop, hitAura)
         pcall(instantPrompts.stop, instantPrompts)
         pcall(lagSafeMovement.stop, lagSafeMovement)
+        pcall(navigator.stop, navigator)
         pcall(serverHop.stop, serverHop)
     end
     local applied, applyError = pcall(apply, context.store:Get())

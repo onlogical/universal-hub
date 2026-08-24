@@ -16,10 +16,11 @@ function Presentation.mount(host)
     host:option("combat", 2, "hitAuraIgnoreFriends", "Ignore Friends", "hitAura")
 
     host:section("Tools", "eggs", "EGGS", 70)
-    host:option("eggs", 1, "autoOpenEggs", "Auto Open Eggs")
-
-    host:section("Tools", "prompts", "PROMPTS", 70)
-    host:option("prompts", 1, "instantPrompts", "Instant Prompts")
+    host:option("eggs", 1, "autoFarm", "Auto Farm")
+    host:option("eggs", 2, "autoFarmEternal", "Eternal Eggs", "autoFarm")
+    host:option("eggs", 3, "autoFarmSecret", "Secret Eggs", "autoFarm")
+    host:option("eggs", 4, "autoFarmHighPopulation", "High Population", "autoFarm")
+    host:option("eggs", 5, "autoOpenEggs", "Auto Open Eggs")
 
     host:section("Tools", "server", "SERVER", 70)
     host:slider("server", "serverHopMaxPing", "Maximum Ping", {
@@ -28,12 +29,16 @@ function Presentation.mount(host)
         step = 10,
         unit = "ms",
     })
+    host:section("Tools", "serverHop", "SERVER HOP", 70)
     if type(host.button) == "function" then
-        host:button("server", "serverHop", "Hop to Low Population", {
+        host:button("serverHop", "serverHop", "Hop to Low Population", {
             confirm = "Leave this server and hop to a low-population server?",
             variant = "primary",
         })
     end
+
+    host:section("Tools", "prompts", "PROMPTS", 70)
+    host:option("prompts", 1, "instantPrompts", "Instant Prompts")
 
     host:section("Visuals", "highlights", "HIGHLIGHTS", 70, false, 2, { treatment = "grid" })
     host:option("highlights", 1, "eggEsp", "Eggs")

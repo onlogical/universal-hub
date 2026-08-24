@@ -4,6 +4,11 @@ ServerHop.__index = ServerHop
 function ServerHop.new(options)
     assert(options and options.httpGet and options.decode and options.teleportService)
     assert(options.localPlayer and options.placeId and options.jobId)
+    local visitedServerIds = options.visitedServerIds or {}
+    visitedServerIds[options.jobId] = true
+    if options.persistVisited then
+        options.persistVisited()
+    end
     return setmetatable({
         decode = options.decode,
         httpGet = options.httpGet,
@@ -11,8 +16,11 @@ function ServerHop.new(options)
         localPlayer = options.localPlayer,
         logger = options.logger,
         placeId = options.placeId,
+        persistVisited = options.persistVisited,
         spawn = options.spawn or task.spawn,
         teleportService = options.teleportService,
+        visitedServerIds = visitedServerIds,
+        requestSerial = 0,
         running = false,
         stopped = false,
     }, ServerHop)
@@ -25,28 +33,41 @@ function ServerHop:_log(level, message, fields)
     end
 end
 
-function ServerHop:run(maxPing)
+function ServerHop:run(maxPing, completed, isActive, populationMode)
     if self.running or self.stopped then
+        if completed then
+            completed(false, self.stopped and "stopped" or "busy")
+        end
         return
     end
     self.running = true
     self.spawn(function()
         local ok, result = pcall(function()
-            local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100"):format(
-                self.placeId
+            self.requestSerial += 1
+            local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100&excludeFullGames=true&_=%s-%d"):format(
+                self.placeId,
+                self.jobId,
+                self.requestSerial
             )
             local response = self.decode(self.httpGet(url))
             local best
             for _, server in ipairs(response.data or {}) do
                 if
                     server.id ~= self.jobId
+                    and self.visitedServerIds[server.id] ~= true
                     and server.playing < server.maxPlayers
                     and type(server.ping) == "number"
                     and server.ping <= maxPing
                     and (
                         not best
-                        or server.playing < best.playing
-                        or (server.playing == best.playing and server.ping < best.ping)
+                        or (populationMode == "high" and (server.playing > best.playing or (server.playing == best.playing and server.ping < best.ping)))
+                        or (
+                            populationMode ~= "high"
+                            and (
+                                server.playing < best.playing
+                                or (server.playing == best.playing and server.ping < best.ping)
+                            )
+                        )
                     )
                 then
                     best = server
@@ -58,17 +79,19 @@ function ServerHop:run(maxPing)
                 players = best.playing,
                 serverId = best.id,
             })
-            if not self.stopped then
-                self.teleportService:TeleportToPlaceInstance(
-                    self.placeId,
-                    best.id,
-                    self.localPlayer
-                )
+            assert(not self.stopped and (not isActive or isActive()), "Server hop cancelled")
+            self.teleportService:TeleportToPlaceInstance(self.placeId, best.id, self.localPlayer)
+            self.visitedServerIds[best.id] = true
+            if self.persistVisited then
+                self.persistVisited()
             end
         end)
         self.running = false
         if not ok then
             self:_log("error", "failed", { error = result })
+        end
+        if completed then
+            completed(ok, result)
         end
     end)
 end

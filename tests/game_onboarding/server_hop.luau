@@ -17,6 +17,7 @@ local hop = ServerHop.new({
                 { id = "current", playing = 1, maxPlayers = 10, ping = 30 },
                 { id = "full", playing = 2, maxPlayers = 2, ping = 20 },
                 { id = "too-slow", playing = 1, maxPlayers = 10, ping = 180 },
+                { id = "seen", playing = 0, maxPlayers = 10, ping = 25 },
                 { id = "busier", playing = 5, maxPlayers = 10, ping = 50 },
                 { id = "lowest", playing = 2, maxPlayers = 10, ping = 70 },
             },
@@ -33,6 +34,7 @@ local hop = ServerHop.new({
     spawn = function(callback)
         callback()
     end,
+    visitedServerIds = { seen = true },
     teleportService = {
         TeleportToPlaceInstance = function(_, placeId, serverId, player)
             teleported = { placeId = placeId, player = player, serverId = serverId }
@@ -40,9 +42,15 @@ local hop = ServerHop.new({
     },
 })
 
-hop:run(120)
+local completed
+hop:run(120, function(succeeded)
+    completed = succeeded
+end)
+assert(completed == true, "Server Hop must report successful requests to Auto Farm")
 assert(
     teleported.placeId == 123 and teleported.serverId == "lowest" and teleported.player == "player"
 )
 assert(logs[1].scope == "stealanegg.serverHop" and logs[1].fields.players == 2)
+hop:run(120, nil, nil, "high")
+assert(teleported.serverId == "busier", "High-population mode must prefer the busiest server")
 print("server-hop-ok")
