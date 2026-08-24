@@ -93,7 +93,7 @@ export function ActionNotification({
 				Font={Enum.Font.GothamMedium}
 				Event={{ Activated: () => close(onDismiss) }}
 			/>
-			<Stack width="100%" gap="sm">
+			<Stack width="100%" height="100%" justify="spaceBetween">
 				<Text
 					text={notification.title}
 					size="md"
@@ -110,7 +110,7 @@ export function ActionNotification({
 					slotProps={{ root: { TextWrapped: true, TextXAlignment: Enum.TextXAlignment.Left } }}
 				/>
 				<Stack width="100%" direction="horizontal" justify="end" gap="xs">
-					<Button label="Not Now" variant="subtle" color="primary" width={104} onPress={() => close(onDismiss)} />
+					<Button label="Not Now" variant="outline" color="primary" width={104} onPress={() => close(onDismiss)} />
 					<Button
 						label={notification.confirmLabel ?? "Enable"}
 						variant="filled"
