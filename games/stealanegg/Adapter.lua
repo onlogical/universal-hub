@@ -116,11 +116,30 @@ function Adapter.new(context)
     })
     local instantPrompts = InstantPrompts.new(Workspace)
     local guardSpeeds = {}
+    local guardModels = {}
+    local objects = Workspace:FindFirstChild("__OBJECTS")
+    local areas = objects and objects:FindFirstChild("Areas")
+    local guardAreas = areas and areas:FindFirstChild("GuardAreas")
     for areaId, config in pairs(require(ReplicatedStorage.Directory.Guards).Directory) do
         guardSpeeds[areaId] = config.WalkSpeed
+        local area = guardAreas and guardAreas:FindFirstChild(areaId)
+        local guard = area and area:FindFirstChild("Guard")
+        if guard and guard:IsA("Model") then
+            guardModels[areaId] = guard
+        end
+    end
+    local function currentPing()
+        for _, metric in ipairs(context.store:Get().footerMetrics or {}) do
+            if metric.id == "ping" and type(metric.value) == "number" then
+                return metric.value
+            end
+        end
+        return 0
     end
     local lagSafeMovement = LagSafeMovement.new({
         eggCmds = EggCmds,
+        getPing = currentPing,
+        guardModels = guardModels,
         guardSpeeds = guardSpeeds,
         localPlayer = LocalPlayer,
         runService = RunService,
@@ -164,13 +183,7 @@ function Adapter.new(context)
                 context.store:Patch({ floatingMonitor = false })
                 return
             end
-            model.ping = 0
-            for _, metric in ipairs(context.store:Get().footerMetrics or {}) do
-                if metric.id == "ping" and type(metric.value) == "number" then
-                    model.ping = math.round(metric.value)
-                    break
-                end
-            end
+            model.ping = math.round(currentPing())
             model.players = #context.players:GetPlayers()
             context.store:Patch({ floatingMonitor = model })
         end,
@@ -199,7 +212,7 @@ function Adapter.new(context)
         hitAura:setEnabled(state.settings.hitAura == true)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
         lagSafeMovement:setEnabled(
-            (state.settings.antiHit == true or farming) and state.settings.lagSafeMovement == true
+            farming or (state.settings.antiHit == true and state.settings.lagSafeMovement == true)
         )
         autoFarm:setTargetRarities(state.settings.autoFarmEternal, state.settings.autoFarmSecret)
         autoFarm:setHighPopulation(state.settings.autoFarmHighPopulation)
@@ -277,6 +290,7 @@ function Adapter.new(context)
         local latestSettings = context.store:Get().settings
         if
             latestSettings.lagSafeMovement ~= true
+            and latestSettings.autoFarm ~= true
             and gameRuntime.lagSafePromptServer ~= context.jobId
             and ping > latestSettings.serverHopMaxPing
         then

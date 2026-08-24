@@ -23,6 +23,7 @@ local heartbeat = {
 }
 local humanoid = { Parent = true, WalkSpeed = 100 }
 local areaId = "Cosmic"
+local ping = 200
 local player = {
     UserId = 42,
     Character = {
@@ -43,6 +44,9 @@ local movement = LagSafeMovement.new({
             }
         end,
     },
+    getPing = function()
+        return ping
+    end,
     guardSpeeds = { Cosmic = 200, Snow = 98 },
     localPlayer = player,
     runService = { Heartbeat = heartbeat },
@@ -56,5 +60,16 @@ assert(humanoid.WalkSpeed == 65, "The speed cap must not decay every frame")
 areaId = "Snow"
 callback()
 assert(humanoid.WalkSpeed == 100, "Normal areas must restore full speed")
+areaId = "Cosmic"
+humanoid.WalkSpeed = 250
+callback()
+assert(humanoid.WalkSpeed == 250, "Players who can outrun the boss must keep full speed")
+humanoid.WalkSpeed = 100
+ping = 80
+callback()
+assert(humanoid.WalkSpeed == 100, "Low-ping servers must not apply High Ping Mode")
+ping = 200
+callback()
+assert(humanoid.WalkSpeed == 65, "High ping plus a faster boss must apply the safety cap")
 movement:stop()
 print("lag-safe-movement-ok")

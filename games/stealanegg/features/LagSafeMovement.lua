@@ -7,8 +7,13 @@ function LagSafeMovement.new(options)
         eggCmds = options.eggCmds,
         enabled = false,
         factor = 0.65,
+        getPing = options.getPing or function()
+            return math.huge
+        end,
+        guardModels = options.guardModels or {},
         guardSpeeds = assert(options.guardSpeeds),
         localPlayer = options.localPlayer,
+        pingThreshold = options.pingThreshold or 170,
         runService = options.runService,
     }, LagSafeMovement)
 end
@@ -16,6 +21,33 @@ end
 function LagSafeMovement:_humanoid()
     local character = self.localPlayer.Character
     return character and character:FindFirstChildOfClass("Humanoid") or nil
+end
+
+function LagSafeMovement:_shouldApply(humanoid, areaId, guardSpeed)
+    if not self.carrying or type(guardSpeed) ~= "number" or guardSpeed < 180 then
+        return false
+    end
+    local ping = tonumber(self.getPing()) or 0
+    if ping < self.pingThreshold then
+        return false
+    end
+    local playerSpeed = humanoid == self.humanoid and self.baseSpeed or humanoid.WalkSpeed
+    if type(playerSpeed) == "number" and playerSpeed >= guardSpeed * 1.05 then
+        return false
+    end
+    local guard = self.guardModels[areaId]
+    if guard and guard.Parent then
+        local character = self.localPlayer.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        if root and root:IsA("BasePart") then
+            local distance = (guard:GetPivot().Position - root.Position).Magnitude
+            local threatRadius = 140 + math.min(ping, 300) * 0.25
+            if distance > threatRadius then
+                return false
+            end
+        end
+    end
+    return true
 end
 
 function LagSafeMovement:setEnabled(enabled)
@@ -42,7 +74,7 @@ function LagSafeMovement:setEnabled(enabled)
             end
             local areaId = self.localPlayer:GetAttribute("AreaId")
             local guardSpeed = self.guardSpeeds[areaId]
-            if not self.carrying or type(guardSpeed) ~= "number" or guardSpeed < 180 then
+            if not self:_shouldApply(humanoid, areaId, guardSpeed) then
                 if humanoid == self.humanoid and humanoid.WalkSpeed == self.appliedSpeed then
                     humanoid.WalkSpeed = self.baseSpeed
                 end
