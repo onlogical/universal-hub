@@ -55,7 +55,6 @@ export function ActionNotification({
 	}, [notification]);
 
 	if (notification === undefined) return <></>;
-	const tone = notification.tone ?? "warning";
 	const close = (callback?: () => void) => {
 		const group = groupRef.current;
 		if (group === undefined) {
@@ -111,11 +110,11 @@ export function ActionNotification({
 					slotProps={{ root: { TextWrapped: true, TextXAlignment: Enum.TextXAlignment.Left } }}
 				/>
 				<Stack width="100%" direction="horizontal" justify="end" gap="xs">
-					<Button label="Not Now" variant="subtle" color={tone} width={104} onPress={() => close(onDismiss)} />
+					<Button label="Not Now" variant="subtle" color="primary" width={104} onPress={() => close(onDismiss)} />
 					<Button
 						label={notification.confirmLabel ?? "Enable"}
 						variant="filled"
-						color={tone}
+						color="primary"
 						width={104}
 						onPress={() => close(() => onConfirm?.(notification.action))}
 					/>
