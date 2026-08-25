@@ -1,7 +1,7 @@
 local WalkNavigator = {}
 WalkNavigator.__index = WalkNavigator
 
-local STEP_MULTIPLIER = 4
+local STEP_SPEED = 1300
 local MAX_STEP_SECONDS = 1 / 30
 
 local function flatDistance(from, to)
@@ -176,9 +176,8 @@ function WalkNavigator:stepTo(destination, isActive, tolerance)
         end
         return reached, reason
     end
-    local stepSpeed = math.max(tonumber(humanoid.WalkSpeed) or 0, 1) * STEP_MULTIPLIER
     local deadline = self.workspace:GetServerTimeNow()
-        + math.max(10, flatDistance(root.Position, destination) / stepSpeed * 4)
+        + math.max(10, flatDistance(root.Position, destination) / STEP_SPEED * 4)
     humanoid:MoveTo(destination)
     while not self.stopped and isActive() and self.workspace:GetServerTimeNow() <= deadline do
         humanoid, root = characterParts(self.localPlayer)
@@ -200,7 +199,7 @@ function WalkNavigator:stepTo(destination, isActive, tolerance)
         distance = math.sqrt(delta.X * delta.X + delta.Z * delta.Z)
         if distance > 0 then
             local seconds = math.min(math.max(dt, 0), MAX_STEP_SECONDS)
-            local step = math.min(stepSpeed * seconds, distance)
+            local step = math.min(STEP_SPEED * seconds, distance)
             local direction = Vector3.new(delta.X / distance, 0, delta.Z / distance)
             root.CFrame = CFrame.new(root.Position + direction * step) * root.CFrame.Rotation
             root.AssemblyLinearVelocity = Vector3.zero

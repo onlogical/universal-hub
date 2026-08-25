@@ -135,7 +135,6 @@ local stepRoot = setmetatable({
 })
 local stepMoves = {}
 local stepHumanoid = {
-    WalkSpeed = 200,
     MoveTo = function(_, position)
         table.insert(stepMoves, position)
     end,
