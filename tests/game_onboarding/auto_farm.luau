@@ -213,8 +213,8 @@ records = { records[1], missingIndexEgg }
 byUid[missingIndexEgg.Uid] = missingIndexEgg
 farm:setCompleteIndex(true)
 assert(
-    farm:_selectTarget().record == missingIndexEgg,
-    "Complete Index must prioritize an exact undiscovered egg over indexed rare eggs"
+    farm:_selectTarget().record == records[1],
+    "Global Secret targets must take priority over missing Index eggs"
 )
 farm:setTargetRarities(false, false)
 farm:setIndexServerHopping(false)

@@ -1185,8 +1185,9 @@ function AutoFarm:_selectTarget()
         then
             local rarityNumber, rarityName = self:_rarity(record)
             local indexTarget = self:_isIndexTarget(record)
-            if self.targetRarities[rarityName] == true or indexTarget then
-                if self.targetRarities[rarityName] == true then
+            local rareTarget = self.targetRarities[rarityName] == true
+            if rareTarget or indexTarget then
+                if rareTarget then
                     self.markGlobalSpawn(rarityName)
                 end
                 local carrierRoot = isCarried(record) and self:_carrierRoot(record) or nil
@@ -1195,16 +1196,22 @@ function AutoFarm:_selectTarget()
                 local distance = position and (position - targetPosition).Magnitude or math.huge
                 if
                     not best
-                    or (indexTarget and not best.indexTarget)
+                    or (rareTarget and not best.rareTarget)
                     or (
-                        indexTarget == best.indexTarget
+                        rareTarget == best.rareTarget
                         and (
-                            rarityNumber > best.rarityNumber
-                            or (rarityNumber == best.rarityNumber and distance < best.distance)
+                            (indexTarget and not best.indexTarget)
                             or (
-                                rarityNumber == best.rarityNumber
-                                and distance == best.distance
-                                and record.Uid < best.record.Uid
+                                indexTarget == best.indexTarget
+                                and (
+                                    rarityNumber > best.rarityNumber
+                                    or (rarityNumber == best.rarityNumber and distance < best.distance)
+                                    or (
+                                        rarityNumber == best.rarityNumber
+                                        and distance == best.distance
+                                        and record.Uid < best.record.Uid
+                                    )
+                                )
                             )
                         )
                     )
@@ -1212,6 +1219,7 @@ function AutoFarm:_selectTarget()
                     best = {
                         distance = distance,
                         indexTarget = indexTarget,
+                        rareTarget = rareTarget,
                         rarityName = rarityName,
                         rarityNumber = rarityNumber,
                         record = record,
@@ -1476,7 +1484,7 @@ function AutoFarm:_run(token)
         })
         self:_publish(
             "Walking to target",
-            ("%s %s · %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
+            ("%s %s Â· %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
             record.Uid
         )
         local reached, reason = self.navigator:walkTo(record.BottomCFrame.Position, function()
@@ -2020,7 +2028,7 @@ function HighlightEsp:_refreshEgg(uid)
         self.eggLabels,
         uid,
         model,
-        ("%s\n%s • %.1fx"):format(
+        ("%s\n%s â€¢ %.1fx"):format(
             tostring(record.AssetCategory),
             tostring(rarity.DisplayName or rarity._id or "Egg"),
             record.AssetScale
