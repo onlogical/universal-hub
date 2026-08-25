@@ -64,7 +64,6 @@ local queued
 local walks = {}
 local headings = {}
 local directMoves = 0
-local fastMoves = 0
 local treadmillUnequips = 0
 local closerRetries = 0
 local jumps = 0
@@ -129,22 +128,6 @@ local navigator = {
     end,
     moveToDirect = function(_, position, isActive)
         directMoves += 1
-        root.Position = position
-        table.insert(walks, position)
-        if loseDuringEscape then
-            byUid.lost.State = "GuardCarried"
-            byUid.lost.CarrierUserId = nil
-            assert(isActive() == false)
-            return false, "cancelled"
-        end
-        if position == Vector3.new(40, 0, -80) then
-            byUid.eternal = nil
-            farm.claimed = true
-        end
-        return true
-    end,
-    stepTo = function(_, position, isActive)
-        fastMoves += 1
         root.Position = position
         table.insert(walks, position)
         if loseDuringEscape then
@@ -335,8 +318,8 @@ assert(
     "Every carry request must already have the guard exit queued"
 )
 assert(
-    walks[4] == Vector3.new(40, 0, -80) and directMoves == 3 and fastMoves == 2,
-    "Auto Farm must keep pickup correction native, then step quickly through escape and home"
+    walks[4] == Vector3.new(40, 0, -80) and directMoves == 4,
+    "Auto Farm must recover a timed-out route, correct pickup distance, then take the direct exit"
 )
 assert(
     walks[5] == Vector3.new(0, 0, 100),

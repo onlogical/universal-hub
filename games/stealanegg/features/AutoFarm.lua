@@ -638,7 +638,8 @@ function AutoFarm:_run(token)
         local home = escape or self:_homePosition()
         if home then
             self.claimed = false
-            local returned, returnReason = self.navigator:stepTo(home, function()
+            local navigate = escape and self.navigator.moveToDirect or self.navigator.walkTo
+            local returned, returnReason = navigate(self.navigator, home, function()
                 local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
                 return self:_active(token)
                     and not self.claimed

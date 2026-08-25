@@ -1,5 +1,4 @@
 local roblox = require("@lune/roblox")
-CFrame = roblox.CFrame
 Enum = roblox.Enum
 Vector3 = roblox.Vector3
 
@@ -109,78 +108,4 @@ assert(
 )
 navigator:stop()
 assert(createdModifier.destroyed == true, "Stopping navigation must remove its treadmill modifier")
-
-local stepPosition = Vector3.zero
-local stepRoot = setmetatable({
-    AssemblyLinearVelocity = Vector3.new(5, 0, 0),
-    IsA = function(_, className)
-        return className == "BasePart"
-    end,
-}, {
-    __index = function(_, key)
-        if key == "Position" then
-            return stepPosition
-        end
-        if key == "CFrame" then
-            return CFrame.new(stepPosition)
-        end
-    end,
-    __newindex = function(self, key, value)
-        if key == "CFrame" then
-            stepPosition = value.Position
-        else
-            rawset(self, key, value)
-        end
-    end,
-})
-local stepMoves = {}
-local stepHumanoid = {
-    MoveTo = function(_, position)
-        table.insert(stepMoves, position)
-    end,
-}
-local stepCharacter = {
-    FindFirstChild = function(_, name)
-        return name == "HumanoidRootPart" and stepRoot or nil
-    end,
-    FindFirstChildOfClass = function(_, className)
-        return className == "Humanoid" and stepHumanoid or nil
-    end,
-}
-local stepWaits = 0
-local stepNavigator = WalkNavigator.new({
-    localPlayer = { Character = stepCharacter },
-    runService = {
-        Heartbeat = {
-            Wait = function()
-                stepWaits += 1
-                return 1 / 60
-            end,
-        },
-    },
-    workspace = {
-        GetServerTimeNow = function()
-            return stepWaits / 60
-        end,
-    },
-})
-local stepped = stepNavigator:stepTo(Vector3.new(100, 8, 0), function()
-    return true
-end, 1)
-assert(stepped == true and stepPosition == Vector3.new(100, 0, 0))
-assert(
-    stepRoot.AssemblyLinearVelocity == Vector3.zero and stepMoves[1] == Vector3.new(100, 8, 0),
-    "Fast stepping must preserve native movement intent while clearing physical velocity"
-)
-local activeChecks = 0
-local cancelled, cancelReason = stepNavigator:stepTo(Vector3.new(200, 0, 0), function()
-    activeChecks += 1
-    return activeChecks == 1
-end, 1)
-assert(cancelled == false and cancelReason == "cancelled")
-assert(
-    stepMoves[#stepMoves] == stepPosition,
-    "Cancelled fast stepping must stop native movement at the current position"
-)
-stepNavigator:stop()
 print("walk-navigator-ok")
