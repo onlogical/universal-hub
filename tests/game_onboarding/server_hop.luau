@@ -17,6 +17,7 @@ end
 
 local teleportFailed = signal()
 local teleported
+local requestedUrls = {}
 local logs = {}
 local logger = {}
 function logger:info(scope, message, fields)
@@ -41,6 +42,7 @@ local hop = ServerHop.new({
     end,
     httpGet = function(url)
         assert(url:find("/123/servers/Public", 1, true))
+        table.insert(requestedUrls, url)
         return "response"
     end,
     jobId = "current",
@@ -68,8 +70,13 @@ assert(
     teleported.placeId == 123 and teleported.serverId == "lowest" and teleported.player == "player"
 )
 assert(logs[1].scope == "stealanegg.serverHop" and logs[1].fields.players == 2)
+assert(requestedUrls[1]:find("sortOrder=Asc", 1, true), "Low population must request the low end")
 teleportFailed:Fire("player", "Failure", "Error 279")
 assert(completed == false, "Teleport-init failures must be reported so Auto Farm can retry")
 hop:run(120, nil, nil, "high")
+assert(
+    requestedUrls[2]:find("sortOrder=Desc", 1, true),
+    "High population must request the busy end"
+)
 assert(teleported.serverId == "busier", "High-population mode must prefer the busiest server")
 print("server-hop-ok")

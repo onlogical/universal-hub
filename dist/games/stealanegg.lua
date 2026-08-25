@@ -1352,7 +1352,7 @@ function AutoFarm:_run(token)
         })
         self:_publish(
             "Walking to target",
-            ("%s %s · %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
+            ("%s %s Â· %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
             record.Uid
         )
         local reached, reason = self.navigator:walkTo(record.BottomCFrame.Position, function()
@@ -1782,7 +1782,7 @@ function HighlightEsp:_refreshEgg(uid)
         self.eggLabels,
         uid,
         model,
-        ("%s\n%s • %.1fx"):format(
+        ("%s\n%s â€¢ %.1fx"):format(
             tostring(record.AssetCategory),
             tostring(rarity.DisplayName or rarity._id or "Egg"),
             record.AssetScale
@@ -2351,8 +2351,10 @@ function ServerHop:run(maxPing, completed, isActive, populationMode)
     self.spawn(function()
         local ok, result = pcall(function()
             self.requestSerial += 1
-            local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100&excludeFullGames=true&_=%s-%d"):format(
+            local sortOrder = populationMode == "high" and "Desc" or "Asc"
+            local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=%s&limit=100&excludeFullGames=true&_=%s-%d"):format(
                 self.placeId,
+                sortOrder,
                 self.jobId,
                 self.requestSerial
             )

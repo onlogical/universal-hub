@@ -63,8 +63,10 @@ function ServerHop:run(maxPing, completed, isActive, populationMode)
     self.spawn(function()
         local ok, result = pcall(function()
             self.requestSerial += 1
-            local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100&excludeFullGames=true&_=%s-%d"):format(
+            local sortOrder = populationMode == "high" and "Desc" or "Asc"
+            local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=%s&limit=100&excludeFullGames=true&_=%s-%d"):format(
                 self.placeId,
+                sortOrder,
                 self.jobId,
                 self.requestSerial
             )
