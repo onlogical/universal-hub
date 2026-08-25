@@ -90,6 +90,11 @@ function WeaponPolicy.isFanFirearm(item)
     return ItemPolicy.isFanFirearm(item)
 end
 
+function WeaponPolicy.isShotgun(item)
+    local info = item and item.Info
+    return type(info) == "table" and type(info.ShootPellets) == "number" and info.ShootPellets > 1
+end
+
 function WeaponPolicy.isChargedBow(item)
     return ItemPolicy.isChargedBow(item)
 end

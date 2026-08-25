@@ -88,7 +88,8 @@ from Adapter. Do not copy `importDependency` into a feature.
     heuristic or nearest full-screen target. Release when the target is deflecting, even if the
     blade blocks line of sight. Do not keep a hold through that.
     `settings.triggerDelay` is a first-shot wait in milliseconds; do
-    not add it to the native cooldown after the hold starts.
+    not add it to the native cooldown after the hold starts. Only multi-pellet
+    shotguns may gate severe falloff; low-damage poke from other weapons is intentional.
 - `features/RapidFire.lua`
   - User-facing Rapid Fire. Reversibly scales native `ShootCooldown`, melee
     `AttackCooldown`, and Bow `ChargeReleaseCooldown`; repeats normal primary-fire

@@ -972,6 +972,7 @@ local shorty = {
         RaycastDamageDropoffMultiplier = 0.333,
         RaycastDamageDropoffStartDistance = 10,
         ShootDamage = 75,
+        ShootPellets = 10,
     },
 }
 assert(
@@ -979,6 +980,8 @@ assert(
         and type(RivalsWeaponPolicy.triggerDamageReady) == "function",
     "Trigger Bot must expose a range-aware damage decision"
 )
+assert(RivalsWeaponPolicy.isShotgun(shorty) == true)
+assert(RivalsWeaponPolicy.isShotgun({ Info = { ShootPellets = 1 } }) == false)
 assert(RivalsWeaponPolicy.damageAtDistance(shorty, { part = { Name = "Torso" } }, 10) == 75)
 assert(
     RivalsWeaponPolicy.damageAtDistance(shorty, { part = { Name = "HitboxHead" } }, 10) == 112.5,
@@ -3490,7 +3493,7 @@ local falloffClicks = clicks
 renderCallback()
 assert(
     clicks == falloffClicks,
-    "Trigger Bot must wait when a high-falloff shot is neither near-full damage nor lethal"
+    "Shotgun Trigger Bot must wait when a high-falloff shot is neither near-full damage nor lethal"
 )
 target.character.FindFirstChildOfClass = function(_self, className)
     if className == "Humanoid" then
@@ -3505,7 +3508,7 @@ currentTime += 1
 renderCallback()
 assert(
     clicks == falloffClicks + 1,
-    "Trigger Bot must fire the same falloff shot once it becomes lethal"
+    "Shotgun Trigger Bot must fire the same falloff shot once it becomes lethal"
 )
 observations[1].position = targetPosition
 

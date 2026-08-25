@@ -1,5 +1,5 @@
 return {
-    buildId = [[3c7d99cc]],
+    buildId = [[093edfde]],
     id = [[rivals]],
     sources = {
         ["games/rivals/Adapter.lua"] = [[local Targeting = require("./libraries/Targeting")
@@ -5345,6 +5345,7 @@ function TriggerBot.update(session, ctx)
         and (target.position - cameraFrame.Position).Magnitude
     if
         targetDistance
+        and WeaponPolicy.isShotgun(item)
         and not sprayCounter
         and not WeaponPolicy.triggerDamageReady(item, target, targetDistance)
     then
@@ -7576,6 +7577,11 @@ end
 
 function WeaponPolicy.isFanFirearm(item)
     return ItemPolicy.isFanFirearm(item)
+end
+
+function WeaponPolicy.isShotgun(item)
+    local info = item and item.Info
+    return type(info) == "table" and type(info.ShootPellets) == "number" and info.ShootPellets > 1
 end
 
 function WeaponPolicy.isChargedBow(item)

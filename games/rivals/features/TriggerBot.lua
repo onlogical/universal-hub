@@ -455,6 +455,7 @@ function TriggerBot.update(session, ctx)
         and (target.position - cameraFrame.Position).Magnitude
     if
         targetDistance
+        and WeaponPolicy.isShotgun(item)
         and not sprayCounter
         and not WeaponPolicy.triggerDamageReady(item, target, targetDistance)
     then

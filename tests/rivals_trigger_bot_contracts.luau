@@ -118,6 +118,9 @@ local ctx = {
         isFanFirearm = function()
             return false
         end,
+        isShotgun = function()
+            return false
+        end,
         isChargedBow = function()
             return false
         end,
@@ -131,7 +134,7 @@ local ctx = {
             return nil
         end,
         triggerDamageReady = function()
-            return true
+            error("Trigger Bot must not suppress valid poke shots based on falloff damage")
         end,
         sniperTriggerReady = function()
             return true
