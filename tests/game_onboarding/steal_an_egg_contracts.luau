@@ -1,5 +1,6 @@
 local roblox = require("@lune/roblox")
 Enum = roblox.Enum
+CFrame = roblox.CFrame
 UDim2 = roblox.UDim2
 Vector3 = roblox.Vector3
 
@@ -289,6 +290,7 @@ local postSimulation = signal()
 local now = 100
 local attributes = {}
 local changedState
+local moveTarget
 local humanoid = {
     MoveDirection = Vector3.new(1, 0, 0),
     PlatformStand = true,
@@ -297,8 +299,12 @@ local humanoid = {
     ChangeState = function(_self, state)
         changedState = state
     end,
+    MoveTo = function(_self, position)
+        moveTarget = position
+    end,
 }
 local rootPart = {
+    Position = Vector3.zero,
     AssemblyAngularVelocity = Vector3.new(1, 2, 3),
     AssemblyLinearVelocity = Vector3.new(4, 5, 6),
 }
@@ -324,6 +330,7 @@ local player = {
 }
 local record = {
     AreaId = "Forest",
+    BottomCFrame = CFrame.new(0, 0, 0),
     CarrierUserId = player.UserId,
     NestId = "Slot_002",
     State = "Carried",
@@ -470,6 +477,23 @@ record.State = "Dropped"
 record.CarrierUserId = nil
 carryChanged:Fire({ IsCarrying = false, Uid = record.Uid })
 assert(#carryRequests == 1, "Anti Hit must immediately reclaim eggs dropped during a hit")
+
+table.clear(carryRequests)
+record.State = "Carried"
+record.CarrierUserId = player.UserId
+carryChanged:Fire({ IsCarrying = true, Uid = record.Uid })
+rootPart.Position = Vector3.new(50, 0, 0)
+record.State = "Dropped"
+record.CarrierUserId = nil
+carryChanged:Fire({ IsCarrying = false, Uid = record.Uid })
+assert(#carryRequests == 0, "Anti Hit must not attempt an out-of-range remote pickup")
+assert(
+    moveTarget == record.BottomCFrame.Position,
+    "Anti Hit must walk back to a distant dropped egg"
+)
+rootPart.Position = record.BottomCFrame.Position
+spawned[#spawned]()
+assert(#carryRequests == 1, "Anti Hit must reclaim immediately after walking into pickup range")
 
 table.clear(carryRequests)
 record.State = "Carried"

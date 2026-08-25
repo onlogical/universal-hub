@@ -545,6 +545,15 @@ function AntiHit:_requestReclaim(uid)
     self.carriedUid = uid
     self.reclaimUid = nil
     self.claimToken += 1
+    if self.reclaimMoving then
+        local character = self.localPlayer.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+        if root and humanoid then
+            humanoid:MoveTo(root.Position)
+        end
+        self.reclaimMoving = nil
+    end
     return true
 end
 
@@ -556,6 +565,19 @@ function AntiHit:_tryReclaim(uid)
     if record.State ~= "Dropped" and record.State ~= "Slot" then
         return false, "state-" .. tostring(record.State)
     end
+    local character = self.localPlayer.Character
+    local root = character and character:FindFirstChild("HumanoidRootPart")
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    if
+        root
+        and humanoid
+        and typeof(record.BottomCFrame) == "CFrame"
+        and (root.Position - record.BottomCFrame.Position).Magnitude > 9
+    then
+        self.reclaimMoving = true
+        humanoid:MoveTo(record.BottomCFrame.Position)
+        return false, "moving-to-drop"
+    end
     return self:_requestReclaim(uid)
 end
 
@@ -563,7 +585,13 @@ function AntiHit:_reclaim(uid)
     self.reclaimUid = uid
     self.claimToken += 1
     local token = self.claimToken
-    local reclaimed, reason = self:_requestReclaim(uid)
+    local record = self.eggCmds.GetAreaEggRecord(uid)
+    local reclaimed, reason
+    if record and (record.State == "Dropped" or record.State == "Slot") then
+        reclaimed, reason = self:_tryReclaim(uid)
+    else
+        reclaimed, reason = self:_requestReclaim(uid)
+    end
     if reclaimed then
         self:_log("info", "reclaim immediate", { uid = uid })
         return
@@ -789,6 +817,15 @@ function AntiHit:setEnabled(enabled)
     end
 
     self.claimToken += 1
+    if self.reclaimMoving then
+        local character = self.localPlayer.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+        if root and humanoid then
+            humanoid:MoveTo(root.Position)
+        end
+        self.reclaimMoving = nil
+    end
     self:_unbindGuardHit()
     self:_unbindDropRequest()
     disconnectAll(self.connections)
@@ -1315,7 +1352,7 @@ function AutoFarm:_run(token)
         })
         self:_publish(
             "Walking to target",
-            ("%s %s · %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
+            ("%s %s Â· %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
             record.Uid
         )
         local reached, reason = self.navigator:walkTo(record.BottomCFrame.Position, function()
@@ -1745,7 +1782,7 @@ function HighlightEsp:_refreshEgg(uid)
         self.eggLabels,
         uid,
         model,
-        ("%s\n%s • %.1fx"):format(
+        ("%s\n%s â€¢ %.1fx"):format(
             tostring(record.AssetCategory),
             tostring(rarity.DisplayName or rarity._id or "Egg"),
             record.AssetScale
