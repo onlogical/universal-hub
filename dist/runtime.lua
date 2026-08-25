@@ -1,4 +1,4 @@
-local buildId = [[4bf835d1]]
+local buildId = [[4439cba9]]
 local shared = {
     ["changelog.json"] = [[{
   "current": "0.3.0",
@@ -2618,8 +2618,8 @@ return Counterblox
         antiTrap = false,
         autoFarm = false,
         autoFarmEternal = true,
-        autoFarmHighPopulation = false,
         autoFarmIndex = false,
+        autoFarmIndexServerHopping = true,
         autoFarmSecret = true,
         autoFarmServerHopping = true,
         autoOpenEggs = false,
@@ -2634,6 +2634,7 @@ return Counterblox
         serverHopAttempts = 0,
         serverHopMaxPing = 120,
         serverHopPingGuard = false,
+        serverHopTargetPopulation = 6,
         trapEsp = false,
     },
     features = {
@@ -2642,8 +2643,8 @@ return Counterblox
             "antiTrap",
             "autoFarm",
             "autoFarmEternal",
-            "autoFarmHighPopulation",
             "autoFarmIndex",
+            "autoFarmIndexServerHopping",
             "autoFarmSecret",
             "autoFarmServerHopping",
             "autoOpenEggs",
@@ -2656,6 +2657,7 @@ return Counterblox
             "lagSafeMovement",
             "serverHop",
             "serverHopMaxPing",
+            "serverHopTargetPopulation",
             "trapEsp",
         },
         cosmetics = false,
