@@ -51,6 +51,15 @@ function Adapter.new(context)
     local RunService = game:GetService("RunService")
     local Stats = game:GetService("Stats")
     local TeleportService = game:GetService("TeleportService")
+    local function readPing()
+        local item = Stats.Network.ServerStatsItem["Data Ping"]
+        local ok, value = pcall(item.GetValue, item)
+        if ok and type(value) == "number" then
+            return math.round(value)
+        end
+        ok, value = pcall(LocalPlayer.GetNetworkPing, LocalPlayer)
+        return ok and type(value) == "number" and math.round(value * 1000) or 0
+    end
     local historySettingKey = "UniversalHubStealAnEggFarmHistory"
     if type(gameRuntime.farmHistory) ~= "table" then
         local loaded, history =
@@ -61,6 +70,9 @@ function Adapter.new(context)
     if type(gameRuntime.farmHistory.eggs) ~= "table" then
         gameRuntime.farmHistory.eggs = {}
     end
+    if type(gameRuntime.farmHistory.globalSpawns) ~= "table" then
+        gameRuntime.farmHistory.globalSpawns = {}
+    end
     local function persistFarmHistory()
         pcall(
             TeleportService.SetTeleportSetting,
@@ -68,6 +80,18 @@ function Adapter.new(context)
             historySettingKey,
             gameRuntime.farmHistory
         )
+    end
+    local function isGlobalSpawnKnown(rarity)
+        return gameRuntime.farmHistory.globalSpawns[rarity] == true
+    end
+    local function markGlobalSpawn(rarity)
+        if
+            (rarity == "Secret" or rarity == "Eternal")
+            and gameRuntime.farmHistory.globalSpawns[rarity] ~= true
+        then
+            gameRuntime.farmHistory.globalSpawns[rarity] = true
+            persistFarmHistory()
+        end
     end
     local visitedSettingKey = "UniversalHubStealAnEggVisitedServers"
     if next(gameRuntime.visitedServerIds) == nil then
@@ -231,7 +255,9 @@ function Adapter.new(context)
         end
         table.clear(gameRuntime.visitedServerIds)
         gameRuntime.visitedServerIds[context.jobId] = true
+        table.clear(gameRuntime.farmHistory.globalSpawns)
         persistVisitedServers()
+        persistFarmHistory()
     end)
     local navigator = WalkNavigator.new({
         localPlayer = LocalPlayer,
@@ -246,6 +272,8 @@ function Adapter.new(context)
         logger = context.logger,
         getResetSeconds = resetSecondsRemaining,
         getSecuredEggs = securedEggs,
+        isGlobalSpawnKnown = isGlobalSpawnKnown,
+        markGlobalSpawn = markGlobalSpawn,
         navigator = navigator,
         onSecured = recordSecuredEgg,
         plotCmds = PlotCmds,
@@ -265,15 +293,13 @@ function Adapter.new(context)
     local unsubscribePing = context.subscribeFooterMetric("ping", {
         kind = "latency",
         label = "Ping",
-    }, function()
-        local item = Stats.Network.ServerStatsItem["Data Ping"]
-        return math.round(item:GetValue())
-    end)
+    }, readPing)
     local function apply(state)
         local farming = state.settings.autoFarm == true
         if gameRuntime.farmHistory.active ~= farming then
             if farming then
                 table.clear(gameRuntime.farmHistory.eggs)
+                table.clear(gameRuntime.farmHistory.globalSpawns)
             end
             gameRuntime.farmHistory.active = farming
             persistFarmHistory()
@@ -338,7 +364,7 @@ function Adapter.new(context)
     end
     task.delay(10, function()
         local settings = context.store:Get().settings
-        local ping = Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+        local ping = readPing()
         if stopped then
             return
         end

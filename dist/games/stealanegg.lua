@@ -55,6 +55,15 @@ function Adapter.new(context)
     local RunService = game:GetService("RunService")
     local Stats = game:GetService("Stats")
     local TeleportService = game:GetService("TeleportService")
+    local function readPing()
+        local item = Stats.Network.ServerStatsItem["Data Ping"]
+        local ok, value = pcall(item.GetValue, item)
+        if ok and type(value) == "number" then
+            return math.round(value)
+        end
+        ok, value = pcall(LocalPlayer.GetNetworkPing, LocalPlayer)
+        return ok and type(value) == "number" and math.round(value * 1000) or 0
+    end
     local historySettingKey = "UniversalHubStealAnEggFarmHistory"
     if type(gameRuntime.farmHistory) ~= "table" then
         local loaded, history =
@@ -65,6 +74,9 @@ function Adapter.new(context)
     if type(gameRuntime.farmHistory.eggs) ~= "table" then
         gameRuntime.farmHistory.eggs = {}
     end
+    if type(gameRuntime.farmHistory.globalSpawns) ~= "table" then
+        gameRuntime.farmHistory.globalSpawns = {}
+    end
     local function persistFarmHistory()
         pcall(
             TeleportService.SetTeleportSetting,
@@ -72,6 +84,18 @@ function Adapter.new(context)
             historySettingKey,
             gameRuntime.farmHistory
         )
+    end
+    local function isGlobalSpawnKnown(rarity)
+        return gameRuntime.farmHistory.globalSpawns[rarity] == true
+    end
+    local function markGlobalSpawn(rarity)
+        if
+            (rarity == "Secret" or rarity == "Eternal")
+            and gameRuntime.farmHistory.globalSpawns[rarity] ~= true
+        then
+            gameRuntime.farmHistory.globalSpawns[rarity] = true
+            persistFarmHistory()
+        end
     end
     local visitedSettingKey = "UniversalHubStealAnEggVisitedServers"
     if next(gameRuntime.visitedServerIds) == nil then
@@ -235,7 +259,9 @@ function Adapter.new(context)
         end
         table.clear(gameRuntime.visitedServerIds)
         gameRuntime.visitedServerIds[context.jobId] = true
+        table.clear(gameRuntime.farmHistory.globalSpawns)
         persistVisitedServers()
+        persistFarmHistory()
     end)
     local navigator = WalkNavigator.new({
         localPlayer = LocalPlayer,
@@ -250,6 +276,8 @@ function Adapter.new(context)
         logger = context.logger,
         getResetSeconds = resetSecondsRemaining,
         getSecuredEggs = securedEggs,
+        isGlobalSpawnKnown = isGlobalSpawnKnown,
+        markGlobalSpawn = markGlobalSpawn,
         navigator = navigator,
         onSecured = recordSecuredEgg,
         plotCmds = PlotCmds,
@@ -269,15 +297,13 @@ function Adapter.new(context)
     local unsubscribePing = context.subscribeFooterMetric("ping", {
         kind = "latency",
         label = "Ping",
-    }, function()
-        local item = Stats.Network.ServerStatsItem["Data Ping"]
-        return math.round(item:GetValue())
-    end)
+    }, readPing)
     local function apply(state)
         local farming = state.settings.autoFarm == true
         if gameRuntime.farmHistory.active ~= farming then
             if farming then
                 table.clear(gameRuntime.farmHistory.eggs)
+                table.clear(gameRuntime.farmHistory.globalSpawns)
             end
             gameRuntime.farmHistory.active = farming
             persistFarmHistory()
@@ -342,7 +368,7 @@ function Adapter.new(context)
     end
     task.delay(10, function()
         local settings = context.store:Get().settings
-        local ping = Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+        local ping = readPing()
         if stopped then
             return
         end
@@ -962,6 +988,10 @@ function AutoFarm.new(options)
         getSecuredEggs = options.getSecuredEggs or function()
             return {}
         end,
+        isGlobalSpawnKnown = options.isGlobalSpawnKnown or function()
+            return false
+        end,
+        markGlobalSpawn = options.markGlobalSpawn or function() end,
         onSecured = options.onSecured,
         plotCmds = options.plotCmds,
         players = options.players,
@@ -985,7 +1015,13 @@ function AutoFarm.new(options)
         end
     end)
     if self.eggCmds.AreaEggUpdated then
-        self.eggUpdateConnection = self.eggCmds.AreaEggUpdated:Connect(function()
+        self.eggUpdateConnection = self.eggCmds.AreaEggUpdated:Connect(function(record)
+            if type(record) == "table" then
+                local _, rarityName = self:_rarity(record)
+                if self.targetRarities[rarityName] == true then
+                    self.markGlobalSpawn(rarityName)
+                end
+            end
             if self.enabled and self.waitingForEggUpdate == self.token then
                 self.waitingForEggUpdate = nil
                 self:_startRun()
@@ -1086,6 +1122,7 @@ function AutoFarm:_selectTarget()
         then
             local rarityNumber, rarityName = self:_rarity(record)
             if self.targetRarities[rarityName] == true then
+                self.markGlobalSpawn(rarityName)
                 local carrierRoot = isCarried(record) and self:_carrierRoot(record) or nil
                 local targetPosition = carrierRoot and carrierRoot.Position
                     or record.BottomCFrame.Position
@@ -1267,6 +1304,17 @@ function AutoFarm:_hop(token)
         end)
         return
     end
+    local selectedSpawnKnown = (self.targetRarities.Eternal and self.isGlobalSpawnKnown("Eternal"))
+        or (self.targetRarities.Secret and self.isGlobalSpawnKnown("Secret"))
+    if not selectedSpawnKnown then
+        self:_idleOnTreadmill(token)
+        self.waitingForEggUpdate = token
+        self:_publish(
+            "Waiting for global spawn",
+            "No selected global egg spawn has been observed yet. Staying in this server."
+        )
+        return
+    end
     if not self.serverHopping then
         self:_idleOnTreadmill(token)
         self.waitingForEggUpdate = token
@@ -1352,7 +1400,7 @@ function AutoFarm:_run(token)
         })
         self:_publish(
             "Walking to target",
-            ("%s %s · %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
+            ("%s %s Â· %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
             record.Uid
         )
         local reached, reason = self.navigator:walkTo(record.BottomCFrame.Position, function()
@@ -1783,7 +1831,7 @@ function HighlightEsp:_refreshEgg(uid)
         self.eggLabels,
         uid,
         model,
-        ("%s\n%s • %.1fx"):format(
+        ("%s\n%s â€¢ %.1fx"):format(
             tostring(record.AssetCategory),
             tostring(rarity.DisplayName or rarity._id or "Egg"),
             record.AssetScale

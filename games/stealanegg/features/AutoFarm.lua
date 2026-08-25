@@ -26,6 +26,10 @@ function AutoFarm.new(options)
         getSecuredEggs = options.getSecuredEggs or function()
             return {}
         end,
+        isGlobalSpawnKnown = options.isGlobalSpawnKnown or function()
+            return false
+        end,
+        markGlobalSpawn = options.markGlobalSpawn or function() end,
         onSecured = options.onSecured,
         plotCmds = options.plotCmds,
         players = options.players,
@@ -49,7 +53,13 @@ function AutoFarm.new(options)
         end
     end)
     if self.eggCmds.AreaEggUpdated then
-        self.eggUpdateConnection = self.eggCmds.AreaEggUpdated:Connect(function()
+        self.eggUpdateConnection = self.eggCmds.AreaEggUpdated:Connect(function(record)
+            if type(record) == "table" then
+                local _, rarityName = self:_rarity(record)
+                if self.targetRarities[rarityName] == true then
+                    self.markGlobalSpawn(rarityName)
+                end
+            end
             if self.enabled and self.waitingForEggUpdate == self.token then
                 self.waitingForEggUpdate = nil
                 self:_startRun()
@@ -150,6 +160,7 @@ function AutoFarm:_selectTarget()
         then
             local rarityNumber, rarityName = self:_rarity(record)
             if self.targetRarities[rarityName] == true then
+                self.markGlobalSpawn(rarityName)
                 local carrierRoot = isCarried(record) and self:_carrierRoot(record) or nil
                 local targetPosition = carrierRoot and carrierRoot.Position
                     or record.BottomCFrame.Position
@@ -329,6 +340,17 @@ function AutoFarm:_hop(token)
         self.spawn(function()
             self:_run(token)
         end)
+        return
+    end
+    local selectedSpawnKnown = (self.targetRarities.Eternal and self.isGlobalSpawnKnown("Eternal"))
+        or (self.targetRarities.Secret and self.isGlobalSpawnKnown("Secret"))
+    if not selectedSpawnKnown then
+        self:_idleOnTreadmill(token)
+        self.waitingForEggUpdate = token
+        self:_publish(
+            "Waiting for global spawn",
+            "No selected global egg spawn has been observed yet. Staying in this server."
+        )
         return
     end
     if not self.serverHopping then

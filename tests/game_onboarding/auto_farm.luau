@@ -53,6 +53,7 @@ local hops = 0
 local now = 0
 local resetSeconds = 2
 local failWalk = false
+local globalSpawns = {}
 local secured = 0
 local farm
 local carrierRoot = {
@@ -128,6 +129,12 @@ farm = AutoFarm.new({
             end,
         },
     },
+    isGlobalSpawnKnown = function(rarity)
+        return globalSpawns[rarity] == true
+    end,
+    markGlobalSpawn = function(rarity)
+        globalSpawns[rarity] = true
+    end,
     navigator = navigator,
     onSecured = function(record)
         assert(record.Uid == "eternal")
@@ -182,6 +189,7 @@ farm:setEnabled(true)
 queued()
 assert(walks[1] == Vector3.new(0, 0, 100), "Auto Farm must use the treadmill while idle")
 assert(walks[2] == Vector3.new(40, 0, 0), "Auto Farm must prefer Eternal over Secret")
+assert(globalSpawns.Eternal == true, "Seeing a target must remember its global spawn")
 assert(walks[3] == Vector3.new(0, 0, 100), "Auto Farm must walk back to the base")
 assert(hops == 0, "Auto Farm must rescan before leaving a server with more targets")
 assert(type(queued) == "function", "A secured egg must queue another scan of the current server")
@@ -216,6 +224,14 @@ assert(
     dropped == contested and contested.State == "Dropped",
     "Claimed eggs must be pursued until dropped"
 )
+table.clear(globalSpawns)
+queued = nil
+farm:_hop(farm.token)
+assert(hops == 0, "Auto Farm must not hop before a selected global rarity has spawned")
+assert(queued == nil, "Waiting for a global spawn must be event-driven")
+eggUpdated:Fire(records[1])
+assert(type(queued) == "function", "Egg updates must wake global-spawn detection")
+globalSpawns.Secret = true
 farm:setServerHopping(false)
 queued = nil
 farm:_hop(farm.token)
