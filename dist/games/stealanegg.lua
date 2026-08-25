@@ -1,5 +1,5 @@
 return {
-    buildId = [[3ae439e8]],
+    buildId = [[4a2abc06]],
     id = [[stealanegg]],
     sources = {
         ["games/stealanegg/Adapter.lua"] = [[local function importDependency(path, relativePath)
@@ -2032,8 +2032,7 @@ function AutoFarm:_run(token)
         local home = escape or self:_homePosition()
         if home then
             self.claimed = false
-            local navigate = escape and self.navigator.moveToDirect or self.navigator.walkTo
-            local returned, returnReason = navigate(self.navigator, home, function()
+            local returned, returnReason = self.navigator:stepTo(home, function()
                 local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
                 return self:_active(token)
                     and not self.claimed
@@ -3348,6 +3347,9 @@ return ServerHop
         ["games/stealanegg/features/WalkNavigator.lua"] = [[local WalkNavigator = {}
 WalkNavigator.__index = WalkNavigator
 
+local STEP_SPEED = 1300
+local MAX_STEP_SECONDS = 1 / 30
+
 local function flatDistance(from, to)
     local delta = from - to
     return math.sqrt(delta.X * delta.X + delta.Z * delta.Z)
@@ -3497,6 +3499,66 @@ function WalkNavigator:moveToDirect(destination, isActive, tolerance)
     return self:_walkPoint(destination, isActive or function()
         return true
     end, tolerance or 4)
+end
+
+function WalkNavigator:stepTo(destination, isActive, tolerance)
+    assert(typeof(destination) == "Vector3", "WalkNavigator destination must be a Vector3")
+    isActive = isActive or function()
+        return true
+    end
+    tolerance = tolerance or 4
+    local humanoid, root = self:_waitForCharacter(isActive)
+    if not humanoid then
+        return false, "character-unavailable"
+    end
+    self.movementId = (self.movementId or 0) + 1
+    local movementId = self.movementId
+    self.activeHumanoid = humanoid
+    self.activePosition = destination
+    local function finish(reached, reason)
+        if self.movementId == movementId then
+            self.activeHumanoid = nil
+            self.activePosition = nil
+        end
+        return reached, reason
+    end
+    local deadline = self.workspace:GetServerTimeNow()
+        + math.max(10, flatDistance(root.Position, destination) / STEP_SPEED * 4)
+    humanoid:MoveTo(destination)
+    while not self.stopped and isActive() and self.workspace:GetServerTimeNow() <= deadline do
+        humanoid, root = characterParts(self.localPlayer)
+        if not humanoid or not root then
+            return finish(false, "character-lost")
+        end
+        self.activeHumanoid = humanoid
+        local delta = destination - root.Position
+        local distance = math.sqrt(delta.X * delta.X + delta.Z * delta.Z)
+        if distance <= tolerance then
+            return finish(true)
+        end
+        local dt = tonumber(self.runService.Heartbeat:Wait()) or 0
+        humanoid, root = characterParts(self.localPlayer)
+        if not humanoid or not root then
+            return finish(false, "character-lost")
+        end
+        delta = destination - root.Position
+        distance = math.sqrt(delta.X * delta.X + delta.Z * delta.Z)
+        if distance > 0 then
+            local seconds = math.min(math.max(dt, 0), MAX_STEP_SECONDS)
+            local step = math.min(STEP_SPEED * seconds, distance)
+            local direction = Vector3.new(delta.X / distance, 0, delta.Z / distance)
+            root.CFrame = CFrame.new(root.Position + direction * step) * root.CFrame.Rotation
+            root.AssemblyLinearVelocity = Vector3.zero
+        end
+    end
+    local cancelled = self.stopped or not isActive()
+    if cancelled then
+        humanoid, root = characterParts(self.localPlayer)
+        if humanoid and root then
+            humanoid:MoveTo(root.Position)
+        end
+    end
+    return finish(false, cancelled and "cancelled" or "timeout")
 end
 
 function WalkNavigator:headToward(destination)
