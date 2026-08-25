@@ -275,6 +275,20 @@ function TriggerBot.update(session, ctx)
         end
         return
     end
+    local itemData = item.Data
+    local ammo = WeaponPolicy.ammo(item)
+    if ammo == 0 or type(itemData) == "table" and itemData.IsReloading == true then
+        if taskDebug then
+            taskDebug.triggerStage = ammo == 0 and "empty" or "reloading"
+        end
+        ctx.releaseFire()
+        if state.held then
+            ctx.aimRelease()
+            state.held = false
+            state.heldItem = nil
+        end
+        return
+    end
     local gunblade = WeaponPolicy.isDualModeBlade(item)
     if not gunblade and alignedTarget and alignedTarget.aimSettled == false then
         local humanReticleReady = settings.humanAim
@@ -306,7 +320,7 @@ function TriggerBot.update(session, ctx)
     else
         target = alignedTarget
         if not target and not settings.shotAim then
-            target = ctx.selectTarget(nil, true, true)
+            target = ctx.selectCrosshairTarget()
         end
     end
     if TriggerBot.shouldHoldForDeflect(target, item, ctx) then
@@ -330,11 +344,16 @@ function TriggerBot.update(session, ctx)
         if taskDebug then
             taskDebug.triggerStage = not target and "no-target" or "path-blocked"
         end
-        if state.fireHeld and target then
-            return
+        local now = ctx.clock()
+        TriggerBot.delayLost(state, now)
+        if state.fireHeld then
+            state.fireLostAt = state.fireLostAt or now
+            if now - state.fireLostAt <= TriggerBot.TARGET_GRACE_SECONDS then
+                return
+            end
         end
+        state.fireLostAt = nil
         state.gunblade = nil
-        TriggerBot.delayLost(state, ctx.clock())
         ctx.releaseFire()
         if state.held then
             ctx.aimRelease()
@@ -344,6 +363,7 @@ function TriggerBot.update(session, ctx)
         end
         return
     end
+    state.fireLostAt = nil
 
     if gunblade then
         ctx.releaseFire()
@@ -550,19 +570,20 @@ function TriggerBot.update(session, ctx)
             return
         end
         if state.fireHeld and state.fireItem == item then
-            local fireClock = type(ctx.itemClock) == "function" and ctx.itemClock() or ctx.clock()
-            if not TriggerBot.holdDropped(item, fireClock, 0) then
-                if taskDebug then
-                    taskDebug.triggerStage = "holding-fire"
+            if WeaponPolicy.repeatShootingInput(item) then
+                ctx.press()
+            else
+                local fireClock = type(ctx.itemClock) == "function" and ctx.itemClock()
+                    or ctx.clock()
+                if TriggerBot.holdDropped(item, fireClock, 0) then
+                    ctx.releaseFire()
+                    state.fireHeld = true
+                    state.fireItem = item
+                    ctx.press()
                 end
-                return
             end
-            ctx.releaseFire()
-            state.fireHeld = true
-            state.fireItem = item
-            ctx.press()
             if taskDebug then
-                taskDebug.triggerStage = "repressed-fire"
+                taskDebug.triggerStage = "holding-fire"
             end
             return
         end

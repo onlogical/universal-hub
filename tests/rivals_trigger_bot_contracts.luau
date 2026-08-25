@@ -124,6 +124,12 @@ local ctx = {
         holdToFire = function()
             return false
         end,
+        repeatShootingInput = function()
+            return false
+        end,
+        ammo = function()
+            return nil
+        end,
         triggerDamageReady = function()
             return true
         end,
@@ -156,6 +162,9 @@ local ctx = {
     end,
     selectTarget = function()
         error("Silent Aim must not reselect")
+    end,
+    selectCrosshairTarget = function()
+        return nil
     end,
     isDeflecting = function()
         return false
@@ -270,20 +279,27 @@ assert(
     not source:find("state.nextAt = type(nativeReadyAt)", 1, true),
     "Click fire must not copy tick() _shoot_cooldown onto the os.clock nextAt gate"
 )
-assert(source:find("ctx.selectTarget(nil, true, true)", 1, true))
+assert(source:find("ctx.selectCrosshairTarget()", 1, true))
 assert(not source:find("not target.visible", 1, true))
 assert(
     not source:find("0.35", 1, true),
     "Hold-to-fire must not restart after an ammo-replica stall"
 )
 assert(
-    not source:find("WeaponPolicy.ammo(item)", 1, true),
-    "Hold-to-fire must not treat stale ammo replicas as a dropped press"
+    source:find("local ammo = WeaponPolicy.ammo(item)", 1, true)
+        and source:find("ammo == 0", 1, true),
+    "Trigger Bot must release an empty weapon so native reload can start"
 )
-assert(
-    not source:find("target.screenDistance or math.huge) > radius", 1, true),
-    "Trigger Bot must not require an 8px reticle"
-)
+session.settings.shotAim = false
+session.aligned = nil
+ctx.alignedTarget = nil
+local crosshairQueries = 0
+ctx.selectCrosshairTarget = function()
+    crosshairQueries += 1
+    return nil
+end
+TriggerBot.update(session, ctx)
+assert(crosshairQueries == 1, "No-aim Trigger Bot must query the native crosshair hit")
 
 session.settings.shotAim = false
 session.aligned = { visible = true, position = Vector3.new(0, 0, 10), aimSettled = true }
@@ -370,6 +386,9 @@ local rifle = { Info = { ShootCooldown = 0.1 }, _shoot_cooldown = now + 0.1 }
 ctx.weaponPolicy.holdToFire = function()
     return true
 end
+ctx.weaponPolicy.repeatShootingInput = function()
+    return true
+end
 ctx.weaponPolicy.ammo = function()
     return 20
 end
@@ -396,21 +415,42 @@ state.fireHeld = false
 state.fireItem = nil
 state.nextAt = 0
 TriggerBot.update(session, ctx)
-assert(presses == 1 and fireReleases == 0, "An AR must press once and hold")
-now = 10.25
-rifle._shoot_cooldown = 10.3
+assert(presses == 1 and fireReleases == 0, "An AR must begin its native hold")
+now = 10.01
+TriggerBot.update(session, ctx)
+now = 10.02
 TriggerBot.update(session, ctx)
 assert(
-    presses == 1 and fireReleases == 0,
-    "A working AR hold must keep spraying through stale ammo replicas"
+    presses == 3 and fireReleases == 0,
+    "An AR hold must repeat StartShooting without release gaps so native cooldown controls cadence"
 )
-rifle._shoot_cooldown = 10
-now = 10.35
+
+ctx.alignedTarget = nil
+state.fireLostAt = nil
+now = 10.47
 TriggerBot.update(session, ctx)
 assert(
-    presses == 2 and fireReleases == 1,
-    "A dropped AR hold may repress after the native cooldown stays expired"
+    fireReleases == 0,
+    "An AR must keep its native hold through a one-frame presented-target gap"
 )
+now = 10.58
+TriggerBot.update(session, ctx)
+assert(fireReleases == 1, "An AR must release after the target grace period expires")
+ctx.alignedTarget = session.aligned
+local emptyReleases = fireReleases
+state.fireHeld = true
+state.fireItem = rifle
+ctx.weaponPolicy.ammo = function()
+    return 0
+end
+TriggerBot.update(session, ctx)
+assert(
+    fireReleases == emptyReleases + 1 and ctx.taskDebug.triggerStage == "empty",
+    "Trigger Bot must release an empty weapon so reload can start"
+)
+ctx.weaponPolicy.ammo = function()
+    return 20
+end
 
 assert(TriggerBot.shouldHoldForDeflect({ player = {} }, rifle, {
     isDeflecting = function()

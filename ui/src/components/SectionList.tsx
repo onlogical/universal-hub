@@ -24,7 +24,6 @@ export function SectionList({
         {page.sections.map((section, sectionIndex) => (
           <React.Fragment key={section.id}>
             <Stack
-              key={section.controls.map((control) => control.id).join(":")}
               width="100%"
               gap="md"
             >

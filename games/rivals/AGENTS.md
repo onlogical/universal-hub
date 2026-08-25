@@ -79,15 +79,20 @@ from Adapter. Do not copy `importDependency` into a feature.
   - Reads `presented` when Silent Aim is on, otherwise `aligned`. Does not reselect.
   - Fires on the equipped weapon's native cooldown. Do not add a
     0.1s floor. Keep a hold-to-fire press through one-frame path
-    flicker. If the native shoot cooldown stays expired for a full
-    fire interval, press again — hops can drop the hold. Do not
-    restart because ammo replicas are stale. Compare
-    `item._shoot_cooldown` with `tick`, never `os.clock`. If Camera
-    Aim has no plan, select the nearest target — do not require an
-    8px reticle. Release when the target is deflecting, even if the
+    flicker. Native automatic guns repeat `StartShooting` without a
+    release gap; continuous InternalUse weapons keep one held press and
+    may re-press only after their native cooldown stays expired for a
+    full fire interval. Do not restart because ammo replicas are stale.
+    Compare `item._shoot_cooldown` with `tick`, never `os.clock`. With both
+    aim modes off, use the native mouse ray hit instead of a screen-radius
+    heuristic or nearest full-screen target. Release when the target is deflecting, even if the
     blade blocks line of sight. Do not keep a hold through that.
     `settings.triggerDelay` is a first-shot wait in milliseconds; do
     not add it to the native cooldown after the hold starts.
+- `features/RapidFire.lua`
+  - User-facing Rapid Fire. Reversibly scales native `ShootCooldown` or melee
+    `AttackCooldown` and repeats normal primary-fire input for held semi-automatic weapons. Restore every
+    patched item when disabled, unequipped, or stopped.
 - `features/SkipBlocks.lua`
   - User-facing Katana Stop (`settings.skipDeflect`). Hooks fighter input's
     `StartShooting` action so a manual click does not fire into a deflect

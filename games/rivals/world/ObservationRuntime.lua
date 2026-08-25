@@ -1,6 +1,15 @@
 local ObservationRuntime = {}
 ObservationRuntime.__index = ObservationRuntime
 
+function ObservationRuntime.rangeHealth(humanoid)
+    local health = humanoid.Health
+    local maximum = humanoid.MaxHealth
+    if health == math.huge or maximum == math.huge then
+        return 150, 150
+    end
+    return health, maximum
+end
+
 function ObservationRuntime.new(options)
     assert(options and options.targeting, "RIVALS observations require Hydroxide Targeting")
     assert(options.workspace, "RIVALS observations require Workspace")
@@ -35,30 +44,30 @@ function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemie
     local camera = self.workspace.CurrentCamera
     local rangeEntities = self.workspace:FindFirstChild("ShootingRangeEntities")
     if type(data) == "table" and data.IsInShootingRange and camera and rangeEntities then
-        for _, entity in ipairs(rangeEntities:GetChildren()) do
-            local humanoid = entity:FindFirstChildOfClass("Humanoid")
-            local environmentID = entity:GetAttribute("EnvironmentID")
-            local root = entity:FindFirstChild("HumanoidRootPart")
-            local onScreen = false
-            if root then
-                local _viewportPoint
-                _viewportPoint, onScreen = camera:WorldToViewportPoint(root.Position)
-            end
-            if
-                entity:IsA("Model")
-                and humanoid
-                and humanoid.Health > 0
-                and (data.EnvironmentID == nil or environmentID == data.EnvironmentID)
-                and onScreen
-            then
-                local observation = self.targeting.observeCharacter(entity, {
-                    screenOrigin = screenOrigin,
-                })
-                if observation then
-                    observation.player = entity
-                    observation.health = humanoid.Health
-                    observation.maxHealth = humanoid.MaxHealth
-                    table.insert(observations, observation)
+        local containers = { rangeEntities }
+        local hurtEffect = self.workspace:FindFirstChild("HurtEffect")
+        if hurtEffect then
+            table.insert(containers, hurtEffect)
+        end
+        for _, container in ipairs(containers) do
+            for _, entity in ipairs(container:GetChildren()) do
+                local humanoid = entity:FindFirstChildOfClass("Humanoid")
+                local environmentID = entity:GetAttribute("EnvironmentID")
+                if
+                    entity:IsA("Model")
+                    and humanoid
+                    and humanoid.Health > 0
+                    and (data.EnvironmentID == nil or environmentID == data.EnvironmentID)
+                then
+                    local observation = self.targeting.observeCharacter(entity, {
+                        screenOrigin = screenOrigin,
+                    })
+                    if observation then
+                        observation.player = entity
+                        observation.health, observation.maxHealth =
+                            ObservationRuntime.rangeHealth(humanoid)
+                        table.insert(observations, observation)
+                    end
                 end
             end
         end

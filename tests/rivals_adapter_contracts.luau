@@ -2461,6 +2461,9 @@ fighterModule.LocalFighter.Input = function(_self, action)
 end
 local adapter = Rivals.new({
     capabilities = RivalsDefinition.features.capabilities,
+    selectCrosshairTarget = function(values)
+        return values[1]
+    end,
     taskFarmRuntime = taskFarmRuntime,
     aimPress = function()
         aimPresses += 1
@@ -2660,7 +2663,7 @@ assert(
 )
 fighterModule._player_to_fighter[enemyPlayer].EquippedItem = targetItem
 assert(rangeObservation.player == rangeTarget)
-assert(rangeObservation.health == math.huge and rangeObservation.maxHealth == math.huge)
+assert(rangeObservation.health == 150 and rangeObservation.maxHealth == 150)
 assert(
     rotationCalls == 1
         and cameraModule.Rotation == RivalsTargeting.rotationToward(origin, targetPosition),
@@ -3201,12 +3204,16 @@ fighterModule.LocalFighter.Data.IsInShootingRange = true
 target.screenDistance = 4
 observations[1].screenDistance = 4
 rangeObservation.screenDistance = 4
+state._nearestBeforeTrigger = #nearestOptions
 renderCallback()
 assert(
     clicks == lobbyClicks + 1,
-    "Trigger Bot without Camera Aim must take the nearest target, not an 8px reticle"
+    "Trigger Bot without Camera Aim must use the native crosshair target"
 )
-assert(nearestOptions[#nearestOptions].maxScreenDistance == nil)
+assert(
+    #nearestOptions == state._nearestBeforeTrigger,
+    "No-aim Trigger Bot must not select a nearby target"
+)
 
 for _, utilityName in ipairs({
     "Medkit",

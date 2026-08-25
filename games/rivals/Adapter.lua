@@ -5,6 +5,7 @@ local CameraAim = require("./features/CameraAim")
 local SilentAim = require("./features/SilentAim")
 local TeleportBehind = require("./features/TeleportBehind")
 local TriggerBot = require("./features/TriggerBot")
+local RapidFire = require("./features/RapidFire")
 local SkipBlocks = require("./features/SkipBlocks")
 local AutoDeflect = require("./features/AutoDeflect")
 local AutoCounter = require("./features/AutoCounter")
@@ -307,6 +308,7 @@ function Rivals.new(context)
     local combatInput = ItemInput.new(function()
         return FighterController.LocalFighter
     end)
+    local rapidFire = RapidFire.new(WeaponPolicy)
     local function startShooting()
         return combatInput:fire()
     end
@@ -999,6 +1001,27 @@ function Rivals.new(context)
         return selected
     end
 
+    local function selectCrosshairTarget()
+        if type(context.selectCrosshairTarget) == "function" then
+            return context.selectCrosshairTarget(observations)
+        end
+        local mouse = LocalPlayer:GetMouse()
+        local hit = mouse and mouse.Target
+        if not hit then
+            return nil
+        end
+        for _, observation in ipairs(observations) do
+            local character = observation.character
+            if
+                (observation.part == hit or character and hit:IsDescendantOf(character))
+                and (observation.player == character or isTargetable(observation.player, character))
+            then
+                return observation
+            end
+        end
+        return nil
+    end
+
     local function selectBackstabTarget(localPosition, info, acquisitionDistance)
         local nearest
         local nearestDistance = math.huge
@@ -1509,6 +1532,7 @@ function Rivals.new(context)
             end,
             selectDualModeBladeTarget = selectDualModeBladeTarget,
             selectTarget = selectTarget,
+            selectCrosshairTarget = selectCrosshairTarget,
             isDeflecting = isDeflecting,
             isGunGame = isGunGame,
             localFighterIsCrouching = localFighterIsCrouching,
@@ -1627,6 +1651,15 @@ function Rivals.new(context)
         local utilityObservations = {}
         local taskHazards = utilityObservations
         local fighter = FighterController.LocalFighter
+        rapidFire:update(
+            settings,
+            fighter and fighter.EquippedItem,
+            localFighterIsActive() and localFighterIsInCombat() and not context.isInputCaptured(),
+            type(context.isFireHeld) == "function" and context.isFireHeld()
+                or type(UserInputService.IsMouseButtonPressed) == "function"
+                    and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1),
+            startShooting
+        )
         if
             (settings.utilityEsp == true or taskCombatActive)
             and localFighterIsInCombat()
@@ -1643,7 +1676,6 @@ function Rivals.new(context)
         if not settingsSubscription then
             effects:update(settings)
         end
-        context.render(visualObservations, UserInputService:GetMouseLocation(), utilityObservations)
 
         local autoCounterActed = runAutoCounter(settings)
         local alignedTarget
@@ -1751,6 +1783,15 @@ function Rivals.new(context)
         elseif settingsSubscription then
             stopTeleportPhysics()
         end
+        if alignedTarget and limnVisualsEnabled then
+            local _, refreshedVisuals = observationRuntime:update(
+                UserInputService:GetMouseLocation(),
+                settings.showTeammates == true,
+                settings.showEnemies ~= false
+            )
+            visualObservations = refreshedVisuals
+        end
+        context.render(visualObservations, UserInputService:GetMouseLocation(), utilityObservations)
         local camera = Workspace.CurrentCamera
         local cameraFrame = camera
             and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
@@ -2250,6 +2291,7 @@ function Rivals.new(context)
             trigger.held = false
         end
         releaseFire()
+        rapidFire:stop()
         movement:stop()
         movement:stopWallNoclip()
         effects:stop()

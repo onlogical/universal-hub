@@ -77,9 +77,19 @@ function Presentation.mount(host)
             parent = "triggerBot",
         })
     end
-    host:option("trigger", 2, "skipDeflect", "Katana Stop")
-    host:option("trigger", 2, "autoDeflect", "Auto Katana")
-    host:option("trigger", 3, "alwaysScoped", "Always Scoped")
+    host:option("trigger", 2, "rapidFire", "Rapid Fire")
+    if type(host.slider) == "function" then
+        host:slider("trigger", "fireRate", "Fire Rate", {
+            min = 100,
+            max = 300,
+            step = 5,
+            unit = "%",
+            parent = "rapidFire",
+        })
+    end
+    host:option("trigger", 3, "skipDeflect", "Katana Stop")
+    host:option("trigger", 3, "autoDeflect", "Auto Katana")
+    host:option("trigger", 4, "alwaysScoped", "Always Scoped")
 
     host:section("Rage", "rage", "RAGE", 70)
     host:option("rage", 1, "teleportBehind", "Warp")

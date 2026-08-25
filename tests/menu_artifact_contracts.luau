@@ -17,6 +17,11 @@ assert(
 local buildScript = fs.readFile("scripts/build_menu.cjs")
 local prismTsconfig = fs.readFile("ui/tsconfig.prism.json")
 local visualsSource = fs.readFile("ui/src/visuals/VisualsPage.tsx")
+local sectionListSource = fs.readFile("ui/src/components/SectionList.tsx")
+assert(
+    not string.find(sectionListSource, "section.controls.map((control) => control.id).join", 1, true),
+    "Dynamic controls must not remount their section and move it to the list bottom"
+)
 assert(
     string.find(buildScript, "normalizeLf", 1, true),
     "Menu generation must normalize emitted line endings"

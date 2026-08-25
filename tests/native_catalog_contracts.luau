@@ -16,6 +16,8 @@ local settings = {
     alwaysScoped = false,
     skipDeflect = false,
     autoDeflect = false,
+    rapidFire = false,
+    fireRate = 200,
     triggerDelay = 0,
     cameraFov = 58,
     cameraFullScreenAim = false,
@@ -64,6 +66,8 @@ local catalog = Catalog.new({
         "humanAim",
         "triggerBot",
         "triggerDelay",
+        "rapidFire",
+        "fireRate",
         "skipDeflect",
         "autoDeflect",
         "alwaysScoped",
@@ -127,7 +131,9 @@ for _, control in ipairs(combat.sections[4].controls) do
 end
 assert(triggerIds.triggerBot and triggerIds.skipDeflect.label == "Katana Stop")
 assert(triggerIds.autoDeflect and triggerIds.autoDeflect.label == "Auto Katana")
+assert(triggerIds.rapidFire and triggerIds.rapidFire.label == "Rapid Fire")
 assert(triggerIds.triggerDelay == nil, "Delay must wait until Trigger Bot is on")
+assert(triggerIds.fireRate == nil, "Fire Rate must wait until Rapid Fire is on")
 settings.triggerBot = true
 model = catalog:model(state)
 local triggerControls = model.pages[1].sections[4].controls
@@ -141,10 +147,22 @@ for _, control in ipairs(triggerControls) do
 end
 model.onValueChange("triggerDelay", 40, true)
 assert(settings.triggerDelay == 40)
+model.onValueChange("rapidFire", true, true)
+model = catalog:model(state)
+triggerIds = {}
+for _, control in ipairs(model.pages[1].sections[4].controls) do
+    triggerIds[control.id] = control
+end
+assert(triggerIds.fireRate and triggerIds.fireRate.parent == "rapidFire")
+assert(triggerIds.fireRate.min == 100 and triggerIds.fireRate.max == 300)
+assert(triggerIds.fireRate.step == 5 and triggerIds.fireRate.unit == "%")
+model.onValueChange("fireRate", 250, true)
+assert(settings.fireRate == 250)
 
+local writeCount = #writes
 model.onValueChange("aimMode", "camera", true)
-assert(writes[1][1] == "shotAim" and writes[1][2] == false)
-assert(writes[2][1] == "silentAim" and writes[2][2] == true)
+assert(writes[writeCount + 1][1] == "shotAim" and writes[writeCount + 1][2] == false)
+assert(writes[writeCount + 2][1] == "silentAim" and writes[writeCount + 2][2] == true)
 model = catalog:model(state)
 assert(model.pages[1].sections[1].controls[1].value == "camera")
 assert(#model.pages[1].sections[1].controls == 2)

@@ -325,6 +325,14 @@ function WeaponPolicy.holdToFire(item)
             and info.ShootCooldown <= AUTOMATIC_SHOOT_COOLDOWN
 end
 
+function WeaponPolicy.repeatShootingInput(item)
+    local info = item and item.Info
+    return WeaponPolicy.holdToFire(item)
+        and type(info) == "table"
+        and type(info.ShootCooldown) == "number"
+        and type(info.InternalUseCooldown) ~= "number"
+end
+
 function WeaponPolicy.gunbladeMode(item)
     if not ItemPolicy.isDualModeBlade(item) then
         return nil
