@@ -64,9 +64,9 @@ function ServerHop:run(maxPing, completed, isActive, targetPopulation)
     self.spawn(function()
         local ok, result = pcall(function()
             self.requestSerial += 1
-            targetPopulation = math.clamp(tonumber(targetPopulation) or 6, 1, self.maxPlayers)
-            local desiredPlaying = math.max(0, targetPopulation - 1)
-            local sortOrder = desiredPlaying >= 4 and "Desc" or "Asc"
+            targetPopulation = math.clamp(tonumber(targetPopulation) or 6, 0, self.maxPlayers - 1)
+            local desiredPlaying = targetPopulation
+            local sortOrder = targetPopulation >= 4 and "Desc" or "Asc"
             local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=%s&limit=100&excludeFullGames=true&_=%s-%d"):format(
                 self.placeId,
                 sortOrder,
@@ -84,13 +84,11 @@ function ServerHop:run(maxPing, completed, isActive, targetPopulation)
                     and server.ping <= maxPing
                     and (
                         not best
-                        or math.abs(server.playing - desiredPlaying) < math.abs(
-                            best.playing - desiredPlaying
-                        )
+                        or server.ping < best.ping
                         or (
-                            math.abs(server.playing - desiredPlaying)
-                                == math.abs(best.playing - desiredPlaying)
-                            and server.ping < best.ping
+                            server.ping == best.ping
+                            and math.abs(server.playing - desiredPlaying)
+                                < math.abs(best.playing - desiredPlaying)
                         )
                     )
                 then

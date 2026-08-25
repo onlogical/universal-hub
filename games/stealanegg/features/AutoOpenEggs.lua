@@ -78,32 +78,34 @@ function AutoOpenEggs:_scan()
         end
     end
     if self.completeIndex then
+        local placementUid
         for uid, record in pairs(records) do
             local assetCategory = category(record)
-            if
-                not record.Placement
-                and not self.placing[uid]
-                and assetCategory
-                and not self.isIndexed(assetCategory)
-            then
-                local placement = self:_findPlacement(records)
-                if placement then
-                    self.placing[uid] = true
-                    self.spawn(function()
-                        if not self.enabled or not self.completeIndex then
-                            return
-                        end
-                        local placed = self.eggCmds.RequestPlaceEgg(uid, placement)
-                        if placed then
-                            if type(self.renderer.Refresh) == "function" then
-                                self.renderer.Refresh()
-                            end
-                        else
-                            self.placing[uid] = nil
-                        end
-                    end)
+            if not record.Placement and not self.placing[uid] and assetCategory then
+                placementUid = placementUid or uid
+                if not self.isIndexed(assetCategory) then
+                    placementUid = uid
+                    break
                 end
-                break
+            end
+        end
+        if placementUid then
+            local placement = self:_findPlacement(records)
+            if placement then
+                self.placing[placementUid] = true
+                self.spawn(function()
+                    if not self.enabled or not self.completeIndex then
+                        return
+                    end
+                    local placed = self.eggCmds.RequestPlaceEgg(placementUid, placement)
+                    if placed then
+                        if type(self.renderer.Refresh) == "function" then
+                            self.renderer.Refresh()
+                        end
+                    else
+                        self.placing[placementUid] = nil
+                    end
+                end)
             end
         end
     end

@@ -5,6 +5,7 @@ UDim2 = roblox.UDim2
 Vector3 = roblox.Vector3
 
 local Catalog = require("../../games/Catalog")
+local PresentationCatalog = require("../../ui/presentation/Catalog")
 local Adapter = require("../../games/stealanegg/Adapter")
 local AntiHit = require("../../games/stealanegg/features/AntiHit")
 local AntiTrap = require("../../games/stealanegg/features/AntiTrap")
@@ -23,7 +24,11 @@ assert(Definition.manifest.gameIds[1] == 10563114921)
 assert(Definition.manifest.placeIds[1] == 107778070777162)
 assert(Definition.defaults.antiHit == false)
 assert(Definition.defaults.antiTrap == false)
+assert(Definition.defaults.autoBlossom == false)
+assert(Definition.defaults.autoFarmIndexServerHopping == nil)
+assert(Definition.defaults.idleTreadmill == true)
 assert(Definition.defaults.autoOpenEggs == false)
+assert(Definition.defaults.eggRadar == true)
 assert(Definition.defaults.eggEsp == false and Definition.defaults.trapEsp == false)
 assert(
     Definition.defaults.eggEspMinimumRarity == 1 and Definition.defaults.eggEspMinimumSize == 0.5
@@ -33,8 +38,12 @@ assert(Definition.defaults.hitAuraIgnoreFriends == true)
 assert(Definition.defaults.instantPrompts == false)
 assert(table.find(Definition.features.capabilities, "antiHit"))
 assert(table.find(Definition.features.capabilities, "antiTrap"))
+assert(table.find(Definition.features.capabilities, "autoBlossom"))
+assert(table.find(Definition.features.capabilities, "autoFarmIndexServerHopping") == nil)
+assert(table.find(Definition.features.capabilities, "idleTreadmill"))
 assert(table.find(Definition.features.capabilities, "autoOpenEggs"))
 assert(table.find(Definition.features.capabilities, "eggEsp"))
+assert(table.find(Definition.features.capabilities, "eggRadar"))
 assert(table.find(Definition.features.capabilities, "eggEspMinimumRarity"))
 assert(table.find(Definition.features.capabilities, "eggEspMinimumSize"))
 assert(table.find(Definition.features.capabilities, "trapEsp"))
@@ -43,6 +52,7 @@ assert(table.find(Definition.features.capabilities, "hitAuraIgnoreFriends"))
 assert(table.find(Definition.features.capabilities, "instantPrompts"))
 assert(table.find(Definition.sources, "games/stealanegg/features/AntiHit"))
 assert(table.find(Definition.sources, "games/stealanegg/features/AntiTrap"))
+assert(table.find(Definition.sources, "games/stealanegg/features/AutoBlossom"))
 assert(table.find(Definition.sources, "games/stealanegg/features/AutoOpenEggs"))
 assert(table.find(Definition.sources, "games/stealanegg/features/HighlightEsp"))
 assert(table.find(Definition.sources, "games/stealanegg/features/HitAura"))
@@ -68,11 +78,15 @@ Presentation.mount({
 assert(
     presented.antiHit
         and presented.antiTrap
+        and presented.autoBlossom
         and presented.autoOpenEggs
+        and presented.idleTreadmill
+        and presented.autoFarmIndexServerHopping == nil
         and presented.hitAura
         and presented.hitAuraIgnoreFriends
         and presented.instantPrompts
         and presented.eggEsp
+        and presented.eggRadar
         and presented.trapEsp,
     "Presentation must expose every Steal An Egg tool"
 )
@@ -82,9 +96,47 @@ assert(
 )
 assert(presented.hitAuraIgnoreFriends == "hitAura", "Ignore Friends must be a Hit Aura sub-toggle")
 assert(
+    presented.autoBlossom == "autoFarm" and presented.idleTreadmill == "autoFarm",
+    "Auto Blossom and Treadmill must be indented Auto Farm priorities"
+)
+assert(
     presented.eggEspMinimumRarity == "eggEsp" and presented.eggEspMinimumSize == "eggEsp",
     "Egg ESP filters must be nested under Egg ESP"
 )
+
+local catalogState = { menuVisible = true, settings = Definition.defaults }
+local presentationCatalog = PresentationCatalog.new({
+    capabilities = Definition.features.capabilities,
+    setOption = function() end,
+    store = {
+        Get = function()
+            return catalogState
+        end,
+        Patch = function(_, patch)
+            for key, value in pairs(patch) do
+                catalogState[key] = value
+            end
+            return catalogState
+        end,
+    },
+})
+Presentation.mount(presentationCatalog)
+local menuModel = presentationCatalog:model(catalogState)
+local visualsPage
+for _, page in ipairs(menuModel.pages) do
+    if page.id == "Visuals" then
+        visualsPage = page
+        break
+    end
+end
+local radarSection
+for _, section in ipairs(visualsPage and visualsPage.sections or {}) do
+    if section.id == "eggRadar" then
+        radarSection = section
+        break
+    end
+end
+assert(radarSection, "The Visuals model must retain the custom Egg Radar section")
 
 local function signal()
     local callbacks = {}
@@ -192,7 +244,7 @@ assert(#auraCalls == 2, "Disabled Hit Aura must stop native bat activations")
 local autoOpenHeartbeat = signal()
 local readyEggs = { ready = true }
 local autoOpenRecords = {
-    inventory = {},
+    inventory = { Item = { Category = "Owned" } },
     later = { Placement = {} },
     missing = { Item = { Category = "Missing" } },
     ready = { Placement = {} },
@@ -252,6 +304,10 @@ assert(
 assert(#openedEggs == 1 and openedEggs[1] == "ready", "Ready placed eggs must open immediately")
 readyEggs.later = true
 autoOpenHeartbeat:Fire(0.25)
+assert(
+    #placedEggs == 2 and placedEggs[2].uid == "inventory",
+    "Complete Index must place previously farmed eggs after missing Index eggs"
+)
 assert(
     #openedEggs == 2 and openedEggs[2] == "later",
     "Newly ready eggs must open without retrying active hatches"

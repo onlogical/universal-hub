@@ -66,13 +66,17 @@ local hop = ServerHop.new({
 local completed
 hop:run(120, function(succeeded)
     completed = succeeded
-end, nil, 3)
+end, nil, 4)
 assert(completed == true, "Server Hop must report successful requests to Auto Farm")
 assert(
-    teleported.placeId == 123 and teleported.serverId == "lowest" and teleported.player == "player"
+    teleported.placeId == 123 and teleported.serverId == "busier" and teleported.player == "player",
+    "Server Hop must prefer the best reported connection"
 )
-assert(logs[1].scope == "stealanegg.serverHop" and logs[1].fields.players == 2)
-assert(requestedUrls[1]:find("sortOrder=Asc", 1, true), "Low population must request the low end")
+assert(logs[1].scope == "stealanegg.serverHop" and logs[1].fields.players == 5)
+assert(
+    requestedUrls[1]:find("sortOrder=Desc", 1, true),
+    "A four-player target must search populated servers instead of the empty-server page"
+)
 teleportFailed:Fire("player", "Failure", "Error 279")
 assert(completed == false, "Teleport-init failures must be reported so Auto Farm can retry")
 hop:run(120, nil, nil, 6)
@@ -80,7 +84,45 @@ assert(
     requestedUrls[2]:find("sortOrder=Desc", 1, true),
     "A higher target population must request the busy end"
 )
-assert(teleported.serverId == "busier", "Server Hop must choose nearest to target population")
+assert(
+    teleported.serverId == "seven",
+    "Visited best connections must fall through to the next lowest ping"
+)
 hop:run(120, nil, nil, 99)
-assert(teleported.serverId == "seven", "Target population must clamp to the live game capacity")
+assert(
+    teleported.serverId == "lowest",
+    "Target population must clamp without overriding connection priority"
+)
+
+local zeroTeleported
+local zeroUrl
+local zeroHop = ServerHop.new({
+    decode = function()
+        return {
+            data = {
+                { id = "one-player", playing = 1, maxPlayers = 8, ping = 40 },
+                { id = "empty", playing = 0, maxPlayers = 8, ping = 40 },
+            },
+        }
+    end,
+    httpGet = function(url)
+        zeroUrl = url
+        return "response"
+    end,
+    jobId = "zero-current",
+    localPlayer = "player",
+    maxPlayers = 8,
+    placeId = 123,
+    spawn = function(callback)
+        callback()
+    end,
+    teleportService = {
+        TeleportToPlaceInstance = function(_, _, serverId)
+            zeroTeleported = serverId
+        end,
+    },
+})
+zeroHop:run(120, nil, nil, 0)
+assert(zeroTeleported == "empty", "A zero-population preference must favor empty servers")
+assert(zeroUrl:find("sortOrder=Asc", 1, true), "Zero population must search the empty end")
 print("server-hop-ok")

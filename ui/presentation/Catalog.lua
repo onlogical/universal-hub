@@ -226,6 +226,7 @@ function Catalog:section(page, id, label, lineOffset, includesRates, columns, sp
         includesRates = includesRates == true,
         columns = columns or 1,
         ephemeral = isEphemeral(page, spec),
+        renderEmpty = spec.renderEmpty == true,
         treatment = spec.treatment,
         actions = {},
         options = {},
@@ -484,7 +485,8 @@ function Catalog:model(state)
 
     for _, group in ipairs(self.groups) do
         if
-            #group.actions > 0
+            group.renderEmpty
+            or #group.actions > 0
             or #group.options > 0
             or #group.keybinds > 0
             or #group.sliders > 0
@@ -579,7 +581,7 @@ function Catalog:model(state)
                     emphasis = "row",
                 })
             end
-            if #controls > 0 then
+            if #controls > 0 or group.renderEmpty then
                 local treatment = group.treatment
                 if treatment == nil then
                     local metadata = self.pageMetadata[group.page] or {}

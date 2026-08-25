@@ -11,6 +11,8 @@ end
 
 local AntiHit = importDependency("games/stealanegg/features/AntiHit", "./features/AntiHit")
 local AntiTrap = importDependency("games/stealanegg/features/AntiTrap", "./features/AntiTrap")
+local AutoBlossom =
+    importDependency("games/stealanegg/features/AutoBlossom", "./features/AutoBlossom")
 local AutoFarm = importDependency("games/stealanegg/features/AutoFarm", "./features/AutoFarm")
 local AutoOpenEggs =
     importDependency("games/stealanegg/features/AutoOpenEggs", "./features/AutoOpenEggs")
@@ -121,6 +123,8 @@ function Adapter.new(context)
     local AreaEggResetTimeUtil = require(ReplicatedStorage.Library.Util.AreaEggResetTimeUtil)
     local Areas = require(ReplicatedStorage.Directory.Areas)
     local Assets = require(ReplicatedStorage.Directory.Assets)
+    local Sakura = require(ReplicatedStorage.Directory.Sakura)
+    local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
     local Save = require(ReplicatedStorage.Library.Client.Save)
     local indexCategories = {}
     for _, area in pairs(Areas.Directory) do
@@ -136,9 +140,17 @@ function Adapter.new(context)
         local save = Save.Get()
         return save ~= nil and save.Index[category] == true
     end
+    local function isIndexPending(category)
+        for _, record in pairs(EggCmds.GetOwnerRuntimeRecords(LocalPlayer.UserId)) do
+            if record.AssetCategory == category then
+                return true
+            end
+        end
+        return false
+    end
     local function hasMissingIndex()
         for category in pairs(indexCategories) do
-            if not isIndexed(category) then
+            if not isIndexed(category) and not isIndexPending(category) then
                 return true
             end
         end
@@ -181,7 +193,6 @@ function Adapter.new(context)
         persistFarmHistory()
     end
     local Constants = require(ReplicatedStorage.Library.Globals.Constants)
-    local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
     local Network = require(ReplicatedStorage.Library.Client.Network)
     local PlotCmds = require(ReplicatedStorage.Library.Client.PlotCmds)
     local SlotIdentity = require(ReplicatedStorage.Library.Util.AreaEggSlotIdentity)
@@ -266,13 +277,24 @@ function Adapter.new(context)
     local function resetSecondsRemaining()
         return math.max(0, resetUntil - Workspace:GetServerTimeNow())
     end
+    local requestHttp = context.httpGet
+        or function(url)
+            local request = environment.request or environment.http_request
+            if type(request) == "function" then
+                local response = request({ Method = "GET", Url = url })
+                assert(
+                    type(response) == "table" and type(response.Body) == "string",
+                    "HTTP request failed"
+                )
+                return response.Body
+            end
+            return game:HttpGet(url, true)
+        end
     local serverHop = ServerHop.new({
         decode = function(source)
             return HttpService:JSONDecode(source)
         end,
-        httpGet = function(url)
-            return game:HttpGet(url, true)
-        end,
+        httpGet = requestHttp,
         jobId = context.jobId,
         localPlayer = LocalPlayer,
         logger = context.logger,
@@ -298,18 +320,56 @@ function Adapter.new(context)
         runService = RunService,
         workspace = Workspace,
     })
-    local autoFarm = AutoFarm.new({
+    local function idleTreadmillPosition()
+        local plot = PlotCmds.GetPlotData()
+        local bottom = plot and plot.PlotFolder:FindFirstChild("TreadmillBottom")
+        return bottom and bottom:IsA("BasePart") and bottom.Position or nil
+    end
+    local autoFarm
+    local autoBlossom
+    local blossomSelected = false
+    autoBlossom = AutoBlossom.new({
+        batAttribute = Sakura.BatToolAttribute,
+        canFarm = function()
+            local save = Save.Get()
+            return save ~= nil and save.Sakura ~= nil and save.Sakura.Unlocked == true
+        end,
+        collectionService = CollectionService,
+        hitCooldown = Sakura.Bloom.HitCooldownSeconds,
+        hitRange = Sakura.Bloom.HitRange,
+        localPlayer = LocalPlayer,
+        navigator = navigator,
+        onWorkChanged = function(working)
+            if not autoFarm then
+                return
+            end
+            if working and autoFarm:hasPriorityTarget() then
+                autoBlossom:setEnabled(false)
+                autoFarm:setPaused(false)
+                return
+            end
+            autoFarm:setPaused(working)
+        end,
+        treeTag = Sakura.TreeTag,
+    })
+    autoFarm = AutoFarm.new({
         assets = Assets,
         eggCmds = EggCmds,
         localPlayer = LocalPlayer,
         logger = context.logger,
+        getIdlePosition = idleTreadmillPosition,
         getResetSeconds = resetSecondsRemaining,
         getSecuredEggs = securedEggs,
         hasMissingIndex = hasMissingIndex,
         isGlobalSpawnKnown = isGlobalSpawnKnown,
         isIndexed = isIndexed,
+        isIndexPending = isIndexPending,
         markGlobalSpawn = markGlobalSpawn,
         navigator = navigator,
+        onRareAvailable = function()
+            autoBlossom:setEnabled(false)
+            autoFarm:setPaused(false)
+        end,
         onSecured = recordSecuredEgg,
         plotCmds = PlotCmds,
         players = context.players,
@@ -322,6 +382,13 @@ function Adapter.new(context)
             context.store:Patch({ floatingMonitor = model })
         end,
         serverHop = serverHop,
+        shouldRunBlossom = function()
+            if not blossomSelected or not autoBlossom:hasWork() then
+                return false
+            end
+            autoBlossom:setEnabled(true)
+            return true
+        end,
         slotIdentity = SlotIdentity,
         workspace = Workspace,
     })
@@ -331,6 +398,7 @@ function Adapter.new(context)
     }, readPing)
     local function apply(state)
         local farming = state.settings.autoFarm == true
+        blossomSelected = farming and state.settings.autoBlossom == true
         if gameRuntime.farmHistory.active ~= farming then
             if farming then
                 table.clear(gameRuntime.farmHistory.eggs)
@@ -358,13 +426,14 @@ function Adapter.new(context)
         lagSafeMovement:setEnabled(
             state.settings.antiHit == true and state.settings.lagSafeMovement == true
         )
+        autoFarm:setIdleTreadmill(state.settings.idleTreadmill)
         autoFarm:setTargetRarities(state.settings.autoFarmEternal, state.settings.autoFarmSecret)
         autoFarm:setCompleteIndex(state.settings.autoFarmIndex)
-        autoFarm:setIndexServerHopping(state.settings.autoFarmIndexServerHopping)
         autoFarm:setServerHopping(state.settings.autoFarmServerHopping)
         autoFarm:setTargetPopulation(state.settings.serverHopTargetPopulation)
         autoFarm:setMaxPing(state.settings.serverHopMaxPing)
         autoFarm:setEnabled(farming)
+        autoBlossom:setEnabled(blossomSelected and not autoFarm:hasPriorityTarget())
         if state.settings.serverHop == true then
             context.store:Patch({
                 settings = {
@@ -394,6 +463,7 @@ function Adapter.new(context)
         pcall(resetConnection.Disconnect, resetConnection)
         pcall(antiHit.stop, antiHit)
         pcall(antiTrap.stop, antiTrap)
+        pcall(autoBlossom.stop, autoBlossom)
         pcall(autoFarm.stop, autoFarm)
         pcall(autoOpenEggs.stop, autoOpenEggs)
         pcall(highlightEsp.stop, highlightEsp)

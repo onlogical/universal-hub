@@ -20,6 +20,9 @@ function AutoFarm.new(options)
         localPlayer = options.localPlayer,
         logger = options.logger,
         navigator = options.navigator,
+        getIdlePosition = options.getIdlePosition or function()
+            return nil
+        end,
         getResetSeconds = options.getResetSeconds or function()
             return 0
         end,
@@ -35,8 +38,15 @@ function AutoFarm.new(options)
         isIndexed = options.isIndexed or function()
             return true
         end,
+        isIndexPending = options.isIndexPending or function()
+            return false
+        end,
         markGlobalSpawn = options.markGlobalSpawn or function() end,
+        onRareAvailable = options.onRareAvailable,
         onSecured = options.onSecured,
+        shouldRunBlossom = options.shouldRunBlossom or function()
+            return false
+        end,
         plotCmds = options.plotCmds,
         players = options.players,
         publishStatus = options.publishStatus,
@@ -48,8 +58,10 @@ function AutoFarm.new(options)
         workspace = options.workspace or workspace,
         completeIndex = false,
         enabled = false,
+        idleTreadmill = true,
+        onTreadmill = false,
+        paused = false,
         targetRarities = { Eternal = true, Secret = true },
-        indexServerHopping = true,
         targetPopulation = 6,
         maxPing = 120,
         token = 0,
@@ -64,8 +76,21 @@ function AutoFarm.new(options)
         self.eggUpdateConnection = self.eggCmds.AreaEggUpdated:Connect(function(record)
             if type(record) == "table" then
                 local _, rarityName = self:_rarity(record)
-                if self.targetRarities[rarityName] == true then
+                if self:_isRarityTarget(rarityName) then
                     self.markGlobalSpawn(rarityName)
+                    if
+                        type(self.onRareAvailable) == "function"
+                        and (
+                            record.State == "Slot"
+                            or record.State == "Dropped"
+                            or (
+                                isCarried(record)
+                                and record.CarrierUserId ~= self.localPlayer.UserId
+                            )
+                        )
+                    then
+                        pcall(self.onRareAvailable, record)
+                    end
                 end
             end
             if not self.enabled then
@@ -100,7 +125,7 @@ function AutoFarm:_publish(stage, detail, targetUid)
             or record.State == "Dropped"
             or (isCarried(record) and record.CarrierUserId ~= self.localPlayer.UserId)
         local indexTarget = self:_isIndexTarget(record)
-        if available and (self.targetRarities[rarityName] == true or indexTarget) then
+        if available and (self:_isRarityTarget(rarityName) or indexTarget) then
             targets += 1
         end
         table.insert(eggs, {
@@ -115,7 +140,7 @@ function AutoFarm:_publish(stage, detail, targetUid)
             size = tonumber(record.AssetScale) or 1,
             state = record.State == "Claimed" and "Contested" or record.State,
             target = record.Uid == targetUid,
-            eligible = available and (self.targetRarities[rarityName] == true or indexTarget),
+            eligible = available and (self:_isRarityTarget(rarityName) or indexTarget),
             reason = indexTarget and "Missing from Index" or rarityName .. " target",
         })
     end
@@ -142,7 +167,7 @@ function AutoFarm:_publish(stage, detail, targetUid)
 end
 
 function AutoFarm:_active(token)
-    return self.enabled and token == self.token
+    return self.enabled and not self.paused and token == self.token
 end
 
 function AutoFarm:_rarity(record)
@@ -152,8 +177,15 @@ function AutoFarm:_rarity(record)
         rarity and (rarity.DisplayName or rarity._id) or "Unknown"
 end
 
+function AutoFarm:_isRarityTarget(rarityName)
+    return self.targetRarities[rarityName] == true
+        or (rarityName == "Divine" and (self.targetRarities.Eternal or self.targetRarities.Secret))
+end
+
 function AutoFarm:_isIndexTarget(record)
-    return self.completeIndex and not self.isIndexed(record.AssetCategory)
+    return self.completeIndex
+        and not self.isIndexed(record.AssetCategory)
+        and not self.isIndexPending(record.AssetCategory)
 end
 
 function AutoFarm:_carrierRoot(record)
@@ -166,7 +198,7 @@ function AutoFarm:_carrierRoot(record)
     return root and root:IsA("BasePart") and root or nil
 end
 
-function AutoFarm:_selectTarget()
+function AutoFarm:_selectTarget(mode)
     local position = rootPosition(self.localPlayer)
     local best
     for _, record in ipairs(self.eggCmds.GetAreaEggSnapshot().Records) do
@@ -176,8 +208,8 @@ function AutoFarm:_selectTarget()
             or (isCarried(record) and record.CarrierUserId ~= self.localPlayer.UserId)
         then
             local rarityNumber, rarityName = self:_rarity(record)
-            local indexTarget = self:_isIndexTarget(record)
-            local rareTarget = self.targetRarities[rarityName] == true
+            local indexTarget = mode ~= "rare" and self:_isIndexTarget(record)
+            local rareTarget = mode ~= "index" and self:_isRarityTarget(rarityName)
             if rareTarget or indexTarget then
                 if rareTarget then
                     self.markGlobalSpawn(rarityName)
@@ -243,6 +275,10 @@ function AutoFarm:_selectCarried()
         end
     end
     return nil
+end
+
+function AutoFarm:hasPriorityTarget()
+    return self:_selectCarried() ~= nil or self:_selectTarget("rare") ~= nil
 end
 
 function AutoFarm:_pursueCarrier(record, token)
@@ -334,18 +370,30 @@ function AutoFarm:_homePosition()
     return typeof(respawn) == "CFrame" and respawn.Position or nil
 end
 
-function AutoFarm:_idleOnTreadmill(token)
-    if self:_selectCarried() then
+function AutoFarm:_leaveTreadmill()
+    if not self.onTreadmill then
         return
     end
-    local respawn = self.plotCmds.GetRespawnPointCFrame()
-    if typeof(respawn) ~= "CFrame" then
+    self.onTreadmill = false
+    if type(self.navigator.jump) == "function" then
+        self.navigator:jump()
+        self.wait(0.1)
+    end
+end
+
+function AutoFarm:_idleOnTreadmill(token)
+    if not self.idleTreadmill or self.onTreadmill or self:_selectCarried() then
+        return
+    end
+    local position = self.getIdlePosition()
+    if typeof(position) ~= "Vector3" then
         return
     end
     self:_publish("Training while idle", "No farm action is ready. Walking onto your treadmill.")
-    self.navigator:walkTo(respawn.Position, function()
+    local reached = self.navigator:moveToDirect(position, function()
         return self:_active(token) and self:_selectCarried() == nil
-    end, 8)
+    end, 4)
+    self.onTreadmill = reached == true
 end
 
 function AutoFarm:_waitForClaim(uid, token)
@@ -378,6 +426,17 @@ function AutoFarm:_waitForReset(token)
 end
 
 function AutoFarm:_hop(token)
+    if self:_selectCarried() or self:_selectTarget("rare") then
+        self:_startRun()
+        return
+    end
+    if self.shouldRunBlossom() then
+        return
+    end
+    if self:_selectTarget("index") then
+        self:_startRun()
+        return
+    end
     if (tonumber(self.getResetSeconds()) or 0) > 0 then
         self.spawn(function()
             self:_run(token)
@@ -396,8 +455,7 @@ function AutoFarm:_hop(token)
         )
         return
     end
-    local mayHop = (indexTargetsRemain and self.indexServerHopping)
-        or (rareSpawnKnown and self.serverHopping)
+    local mayHop = rareSpawnKnown and self.serverHopping
     if not mayHop then
         self:_idleOnTreadmill(token)
         self.waitingForEggUpdate = token
@@ -427,22 +485,25 @@ function AutoFarm:_hop(token)
 end
 
 function AutoFarm:_run(token)
-    self.wait(1.5)
     if not self:_active(token) or not self:_waitForReset(token) then
         return
     end
     pcall(self.eggCmds.RequestAreaEggSnapshot)
-    self:_publish("Scanning server", "Checking every egg against your selected rarities.")
+    self:_publish("Scanning server", "Checking every egg against your selected priorities.")
     local target = self:_selectCarried()
     local alreadyCarried = target ~= nil
     if not target then
-        if not self.targetRarities.Eternal and not self.targetRarities.Secret then
-            self:_log("warn", "no target rarities selected")
-            self:_idleOnTreadmill(token)
-            self:_publish("Waiting for targets", "Select Eternal Eggs, Secret Eggs, or both.")
-            return
-        end
-        target = self:_selectTarget()
+        target = self:_selectTarget("rare")
+    end
+    if not target and self.shouldRunBlossom() then
+        self:_publish(
+            "Auto Blossom",
+            "No Divine, Eternal, or Secret egg is ready. Farming Great Bloom before Index eggs."
+        )
+        return
+    end
+    if not target then
+        target = self:_selectTarget("index")
     end
     if not target then
         self:_log("info", "no matching egg; hopping", {
@@ -457,6 +518,7 @@ function AutoFarm:_run(token)
         return
     end
 
+    self:_leaveTreadmill()
     local record = target.record
     self.claimCategory = record.AssetCategory
     if not alreadyCarried and isCarried(record) then
@@ -487,9 +549,20 @@ function AutoFarm:_run(token)
             record.Uid
         )
         local reached, reason = self.navigator:walkTo(record.BottomCFrame.Position, function()
+            local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
             return self:_active(token)
+                and latest ~= nil
+                and (latest.State == "Slot" or latest.State == "Dropped")
         end, 7)
         if not reached then
+            local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
+            if
+                self:_active(token)
+                and (latest == nil or (latest.State ~= "Slot" and latest.State ~= "Dropped"))
+            then
+                self:_startRun()
+                return
+            end
             self:_log("warn", "target walk failed", { reason = reason, uid = record.Uid })
             self:_publish(
                 "Rebuilding route",
@@ -581,6 +654,25 @@ function AutoFarm:_startRun()
     end)
 end
 
+function AutoFarm:setPaused(paused)
+    paused = paused == true
+    if self.paused == paused then
+        return
+    end
+    self.paused = paused
+    self.token += 1
+    self.waitingForEggUpdate = nil
+    if paused then
+        self:_leaveTreadmill()
+        self:_publish(
+            "Auto Blossom",
+            "Rare eggs are clear. Great Bloom has priority before Index farming."
+        )
+    elseif self.enabled then
+        self:_startRun()
+    end
+end
+
 function AutoFarm:setCompleteIndex(enabled)
     enabled = enabled == true
     if self.completeIndex == enabled then
@@ -608,15 +700,18 @@ function AutoFarm:setTargetRarities(eternal, secret)
 end
 
 function AutoFarm:setTargetPopulation(value)
-    self.targetPopulation = math.max(1, tonumber(value) or 6)
+    self.targetPopulation = math.max(0, tonumber(value) or 6)
 end
 
-function AutoFarm:setIndexServerHopping(enabled)
+function AutoFarm:setIdleTreadmill(enabled)
     enabled = enabled == true
-    if self.indexServerHopping == enabled then
+    if self.idleTreadmill == enabled then
         return
     end
-    self.indexServerHopping = enabled
+    self.idleTreadmill = enabled
+    if not enabled then
+        self:_leaveTreadmill()
+    end
     if self.enabled then
         self.token += 1
         self.waitingForEggUpdate = nil
@@ -644,14 +739,17 @@ end
 function AutoFarm:setEnabled(enabled)
     enabled = enabled == true
     if self.enabled == enabled then
-        if not enabled then
-            self:_publish("Farm off", "Enable Auto Farm to pursue a target.")
-        end
         return
     end
     self.enabled = enabled
+    if not enabled then
+        self.paused = false
+    end
     self.token += 1
     self.waitingForEggUpdate = nil
+    if not enabled then
+        self:_leaveTreadmill()
+    end
     self:_log("info", enabled and "enabled" or "disabled")
     if enabled then
         self:_publish("Starting", "Reading the current server and preparing the farm.")
@@ -663,7 +761,9 @@ end
 
 function AutoFarm:stop()
     self.enabled = false
+    self.paused = false
     self.token += 1
+    self:_leaveTreadmill()
     if type(self.publishStatus) == "function" then
         self.publishStatus(false)
     end

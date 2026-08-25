@@ -1,6 +1,6 @@
 import React from "@rbxts/react";
 import { Icon } from "@prism/components/Icon";
-import type { FarmMonitorEgg, FloatingMonitorModel } from "../contracts";
+import type { FarmMonitorEgg, FloatingMonitorModel } from "../../contracts";
 
 function readableRarity(color: Color3): Color3 {
 	const luminance = color.R * 0.299 + color.G * 0.587 + color.B * 0.114;
@@ -14,12 +14,7 @@ function EggCard({ egg, order }: { readonly egg: FarmMonitorEgg; readonly order:
 	const sizeColor = string.format("#%02X%02X%02X", math.round(rarity.R * 255), math.round(rarity.G * 255), math.round(rarity.B * 255));
 	const status = egg.target ? "TARGET" : egg.secured ? "SECURED" : egg.state === "Slot" ? "AVAILABLE" : egg.state.upper();
 	return (
-		<frame
-			LayoutOrder={order}
-			Size={new UDim2(0.5, -5, 0, 52)}
-			BackgroundColor3={Color3.fromRGB(27, 27, 30).Lerp(egg.rarityColor, egg.target ? 0.18 : 0.07)}
-			BorderSizePixel={0}
-		>
+		<frame LayoutOrder={order} Size={new UDim2(0.5, -5, 0, 52)} BackgroundColor3={Color3.fromRGB(27, 27, 30).Lerp(egg.rarityColor, egg.target ? 0.18 : 0.07)} BorderSizePixel={0}>
 			<uicorner CornerRadius={new UDim(0, 7)} />
 			<uistroke Color={rarity} Transparency={egg.target ? 0.28 : 0.78} Thickness={1} />
 			<imagelabel Position={UDim2.fromOffset(7, 6)} Size={UDim2.fromOffset(40, 40)} BackgroundColor3={egg.rarityColor} BackgroundTransparency={0.82} BorderSizePixel={0} Image={egg.icon} ScaleType={Enum.ScaleType.Fit}>

@@ -112,6 +112,23 @@ function WalkNavigator:walkTo(destination, isActive, tolerance)
     return self:_walkPoint(destination, isActive, tolerance)
 end
 
+function WalkNavigator:moveToDirect(destination, isActive, tolerance)
+    assert(typeof(destination) == "Vector3", "WalkNavigator destination must be a Vector3")
+    return self:_walkPoint(destination, isActive or function()
+        return true
+    end, tolerance or 4)
+end
+
+function WalkNavigator:jump()
+    local humanoid = characterParts(self.localPlayer)
+    if not humanoid then
+        return false
+    end
+    humanoid.Jump = true
+    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+    return true
+end
+
 function WalkNavigator:stop()
     self.stopped = true
     local humanoid, root = characterParts(self.localPlayer)
