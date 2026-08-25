@@ -56,13 +56,19 @@ function Adapter.new(context)
     local Stats = game:GetService("Stats")
     local TeleportService = game:GetService("TeleportService")
     local function readPing()
-        local item = Stats.Network.ServerStatsItem["Data Ping"]
-        local ok, value = pcall(item.GetValue, item)
-        if ok and type(value) == "number" then
-            return math.round(value)
+        local ok, value = pcall(function()
+            return Stats.PerformanceStats.Ping:GetValue()
+        end)
+        if not ok or type(value) ~= "number" then
+            ok, value = pcall(function()
+                return Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+            end)
         end
-        ok, value = pcall(LocalPlayer.GetNetworkPing, LocalPlayer)
-        return ok and type(value) == "number" and math.round(value * 1000) or 0
+        if not ok or type(value) ~= "number" then
+            ok, value = pcall(LocalPlayer.GetNetworkPing, LocalPlayer)
+            value = ok and type(value) == "number" and value * 1000 or 0
+        end
+        return math.round(value)
     end
     local historySettingKey = "UniversalHubStealAnEggFarmHistory"
     if type(gameRuntime.farmHistory) ~= "table" then
@@ -274,6 +280,7 @@ function Adapter.new(context)
         jobId = context.jobId,
         localPlayer = LocalPlayer,
         logger = context.logger,
+        maxPlayers = context.players.MaxPlayers,
         placeId = context.placeId,
         persistVisited = persistVisitedServers,
         teleportService = TeleportService,
@@ -469,6 +476,10 @@ return Adapter
         ["games/stealanegg/Presentation.lua"] = [[local Presentation = {}
 
 function Presentation.mount(host)
+    local maxPlayers = 8
+    pcall(function()
+        maxPlayers = math.max(1, game:GetService("Players").MaxPlayers)
+    end)
     if type(host.page) == "function" then
         host:page("Tools", { order = 1 })
         host:page("Visuals", { order = 2 })
@@ -501,7 +512,7 @@ function Presentation.mount(host)
     })
     host:slider("server", "serverHopTargetPopulation", "Target Population", {
         min = 1,
-        max = 12,
+        max = maxPlayers,
         step = 1,
         unit = " players",
     })
@@ -1124,6 +1135,7 @@ function AutoFarm:_publish(stage, detail, targetUid)
             size = tonumber(record.AssetScale) or 1,
             state = record.State == "Claimed" and "Contested" or record.State,
             target = record.Uid == targetUid,
+            eligible = available and (self.targetRarities[rarityName] == true or indexTarget),
             reason = indexTarget and "Missing from Index" or rarityName .. " target",
         })
     end
@@ -1191,25 +1203,32 @@ function AutoFarm:_selectTarget()
                     self.markGlobalSpawn(rarityName)
                 end
                 local carrierRoot = isCarried(record) and self:_carrierRoot(record) or nil
+                local bottomCFrame = record.BottomCFrame
                 local targetPosition = carrierRoot and carrierRoot.Position
-                    or record.BottomCFrame.Position
-                local distance = position and (position - targetPosition).Magnitude or math.huge
+                    or (typeof(bottomCFrame) == "CFrame" and bottomCFrame.Position or nil)
+                local distance = position
+                        and targetPosition
+                        and (position - targetPosition).Magnitude
+                    or math.huge
                 if
-                    not best
-                    or (rareTarget and not best.rareTarget)
-                    or (
-                        rareTarget == best.rareTarget
-                        and (
-                            (indexTarget and not best.indexTarget)
-                            or (
-                                indexTarget == best.indexTarget
-                                and (
-                                    rarityNumber > best.rarityNumber
-                                    or (rarityNumber == best.rarityNumber and distance < best.distance)
-                                    or (
-                                        rarityNumber == best.rarityNumber
-                                        and distance == best.distance
-                                        and record.Uid < best.record.Uid
+                    targetPosition
+                    and (
+                        not best
+                        or (rareTarget and not best.rareTarget)
+                        or (
+                            rareTarget == best.rareTarget
+                            and (
+                                (indexTarget and not best.indexTarget)
+                                or (
+                                    indexTarget == best.indexTarget
+                                    and (
+                                        rarityNumber > best.rarityNumber
+                                        or (rarityNumber == best.rarityNumber and distance < best.distance)
+                                        or (
+                                            rarityNumber == best.rarityNumber
+                                            and distance == best.distance
+                                            and record.Uid < best.record.Uid
+                                        )
                                     )
                                 )
                             )
@@ -1484,7 +1503,7 @@ function AutoFarm:_run(token)
         })
         self:_publish(
             "Walking to target",
-            ("%s %s · %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
+            ("%s %s Â· %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
             record.Uid
         )
         local reached, reason = self.navigator:walkTo(record.BottomCFrame.Position, function()
@@ -2028,7 +2047,7 @@ function HighlightEsp:_refreshEgg(uid)
         self.eggLabels,
         uid,
         model,
-        ("%s\n%s • %.1fx"):format(
+        ("%s\n%s â€¢ %.1fx"):format(
             tostring(record.AssetCategory),
             tostring(rarity.DisplayName or rarity._id or "Egg"),
             record.AssetScale
@@ -2549,6 +2568,7 @@ function ServerHop.new(options)
         jobId = options.jobId,
         localPlayer = options.localPlayer,
         logger = options.logger,
+        maxPlayers = math.max(1, tonumber(options.maxPlayers) or 100),
         placeId = options.placeId,
         persistVisited = options.persistVisited,
         spawn = options.spawn or task.spawn,
@@ -2597,7 +2617,7 @@ function ServerHop:run(maxPing, completed, isActive, targetPopulation)
     self.spawn(function()
         local ok, result = pcall(function()
             self.requestSerial += 1
-            targetPopulation = math.max(1, tonumber(targetPopulation) or 6)
+            targetPopulation = math.clamp(tonumber(targetPopulation) or 6, 1, self.maxPlayers)
             local desiredPlaying = math.max(0, targetPopulation - 1)
             local sortOrder = desiredPlaying >= 4 and "Desc" or "Asc"
             local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=%s&limit=100&excludeFullGames=true&_=%s-%d"):format(

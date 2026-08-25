@@ -52,13 +52,19 @@ function Adapter.new(context)
     local Stats = game:GetService("Stats")
     local TeleportService = game:GetService("TeleportService")
     local function readPing()
-        local item = Stats.Network.ServerStatsItem["Data Ping"]
-        local ok, value = pcall(item.GetValue, item)
-        if ok and type(value) == "number" then
-            return math.round(value)
+        local ok, value = pcall(function()
+            return Stats.PerformanceStats.Ping:GetValue()
+        end)
+        if not ok or type(value) ~= "number" then
+            ok, value = pcall(function()
+                return Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+            end)
         end
-        ok, value = pcall(LocalPlayer.GetNetworkPing, LocalPlayer)
-        return ok and type(value) == "number" and math.round(value * 1000) or 0
+        if not ok or type(value) ~= "number" then
+            ok, value = pcall(LocalPlayer.GetNetworkPing, LocalPlayer)
+            value = ok and type(value) == "number" and value * 1000 or 0
+        end
+        return math.round(value)
     end
     local historySettingKey = "UniversalHubStealAnEggFarmHistory"
     if type(gameRuntime.farmHistory) ~= "table" then
@@ -270,6 +276,7 @@ function Adapter.new(context)
         jobId = context.jobId,
         localPlayer = LocalPlayer,
         logger = context.logger,
+        maxPlayers = context.players.MaxPlayers,
         placeId = context.placeId,
         persistVisited = persistVisitedServers,
         teleportService = TeleportService,

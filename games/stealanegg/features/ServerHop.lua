@@ -15,6 +15,7 @@ function ServerHop.new(options)
         jobId = options.jobId,
         localPlayer = options.localPlayer,
         logger = options.logger,
+        maxPlayers = math.max(1, tonumber(options.maxPlayers) or 100),
         placeId = options.placeId,
         persistVisited = options.persistVisited,
         spawn = options.spawn or task.spawn,
@@ -63,7 +64,7 @@ function ServerHop:run(maxPing, completed, isActive, targetPopulation)
     self.spawn(function()
         local ok, result = pcall(function()
             self.requestSerial += 1
-            targetPopulation = math.max(1, tonumber(targetPopulation) or 6)
+            targetPopulation = math.clamp(tonumber(targetPopulation) or 6, 1, self.maxPlayers)
             local desiredPlaying = math.max(0, targetPopulation - 1)
             local sortOrder = desiredPlaying >= 4 and "Desc" or "Asc"
             local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=%s&limit=100&excludeFullGames=true&_=%s-%d"):format(

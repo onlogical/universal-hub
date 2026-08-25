@@ -201,6 +201,7 @@ export interface FarmMonitorEgg {
 	readonly size: number;
 	readonly state: string;
 	readonly reason?: string;
+	readonly eligible?: boolean;
 	readonly target?: boolean;
 	readonly secured?: boolean;
 }

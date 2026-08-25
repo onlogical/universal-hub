@@ -1,5 +1,4 @@
 import React from "@rbxts/react";
-import { Icon } from "@prism/components/Icon";
 import type { FloatingMonitorModel } from "../contracts";
 
 const UserInputService = game.GetService("UserInputService");
@@ -61,7 +60,8 @@ export function FloatingFarmMonitor({ monitor }: { readonly monitor?: FloatingMo
 	}, [monitor?.visible]);
 
 	if (monitor?.visible !== true) return <></>;
-	const target = monitor.eggs.find((egg) => egg.target === true);
+	const activeTarget = monitor.eggs.find((egg) => egg.target === true);
+	const target = activeTarget ?? monitor.eggs.find((egg) => egg.eligible === true);
 	const rarity = target ? readableRarity(target.rarityColor) : Color3.fromRGB(177, 188, 199);
 	const sizeFont = target ? math.clamp(math.round(10 + target.size * 3), 11, 18) : 12;
 	const sizeColor = string.format("#%02X%02X%02X", math.round(rarity.R * 255), math.round(rarity.G * 255), math.round(rarity.B * 255));
@@ -103,17 +103,13 @@ export function FloatingFarmMonitor({ monitor }: { readonly monitor?: FloatingMo
 				<frame Position={UDim2.fromOffset(0, 48)} Size={new UDim2(1, 0, 1, -48)} BackgroundTransparency={1}>
 					<imagelabel Position={UDim2.fromOffset(13, 14)} Size={UDim2.fromOffset(58, 58)} BackgroundColor3={target?.rarityColor ?? Color3.fromRGB(35, 35, 38)} BackgroundTransparency={0.78} BorderSizePixel={0} Image={target?.icon ?? ""} ScaleType={Enum.ScaleType.Fit}>
 						<uicorner CornerRadius={new UDim(0, 8)} /><uistroke Color={rarity} Transparency={target ? 0.45 : 0.85} Thickness={1} />
-						{target === undefined && <Icon name="target" size={22} color={Color3.fromRGB(126, 131, 138)} position={UDim2.fromOffset(18, 18)} />}
 					</imagelabel>
 					<textlabel Position={UDim2.fromOffset(82, 12)} Size={new UDim2(1, -95, 0, 20)} BackgroundTransparency={1} Text={targetTitle} RichText TextColor3={Color3.fromRGB(244, 247, 249)} TextSize={15} Font={Enum.Font.BuilderSansBold} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} />
 					<textlabel Position={UDim2.fromOffset(82, 32)} Size={new UDim2(1, -95, 0, 16)} BackgroundTransparency={1} Text={target ? `${target.reason ?? target.rarity} · ${target.area}` : "Watching global egg updates"} TextColor3={rarity} TextSize={11} Font={Enum.Font.BuilderSansMedium} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} />
 					<textlabel Position={UDim2.fromOffset(82, 51)} Size={new UDim2(1, -95, 0, 31)} BackgroundTransparency={1} Text={monitor.detail} TextColor3={Color3.fromRGB(177, 188, 199)} TextSize={11} Font={Enum.Font.BuilderSans} TextWrapped TextXAlignment={Enum.TextXAlignment.Left} TextYAlignment={Enum.TextYAlignment.Top} TextTruncate={Enum.TextTruncate.AtEnd} />
 					<frame Position={UDim2.fromOffset(13, 91)} Size={new UDim2(1, -26, 0, 1)} BackgroundColor3={Color3.fromRGB(48, 48, 52)} BorderSizePixel={0} />
 					<frame Position={UDim2.fromOffset(13, 101)} Size={new UDim2(1, -26, 0, 22)} BackgroundTransparency={1}>
-						<Icon name="package-check" size={14} color={Color3.fromRGB(177, 188, 199)} position={UDim2.fromOffset(0, 4)} />
-						<textlabel Position={UDim2.fromOffset(20, 0)} Size={UDim2.fromOffset(72, 22)} BackgroundTransparency={1} Text={`${secured} secured`} TextColor3={Color3.fromRGB(177, 188, 199)} TextSize={11} Font={Enum.Font.BuilderSansMedium} TextXAlignment={Enum.TextXAlignment.Left} />
-						<Icon name="target" size={14} color={Color3.fromRGB(177, 188, 199)} position={UDim2.fromOffset(112, 4)} />
-						<textlabel Position={UDim2.fromOffset(132, 0)} Size={UDim2.fromOffset(72, 22)} BackgroundTransparency={1} Text={`${monitor.targets} targets`} TextColor3={Color3.fromRGB(177, 188, 199)} TextSize={11} Font={Enum.Font.BuilderSansMedium} TextXAlignment={Enum.TextXAlignment.Left} />
+						<textlabel Size={new UDim2(1, 0, 1, 0)} BackgroundTransparency={1} Text={`${secured} EGG SECURED    ·    ${monitor.targets} TARGETS`} TextColor3={Color3.fromRGB(153, 159, 166)} TextSize={10} Font={Enum.Font.BuilderSansBold} TextXAlignment={Enum.TextXAlignment.Left} />
 					</frame>
 				</frame>
 			)}

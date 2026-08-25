@@ -36,6 +36,7 @@ local hop = ServerHop.new({
                 { id = "too-slow", playing = 1, maxPlayers = 10, ping = 180 },
                 { id = "seen", playing = 0, maxPlayers = 10, ping = 25 },
                 { id = "busier", playing = 5, maxPlayers = 10, ping = 50 },
+                { id = "seven", playing = 7, maxPlayers = 8, ping = 60 },
                 { id = "lowest", playing = 2, maxPlayers = 10, ping = 70 },
             },
         }
@@ -48,6 +49,7 @@ local hop = ServerHop.new({
     jobId = "current",
     localPlayer = "player",
     logger = logger,
+    maxPlayers = 8,
     placeId = 123,
     spawn = function(callback)
         callback()
@@ -79,4 +81,6 @@ assert(
     "A higher target population must request the busy end"
 )
 assert(teleported.serverId == "busier", "Server Hop must choose nearest to target population")
+hop:run(120, nil, nil, 99)
+assert(teleported.serverId == "seven", "Target population must clamp to the live game capacity")
 print("server-hop-ok")

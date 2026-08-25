@@ -115,6 +115,7 @@ function AutoFarm:_publish(stage, detail, targetUid)
             size = tonumber(record.AssetScale) or 1,
             state = record.State == "Claimed" and "Contested" or record.State,
             target = record.Uid == targetUid,
+            eligible = available and (self.targetRarities[rarityName] == true or indexTarget),
             reason = indexTarget and "Missing from Index" or rarityName .. " target",
         })
     end
@@ -182,25 +183,32 @@ function AutoFarm:_selectTarget()
                     self.markGlobalSpawn(rarityName)
                 end
                 local carrierRoot = isCarried(record) and self:_carrierRoot(record) or nil
+                local bottomCFrame = record.BottomCFrame
                 local targetPosition = carrierRoot and carrierRoot.Position
-                    or record.BottomCFrame.Position
-                local distance = position and (position - targetPosition).Magnitude or math.huge
+                    or (typeof(bottomCFrame) == "CFrame" and bottomCFrame.Position or nil)
+                local distance = position
+                        and targetPosition
+                        and (position - targetPosition).Magnitude
+                    or math.huge
                 if
-                    not best
-                    or (rareTarget and not best.rareTarget)
-                    or (
-                        rareTarget == best.rareTarget
-                        and (
-                            (indexTarget and not best.indexTarget)
-                            or (
-                                indexTarget == best.indexTarget
-                                and (
-                                    rarityNumber > best.rarityNumber
-                                    or (rarityNumber == best.rarityNumber and distance < best.distance)
-                                    or (
-                                        rarityNumber == best.rarityNumber
-                                        and distance == best.distance
-                                        and record.Uid < best.record.Uid
+                    targetPosition
+                    and (
+                        not best
+                        or (rareTarget and not best.rareTarget)
+                        or (
+                            rareTarget == best.rareTarget
+                            and (
+                                (indexTarget and not best.indexTarget)
+                                or (
+                                    indexTarget == best.indexTarget
+                                    and (
+                                        rarityNumber > best.rarityNumber
+                                        or (rarityNumber == best.rarityNumber and distance < best.distance)
+                                        or (
+                                            rarityNumber == best.rarityNumber
+                                            and distance == best.distance
+                                            and record.Uid < best.record.Uid
+                                        )
                                     )
                                 )
                             )

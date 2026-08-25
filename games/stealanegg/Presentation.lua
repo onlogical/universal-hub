@@ -1,6 +1,10 @@
 local Presentation = {}
 
 function Presentation.mount(host)
+    local maxPlayers = 8
+    pcall(function()
+        maxPlayers = math.max(1, game:GetService("Players").MaxPlayers)
+    end)
     if type(host.page) == "function" then
         host:page("Tools", { order = 1 })
         host:page("Visuals", { order = 2 })
@@ -33,7 +37,7 @@ function Presentation.mount(host)
     })
     host:slider("server", "serverHopTargetPopulation", "Target Population", {
         min = 1,
-        max = 12,
+        max = maxPlayers,
         step = 1,
         unit = " players",
     })

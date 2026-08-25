@@ -45,8 +45,20 @@ local records = {
         State = "Slot",
         Uid = "limited",
     },
+    {
+        AreaId = "Cosmic",
+        AssetCategory = "Secret Egg",
+        CarrierUserId = 123,
+        State = "Claimed",
+        Uid = "unstreamed-carrier",
+    },
 }
-local byUid = { secret = records[1], eternal = records[2], limited = records[3] }
+local byUid = {
+    secret = records[1],
+    eternal = records[2],
+    limited = records[3],
+    ["unstreamed-carrier"] = records[4],
+}
 local queued
 local walks = {}
 local hops = 0
