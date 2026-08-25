@@ -125,6 +125,7 @@ function Adapter.new(context)
     local Assets = require(ReplicatedStorage.Directory.Assets)
     local Sakura = require(ReplicatedStorage.Directory.Sakura)
     local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
+    local GuardChasePolicy = require(ReplicatedStorage.Library.Modules.GuardAreas.GuardChasePolicy)
     local GuardEscapePrediction =
         require(ReplicatedStorage.Library.Modules.GuardAreas.GuardEscapePrediction)
     local Save = require(ReplicatedStorage.Library.Client.Save)
@@ -330,7 +331,10 @@ function Adapter.new(context)
         if not predictionOk then
             return nil
         end
-        return prediction.Outcome ~= "Caught"
+        if prediction.Outcome == "EscapedSafely" or prediction.CatchTime == nil then
+            return true
+        end
+        return prediction.CatchTime - prediction.ExitTime >= readPing() / 1000
     end
     local function currentPing()
         for _, metric in ipairs(context.store:Get().footerMetrics or {}) do
@@ -353,6 +357,7 @@ function Adapter.new(context)
             end
         end,
         runService = RunService,
+        wakingDuration = GuardChasePolicy.GetWakingDuration(),
     })
     local resetPadding = AreaEggResetConfig.WallCountdownDelayAfterDayStartsSeconds
         + AreaEggResetConfig.WallCountdownSeconds

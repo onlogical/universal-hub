@@ -22,6 +22,7 @@ function LagSafeMovement.new(options)
         pingThreshold = options.pingThreshold or 170,
         reclaimDistance = options.reclaimDistance or 9,
         runService = options.runService,
+        wakingDuration = options.wakingDuration or 0.63,
     }, LagSafeMovement)
 end
 
@@ -42,6 +43,7 @@ end
 function LagSafeMovement:_resetEncounter()
     self.phase = nil
     self.phaseArea = nil
+    self.wakingStartedAt = nil
 end
 
 function LagSafeMovement:_beginEscape()
@@ -95,10 +97,26 @@ function LagSafeMovement:_shouldBait(humanoid, areaId, config)
     if guardState == "RetrievingEgg" then
         self:_beginEscape()
         return false
-    elseif guardState == "Sleeping" or guardState == "Waking" then
+    elseif guardState == "Sleeping" then
+        self.wakingStartedAt = nil
+        self.phase = "bait"
+        return true
+    elseif guardState == "Waking" then
+        self.wakingStartedAt = self.wakingStartedAt or self.clock()
+        if
+            self.clock() - self.wakingStartedAt
+            >= math.max(0, self.wakingDuration - (ping * 2) / 1000)
+        then
+            self:_beginEscape()
+            return false
+        end
         self.phase = "bait"
         return true
     elseif guardState == "Chasing" then
+        self.wakingStartedAt = nil
+        if self.phase == "escape" then
+            return false
+        end
         local interval = self.hitIntervals[areaId]
         local elapsed = self.carryStartedAt and self.clock() - self.carryStartedAt
         if interval and elapsed then
@@ -186,11 +204,6 @@ function LagSafeMovement:setEnabled(enabled)
             if not self:_shouldBait(humanoid, areaId, config) then
                 self:_restore()
                 return
-            end
-            local character = self.localPlayer.Character
-            local root = character and character:FindFirstChild("HumanoidRootPart")
-            if root and root:IsA("BasePart") then
-                humanoid:MoveTo(root.Position)
             end
             if humanoid ~= self.humanoid or humanoid.WalkSpeed ~= self.appliedSpeed then
                 self.humanoid = humanoid

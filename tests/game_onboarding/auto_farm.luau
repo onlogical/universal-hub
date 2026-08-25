@@ -62,6 +62,7 @@ local byUid = {
 }
 local queued
 local walks = {}
+local headings = {}
 local directMoves = 0
 local treadmillUnequips = 0
 local closerRetries = 0
@@ -117,6 +118,10 @@ local eggCmds = {
     end,
 }
 local navigator = {
+    headToward = function(_, position)
+        table.insert(headings, position)
+        return true
+    end,
     jump = function()
         jumps += 1
         return true
@@ -171,6 +176,9 @@ farm = AutoFarm.new({
             ["Common Egg"] = { Rarity = { DisplayName = "Common", RarityNumber = 1 } },
         },
     },
+    defer = function(callback)
+        callback()
+    end,
     eggCmds = eggCmds,
     getEscapePosition = function(record)
         assert(record.AreaId == "Cherry Blossom" or record.AreaId == "Cosmic")
@@ -305,6 +313,10 @@ assert(
     "Auto Farm must train through an active reset, then leave for the ready target"
 )
 assert(globalSpawns.Eternal == true, "Seeing a target must remember its global spawn")
+assert(
+    #headings == 2 and headings[1] == Vector3.new(40, 0, -80),
+    "Every carry request must already have the guard exit queued"
+)
 assert(
     walks[4] == Vector3.new(40, 0, -80) and directMoves == 4,
     "Auto Farm must recover a timed-out route, correct pickup distance, then take the direct exit"

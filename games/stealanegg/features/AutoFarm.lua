@@ -20,6 +20,7 @@ function AutoFarm.new(options)
         localPlayer = options.localPlayer,
         logger = options.logger,
         navigator = options.navigator,
+        defer = options.defer or task.defer,
         getEscapePosition = options.getEscapePosition or function()
             return nil
         end,
@@ -340,6 +341,14 @@ function AutoFarm:_claim(record, token)
             local position = rootPosition(self.localPlayer)
             if not position or (position - current.BottomCFrame.Position).Magnitude > 10 then
                 return false, "egg-moved"
+            end
+            local escapePosition = self.getEscapePosition(current)
+            if typeof(escapePosition) == "Vector3" then
+                self.defer(function()
+                    if self:_active(token) then
+                        self.navigator:headToward(escapePosition)
+                    end
+                end)
             end
             local ok, carried, carryReason =
                 pcall(self.eggCmds.RequestCarryAreaEgg, current.Uid, self:_slotKey(current))

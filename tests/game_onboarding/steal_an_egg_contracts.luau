@@ -371,6 +371,7 @@ local now = 100
 local attributes = {}
 local changedState
 local moveTarget
+local moveCalls = 0
 local humanoid = {
     MoveDirection = Vector3.new(1, 0, 0),
     PlatformStand = true,
@@ -380,6 +381,7 @@ local humanoid = {
         changedState = state
     end,
     MoveTo = function(_self, position)
+        moveCalls += 1
         moveTarget = position
     end,
 }
@@ -579,6 +581,7 @@ assert(
 rootPart.Position = record.BottomCFrame.Position
 spawned[#spawned]()
 assert(#carryRequests == 1, "Anti Hit must reclaim immediately after walking into pickup range")
+assert(moveCalls == 1, "A successful reclaim must not stop forward escape movement")
 
 table.clear(carryRequests)
 record.State = "Carried"

@@ -152,6 +152,18 @@ function WalkNavigator:moveToDirect(destination, isActive, tolerance)
     end, tolerance or 4)
 end
 
+function WalkNavigator:headToward(destination)
+    assert(typeof(destination) == "Vector3", "WalkNavigator destination must be a Vector3")
+    local humanoid = characterParts(self.localPlayer)
+    if not humanoid then
+        return false
+    end
+    self.movementId = (self.movementId or 0) + 1
+    self.activeHumanoid = humanoid
+    self.activePosition = destination
+    return pcall(humanoid.MoveTo, humanoid, destination)
+end
+
 function WalkNavigator:resume()
     local humanoid = self.activeHumanoid
     local position = self.activePosition

@@ -100,6 +100,12 @@ assert(
     moveCalls[1] == moveCalls[2],
     "A native hit recovery must immediately resume the active MoveTo destination"
 )
+local escape = Vector3.new(-20, 0, 0)
+assert(navigator:headToward(escape) == true and navigator:resume() == true)
+assert(
+    moveCalls[#moveCalls - 1] == escape and moveCalls[#moveCalls] == escape,
+    "A carry request must preserve forward escape momentum and its recovery destination"
+)
 navigator:stop()
 assert(createdModifier.destroyed == true, "Stopping navigation must remove its treadmill modifier")
 print("walk-navigator-ok")

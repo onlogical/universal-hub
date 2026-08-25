@@ -77,15 +77,7 @@ function AntiHit:_requestReclaim(uid)
     self.carriedUid = uid
     self.reclaimUid = nil
     self.claimToken += 1
-    if self.reclaimMoving then
-        local character = self.localPlayer.Character
-        local root = character and character:FindFirstChild("HumanoidRootPart")
-        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-        if root and humanoid then
-            humanoid:MoveTo(root.Position)
-        end
-        self.reclaimMoving = nil
-    end
+    self.reclaimMoving = nil
     return true
 end
 

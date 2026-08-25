@@ -113,21 +113,24 @@ local movement = LagSafeMovement.new({
 movement:setEnabled(true)
 callback()
 assert(
-    humanoid.WalkSpeed == 65 and baitStops == 1,
-    "High ping must pause while baiting a waking fast boss"
+    humanoid.WalkSpeed == 65 and baitStops == 0,
+    "High ping must slow without cancelling forward movement"
 )
-guardState = "RetrievingEgg"
+now = 0.2
+callback()
+assert(humanoid.WalkSpeed == 65 and baitStops == 0, "Slow bait must hold before the ping lead")
+now = 0.24
 callback()
 assert(
     humanoid.WalkSpeed == 100 and escapeResumes == 1,
-    "Movement must resume only after the boss commits to retrieving the egg"
+    "Movement must resume before the replicated waking state can report a late hit"
 )
 guardState = "Chasing"
 guardPosition = Vector3.new(60, 0, 0)
 callback()
 assert(
-    humanoid.WalkSpeed == 65 and baitStops == 2,
-    "A missed chase must pause again before server position drift grows"
+    humanoid.WalkSpeed == 100 and baitStops == 0,
+    "A committed waking escape must keep full speed through the chase"
 )
 now = 0.8
 guardState = "RetrievingEgg"
@@ -140,8 +143,8 @@ guardState = "Chasing"
 now = 1.4
 callback()
 assert(
-    humanoid.WalkSpeed == 65 and baitStops == 3,
-    "Immediate Anti Hit reclaim must start another bait cycle"
+    humanoid.WalkSpeed == 65 and baitStops == 0,
+    "Immediate Anti Hit reclaim must slow without stopping another escape"
 )
 now = 1.72
 callback()
