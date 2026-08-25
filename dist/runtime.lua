@@ -1,4 +1,4 @@
-local buildId = [[7cc534ab]]
+local buildId = [[51e70b59]]
 local shared = {
     ["changelog.json"] = [[{
   "current": "0.3.0",
@@ -2616,14 +2616,16 @@ return Counterblox
     defaults = {
         antiHit = false,
         antiTrap = false,
+        autoBlossom = false,
         autoFarm = false,
         autoFarmEternal = true,
         autoFarmIndex = false,
-        autoFarmIndexServerHopping = true,
         autoFarmSecret = true,
         autoFarmServerHopping = true,
         autoOpenEggs = false,
+        idleTreadmill = true,
         eggEsp = false,
+        eggRadar = true,
         eggEspMinimumRarity = 1,
         eggEspMinimumSize = 0.5,
         hitAura = false,
@@ -2641,14 +2643,16 @@ return Counterblox
         capabilities = {
             "antiHit",
             "antiTrap",
+            "autoBlossom",
             "autoFarm",
             "autoFarmEternal",
             "autoFarmIndex",
-            "autoFarmIndexServerHopping",
             "autoFarmSecret",
             "autoFarmServerHopping",
             "autoOpenEggs",
+            "idleTreadmill",
             "eggEsp",
+            "eggRadar",
             "eggEspMinimumRarity",
             "eggEspMinimumSize",
             "hitAura",
@@ -2677,6 +2681,7 @@ return Counterblox
         "games/stealanegg/Presentation",
         "games/stealanegg/features/AntiHit",
         "games/stealanegg/features/AntiTrap",
+        "games/stealanegg/features/AutoBlossom",
         "games/stealanegg/features/AutoFarm",
         "games/stealanegg/features/AutoOpenEggs",
         "games/stealanegg/features/HighlightEsp",
@@ -9121,6 +9126,7 @@ function Catalog:section(page, id, label, lineOffset, includesRates, columns, sp
         includesRates = includesRates == true,
         columns = columns or 1,
         ephemeral = isEphemeral(page, spec),
+        renderEmpty = spec.renderEmpty == true,
         treatment = spec.treatment,
         actions = {},
         options = {},
@@ -9379,7 +9385,8 @@ function Catalog:model(state)
 
     for _, group in ipairs(self.groups) do
         if
-            #group.actions > 0
+            group.renderEmpty
+            or #group.actions > 0
             or #group.options > 0
             or #group.keybinds > 0
             or #group.sliders > 0
@@ -9474,7 +9481,7 @@ function Catalog:model(state)
                     emphasis = "row",
                 })
             end
-            if #controls > 0 then
+            if #controls > 0 or group.renderEmpty then
                 local treatment = group.treatment
                 if treatment == nil then
                     local metadata = self.pageMetadata[group.page] or {}
