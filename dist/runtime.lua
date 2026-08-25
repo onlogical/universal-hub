@@ -1,4 +1,4 @@
-local buildId = [[214892a8]]
+local buildId = [[1052011b]]
 local shared = {
     ["changelog.json"] = [[{
   "current": "0.3.0",
