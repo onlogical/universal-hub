@@ -386,16 +386,19 @@ assert(
     walks[#walks] == Vector3.new(0, 0, 100) and directMoves > 0,
     "Idle Treadmill must use direct movement only while no target exists"
 )
-assert(farm.onTreadmill == true, "Auto Farm must remember that it entered the treadmill")
+assert(
+    farm.onTreadmill == true and jumps == 1,
+    "Auto Farm must jump over the treadmill edge and remember that it entered"
+)
 farm:_leaveTreadmill()
 assert(
-    jumps == 1 and treadmillUnequips == 1 and farm.onTreadmill == false,
+    jumps == 2 and treadmillUnequips == 1 and farm.onTreadmill == false,
     "Auto Farm must unequip and jump before leaving the treadmill"
 )
 physicallyOnTreadmill = true
 farm:_leaveTreadmill()
 assert(
-    jumps == 2 and treadmillUnequips == 2,
+    jumps == 3 and treadmillUnequips == 2,
     "Auto Farm must still unequip and jump after a hub reload resets its local treadmill state"
 )
 physicallyOnTreadmill = false
