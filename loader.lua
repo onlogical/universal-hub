@@ -149,15 +149,27 @@ end
 
 local function loadHub()
     configuration.SourceBaseUrl = sourceRoot
-    configuration.Fetch = fetchSource
     environment.UniversalHubConfig = configuration
 
-    local source = fetchSource(sourceRoot .. "hub.lua")
+    local runtimeSource = fetchSource(sourceRoot .. "dist/runtime.lua")
     if not ownsFlight() then
         return
     end
-    local chunk, compileError = loadstring(source, "universal-hub/hub.lua")
-    return assert(chunk, compileError)()
+    local runtimeChunk, runtimeError = loadstring(runtimeSource, "universal-hub/dist/runtime.lua")
+    local runtime = assert(runtimeChunk, runtimeError)()
+    local bundleId = runtime.placeIds[tostring(game.PlaceId)]
+        or runtime.gameIds[tostring(game.GameId)]
+    assert(bundleId, "Universal Hub does not support this game")
+
+    local gamePath = "dist/games/" .. bundleId .. ".lua"
+    local gameSource = fetchSource(sourceRoot .. gamePath)
+    local gameChunk, gameError = loadstring(gameSource, "universal-hub/" .. gamePath)
+    local bundle = assert(gameChunk, gameError)()
+    bundle.sources["ui/dist/Menu.lua"] = fetchSource(sourceRoot .. "ui/dist/Menu.lua")
+    if not ownsFlight() then
+        return
+    end
+    return runtime.run(bundle)
 end
 
 local function completeBootstrap()

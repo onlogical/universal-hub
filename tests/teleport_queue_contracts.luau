@@ -18,7 +18,8 @@ assert(
 )
 assert(
     remoteLoader:find("local function queueNextPlace()", 1, true)
-        and remoteLoader:find("pcall(queue", 1, true)
+        and remoteLoader:find("pcall(", 1, true)
+        and remoteLoader:find("queue,", 1, true)
         and remoteLoader:find("UniversalHubConfig.SourceBaseUrl", 1, true),
     "The remote loader must automatically queue its matching remote bootstrap"
 )

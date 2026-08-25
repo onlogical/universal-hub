@@ -15,7 +15,9 @@ mapfile -t rivals_contracts < <(git ls-files 'tests/rivals_*_contracts.luau')
 stylua --check games/rivals "${rivals_contracts[@]}" \
     tests/shot_presentation_binding_contracts.luau \
     tests/scoped_accuracy_contracts.luau \
-    hub.lua init.lua
+    tests/runtime_bundle_contracts.luau \
+    scripts/build_runtime_bundles.luau \
+    hub.lua init.lua loader.lua
 
 roblox_types_commit="cfa5c378c6370f0eca852910e6fbdf8e4d8921c6"
 roblox_types="${LOCALAPPDATA:-${TMPDIR:-/tmp}}/hydroxide/typecheck/globalTypes-$roblox_types_commit.d.luau"
@@ -26,7 +28,7 @@ if [ ! -f "$roblox_types" ]; then
     exit 1
 fi
 
-mapfile -t luau_sources < <(git ls-files '*.lua' | grep -Ev '^(site|vendor|ui/dist)/')
+mapfile -t luau_sources < <(git ls-files '*.lua' | grep -Ev '^(dist|site|vendor|ui/dist)/')
 
 luau-lsp analyze \
     --platform roblox \
@@ -38,6 +40,7 @@ luau-lsp analyze \
 lune run tests/store_contracts.luau
 lune run tests/remote_loader_contracts.luau
 lune run tests/request_transport_contracts.luau
+lune run tests/runtime_bundle_contracts.luau
 lune run tests/hub_loader_contracts.luau
 lune run tests/local_loader_contracts.luau
 lune run tests/menu_artifact_contracts.luau

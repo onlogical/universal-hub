@@ -9,10 +9,36 @@ local environment = {
     end,
 }
 local requestedUrl
+local requestedUrls = {}
 local loaded = false
 local waitedForLoad = false
 local pendingBootstrap
 local spawnCount = 0
+
+local function remoteBody(url)
+    requestedUrl = url
+    table.insert(requestedUrls, url)
+    if url:find("/dist/runtime.lua", 1, true) then
+        return [[
+return {
+    gameIds = { ["1"] = "rivals" },
+    placeIds = {},
+    run = function(bundle)
+        assert(bundle.id == "rivals")
+        assert(type(bundle.sources["ui/dist/Menu.lua"]) == "string")
+        return "remote-loader-ok"
+    end,
+}
+]]
+    end
+    if url:find("/dist/games/rivals.lua", 1, true) then
+        return [[return { id = "rivals", sources = {} }]]
+    end
+    if url:find("/ui/dist/Menu.lua", 1, true) then
+        return [[return {}]]
+    end
+    error("Unexpected remote bundle URL: " .. url)
+end
 
 function getgenv()
     return environment
@@ -25,6 +51,8 @@ task = {
     end,
 }
 game = {
+    GameId = 1,
+    PlaceId = 2,
     JobId = "remote-early-job",
     Loaded = {
         Wait = function()
@@ -39,8 +67,7 @@ end
 function game:HttpGet(url, noCache)
     assert(noCache == true, "Remote loader must bypass the executor HTTP cache")
     assert(loaded, "Remote loader must not start network bootstrap before Roblox finishes loading")
-    requestedUrl = url
-    return [[return "remote-loader-ok"]]
+    return remoteBody(url)
 end
 
 local chunk, compileError = loadstring(source, "loader.lua")
@@ -50,8 +77,14 @@ assert(requestedUrl == nil, "Early autoexec must not bootstrap before Roblox fin
 assert(type(pendingBootstrap) == "function", "Early autoexec must schedule a deferred bootstrap")
 local duplicateEarlyChunk, duplicateEarlyCompileError = loadstring(source, "loader.lua")
 local duplicateEarlyResult = assert(duplicateEarlyChunk, duplicateEarlyCompileError)()
-assert(duplicateEarlyResult == nil, "A duplicate early remote bootstrap in the same job must coalesce")
-assert(spawnCount == 1, "A duplicate early remote bootstrap must not schedule a second deferred task")
+assert(
+    duplicateEarlyResult == nil,
+    "A duplicate early remote bootstrap in the same job must coalesce"
+)
+assert(
+    spawnCount == 1,
+    "A duplicate early remote bootstrap must not schedule a second deferred task"
+)
 assert(queueCount == 1, "The remote loader must automatically persist across teleports")
 assert(
     queuedTeleportSource
@@ -63,8 +96,16 @@ local deferredResult = pendingBootstrap()
 assert(deferredResult == "remote-loader-ok")
 assert(waitedForLoad, "Remote loader must yield to Roblox startup when launched from autoexec")
 assert(
-    requestedUrl == "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/beta/hub.lua",
-    "Remote loader must use GitHub's canonical branch-ref URL"
+    requestedUrls[1]
+        == "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/beta/dist/runtime.lua"
+)
+assert(
+    requestedUrls[2]
+        == "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/beta/dist/games/rivals.lua"
+)
+assert(
+    requestedUrls[3]
+        == "https://raw.githubusercontent.com/3xjn/universal-hub/refs/heads/beta/ui/dist/Menu.lua"
 )
 
 waitedForLoad = false
@@ -86,18 +127,20 @@ game.JobId = "remote-loaded-job"
 function game:HttpGet(url, noCache)
     assert(noCache == true, "Remote loader must bypass the executor HTTP cache")
     assert(loaded, "Remote loader must not start network bootstrap before Roblox finishes loading")
-    requestedUrl = url
     if not attemptedLoadedDuplicate then
         attemptedLoadedDuplicate = true
         local duplicateLoadedChunk, duplicateLoadedCompileError = loadstring(source, "loader.lua")
         duplicateLoadedResult = assert(duplicateLoadedChunk, duplicateLoadedCompileError)()
     end
-    return [[return "remote-loader-ok"]]
+    return remoteBody(url)
 end
 local overlapChunk, overlapCompileError = loadstring(source, "loader.lua")
 local overlapResult = assert(overlapChunk, overlapCompileError)()
 assert(overlapResult == "remote-loader-ok")
-assert(duplicateLoadedResult == nil, "A duplicate loaded remote bootstrap must coalesce through hub initialization")
+assert(
+    duplicateLoadedResult == nil,
+    "A duplicate loaded remote bootstrap must coalesce through hub initialization"
+)
 
 environment.UniversalHubConfig = {
     LocalRoot = "universal-hub/local",
@@ -121,7 +164,10 @@ assert(
     queuedTeleportSource == "local-loader-queue",
     "A local version entered through loader.lua must own its queued follow-up bootstrap"
 )
-assert(environment.LocalLoaderDelegated == true, "loader.lua must delegate directly to a configured local loader")
+assert(
+    environment.LocalLoaderDelegated == true,
+    "loader.lua must delegate directly to a configured local loader"
+)
 
 environment.UniversalHubConfig = {
     SourceBaseUrl = "https://example.invalid/custom/",
@@ -133,8 +179,8 @@ local customChunk, customCompileError = loadstring(source, "loader.lua")
 local customResult = assert(customChunk, customCompileError)()
 assert(customResult == "remote-loader-ok")
 assert(
-    requestedUrl == "https://example.invalid/custom/hub.lua",
-    "An explicit custom source may be used for the current session"
+    requestedUrl == "https://example.invalid/custom/ui/dist/Menu.lua",
+    "An explicit custom source may be used for the current bundled session"
 )
 assert(
     queuedTeleportSource == nil,
@@ -159,7 +205,10 @@ assert(assert(staleJobChunk, staleJobCompileError)() == nil)
 game.JobId = "remote-next-job"
 local nextJobChunk, nextJobCompileError = loadstring(source, "loader.lua")
 assert(assert(nextJobChunk, nextJobCompileError)() == nil)
-assert(spawnCount == 2, "A new teleport job must replace a stale remote flight instead of being suppressed")
+assert(
+    spawnCount == 2,
+    "A new teleport job must replace a stale remote flight instead of being suppressed"
+)
 requestedUrl = nil
 assert(pendingBootstraps[1]() == nil)
 assert(requestedUrl == nil, "A stale job's deferred loader must not publish after ownership moves")

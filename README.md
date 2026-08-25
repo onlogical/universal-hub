@@ -28,4 +28,6 @@ getgenv().UniversalHubConfig = nil; loadstring(request({ Url = "https://raw.gith
 
 Works with Volt and Potassium; press `Right Shift` to toggle the menu.
 
+Remote startup downloads a generated shared runtime, the selected game bundle, and the menu artifact instead of every source file. CI refreshes `dist/runtime.lua` and `dist/games/*.lua`; reproduce it locally with `HYDROXIDE_ROOT=../hydroxide lune run scripts/build_runtime_bundles.luau`.
+
 Limn is the hub's sole drawing and input runtime. Universal Hub owns its panels, state, persistence, and game adapters; scoped Hydroxide `Targeting`, `Closure`, and `Lifecycle` helpers are loaded independently without starting or replacing the Hydroxide application.

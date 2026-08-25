@@ -20,13 +20,33 @@ environment.request = function(options)
     assert(options.Url:find("cacheBust=guid%-", 1) ~= nil)
     table.insert(requests, options.Url)
 
-    if options.Url:find("/hub.lua", 1, true) then
+    if options.Url:find("/dist/runtime.lua", 1, true) then
         return {
             Body = [[
-local configuration = getgenv().UniversalHubConfig
-assert(type(configuration.Fetch) == "function")
-return "request-hub-ok"
+return {
+    gameIds = { ["1"] = "rivals" },
+    placeIds = {},
+    run = function(bundle)
+        assert(bundle.id == "rivals")
+        assert(type(bundle.sources["ui/dist/Menu.lua"]) == "string")
+        return "request-hub-ok"
+    end,
+}
 ]],
+            StatusCode = 200,
+            Success = true,
+        }
+    end
+    if options.Url:find("/dist/games/rivals.lua", 1, true) then
+        return {
+            Body = [[return { id = "rivals", sources = {} }]],
+            StatusCode = 200,
+            Success = true,
+        }
+    end
+    if options.Url:find("/ui/dist/Menu.lua", 1, true) then
+        return {
+            Body = [[return {}]],
             StatusCode = 200,
             Success = true,
         }
@@ -42,6 +62,8 @@ return "request-hub-ok"
 end
 
 game = {
+    GameId = 1,
+    PlaceId = 2,
     JobId = "request-transport-job",
 }
 function game:GetService(name)
@@ -63,7 +85,10 @@ end
 local chunk, compileError = loadstring(source, "loader.lua")
 assert(assert(chunk, compileError)() == "request-hub-ok")
 assert(httpGetCount == 0, "Remote loader must prefer request over HttpGet")
-assert(#requests == 1 and requests[1]:find("/hub.lua", 1, true))
+assert(#requests == 3)
+assert(requests[1]:find("/dist/runtime.lua", 1, true))
+assert(requests[2]:find("/dist/games/rivals.lua", 1, true))
+assert(requests[3]:find("/ui/dist/Menu.lua", 1, true))
 assert(type(queuedSource) == "string", "Teleport bootstrap must be queued")
 
 environment.UniversalHubLoaderFlight = nil
@@ -71,7 +96,7 @@ environment.UniversalHubConfig = nil
 local queuedChunk, queuedCompileError = loadstring(queuedSource, "queued-loader.lua")
 assert(assert(queuedChunk, queuedCompileError)() == "queued-request-ok")
 assert(httpGetCount == 0, "Queued bootstrap must use request instead of HttpGet")
-assert(#requests == 2 and requests[2]:find("/loader.lua", 1, true))
+assert(#requests == 4 and requests[4]:find("/loader.lua", 1, true))
 
 environment.UniversalHubLoaderFlight = nil
 environment.UniversalHubConfig = {
@@ -81,7 +106,7 @@ game.JobId = "stale-branch-config-job"
 local staleChunk, staleCompileError = loadstring(source, "stale-loader.lua")
 assert(assert(staleChunk, staleCompileError)() == "request-hub-ok")
 assert(
-    requests[3]:find("/refs/heads/beta/hub.lua", 1, true),
+    requests[5]:find("/refs/heads/beta/dist/runtime.lua", 1, true),
     "Beta loader must not reuse a stale canonical branch from an earlier session"
 )
 

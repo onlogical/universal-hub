@@ -1,0 +1,101 @@
+name: Build runtime bundles
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/runtime-bundles.yml"
+      - "changelog.json"
+      - "games/**"
+      - "hub.lua"
+      - "init.lua"
+      - "loader.lua"
+      - "modules/**"
+      - "scripts/build_runtime_bundles.luau"
+      - "tests/runtime_bundle_contracts.luau"
+      - "ui/dist/**"
+      - "ui/esp/**"
+      - "ui/presentation/**"
+      - "ui/*.lua"
+      - "vendor/Limn.lua"
+  push:
+    branches:
+      - main
+      - beta
+    paths:
+      - ".github/workflows/runtime-bundles.yml"
+      - "changelog.json"
+      - "games/**"
+      - "hub.lua"
+      - "init.lua"
+      - "loader.lua"
+      - "modules/**"
+      - "scripts/build_runtime_bundles.luau"
+      - "tests/runtime_bundle_contracts.luau"
+      - "ui/dist/**"
+      - "ui/esp/**"
+      - "ui/presentation/**"
+      - "ui/*.lua"
+      - "vendor/Limn.lua"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: runtime-bundles-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Universal Hub
+        uses: actions/checkout@v6
+
+      - name: Check out pinned Hydroxide
+        uses: actions/checkout@v6
+        with:
+          repository: 3xjn/hydroxide
+          ref: 38778f8a78762d48fba916cade6eb93399e7c404
+          path: .dependencies/hydroxide
+
+      - name: Install pinned Lune
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          curl -fsSL "https://github.com/lune-org/lune/releases/download/v0.10.4/lune-0.10.4-linux-x86_64.zip" -o /tmp/lune.zip
+          echo "ffba0bd404ae078c9543ef5ac12479938a741aab255768a11a08517ae963b288  /tmp/lune.zip" | sha256sum --check
+          unzip -q /tmp/lune.zip -d "$HOME/.local/bin"
+          chmod +x "$HOME/.local/bin/lune"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Generate runtime bundles
+        env:
+          HYDROXIDE_ROOT: ${{ github.workspace }}/.dependencies/hydroxide
+        run: lune run scripts/build_runtime_bundles.luau
+
+      - name: Verify deterministic output
+        env:
+          HYDROXIDE_ROOT: ${{ github.workspace }}/.dependencies/hydroxide
+        run: |
+          find dist -type f -name '*.lua' -print0 | sort -z | xargs -0 sha256sum > /tmp/runtime-bundles.sha256
+          lune run scripts/build_runtime_bundles.luau
+          sha256sum --check /tmp/runtime-bundles.sha256
+
+      - name: Verify bundle and loader contracts
+        run: |
+          lune run tests/runtime_bundle_contracts.luau
+          lune run tests/request_transport_contracts.luau
+          lune run tests/remote_loader_contracts.luau
+          git diff --check
+
+      - name: Commit generated artifacts
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: |
+          git add dist/runtime.lua dist/games
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "build: refresh runtime bundles [skip ci]"
+          git push
