@@ -1,5 +1,5 @@
 return {
-    buildId = [[4439cba9]],
+    buildId = [[0bcb82c0]],
     id = [[town]],
     sources = {
         ["games/Town.lua"] = [=[local function importDependency(path, relativePath)
