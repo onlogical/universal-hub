@@ -7,6 +7,7 @@ local TeleportBehind = require("./features/TeleportBehind")
 local TriggerBot = require("./features/TriggerBot")
 local RapidFire = require("./features/RapidFire")
 local QuickReload = require("./features/QuickReload")
+local MeleeReach = require("./features/MeleeReach")
 local SkipBlocks = require("./features/SkipBlocks")
 local AutoDeflect = require("./features/AutoDeflect")
 local AutoCounter = require("./features/AutoCounter")
@@ -311,6 +312,7 @@ function Rivals.new(context)
     end)
     local rapidFire = RapidFire.new(WeaponPolicy)
     local quickReload = QuickReload.new()
+    local meleeReach = MeleeReach.new()
     local function startShooting()
         return combatInput:fire()
     end
@@ -1654,6 +1656,7 @@ function Rivals.new(context)
         local taskHazards = utilityObservations
         local fighter = FighterController.LocalFighter
         quickReload:update(settings, fighter and fighter.EquippedItem)
+        meleeReach:update(settings, fighter and fighter.EquippedItem)
         rapidFire:update(
             settings,
             fighter and fighter.EquippedItem,
@@ -2296,6 +2299,7 @@ function Rivals.new(context)
         releaseFire()
         rapidFire:stop()
         quickReload:stop()
+        meleeReach:stop()
         movement:stop()
         movement:stopWallNoclip()
         effects:stop()

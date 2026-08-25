@@ -1,4 +1,4 @@
-local buildId = [[578a3406]]
+local buildId = [[05b6ab5b]]
 local shared = {
     ["changelog.json"] = [[{
   "current": "0.3.0",
@@ -2482,6 +2482,8 @@ return Counterblox
         rapidFire = false,
         fireRate = 200,
         quickReload = false,
+        meleeReach = false,
+        meleeReachScale = 200,
         triggerDelay = 0,
     },
     features = {
@@ -2493,6 +2495,8 @@ return Counterblox
             "rapidFire",
             "fireRate",
             "quickReload",
+            "meleeReach",
+            "meleeReachScale",
             "skipDeflect",
             "autoDeflect",
             "autoCounter",
@@ -2537,6 +2541,8 @@ return Counterblox
             rapidFire = "Rapid Fire",
             fireRate = "Fire Rate",
             quickReload = "Quick Reload",
+            meleeReach = "Melee Reach",
+            meleeReachScale = "Reach",
             autoCounter = "Auto Counter",
             redLightSafety = "Red Light Safety",
             teleportBehind = "Warp",
@@ -2569,6 +2575,7 @@ return Counterblox
         "games/rivals/features/TriggerBot",
         "games/rivals/features/RapidFire",
         "games/rivals/features/QuickReload",
+        "games/rivals/features/MeleeReach",
         "games/rivals/features/SkipBlocks",
         "games/rivals/features/AutoDeflect",
         "games/rivals/features/AutoCounter",

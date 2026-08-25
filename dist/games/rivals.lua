@@ -1,5 +1,5 @@
 return {
-    buildId = [[578a3406]],
+    buildId = [[05b6ab5b]],
     id = [[rivals]],
     sources = {
         ["games/rivals/Adapter.lua"] = [[local Targeting = require("./libraries/Targeting")
@@ -11,6 +11,7 @@ local TeleportBehind = require("./features/TeleportBehind")
 local TriggerBot = require("./features/TriggerBot")
 local RapidFire = require("./features/RapidFire")
 local QuickReload = require("./features/QuickReload")
+local MeleeReach = require("./features/MeleeReach")
 local SkipBlocks = require("./features/SkipBlocks")
 local AutoDeflect = require("./features/AutoDeflect")
 local AutoCounter = require("./features/AutoCounter")
@@ -315,6 +316,7 @@ function Rivals.new(context)
     end)
     local rapidFire = RapidFire.new(WeaponPolicy)
     local quickReload = QuickReload.new()
+    local meleeReach = MeleeReach.new()
     local function startShooting()
         return combatInput:fire()
     end
@@ -1658,6 +1660,7 @@ function Rivals.new(context)
         local taskHazards = utilityObservations
         local fighter = FighterController.LocalFighter
         quickReload:update(settings, fighter and fighter.EquippedItem)
+        meleeReach:update(settings, fighter and fighter.EquippedItem)
         rapidFire:update(
             settings,
             fighter and fighter.EquippedItem,
@@ -2300,6 +2303,7 @@ function Rivals.new(context)
         releaseFire()
         rapidFire:stop()
         quickReload:stop()
+        meleeReach:stop()
         movement:stop()
         movement:stopWallNoclip()
         effects:stop()
@@ -2422,9 +2426,19 @@ function Presentation.mount(host)
         })
     end
     host:option("trigger", 3, "quickReload", "Quick Reload")
-    host:option("trigger", 4, "skipDeflect", "Katana Stop")
-    host:option("trigger", 4, "autoDeflect", "Auto Katana")
-    host:option("trigger", 5, "alwaysScoped", "Always Scoped")
+    host:option("trigger", 4, "meleeReach", "Melee Reach")
+    if type(host.slider) == "function" then
+        host:slider("trigger", "meleeReachScale", "Reach", {
+            min = 100,
+            max = 300,
+            step = 5,
+            unit = "%",
+            parent = "meleeReach",
+        })
+    end
+    host:option("trigger", 5, "skipDeflect", "Katana Stop")
+    host:option("trigger", 5, "autoDeflect", "Auto Katana")
+    host:option("trigger", 6, "alwaysScoped", "Always Scoped")
 
     host:section("Rage", "rage", "RAGE", 70)
     host:option("rage", 1, "teleportBehind", "Warp")
@@ -3463,6 +3477,70 @@ function GunGameRuntime:stop()
 end
 
 return GunGameRuntime
+]],
+        ["games/rivals/features/MeleeReach.lua"] = [[local MeleeReach = {}
+MeleeReach.__index = MeleeReach
+
+local REACH_KEYS = {
+    "AttackReach",
+    "HeavyAttackReach",
+    "BladeReach",
+}
+
+function MeleeReach.new()
+    return setmetatable({
+        item = nil,
+        originals = {},
+    }, MeleeReach)
+end
+
+function MeleeReach:restore()
+    local info = self.item and self.item.Info
+    if type(info) == "table" then
+        for key, value in pairs(self.originals) do
+            info[key] = value
+        end
+    end
+    self.item = nil
+    table.clear(self.originals)
+end
+
+function MeleeReach:update(settings, item)
+    local info = item and item.Info
+    if settings.meleeReach ~= true or type(info) ~= "table" then
+        self:restore()
+        return
+    end
+
+    if self.item ~= item then
+        self:restore()
+        for _, key in ipairs(REACH_KEYS) do
+            local reach = info[key]
+            if type(reach) == "number" and reach > 0 then
+                self.originals[key] = reach
+            end
+        end
+        if next(self.originals) == nil then
+            return
+        end
+        self.item = item
+    end
+
+    local scale = math.clamp(
+        type(settings.meleeReachScale) == "number" and settings.meleeReachScale or 200,
+        100,
+        300
+    )
+    for key, reach in pairs(self.originals) do
+        info[key] = reach * scale / 100
+    end
+end
+
+function MeleeReach:stop()
+    self:restore()
+end
+
+return MeleeReach
 ]],
         ["games/rivals/features/NoScope.lua"] = [[local NoScope = {}
 

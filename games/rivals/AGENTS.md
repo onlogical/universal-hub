@@ -98,6 +98,10 @@ from Adapter. Do not copy `importDependency` into a feature.
   - User-facing Quick Reload. Ends normal and empty reloads at their native ammo
     insertion timestamps, removing only the post-ammo animation lockout. Restore
     every patched length when disabled, unequipped, or stopped.
+- `features/MeleeReach.lua`
+  - User-facing Melee Reach. Reversibly scales native `AttackReach`,
+    `HeavyAttackReach`, and `BladeReach` while leaving native input and hit
+    registration untouched. Restore every patched item on disable, switch, or stop.
 - `features/SkipBlocks.lua`
   - User-facing Katana Stop (`settings.skipDeflect`). Hooks fighter input's
     `StartShooting` action so a manual click does not fire into a deflect

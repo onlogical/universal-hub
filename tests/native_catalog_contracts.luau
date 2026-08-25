@@ -19,6 +19,8 @@ local settings = {
     rapidFire = false,
     fireRate = 200,
     quickReload = false,
+    meleeReach = false,
+    meleeReachScale = 200,
     triggerDelay = 0,
     cameraFov = 58,
     cameraFullScreenAim = false,
@@ -70,6 +72,8 @@ local catalog = Catalog.new({
         "rapidFire",
         "fireRate",
         "quickReload",
+        "meleeReach",
+        "meleeReachScale",
         "skipDeflect",
         "autoDeflect",
         "alwaysScoped",
@@ -135,6 +139,8 @@ assert(triggerIds.triggerBot and triggerIds.skipDeflect.label == "Katana Stop")
 assert(triggerIds.autoDeflect and triggerIds.autoDeflect.label == "Auto Katana")
 assert(triggerIds.rapidFire and triggerIds.rapidFire.label == "Rapid Fire")
 assert(triggerIds.quickReload and triggerIds.quickReload.label == "Quick Reload")
+assert(triggerIds.meleeReach and triggerIds.meleeReach.label == "Melee Reach")
+assert(triggerIds.meleeReachScale == nil, "Reach must wait until Melee Reach is on")
 assert(triggerIds.triggerDelay == nil, "Delay must wait until Trigger Bot is on")
 assert(triggerIds.fireRate == nil, "Fire Rate must wait until Rapid Fire is on")
 settings.triggerBot = true
@@ -163,6 +169,17 @@ model.onValueChange("fireRate", 250, true)
 assert(settings.fireRate == 250)
 model.onValueChange("quickReload", true, true)
 assert(settings.quickReload == true)
+model.onValueChange("meleeReach", true, true)
+model = catalog:model(state)
+triggerIds = {}
+for _, control in ipairs(model.pages[1].sections[4].controls) do
+    triggerIds[control.id] = control
+end
+assert(triggerIds.meleeReachScale and triggerIds.meleeReachScale.parent == "meleeReach")
+assert(triggerIds.meleeReachScale.min == 100 and triggerIds.meleeReachScale.max == 300)
+assert(triggerIds.meleeReachScale.step == 5 and triggerIds.meleeReachScale.unit == "%")
+model.onValueChange("meleeReachScale", 275, true)
+assert(settings.meleeReachScale == 275)
 
 local writeCount = #writes
 model.onValueChange("aimMode", "camera", true)
