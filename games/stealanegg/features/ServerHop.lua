@@ -52,7 +52,7 @@ function ServerHop:_log(level, message, fields)
     end
 end
 
-function ServerHop:run(maxPing, completed, isActive, populationMode)
+function ServerHop:run(maxPing, completed, isActive, targetPopulation)
     if self.running or self.stopped then
         if completed then
             completed(false, self.stopped and "stopped" or "busy")
@@ -63,7 +63,9 @@ function ServerHop:run(maxPing, completed, isActive, populationMode)
     self.spawn(function()
         local ok, result = pcall(function()
             self.requestSerial += 1
-            local sortOrder = populationMode == "high" and "Desc" or "Asc"
+            targetPopulation = math.max(1, tonumber(targetPopulation) or 6)
+            local desiredPlaying = math.max(0, targetPopulation - 1)
+            local sortOrder = desiredPlaying >= 4 and "Desc" or "Asc"
             local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=%s&limit=100&excludeFullGames=true&_=%s-%d"):format(
                 self.placeId,
                 sortOrder,
@@ -81,13 +83,13 @@ function ServerHop:run(maxPing, completed, isActive, populationMode)
                     and server.ping <= maxPing
                     and (
                         not best
-                        or (populationMode == "high" and (server.playing > best.playing or (server.playing == best.playing and server.ping < best.ping)))
+                        or math.abs(server.playing - desiredPlaying) < math.abs(
+                            best.playing - desiredPlaying
+                        )
                         or (
-                            populationMode ~= "high"
-                            and (
-                                server.playing < best.playing
-                                or (server.playing == best.playing and server.ping < best.ping)
-                            )
+                            math.abs(server.playing - desiredPlaying)
+                                == math.abs(best.playing - desiredPlaying)
+                            and server.ping < best.ping
                         )
                     )
                 then

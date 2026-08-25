@@ -353,12 +353,13 @@ function Adapter.new(context)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
         lagSafeMovement:setPingThreshold(state.settings.serverHopMaxPing)
         lagSafeMovement:setEnabled(
-            farming or (state.settings.antiHit == true and state.settings.lagSafeMovement == true)
+            state.settings.antiHit == true and state.settings.lagSafeMovement == true
         )
         autoFarm:setTargetRarities(state.settings.autoFarmEternal, state.settings.autoFarmSecret)
         autoFarm:setCompleteIndex(state.settings.autoFarmIndex)
+        autoFarm:setIndexServerHopping(state.settings.autoFarmIndexServerHopping)
         autoFarm:setServerHopping(state.settings.autoFarmServerHopping)
-        autoFarm:setHighPopulation(state.settings.autoFarmHighPopulation)
+        autoFarm:setTargetPopulation(state.settings.serverHopTargetPopulation)
         autoFarm:setMaxPing(state.settings.serverHopMaxPing)
         autoFarm:setEnabled(farming)
         if state.settings.serverHop == true then
@@ -370,7 +371,12 @@ function Adapter.new(context)
                 },
             })
             context.settingsChanged(context.store:Get().settings)
-            serverHop:run(state.settings.serverHopMaxPing)
+            serverHop:run(
+                state.settings.serverHopMaxPing,
+                nil,
+                nil,
+                state.settings.serverHopTargetPopulation
+            )
         end
     end
     local unsubscribe = context.store:Subscribe(apply, false)
@@ -482,8 +488,8 @@ function Presentation.mount(host)
     host:option("eggs", 2, "autoFarmEternal", "Eternal Eggs", "autoFarm")
     host:option("eggs", 3, "autoFarmSecret", "Secret Eggs", "autoFarm")
     host:option("eggs", 4, "autoFarmIndex", "Complete Index", "autoFarm")
-    host:option("eggs", 5, "autoFarmServerHopping", "Server Hopping", "autoFarm")
-    host:option("eggs", 6, "autoFarmHighPopulation", "High Population", "autoFarm")
+    host:option("eggs", 5, "autoFarmIndexServerHopping", "Index Server Hopping", "autoFarmIndex")
+    host:option("eggs", 6, "autoFarmServerHopping", "Rare Server Hopping", "autoFarm")
     host:option("eggs", 7, "autoOpenEggs", "Auto Open Eggs")
 
     host:section("Tools", "server", "SERVER", 70)
@@ -493,10 +499,16 @@ function Presentation.mount(host)
         step = 10,
         unit = "ms",
     })
+    host:slider("server", "serverHopTargetPopulation", "Target Population", {
+        min = 1,
+        max = 12,
+        step = 1,
+        unit = " players",
+    })
     host:section("Tools", "serverHop", "SERVER HOP", 70)
     if type(host.button) == "function" then
-        host:button("serverHop", "serverHop", "Hop to Low Population", {
-            confirm = "Leave this server and hop to a low-population server?",
+        host:button("serverHop", "serverHop", "Hop Near Target Population", {
+            confirm = "Leave this server and hop near the target population?",
             variant = "primary",
         })
     end
@@ -504,6 +516,7 @@ function Presentation.mount(host)
     host:section("Tools", "prompts", "PROMPTS", 70)
     host:option("prompts", 1, "instantPrompts", "Instant Prompts")
 
+    host:section("Visuals", "eggRadar", "EGG RADAR", 70)
     host:section("Visuals", "highlights", "HIGHLIGHTS", 70, false, 2, { treatment = "grid" })
     host:option("highlights", 1, "eggEsp", "Eggs")
     host:option("highlights", 2, "trapEsp", "Traps")
@@ -1045,7 +1058,8 @@ function AutoFarm.new(options)
         completeIndex = false,
         enabled = false,
         targetRarities = { Eternal = true, Secret = true },
-        highPopulation = false,
+        indexServerHopping = true,
+        targetPopulation = 6,
         maxPing = 120,
         token = 0,
         claimed = false,
@@ -1063,7 +1077,9 @@ function AutoFarm.new(options)
                     self.markGlobalSpawn(rarityName)
                 end
             end
-            if self.enabled and self.waitingForEggUpdate == self.token then
+            if not self.enabled then
+                self:_publish("Farm off", "Enable Auto Farm to pursue a target.")
+            elseif self.waitingForEggUpdate == self.token then
                 self.waitingForEggUpdate = nil
                 self:_startRun()
             end
@@ -1108,6 +1124,7 @@ function AutoFarm:_publish(stage, detail, targetUid)
             size = tonumber(record.AssetScale) or 1,
             state = record.State == "Claimed" and "Contested" or record.State,
             target = record.Uid == targetUid,
+            reason = indexTarget and "Missing from Index" or rarityName .. " target",
         })
     end
     table.sort(eggs, function(left, right)
@@ -1337,7 +1354,7 @@ end
 
 function AutoFarm:_waitForReset(token)
     local remaining = math.max(0, tonumber(self.getResetSeconds()) or 0)
-    if remaining > 0 then
+    if remaining > 0 and not self:_selectTarget() then
         self:_idleOnTreadmill(token)
     end
     while self:_active(token) and remaining > 0 do
@@ -1360,10 +1377,10 @@ function AutoFarm:_hop(token)
         end)
         return
     end
-    local selectedSpawnKnown = (self.completeIndex and self.hasMissingIndex())
-        or (self.targetRarities.Eternal and self.isGlobalSpawnKnown("Eternal"))
+    local indexTargetsRemain = self.completeIndex and self.hasMissingIndex()
+    local rareSpawnKnown = (self.targetRarities.Eternal and self.isGlobalSpawnKnown("Eternal"))
         or (self.targetRarities.Secret and self.isGlobalSpawnKnown("Secret"))
-    if not selectedSpawnKnown then
+    if not indexTargetsRemain and not rareSpawnKnown then
         self:_idleOnTreadmill(token)
         self.waitingForEggUpdate = token
         self:_publish(
@@ -1372,7 +1389,9 @@ function AutoFarm:_hop(token)
         )
         return
     end
-    if not self.serverHopping then
+    local mayHop = (indexTargetsRemain and self.indexServerHopping)
+        or (rareSpawnKnown and self.serverHopping)
+    if not mayHop then
         self:_idleOnTreadmill(token)
         self.waitingForEggUpdate = token
         self:_publish(
@@ -1397,7 +1416,7 @@ function AutoFarm:_hop(token)
         end)
     end, function()
         return self:_active(token) and (tonumber(self.getResetSeconds()) or 0) <= 0
-    end, self.highPopulation and "high" or "low")
+    end, self.targetPopulation)
 end
 
 function AutoFarm:_run(token)
@@ -1457,7 +1476,7 @@ function AutoFarm:_run(token)
         })
         self:_publish(
             "Walking to target",
-            ("%s %s · %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
+            ("%s %s Â· %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
             record.Uid
         )
         local reached, reason = self.navigator:walkTo(record.BottomCFrame.Position, function()
@@ -1581,8 +1600,21 @@ function AutoFarm:setTargetRarities(eternal, secret)
     end
 end
 
-function AutoFarm:setHighPopulation(enabled)
-    self.highPopulation = enabled == true
+function AutoFarm:setTargetPopulation(value)
+    self.targetPopulation = math.max(1, tonumber(value) or 6)
+end
+
+function AutoFarm:setIndexServerHopping(enabled)
+    enabled = enabled == true
+    if self.indexServerHopping == enabled then
+        return
+    end
+    self.indexServerHopping = enabled
+    if self.enabled then
+        self.token += 1
+        self.waitingForEggUpdate = nil
+        self:_startRun()
+    end
 end
 
 function AutoFarm:setServerHopping(enabled)
@@ -1605,6 +1637,9 @@ end
 function AutoFarm:setEnabled(enabled)
     enabled = enabled == true
     if self.enabled == enabled then
+        if not enabled then
+            self:_publish("Farm off", "Enable Auto Farm to pursue a target.")
+        end
         return
     end
     self.enabled = enabled
@@ -1985,7 +2020,7 @@ function HighlightEsp:_refreshEgg(uid)
         self.eggLabels,
         uid,
         model,
-        ("%s\n%s • %.1fx"):format(
+        ("%s\n%s â€¢ %.1fx"):format(
             tostring(record.AssetCategory),
             tostring(rarity.DisplayName or rarity._id or "Egg"),
             record.AssetScale
@@ -2543,7 +2578,7 @@ function ServerHop:_log(level, message, fields)
     end
 end
 
-function ServerHop:run(maxPing, completed, isActive, populationMode)
+function ServerHop:run(maxPing, completed, isActive, targetPopulation)
     if self.running or self.stopped then
         if completed then
             completed(false, self.stopped and "stopped" or "busy")
@@ -2554,7 +2589,9 @@ function ServerHop:run(maxPing, completed, isActive, populationMode)
     self.spawn(function()
         local ok, result = pcall(function()
             self.requestSerial += 1
-            local sortOrder = populationMode == "high" and "Desc" or "Asc"
+            targetPopulation = math.max(1, tonumber(targetPopulation) or 6)
+            local desiredPlaying = math.max(0, targetPopulation - 1)
+            local sortOrder = desiredPlaying >= 4 and "Desc" or "Asc"
             local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=%s&limit=100&excludeFullGames=true&_=%s-%d"):format(
                 self.placeId,
                 sortOrder,
@@ -2572,13 +2609,13 @@ function ServerHop:run(maxPing, completed, isActive, populationMode)
                     and server.ping <= maxPing
                     and (
                         not best
-                        or (populationMode == "high" and (server.playing > best.playing or (server.playing == best.playing and server.ping < best.ping)))
+                        or math.abs(server.playing - desiredPlaying) < math.abs(
+                            best.playing - desiredPlaying
+                        )
                         or (
-                            populationMode ~= "high"
-                            and (
-                                server.playing < best.playing
-                                or (server.playing == best.playing and server.ping < best.ping)
-                            )
+                            math.abs(server.playing - desiredPlaying)
+                                == math.abs(best.playing - desiredPlaying)
+                            and server.ping < best.ping
                         )
                     )
                 then

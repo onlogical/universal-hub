@@ -64,7 +64,7 @@ local hop = ServerHop.new({
 local completed
 hop:run(120, function(succeeded)
     completed = succeeded
-end)
+end, nil, 3)
 assert(completed == true, "Server Hop must report successful requests to Auto Farm")
 assert(
     teleported.placeId == 123 and teleported.serverId == "lowest" and teleported.player == "player"
@@ -73,10 +73,10 @@ assert(logs[1].scope == "stealanegg.serverHop" and logs[1].fields.players == 2)
 assert(requestedUrls[1]:find("sortOrder=Asc", 1, true), "Low population must request the low end")
 teleportFailed:Fire("player", "Failure", "Error 279")
 assert(completed == false, "Teleport-init failures must be reported so Auto Farm can retry")
-hop:run(120, nil, nil, "high")
+hop:run(120, nil, nil, 6)
 assert(
     requestedUrls[2]:find("sortOrder=Desc", 1, true),
-    "High population must request the busy end"
+    "A higher target population must request the busy end"
 )
-assert(teleported.serverId == "busier", "High-population mode must prefer the busiest server")
+assert(teleported.serverId == "busier", "Server Hop must choose nearest to target population")
 print("server-hop-ok")

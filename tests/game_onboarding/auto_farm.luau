@@ -101,7 +101,7 @@ local navigator = {
             byUid.contested.State = "Dropped"
             byUid.contested.BottomCFrame = CFrame.new(position)
         end
-        if #walks == 3 then
+        if #walks == 2 then
             byUid.eternal = nil
             farm.claimed = true
         end
@@ -167,8 +167,8 @@ farm = AutoFarm.new({
         end,
     },
     serverHop = {
-        run = function(_, maxPing)
-            assert(maxPing == 90)
+        run = function(_, maxPing, _completed, _active, targetPopulation)
+            assert(maxPing == 90 and targetPopulation == 6)
             hops += 1
         end,
     },
@@ -195,10 +195,9 @@ farm:setTargetRarities(true, true)
 farm:setMaxPing(90)
 farm:setEnabled(true)
 queued()
-assert(walks[1] == Vector3.new(0, 0, 100), "Auto Farm must use the treadmill while idle")
-assert(walks[2] == Vector3.new(40, 0, 0), "Auto Farm must prefer Eternal over Secret")
+assert(walks[1] == Vector3.new(40, 0, 0), "Auto Farm must skip the treadmill when a target exists")
 assert(globalSpawns.Eternal == true, "Seeing a target must remember its global spawn")
-assert(walks[3] == Vector3.new(0, 0, 100), "Auto Farm must walk back to the base")
+assert(walks[2] == Vector3.new(0, 0, 100), "Auto Farm must walk back to the base")
 assert(hops == 0, "Auto Farm must rescan before leaving a server with more targets")
 assert(type(queued) == "function", "A secured egg must queue another scan of the current server")
 assert(secured == 1, "Secured eggs must be recorded exactly once")
@@ -217,6 +216,15 @@ assert(
     farm:_selectTarget().record == missingIndexEgg,
     "Complete Index must prioritize an exact undiscovered egg over indexed rare eggs"
 )
+farm:setTargetRarities(false, false)
+farm:setIndexServerHopping(false)
+farm:_hop(farm.token)
+assert(hops == 0, "Index Server Hopping must independently keep index farming in this server")
+farm:setIndexServerHopping(true)
+farm:_hop(farm.token)
+assert(hops == 1, "Index Server Hopping must hop while index entries remain missing")
+hops = 0
+farm:setTargetRarities(true, true)
 local blocked = {
     AreaId = "Cosmic",
     AssetCategory = "Eternal Egg",

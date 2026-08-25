@@ -349,12 +349,13 @@ function Adapter.new(context)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
         lagSafeMovement:setPingThreshold(state.settings.serverHopMaxPing)
         lagSafeMovement:setEnabled(
-            farming or (state.settings.antiHit == true and state.settings.lagSafeMovement == true)
+            state.settings.antiHit == true and state.settings.lagSafeMovement == true
         )
         autoFarm:setTargetRarities(state.settings.autoFarmEternal, state.settings.autoFarmSecret)
         autoFarm:setCompleteIndex(state.settings.autoFarmIndex)
+        autoFarm:setIndexServerHopping(state.settings.autoFarmIndexServerHopping)
         autoFarm:setServerHopping(state.settings.autoFarmServerHopping)
-        autoFarm:setHighPopulation(state.settings.autoFarmHighPopulation)
+        autoFarm:setTargetPopulation(state.settings.serverHopTargetPopulation)
         autoFarm:setMaxPing(state.settings.serverHopMaxPing)
         autoFarm:setEnabled(farming)
         if state.settings.serverHop == true then
@@ -366,7 +367,12 @@ function Adapter.new(context)
                 },
             })
             context.settingsChanged(context.store:Get().settings)
-            serverHop:run(state.settings.serverHopMaxPing)
+            serverHop:run(
+                state.settings.serverHopMaxPing,
+                nil,
+                nil,
+                state.settings.serverHopTargetPopulation
+            )
         end
     end
     local unsubscribe = context.store:Subscribe(apply, false)

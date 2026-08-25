@@ -49,7 +49,8 @@ function AutoFarm.new(options)
         completeIndex = false,
         enabled = false,
         targetRarities = { Eternal = true, Secret = true },
-        highPopulation = false,
+        indexServerHopping = true,
+        targetPopulation = 6,
         maxPing = 120,
         token = 0,
         claimed = false,
@@ -67,7 +68,9 @@ function AutoFarm.new(options)
                     self.markGlobalSpawn(rarityName)
                 end
             end
-            if self.enabled and self.waitingForEggUpdate == self.token then
+            if not self.enabled then
+                self:_publish("Farm off", "Enable Auto Farm to pursue a target.")
+            elseif self.waitingForEggUpdate == self.token then
                 self.waitingForEggUpdate = nil
                 self:_startRun()
             end
@@ -112,6 +115,7 @@ function AutoFarm:_publish(stage, detail, targetUid)
             size = tonumber(record.AssetScale) or 1,
             state = record.State == "Claimed" and "Contested" or record.State,
             target = record.Uid == targetUid,
+            reason = indexTarget and "Missing from Index" or rarityName .. " target",
         })
     end
     table.sort(eggs, function(left, right)
@@ -341,7 +345,7 @@ end
 
 function AutoFarm:_waitForReset(token)
     local remaining = math.max(0, tonumber(self.getResetSeconds()) or 0)
-    if remaining > 0 then
+    if remaining > 0 and not self:_selectTarget() then
         self:_idleOnTreadmill(token)
     end
     while self:_active(token) and remaining > 0 do
@@ -364,10 +368,10 @@ function AutoFarm:_hop(token)
         end)
         return
     end
-    local selectedSpawnKnown = (self.completeIndex and self.hasMissingIndex())
-        or (self.targetRarities.Eternal and self.isGlobalSpawnKnown("Eternal"))
+    local indexTargetsRemain = self.completeIndex and self.hasMissingIndex()
+    local rareSpawnKnown = (self.targetRarities.Eternal and self.isGlobalSpawnKnown("Eternal"))
         or (self.targetRarities.Secret and self.isGlobalSpawnKnown("Secret"))
-    if not selectedSpawnKnown then
+    if not indexTargetsRemain and not rareSpawnKnown then
         self:_idleOnTreadmill(token)
         self.waitingForEggUpdate = token
         self:_publish(
@@ -376,7 +380,9 @@ function AutoFarm:_hop(token)
         )
         return
     end
-    if not self.serverHopping then
+    local mayHop = (indexTargetsRemain and self.indexServerHopping)
+        or (rareSpawnKnown and self.serverHopping)
+    if not mayHop then
         self:_idleOnTreadmill(token)
         self.waitingForEggUpdate = token
         self:_publish(
@@ -401,7 +407,7 @@ function AutoFarm:_hop(token)
         end)
     end, function()
         return self:_active(token) and (tonumber(self.getResetSeconds()) or 0) <= 0
-    end, self.highPopulation and "high" or "low")
+    end, self.targetPopulation)
 end
 
 function AutoFarm:_run(token)
@@ -585,8 +591,21 @@ function AutoFarm:setTargetRarities(eternal, secret)
     end
 end
 
-function AutoFarm:setHighPopulation(enabled)
-    self.highPopulation = enabled == true
+function AutoFarm:setTargetPopulation(value)
+    self.targetPopulation = math.max(1, tonumber(value) or 6)
+end
+
+function AutoFarm:setIndexServerHopping(enabled)
+    enabled = enabled == true
+    if self.indexServerHopping == enabled then
+        return
+    end
+    self.indexServerHopping = enabled
+    if self.enabled then
+        self.token += 1
+        self.waitingForEggUpdate = nil
+        self:_startRun()
+    end
 end
 
 function AutoFarm:setServerHopping(enabled)
@@ -609,6 +628,9 @@ end
 function AutoFarm:setEnabled(enabled)
     enabled = enabled == true
     if self.enabled == enabled then
+        if not enabled then
+            self:_publish("Farm off", "Enable Auto Farm to pursue a target.")
+        end
         return
     end
     self.enabled = enabled

@@ -17,6 +17,7 @@ import { AudienceMultiSelect } from "../components/AudienceMultiSelect";
 import { EspColorPicker, colorToHex } from "../components/EspColorPicker";
 import { ModelViewer } from "../preview/ModelViewer";
 import { ViewportDummy } from "../preview/ViewportDummy";
+import { EggRadar } from "./EggRadar";
 
 function Segments({
 	options,
@@ -359,7 +360,10 @@ export function VisualsPage({
 	const [view, setView] = React.useState<"preview" | "colors">("preview");
 	const grid = page.sections.find((section) => section.treatment === "grid");
 	const style = page.sections.find((section) => section.treatment === "style");
-	const extras = page.sections.filter((section) => section.treatment !== "grid" && section.treatment !== "style");
+	const eggRadar = page.sections.find((section) => section.id === "eggRadar");
+	const extras = page.sections.filter(
+		(section) => section.treatment !== "grid" && section.treatment !== "style" && section.id !== "eggRadar",
+	);
 	const tiles =
 		grid?.controls.filter(
 			(control) => control.placement !== "details" && control.placement !== "audience",
@@ -384,9 +388,11 @@ export function VisualsPage({
 			{view === "colors" ? (
 				<Colors page={page} model={model} />
 			) : (
-				<Box width="100%" bg={theme.background.surface} radius="md" p="md" stroke={{ color: theme.border.subtle, thickness: 1 }}>
-					<Stack width="100%" gap="md">
-						<Preview page={page} model={model} style={style?.controls[0]} audience={audience} />
+				<React.Fragment>
+					{eggRadar !== undefined && <EggRadar monitor={model.floatingMonitor} />}
+					<Box width="100%" bg={theme.background.surface} radius="md" p="md" stroke={{ color: theme.border.subtle, thickness: 1 }}>
+						<Stack width="100%" gap="md">
+							<Preview page={page} model={model} style={style?.controls[0]} audience={audience} />
 						<frame BackgroundTransparency={1} Size={new UDim2(1, 0, 0, rowCount * 48)}>
 							<uigridlayout CellPadding={UDim2.fromOffset(10, 8)} CellSize={new UDim2(0.5, -5, 0, 40)} FillDirectionMaxCells={2} SortOrder={Enum.SortOrder.LayoutOrder} />
 							{tiles.map((control, index) => (
@@ -406,7 +412,8 @@ export function VisualsPage({
 							</Stack>
 						))}
 					</Stack>
-				</Box>
+					</Box>
+				</React.Fragment>
 			)}
 		</Stack>
 	);
