@@ -125,6 +125,8 @@ function Adapter.new(context)
     local Assets = require(ReplicatedStorage.Directory.Assets)
     local Sakura = require(ReplicatedStorage.Directory.Sakura)
     local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
+    local GuardEscapePrediction =
+        require(ReplicatedStorage.Library.Modules.GuardAreas.GuardEscapePrediction)
     local Save = require(ReplicatedStorage.Library.Client.Save)
     local indexCategories = {}
     for _, area in pairs(Areas.Directory) do
@@ -196,12 +198,19 @@ function Adapter.new(context)
     local Network = require(ReplicatedStorage.Library.Client.Network)
     local PlotCmds = require(ReplicatedStorage.Library.Client.PlotCmds)
     local SlotIdentity = require(ReplicatedStorage.Library.Util.AreaEggSlotIdentity)
+    local stopped = false
+    local navigator
     local antiHit = AntiHit.new({
         eggCmds = EggCmds,
         guardHitEndpoint = Constants.NETWORK_MAP.Guards.FOREST_HIT,
         localPlayer = LocalPlayer,
         logger = context.logger,
         network = Network,
+        onRecovered = function()
+            if navigator then
+                navigator:resume()
+            end
+        end,
         ragdoll = require(ReplicatedStorage.Library.Modules.Ragdoll),
         runService = RunService,
         slotIdentity = SlotIdentity,
@@ -238,18 +247,90 @@ function Adapter.new(context)
         workspace = Workspace,
     })
     local instantPrompts = InstantPrompts.new(Workspace)
-    local guardSpeeds = {}
+    local guardConfigs = {}
     local guardModels = {}
     local objects = Workspace:FindFirstChild("__OBJECTS")
     local areas = objects and objects:FindFirstChild("Areas")
     local guardAreas = areas and areas:FindFirstChild("GuardAreas")
+    local separationLine = areas and areas:FindFirstChild("SeparationLine")
     for areaId, config in pairs(require(ReplicatedStorage.Directory.Guards).Directory) do
-        guardSpeeds[areaId] = config.WalkSpeed
+        guardConfigs[areaId] = config
         local area = guardAreas and guardAreas:FindFirstChild(areaId)
         local guard = area and area:FindFirstChild("Guard")
         if guard and guard:IsA("Model") then
             guardModels[areaId] = guard
         end
+    end
+    local function nativeEscapePosition(record)
+        local character = LocalPlayer.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local area = guardAreas and guardAreas:FindFirstChild(record.AreaId)
+        local bounds = area and area:FindFirstChild("Bounds")
+        if
+            not root
+            or not root:IsA("BasePart")
+            or not bounds
+            or not bounds:IsA("BasePart")
+            or not separationLine
+            or not separationLine:IsA("BasePart")
+        then
+            return nil
+        end
+        local direction = -separationLine.CFrame.LookVector
+        local ok, distance = pcall(
+            GuardEscapePrediction.ResolveExitDistance,
+            bounds.CFrame,
+            bounds.Size,
+            root.Position,
+            direction
+        )
+        return ok and root.Position + direction * (distance + 18) or nil
+    end
+    local function canOutrunGuard(areaId, playerSpeed)
+        local config = guardConfigs[areaId]
+        local guard = guardModels[areaId]
+        local character = LocalPlayer.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local area = guardAreas and guardAreas:FindFirstChild(areaId)
+        local bounds = area and area:FindFirstChild("Bounds")
+        if
+            not config
+            or not guard
+            or not guard.Parent
+            or not root
+            or not root:IsA("BasePart")
+            or not bounds
+            or not bounds:IsA("BasePart")
+            or not separationLine
+            or not separationLine:IsA("BasePart")
+        then
+            return nil
+        end
+        local direction = -separationLine.CFrame.LookVector
+        local distanceOk, exitDistance = pcall(
+            GuardEscapePrediction.ResolveExitDistance,
+            bounds.CFrame,
+            bounds.Size,
+            root.Position,
+            direction
+        )
+        if not distanceOk then
+            return nil
+        end
+        local predictionOk, prediction = pcall(GuardEscapePrediction.Resolve, {
+            BaseGuardWalkSpeed = config.WalkSpeed,
+            ExitDirection = direction,
+            ExitDistance = exitDistance,
+            FlatRadius = config.FlatRadius,
+            GuardStartPosition = guard:GetPivot().Position,
+            HitDistance = config.HitDistance or 10,
+            PlayerStartPosition = root.Position,
+            PlayerWalkSpeed = playerSpeed,
+        })
+        if not predictionOk then
+            return nil
+        end
+        return prediction.Outcome ~= "Caught"
     end
     local function currentPing()
         for _, metric in ipairs(context.store:Get().footerMetrics or {}) do
@@ -260,11 +341,17 @@ function Adapter.new(context)
         return 0
     end
     local lagSafeMovement = LagSafeMovement.new({
+        canOutrun = canOutrunGuard,
         eggCmds = EggCmds,
         getPing = currentPing,
+        guardConfigs = guardConfigs,
         guardModels = guardModels,
-        guardSpeeds = guardSpeeds,
         localPlayer = LocalPlayer,
+        onEscape = function()
+            if navigator then
+                navigator:resume()
+            end
+        end,
         runService = RunService,
     })
     local resetPadding = AreaEggResetConfig.WallCountdownDelayAfterDayStartsSeconds
@@ -314,17 +401,34 @@ function Adapter.new(context)
         persistVisitedServers()
         persistFarmHistory()
     end)
-    local navigator = WalkNavigator.new({
+    local function treadmillBottom()
+        local plot = PlotCmds.GetPlotData()
+        local bottom = plot and plot.PlotFolder:FindFirstChild("TreadmillBottom")
+        return bottom and bottom:IsA("BasePart") and bottom or nil
+    end
+    local function idleTreadmillPosition()
+        local bottom = treadmillBottom()
+        return bottom and bottom.Position or nil
+    end
+    local function isOnTreadmill()
+        local character = LocalPlayer.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local bottom = treadmillBottom()
+        if not root or not root:IsA("BasePart") or not bottom then
+            return false
+        end
+        local position = bottom.CFrame:PointToObjectSpace(root.Position)
+        return math.abs(position.X) <= bottom.Size.X * 0.5 + 2
+            and math.abs(position.Z) <= bottom.Size.Z * 0.5 + 2
+            and math.abs(position.Y) <= 8
+    end
+    navigator = WalkNavigator.new({
+        blockedParts = { treadmillBottom() },
         localPlayer = LocalPlayer,
         pathfindingService = PathfindingService,
         runService = RunService,
         workspace = Workspace,
     })
-    local function idleTreadmillPosition()
-        local plot = PlotCmds.GetPlotData()
-        local bottom = plot and plot.PlotFolder:FindFirstChild("TreadmillBottom")
-        return bottom and bottom:IsA("BasePart") and bottom.Position or nil
-    end
     local autoFarm
     local autoBlossom
     local blossomSelected = false
@@ -357,6 +461,7 @@ function Adapter.new(context)
         eggCmds = EggCmds,
         localPlayer = LocalPlayer,
         logger = context.logger,
+        getEscapePosition = nativeEscapePosition,
         getIdlePosition = idleTreadmillPosition,
         getResetSeconds = resetSecondsRemaining,
         getSecuredEggs = securedEggs,
@@ -364,6 +469,10 @@ function Adapter.new(context)
         isGlobalSpawnKnown = isGlobalSpawnKnown,
         isIndexed = isIndexed,
         isIndexPending = isIndexPending,
+        isOnTreadmill = isOnTreadmill,
+        leaveTreadmill = function()
+            return Network.Invoke(Constants.NETWORK_MAP.Treadmills.REQUEST_UNEQUIP)
+        end,
         markGlobalSpawn = markGlobalSpawn,
         navigator = navigator,
         onRareAvailable = function()
@@ -392,6 +501,30 @@ function Adapter.new(context)
         slotIdentity = SlotIdentity,
         workspace = Workspace,
     })
+    local inventoryUids = {}
+    for uid in pairs((Save.Get() and Save.Get().Inventory) or {}) do
+        inventoryUids[uid] = true
+    end
+    local equipBestQueued = false
+    local inventoryConnection = Save.GetStatChangedSignal("Inventory"):Connect(function()
+        local nextUids = {}
+        local added = false
+        for uid in pairs((Save.Get() and Save.Get().Inventory) or {}) do
+            nextUids[uid] = true
+            added = added or inventoryUids[uid] ~= true
+        end
+        inventoryUids = nextUids
+        if not added or equipBestQueued or stopped then
+            return
+        end
+        equipBestQueued = true
+        task.defer(function()
+            if not stopped then
+                pcall(Network.Invoke, Constants.NETWORK_MAP.Backpack.EQUIP_BEST)
+            end
+            equipBestQueued = false
+        end)
+    end)
     local unsubscribePing = context.subscribeFooterMetric("ping", {
         kind = "latency",
         label = "Ping",
@@ -424,7 +557,7 @@ function Adapter.new(context)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
         lagSafeMovement:setPingThreshold(state.settings.serverHopMaxPing)
         lagSafeMovement:setEnabled(
-            state.settings.antiHit == true and state.settings.lagSafeMovement == true
+            (state.settings.antiHit == true or farming) and state.settings.lagSafeMovement == true
         )
         autoFarm:setIdleTreadmill(state.settings.idleTreadmill)
         autoFarm:setTargetRarities(state.settings.autoFarmEternal, state.settings.autoFarmSecret)
@@ -452,7 +585,6 @@ function Adapter.new(context)
         end
     end
     local unsubscribe = context.store:Subscribe(apply, false)
-    local stopped = false
     local function stop()
         if stopped then
             return
@@ -461,6 +593,7 @@ function Adapter.new(context)
         pcall(unsubscribe)
         pcall(unsubscribePing)
         pcall(resetConnection.Disconnect, resetConnection)
+        pcall(inventoryConnection.Disconnect, inventoryConnection)
         pcall(antiHit.stop, antiHit)
         pcall(antiTrap.stop, antiTrap)
         pcall(autoBlossom.stop, autoBlossom)

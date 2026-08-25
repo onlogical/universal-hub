@@ -19,6 +19,7 @@ function AntiHit.new(options)
         localPlayer = options.localPlayer,
         logger = options.logger,
         network = options.network,
+        onRecovered = options.onRecovered,
         workspace = options.workspace,
         runService = options.runService,
         ragdoll = options.ragdoll,
@@ -183,6 +184,9 @@ function AntiHit:_recover()
     if humanoid then
         humanoid.PlatformStand = false
         humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+    end
+    if type(self.onRecovered) == "function" then
+        pcall(self.onRecovered)
     end
 end
 

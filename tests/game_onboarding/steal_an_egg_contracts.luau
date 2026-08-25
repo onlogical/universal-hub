@@ -455,6 +455,7 @@ local network = {
 local nativeNetworkFire = network.Fire
 local spawned = {}
 local antiHitLogs = {}
+local recoveryResumes = 0
 local antiHitLogger = {}
 function antiHitLogger:info(scope, message, fields)
     table.insert(antiHitLogs, { scope = scope, message = message, fields = fields })
@@ -468,6 +469,9 @@ local antiHit = AntiHit.new({
     localPlayer = player,
     logger = antiHitLogger,
     network = network,
+    onRecovered = function()
+        recoveryResumes += 1
+    end,
     ragdoll = {
         ClearClientRagdoll = function(receivedCharacter)
             assert(receivedCharacter == character)
@@ -501,6 +505,7 @@ antiHit:setEnabled(true)
 attributes.RagdollEndTime = now + 5
 attributeChanged:Fire()
 assert(clearCount == 1, "Anti Hit must clear the native client ragdoll immediately")
+assert(recoveryResumes == 1, "Anti Hit recovery must immediately resume active Auto Farm movement")
 assert(humanoid.PlatformStand == false and changedState == Enum.HumanoidStateType.GettingUp)
 assert(
     rootPart.AssemblyLinearVelocity == Vector3.new(16, 0, 0),

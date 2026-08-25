@@ -1,6 +1,11 @@
 local WalkNavigator = {}
 WalkNavigator.__index = WalkNavigator
 
+local function flatDistance(from, to)
+    local delta = from - to
+    return math.sqrt(delta.X * delta.X + delta.Z * delta.Z)
+end
+
 local function characterParts(localPlayer)
     local character = localPlayer.Character
     local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -13,13 +18,26 @@ end
 
 function WalkNavigator.new(options)
     assert(options and options.localPlayer and options.runService)
-    return setmetatable({
+    local self = setmetatable({
         localPlayer = options.localPlayer,
+        modifiers = {},
+        pathCosts = {},
         pathfindingService = options.pathfindingService,
         runService = options.runService,
         workspace = options.workspace or workspace,
         stopped = false,
     }, WalkNavigator)
+    for _, part in ipairs(options.blockedParts or {}) do
+        if part and part.Parent and part:IsA("BasePart") then
+            local modifier = Instance.new("PathfindingModifier")
+            modifier.Label = "UniversalHubTreadmill"
+            modifier.PassThrough = false
+            modifier.Parent = part
+            table.insert(self.modifiers, modifier)
+            self.pathCosts[modifier.Label] = 1000000
+        end
+    end
+    return self
 end
 
 function WalkNavigator:_waitForCharacter(isActive)
@@ -39,16 +57,28 @@ function WalkNavigator:_walkPoint(position, isActive, tolerance)
     if not humanoid then
         return false, "character-unavailable"
     end
+    self.movementId = (self.movementId or 0) + 1
+    local movementId = self.movementId
+    self.activeHumanoid = humanoid
+    self.activePosition = position
+    local function finish(reached, reason)
+        if self.movementId == movementId then
+            self.activeHumanoid = nil
+            self.activePosition = nil
+        end
+        return reached, reason
+    end
     local deadline = self.workspace:GetServerTimeNow()
-        + math.max(10, (root.Position - position).Magnitude / 6)
+        + math.max(10, flatDistance(root.Position, position) / 6)
     local nextMove = -math.huge
     while not self.stopped and isActive() and self.workspace:GetServerTimeNow() <= deadline do
         humanoid, root = characterParts(self.localPlayer)
         if not humanoid or not root then
-            return false, "character-lost"
+            return finish(false, "character-lost")
         end
-        if (root.Position - position).Magnitude <= tolerance then
-            return true
+        self.activeHumanoid = humanoid
+        if flatDistance(root.Position, position) <= tolerance then
+            return finish(true)
         end
         local now = self.workspace:GetServerTimeNow()
         if now >= nextMove then
@@ -64,7 +94,7 @@ function WalkNavigator:_walkPoint(position, isActive, tolerance)
             humanoid:MoveTo(root.Position)
         end
     end
-    return false, cancelled and "cancelled" or "timeout"
+    return finish(false, cancelled and "cancelled" or "timeout")
 end
 
 function WalkNavigator:_waypoints(startPosition, destination)
@@ -75,6 +105,7 @@ function WalkNavigator:_waypoints(startPosition, destination)
         AgentCanJump = true,
         AgentRadius = 2,
         AgentHeight = 5,
+        Costs = self.pathCosts,
         WaypointSpacing = 12,
     })
     local ok = pcall(path.ComputeAsync, path, startPosition, destination)
@@ -96,16 +127,18 @@ function WalkNavigator:walkTo(destination, isActive, tolerance)
     end
     local waypoints = self:_waypoints(root.Position, destination)
     if waypoints then
-        for _, waypoint in ipairs(waypoints) do
-            if waypoint.Action == Enum.PathWaypointAction.Jump then
-                local humanoid = characterParts(self.localPlayer)
-                if humanoid then
-                    humanoid.Jump = true
+        for index, waypoint in ipairs(waypoints) do
+            if index > 1 then
+                if waypoint.Action == Enum.PathWaypointAction.Jump then
+                    local humanoid = characterParts(self.localPlayer)
+                    if humanoid then
+                        humanoid.Jump = true
+                    end
                 end
-            end
-            local reached, reason = self:_walkPoint(waypoint.Position, isActive, tolerance)
-            if not reached then
-                return false, reason
+                local reached, reason = self:_walkPoint(waypoint.Position, isActive, tolerance)
+                if not reached then
+                    return false, reason
+                end
             end
         end
     end
@@ -117,6 +150,15 @@ function WalkNavigator:moveToDirect(destination, isActive, tolerance)
     return self:_walkPoint(destination, isActive or function()
         return true
     end, tolerance or 4)
+end
+
+function WalkNavigator:resume()
+    local humanoid = self.activeHumanoid
+    local position = self.activePosition
+    if not humanoid or typeof(position) ~= "Vector3" then
+        return false
+    end
+    return pcall(humanoid.MoveTo, humanoid, position)
 end
 
 function WalkNavigator:jump()
@@ -131,10 +173,17 @@ end
 
 function WalkNavigator:stop()
     self.stopped = true
+    self.movementId = (self.movementId or 0) + 1
+    self.activeHumanoid = nil
+    self.activePosition = nil
     local humanoid, root = characterParts(self.localPlayer)
     if humanoid and root then
         humanoid:MoveTo(root.Position)
     end
+    for _, modifier in ipairs(self.modifiers) do
+        pcall(modifier.Destroy, modifier)
+    end
+    table.clear(self.modifiers)
 end
 
 return WalkNavigator

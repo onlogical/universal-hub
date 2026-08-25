@@ -63,11 +63,16 @@ local byUid = {
 local queued
 local walks = {}
 local directMoves = 0
+local treadmillUnequips = 0
+local closerRetries = 0
 local jumps = 0
 local hops = 0
 local now = 0
 local resetSeconds = 2
 local failWalk = false
+local timeoutWalk = false
+local physicallyOnTreadmill = false
+local loseDuringEscape = false
 local blossomWork = false
 local blossomStarts = 0
 local globalSpawns = {}
@@ -102,6 +107,10 @@ local eggCmds = {
         return { Records = records }
     end,
     RequestCarryAreaEgg = function(uid)
+        if closerRetries > 0 then
+            closerRetries -= 1
+            return false, "Get closer to the egg"
+        end
         byUid[uid].State = "Carried"
         byUid[uid].CarrierUserId = 42
         return true
@@ -112,13 +121,27 @@ local navigator = {
         jumps += 1
         return true
     end,
-    moveToDirect = function(_, position)
+    moveToDirect = function(_, position, isActive)
         directMoves += 1
         root.Position = position
         table.insert(walks, position)
+        if loseDuringEscape then
+            byUid.lost.State = "GuardCarried"
+            byUid.lost.CarrierUserId = nil
+            assert(isActive() == false)
+            return false, "cancelled"
+        end
+        if position == Vector3.new(40, 0, -80) then
+            byUid.eternal = nil
+            farm.claimed = true
+        end
         return true
     end,
     walkTo = function(_, position)
+        if timeoutWalk then
+            timeoutWalk = false
+            return false, "timeout"
+        end
         if failWalk then
             return false, "blocked"
         end
@@ -149,6 +172,10 @@ farm = AutoFarm.new({
         },
     },
     eggCmds = eggCmds,
+    getEscapePosition = function(record)
+        assert(record.AreaId == "Cherry Blossom" or record.AreaId == "Cosmic")
+        return Vector3.new(40, 0, -80)
+    end,
     getIdlePosition = function()
         return Vector3.new(0, 0, 100)
     end,
@@ -176,6 +203,12 @@ farm = AutoFarm.new({
     end,
     isIndexPending = function(category)
         return pendingIndex[category] == true
+    end,
+    isOnTreadmill = function()
+        return physicallyOnTreadmill
+    end,
+    leaveTreadmill = function()
+        treadmillUnequips += 1
     end,
     markGlobalSpawn = function(rarity)
         globalSpawns[rarity] = true
@@ -264,10 +297,19 @@ records = originalRecords
 farm:setTargetRarities(true, true)
 farm:setMaxPing(90)
 farm:setEnabled(true)
+closerRetries = 1
+timeoutWalk = true
 queued()
 assert(walks[1] == Vector3.new(40, 0, 0), "Auto Farm must skip the treadmill when a target exists")
 assert(globalSpawns.Eternal == true, "Seeing a target must remember its global spawn")
-assert(walks[2] == Vector3.new(0, 0, 100), "Auto Farm must walk back to the base")
+assert(
+    walks[3] == Vector3.new(40, 0, -80) and directMoves == 3,
+    "Auto Farm must recover a timed-out route, correct pickup distance, then take the direct exit"
+)
+assert(
+    walks[4] == Vector3.new(0, 0, 100),
+    "Auto Farm must continue from the guard exit to base instead of stopping at the boundary"
+)
 assert(hops == 0, "Auto Farm must rescan before leaving a server with more targets")
 assert(type(queued) == "function", "A secured egg must queue another scan of the current server")
 assert(secured == 1, "Secured eggs must be recorded exactly once")
@@ -329,7 +371,17 @@ assert(
 )
 assert(farm.onTreadmill == true, "Auto Farm must remember that it entered the treadmill")
 farm:_leaveTreadmill()
-assert(jumps == 1 and farm.onTreadmill == false, "Auto Farm must jump before leaving the treadmill")
+assert(
+    jumps == 1 and treadmillUnequips == 1 and farm.onTreadmill == false,
+    "Auto Farm must unequip and jump before leaving the treadmill"
+)
+physicallyOnTreadmill = true
+farm:_leaveTreadmill()
+assert(
+    jumps == 2 and treadmillUnequips == 2,
+    "Auto Farm must still unequip and jump after a hub reload resets its local treadmill state"
+)
+physicallyOnTreadmill = false
 farm:setTargetRarities(true, true)
 records = { byUid.secret }
 queued = nil
@@ -368,6 +420,27 @@ assert(
     dropped == contested and contested.State == "Dropped",
     "Claimed eggs must be pursued until dropped"
 )
+local lost = {
+    AreaId = "Cosmic",
+    AssetCategory = "Secret Egg",
+    BottomCFrame = CFrame.new(90, 0, 0),
+    CarrierUserId = 42,
+    State = "Carried",
+    Uid = "lost",
+}
+records = { lost }
+byUid.lost = lost
+loseDuringEscape = true
+queued = nil
+farm:_run(farm.token)
+assert(
+    farm.waitingForEggUpdate == farm.token and queued == nil,
+    "Auto Farm must wait for the same boss egg instead of abandoning it while the guard carries it"
+)
+loseDuringEscape = false
+lost.State = "Slot"
+eggUpdated:Fire(lost)
+assert(type(queued) == "function", "The boss release event must resume recovery immediately")
 farm:setCompleteIndex(false)
 table.clear(globalSpawns)
 records = {}

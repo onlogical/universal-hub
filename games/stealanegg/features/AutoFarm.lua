@@ -20,6 +20,9 @@ function AutoFarm.new(options)
         localPlayer = options.localPlayer,
         logger = options.logger,
         navigator = options.navigator,
+        getEscapePosition = options.getEscapePosition or function()
+            return nil
+        end,
         getIdlePosition = options.getIdlePosition or function()
             return nil
         end,
@@ -41,6 +44,10 @@ function AutoFarm.new(options)
         isIndexPending = options.isIndexPending or function()
             return false
         end,
+        isOnTreadmill = options.isOnTreadmill or function()
+            return false
+        end,
+        leaveTreadmill = options.leaveTreadmill or function() end,
         markGlobalSpawn = options.markGlobalSpawn or function() end,
         onRareAvailable = options.onRareAvailable,
         onSecured = options.onSecured,
@@ -334,10 +341,18 @@ function AutoFarm:_claim(record, token)
             if not position or (position - current.BottomCFrame.Position).Magnitude > 10 then
                 return false, "egg-moved"
             end
-            local ok, carried =
+            local ok, carried, carryReason =
                 pcall(self.eggCmds.RequestCarryAreaEgg, current.Uid, self:_slotKey(current))
             if ok and carried == true then
                 return true
+            end
+            if ok and carryReason == "Get closer to the egg" then
+                self.navigator:moveToDirect(current.BottomCFrame.Position, function()
+                    local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
+                    return self:_active(token)
+                        and latest ~= nil
+                        and (latest.State == "Slot" or latest.State == "Dropped")
+                end, 1)
             end
         end
         self.wait(0.25)
@@ -371,10 +386,11 @@ function AutoFarm:_homePosition()
 end
 
 function AutoFarm:_leaveTreadmill()
-    if not self.onTreadmill then
+    if not self.onTreadmill and not self.isOnTreadmill() then
         return
     end
     self.onTreadmill = false
+    pcall(self.leaveTreadmill)
     if type(self.navigator.jump) == "function" then
         self.navigator:jump()
         self.wait(0.1)
@@ -548,12 +564,18 @@ function AutoFarm:_run(token)
             ("%s %s · %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
             record.Uid
         )
-        local reached, reason = self.navigator:walkTo(record.BottomCFrame.Position, function()
+        local function targetAvailable()
             local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
             return self:_active(token)
                 and latest ~= nil
                 and (latest.State == "Slot" or latest.State == "Dropped")
-        end, 7)
+        end
+        local reached, reason =
+            self.navigator:walkTo(record.BottomCFrame.Position, targetAvailable, 2)
+        if not reached and reason == "timeout" and targetAvailable() then
+            reached, reason =
+                self.navigator:moveToDirect(record.BottomCFrame.Position, targetAvailable, 2)
+        end
         if not reached then
             local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
             if
@@ -597,25 +619,61 @@ function AutoFarm:_run(token)
         record.Uid
     )
     local secured = false
+    local escaped = false
     while self:_active(token) and not secured do
-        local home = self:_homePosition()
+        local crossedEscape = false
+        local escape = not escaped and self.getEscapePosition(record) or nil
+        local home = escape or self:_homePosition()
         if home then
             self.claimed = false
-            local returned, returnReason = self.navigator:walkTo(home, function()
-                return self:_active(token) and not self.claimed
+            local navigate = escape and self.navigator.moveToDirect or self.navigator.walkTo
+            local returned, returnReason = navigate(self.navigator, home, function()
+                local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
+                return self:_active(token)
+                    and not self.claimed
+                    and latest ~= nil
+                    and latest.State == "Carried"
+                    and latest.CarrierUserId == self.localPlayer.UserId
             end, 8)
-            if returned or self.claimed then
+            if returned and escape then
+                escaped = true
+                crossedEscape = true
+            elseif returned or self.claimed then
                 secured = self:_waitForClaim(record.Uid, token)
             else
-                self:_log("warn", "return walk failed", {
-                    reason = returnReason,
-                    uid = record.Uid,
-                })
-                self:_publish(
-                    "Retrying return",
-                    "The route stalled. Rebuilding the safe path without dropping the egg.",
-                    record.Uid
-                )
+                local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
+                if not latest then
+                    secured = true
+                elseif latest.State == "Slot" or latest.State == "Dropped" then
+                    self:_publish(
+                        "Recovering egg",
+                        "The boss interrupted the return. Reclaiming the same egg immediately.",
+                        record.Uid
+                    )
+                    self:_startRun()
+                    return
+                elseif
+                    latest.State ~= "Carried"
+                    or latest.CarrierUserId ~= self.localPlayer.UserId
+                then
+                    self.waitingForEggUpdate = token
+                    self:_publish(
+                        "Tracking boss",
+                        "Waiting for the same egg to leave the boss, then reclaiming it.",
+                        record.Uid
+                    )
+                    return
+                else
+                    self:_log("warn", "return walk failed", {
+                        reason = returnReason,
+                        uid = record.Uid,
+                    })
+                    self:_publish(
+                        "Retrying return",
+                        "The route stalled. Rebuilding the safe path without dropping the egg.",
+                        record.Uid
+                    )
+                end
             end
         else
             self:_log("warn", "home unavailable; retrying", { uid = record.Uid })
@@ -625,7 +683,7 @@ function AutoFarm:_run(token)
                 record.Uid
             )
         end
-        if not secured then
+        if not secured and not crossedEscape then
             self.wait(2)
         end
     end
