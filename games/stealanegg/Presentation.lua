@@ -19,9 +19,10 @@ function Presentation.mount(host)
     host:option("eggs", 1, "autoFarm", "Auto Farm")
     host:option("eggs", 2, "autoFarmEternal", "Eternal Eggs", "autoFarm")
     host:option("eggs", 3, "autoFarmSecret", "Secret Eggs", "autoFarm")
-    host:option("eggs", 4, "autoFarmServerHopping", "Server Hopping", "autoFarm")
-    host:option("eggs", 5, "autoFarmHighPopulation", "High Population", "autoFarm")
-    host:option("eggs", 6, "autoOpenEggs", "Auto Open Eggs")
+    host:option("eggs", 4, "autoFarmIndex", "Complete Index", "autoFarm")
+    host:option("eggs", 5, "autoFarmServerHopping", "Server Hopping", "autoFarm")
+    host:option("eggs", 6, "autoFarmHighPopulation", "High Population", "autoFarm")
+    host:option("eggs", 7, "autoOpenEggs", "Auto Open Eggs")
 
     host:section("Tools", "server", "SERVER", 70)
     host:slider("server", "serverHopMaxPing", "Maximum Ping", {

@@ -54,6 +54,7 @@ local now = 0
 local resetSeconds = 2
 local failWalk = false
 local globalSpawns = {}
+local indexed = { ["Eternal Egg"] = true, ["Secret Egg"] = true }
 local secured = 0
 local farm
 local carrierRoot = {
@@ -113,6 +114,7 @@ farm = AutoFarm.new({
             ["Secret Egg"] = { Rarity = { DisplayName = "Secret", RarityNumber = 8 } },
             ["Eternal Egg"] = { Rarity = { DisplayName = "Eternal", RarityNumber = 9 } },
             ["Limited Egg"] = { Rarity = { DisplayName = "Limited", RarityNumber = 10 } },
+            ["Common Egg"] = { Rarity = { DisplayName = "Common", RarityNumber = 1 } },
         },
     },
     eggCmds = eggCmds,
@@ -129,8 +131,14 @@ farm = AutoFarm.new({
             end,
         },
     },
+    hasMissingIndex = function()
+        return true
+    end,
     isGlobalSpawnKnown = function(rarity)
         return globalSpawns[rarity] == true
+    end,
+    isIndexed = function(category)
+        return indexed[category] == true
     end,
     markGlobalSpawn = function(rarity)
         globalSpawns[rarity] = true
@@ -194,6 +202,21 @@ assert(walks[3] == Vector3.new(0, 0, 100), "Auto Farm must walk back to the base
 assert(hops == 0, "Auto Farm must rescan before leaving a server with more targets")
 assert(type(queued) == "function", "A secured egg must queue another scan of the current server")
 assert(secured == 1, "Secured eggs must be recorded exactly once")
+local missingIndexEgg = {
+    AreaId = "Forest",
+    AssetCategory = "Common Egg",
+    BottomCFrame = CFrame.new(70, 0, 0),
+    NestId = "Index",
+    State = "Slot",
+    Uid = "missing-index",
+}
+records = { records[1], missingIndexEgg }
+byUid[missingIndexEgg.Uid] = missingIndexEgg
+farm:setCompleteIndex(true)
+assert(
+    farm:_selectTarget().record == missingIndexEgg,
+    "Complete Index must prioritize an exact undiscovered egg over indexed rare eggs"
+)
 local blocked = {
     AreaId = "Cosmic",
     AssetCategory = "Eternal Egg",
@@ -224,6 +247,7 @@ assert(
     dropped == contested and contested.State == "Dropped",
     "Claimed eggs must be pursued until dropped"
 )
+farm:setCompleteIndex(false)
 table.clear(globalSpawns)
 queued = nil
 farm:_hop(farm.token)

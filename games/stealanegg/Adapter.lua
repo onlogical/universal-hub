@@ -113,7 +113,31 @@ function Adapter.new(context)
     end
     local AreaEggResetConfig = require(ReplicatedStorage.Directory.AreaEggResetCycle)
     local AreaEggResetTimeUtil = require(ReplicatedStorage.Library.Util.AreaEggResetTimeUtil)
+    local Areas = require(ReplicatedStorage.Directory.Areas)
     local Assets = require(ReplicatedStorage.Directory.Assets)
+    local Save = require(ReplicatedStorage.Library.Client.Save)
+    local indexCategories = {}
+    for _, area in pairs(Areas.Directory) do
+        for _, drop in pairs(area.DropTable or {}) do
+            local category = drop[1]
+            local asset = Assets.Directory[category]
+            if drop[2] > 0 and asset and asset.DontRoll ~= true then
+                indexCategories[category] = true
+            end
+        end
+    end
+    local function isIndexed(category)
+        local save = Save.Get()
+        return save ~= nil and save.Index[category] == true
+    end
+    local function hasMissingIndex()
+        for category in pairs(indexCategories) do
+            if not isIndexed(category) then
+                return true
+            end
+        end
+        return false
+    end
     local function securedEggs()
         local eggs = {}
         for index, egg in ipairs(gameRuntime.farmHistory.eggs) do
@@ -172,7 +196,9 @@ function Adapter.new(context)
     })
     local autoOpenEggs = AutoOpenEggs.new({
         eggCmds = EggCmds,
+        isIndexed = isIndexed,
         localPlayer = LocalPlayer,
+        plotCmds = PlotCmds,
         renderer = require(ReplicatedStorage.Library.Client.Eggs.PlacedEggRenderer),
         runService = RunService,
     })
@@ -272,7 +298,9 @@ function Adapter.new(context)
         logger = context.logger,
         getResetSeconds = resetSecondsRemaining,
         getSecuredEggs = securedEggs,
+        hasMissingIndex = hasMissingIndex,
         isGlobalSpawnKnown = isGlobalSpawnKnown,
+        isIndexed = isIndexed,
         markGlobalSpawn = markGlobalSpawn,
         navigator = navigator,
         onSecured = recordSecuredEgg,
@@ -306,7 +334,11 @@ function Adapter.new(context)
         end
         antiHit:setEnabled(state.settings.antiHit == true or farming)
         antiTrap:setEnabled(state.settings.antiTrap == true or farming)
-        autoOpenEggs:setEnabled(state.settings.autoOpenEggs == true)
+        autoOpenEggs:setCompleteIndex(farming and state.settings.autoFarmIndex == true)
+        autoOpenEggs:setEnabled(
+            state.settings.autoOpenEggs == true
+                or (farming and state.settings.autoFarmIndex == true)
+        )
         highlightEsp:setAntiTrapEnabled(state.settings.antiTrap == true or farming)
         highlightEsp:setMinimumRarity(state.settings.eggEspMinimumRarity)
         highlightEsp:setMinimumSize(state.settings.eggEspMinimumSize)
@@ -320,6 +352,7 @@ function Adapter.new(context)
             farming or (state.settings.antiHit == true and state.settings.lagSafeMovement == true)
         )
         autoFarm:setTargetRarities(state.settings.autoFarmEternal, state.settings.autoFarmSecret)
+        autoFarm:setCompleteIndex(state.settings.autoFarmIndex)
         autoFarm:setServerHopping(state.settings.autoFarmServerHopping)
         autoFarm:setHighPopulation(state.settings.autoFarmHighPopulation)
         autoFarm:setMaxPing(state.settings.serverHopMaxPing)

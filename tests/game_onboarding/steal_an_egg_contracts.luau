@@ -191,6 +191,13 @@ assert(#auraCalls == 2, "Disabled Hit Aura must stop native bat activations")
 
 local autoOpenHeartbeat = signal()
 local readyEggs = { ready = true }
+local autoOpenRecords = {
+    inventory = {},
+    later = { Placement = {} },
+    missing = { Item = { Category = "Missing" } },
+    ready = { Placement = {} },
+}
+local placedEggs = {}
 local openedEggs = {}
 local runAutoOpenSpawn = true
 local pendingAutoOpen = {}
@@ -198,17 +205,29 @@ local autoOpenEggs = AutoOpenEggs.new({
     eggCmds = {
         GetOwnerRuntimeRecords = function(userId)
             assert(userId == 42)
-            return {
-                inventory = {},
-                later = { Placement = {} },
-                ready = { Placement = {} },
-            }
+            return autoOpenRecords
         end,
         IsLocalEggReady = function(uid)
             return readyEggs[uid] == true
         end,
+        RequestPlaceEgg = function(uid, localCFrame)
+            table.insert(placedEggs, { cframe = localCFrame, uid = uid })
+            autoOpenRecords[uid].Placement = { LocalCFrame = localCFrame }
+            return true
+        end,
     },
+    isIndexed = function(category)
+        return category ~= "Missing"
+    end,
     localPlayer = { UserId = 42 },
+    plotCmds = {
+        GetPlotData = function()
+            return {
+                CenterPoint = { CFrame = CFrame.new() },
+                PetArea = { CFrame = CFrame.new(), Size = Vector3.new(40, 1, 40) },
+            }
+        end,
+    },
     renderer = {
         ActivateLocalEgg = function(uid)
             table.insert(openedEggs, uid)
@@ -224,7 +243,12 @@ local autoOpenEggs = AutoOpenEggs.new({
         end
     end,
 })
+autoOpenEggs:setCompleteIndex(true)
 autoOpenEggs:setEnabled(true)
+assert(
+    #placedEggs == 1 and placedEggs[1].uid == "missing" and typeof(placedEggs[1].cframe) == "CFrame",
+    "Complete Index must automatically place exact undiscovered eggs"
+)
 assert(#openedEggs == 1 and openedEggs[1] == "ready", "Ready placed eggs must open immediately")
 readyEggs.later = true
 autoOpenHeartbeat:Fire(0.25)

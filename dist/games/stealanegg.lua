@@ -117,7 +117,31 @@ function Adapter.new(context)
     end
     local AreaEggResetConfig = require(ReplicatedStorage.Directory.AreaEggResetCycle)
     local AreaEggResetTimeUtil = require(ReplicatedStorage.Library.Util.AreaEggResetTimeUtil)
+    local Areas = require(ReplicatedStorage.Directory.Areas)
     local Assets = require(ReplicatedStorage.Directory.Assets)
+    local Save = require(ReplicatedStorage.Library.Client.Save)
+    local indexCategories = {}
+    for _, area in pairs(Areas.Directory) do
+        for _, drop in pairs(area.DropTable or {}) do
+            local category = drop[1]
+            local asset = Assets.Directory[category]
+            if drop[2] > 0 and asset and asset.DontRoll ~= true then
+                indexCategories[category] = true
+            end
+        end
+    end
+    local function isIndexed(category)
+        local save = Save.Get()
+        return save ~= nil and save.Index[category] == true
+    end
+    local function hasMissingIndex()
+        for category in pairs(indexCategories) do
+            if not isIndexed(category) then
+                return true
+            end
+        end
+        return false
+    end
     local function securedEggs()
         local eggs = {}
         for index, egg in ipairs(gameRuntime.farmHistory.eggs) do
@@ -176,7 +200,9 @@ function Adapter.new(context)
     })
     local autoOpenEggs = AutoOpenEggs.new({
         eggCmds = EggCmds,
+        isIndexed = isIndexed,
         localPlayer = LocalPlayer,
+        plotCmds = PlotCmds,
         renderer = require(ReplicatedStorage.Library.Client.Eggs.PlacedEggRenderer),
         runService = RunService,
     })
@@ -276,7 +302,9 @@ function Adapter.new(context)
         logger = context.logger,
         getResetSeconds = resetSecondsRemaining,
         getSecuredEggs = securedEggs,
+        hasMissingIndex = hasMissingIndex,
         isGlobalSpawnKnown = isGlobalSpawnKnown,
+        isIndexed = isIndexed,
         markGlobalSpawn = markGlobalSpawn,
         navigator = navigator,
         onSecured = recordSecuredEgg,
@@ -310,7 +338,11 @@ function Adapter.new(context)
         end
         antiHit:setEnabled(state.settings.antiHit == true or farming)
         antiTrap:setEnabled(state.settings.antiTrap == true or farming)
-        autoOpenEggs:setEnabled(state.settings.autoOpenEggs == true)
+        autoOpenEggs:setCompleteIndex(farming and state.settings.autoFarmIndex == true)
+        autoOpenEggs:setEnabled(
+            state.settings.autoOpenEggs == true
+                or (farming and state.settings.autoFarmIndex == true)
+        )
         highlightEsp:setAntiTrapEnabled(state.settings.antiTrap == true or farming)
         highlightEsp:setMinimumRarity(state.settings.eggEspMinimumRarity)
         highlightEsp:setMinimumSize(state.settings.eggEspMinimumSize)
@@ -324,6 +356,7 @@ function Adapter.new(context)
             farming or (state.settings.antiHit == true and state.settings.lagSafeMovement == true)
         )
         autoFarm:setTargetRarities(state.settings.autoFarmEternal, state.settings.autoFarmSecret)
+        autoFarm:setCompleteIndex(state.settings.autoFarmIndex)
         autoFarm:setServerHopping(state.settings.autoFarmServerHopping)
         autoFarm:setHighPopulation(state.settings.autoFarmHighPopulation)
         autoFarm:setMaxPing(state.settings.serverHopMaxPing)
@@ -448,9 +481,10 @@ function Presentation.mount(host)
     host:option("eggs", 1, "autoFarm", "Auto Farm")
     host:option("eggs", 2, "autoFarmEternal", "Eternal Eggs", "autoFarm")
     host:option("eggs", 3, "autoFarmSecret", "Secret Eggs", "autoFarm")
-    host:option("eggs", 4, "autoFarmServerHopping", "Server Hopping", "autoFarm")
-    host:option("eggs", 5, "autoFarmHighPopulation", "High Population", "autoFarm")
-    host:option("eggs", 6, "autoOpenEggs", "Auto Open Eggs")
+    host:option("eggs", 4, "autoFarmIndex", "Complete Index", "autoFarm")
+    host:option("eggs", 5, "autoFarmServerHopping", "Server Hopping", "autoFarm")
+    host:option("eggs", 6, "autoFarmHighPopulation", "High Population", "autoFarm")
+    host:option("eggs", 7, "autoOpenEggs", "Auto Open Eggs")
 
     host:section("Tools", "server", "SERVER", 70)
     host:slider("server", "serverHopMaxPing", "Maximum Ping", {
@@ -988,8 +1022,14 @@ function AutoFarm.new(options)
         getSecuredEggs = options.getSecuredEggs or function()
             return {}
         end,
+        hasMissingIndex = options.hasMissingIndex or function()
+            return false
+        end,
         isGlobalSpawnKnown = options.isGlobalSpawnKnown or function()
             return false
+        end,
+        isIndexed = options.isIndexed or function()
+            return true
         end,
         markGlobalSpawn = options.markGlobalSpawn or function() end,
         onSecured = options.onSecured,
@@ -1002,6 +1042,7 @@ function AutoFarm.new(options)
         spawn = options.spawn or task.spawn,
         wait = options.wait or task.wait,
         workspace = options.workspace or workspace,
+        completeIndex = false,
         enabled = false,
         targetRarities = { Eternal = true, Secret = true },
         highPopulation = false,
@@ -1051,7 +1092,8 @@ function AutoFarm:_publish(stage, detail, targetUid)
         local available = record.State == "Slot"
             or record.State == "Dropped"
             or (isCarried(record) and record.CarrierUserId ~= self.localPlayer.UserId)
-        if available and self.targetRarities[rarityName] == true then
+        local indexTarget = self:_isIndexTarget(record)
+        if available and (self.targetRarities[rarityName] == true or indexTarget) then
             targets += 1
         end
         table.insert(eggs, {
@@ -1101,6 +1143,10 @@ function AutoFarm:_rarity(record)
         rarity and (rarity.DisplayName or rarity._id) or "Unknown"
 end
 
+function AutoFarm:_isIndexTarget(record)
+    return self.completeIndex and not self.isIndexed(record.AssetCategory)
+end
+
 function AutoFarm:_carrierRoot(record)
     if not self.players or type(self.players.GetPlayerByUserId) ~= "function" then
         return nil
@@ -1121,24 +1167,34 @@ function AutoFarm:_selectTarget()
             or (isCarried(record) and record.CarrierUserId ~= self.localPlayer.UserId)
         then
             local rarityNumber, rarityName = self:_rarity(record)
-            if self.targetRarities[rarityName] == true then
-                self.markGlobalSpawn(rarityName)
+            local indexTarget = self:_isIndexTarget(record)
+            if self.targetRarities[rarityName] == true or indexTarget then
+                if self.targetRarities[rarityName] == true then
+                    self.markGlobalSpawn(rarityName)
+                end
                 local carrierRoot = isCarried(record) and self:_carrierRoot(record) or nil
                 local targetPosition = carrierRoot and carrierRoot.Position
                     or record.BottomCFrame.Position
                 local distance = position and (position - targetPosition).Magnitude or math.huge
                 if
                     not best
-                    or rarityNumber > best.rarityNumber
-                    or (rarityNumber == best.rarityNumber and distance < best.distance)
+                    or (indexTarget and not best.indexTarget)
                     or (
-                        rarityNumber == best.rarityNumber
-                        and distance == best.distance
-                        and record.Uid < best.record.Uid
+                        indexTarget == best.indexTarget
+                        and (
+                            rarityNumber > best.rarityNumber
+                            or (rarityNumber == best.rarityNumber and distance < best.distance)
+                            or (
+                                rarityNumber == best.rarityNumber
+                                and distance == best.distance
+                                and record.Uid < best.record.Uid
+                            )
+                        )
                     )
                 then
                     best = {
                         distance = distance,
+                        indexTarget = indexTarget,
                         rarityName = rarityName,
                         rarityNumber = rarityNumber,
                         record = record,
@@ -1304,7 +1360,8 @@ function AutoFarm:_hop(token)
         end)
         return
     end
-    local selectedSpawnKnown = (self.targetRarities.Eternal and self.isGlobalSpawnKnown("Eternal"))
+    local selectedSpawnKnown = (self.completeIndex and self.hasMissingIndex())
+        or (self.targetRarities.Eternal and self.isGlobalSpawnKnown("Eternal"))
         or (self.targetRarities.Secret and self.isGlobalSpawnKnown("Secret"))
     if not selectedSpawnKnown then
         self:_idleOnTreadmill(token)
@@ -1400,7 +1457,7 @@ function AutoFarm:_run(token)
         })
         self:_publish(
             "Walking to target",
-            ("%s %s · %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
+            ("%s %s Â· %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
             record.Uid
         )
         local reached, reason = self.navigator:walkTo(record.BottomCFrame.Position, function()
@@ -1498,6 +1555,18 @@ function AutoFarm:_startRun()
     end)
 end
 
+function AutoFarm:setCompleteIndex(enabled)
+    enabled = enabled == true
+    if self.completeIndex == enabled then
+        return
+    end
+    self.completeIndex = enabled
+    if self.enabled then
+        self.token += 1
+        self:_startRun()
+    end
+end
+
 function AutoFarm:setTargetRarities(eternal, secret)
     eternal = eternal == true
     secret = secret == true
@@ -1585,12 +1654,54 @@ function AutoOpenEggs.new(options)
         eggCmds = options.eggCmds,
         renderer = options.renderer,
         localPlayer = options.localPlayer,
+        plotCmds = options.plotCmds,
         runService = options.runService,
+        isIndexed = options.isIndexed or function()
+            return true
+        end,
         spawn = options.spawn or task.spawn,
         opening = {},
+        placing = {},
+        completeIndex = false,
         elapsed = 0,
         enabled = false,
     }, AutoOpenEggs)
+end
+
+local function category(record)
+    return record.Item and record.Item.Category or record.AssetCategory
+end
+
+function AutoOpenEggs:_findPlacement(records)
+    local plot = self.plotCmds and self.plotCmds.GetPlotData()
+    if not plot then
+        return nil
+    end
+    local occupied = {}
+    for _, record in pairs(records) do
+        local placement = record.Placement
+        if placement and typeof(placement.LocalCFrame) == "CFrame" then
+            table.insert(occupied, placement.LocalCFrame.Position)
+        end
+    end
+    local half = plot.PetArea.Size * 0.5
+    for x = -half.X + 5, half.X - 5, 10 do
+        for z = -half.Z + 5, half.Z - 5, 10 do
+            local world = plot.PetArea.CFrame:PointToWorldSpace(Vector3.new(x, half.Y, z))
+            local localCFrame = plot.CenterPoint.CFrame:ToObjectSpace(CFrame.new(world))
+            local clear = true
+            for _, position in ipairs(occupied) do
+                if (position - localCFrame.Position).Magnitude < 8 then
+                    clear = false
+                    break
+                end
+            end
+            if clear then
+                return localCFrame
+            end
+        end
+    end
+    return nil
 end
 
 function AutoOpenEggs:_scan()
@@ -1598,6 +1709,41 @@ function AutoOpenEggs:_scan()
     for uid in pairs(self.opening) do
         if not records[uid] or not self.eggCmds.IsLocalEggReady(uid) then
             self.opening[uid] = nil
+        end
+    end
+    for uid in pairs(self.placing) do
+        if not records[uid] or records[uid].Placement then
+            self.placing[uid] = nil
+        end
+    end
+    if self.completeIndex then
+        for uid, record in pairs(records) do
+            local assetCategory = category(record)
+            if
+                not record.Placement
+                and not self.placing[uid]
+                and assetCategory
+                and not self.isIndexed(assetCategory)
+            then
+                local placement = self:_findPlacement(records)
+                if placement then
+                    self.placing[uid] = true
+                    self.spawn(function()
+                        if not self.enabled or not self.completeIndex then
+                            return
+                        end
+                        local placed = self.eggCmds.RequestPlaceEgg(uid, placement)
+                        if placed then
+                            if type(self.renderer.Refresh) == "function" then
+                                self.renderer.Refresh()
+                            end
+                        else
+                            self.placing[uid] = nil
+                        end
+                    end)
+                end
+                break
+            end
         end
     end
     for uid, record in pairs(records) do
@@ -1612,6 +1758,13 @@ function AutoOpenEggs:_scan()
                 end
             end)
         end
+    end
+end
+
+function AutoOpenEggs:setCompleteIndex(enabled)
+    self.completeIndex = enabled == true
+    if self.enabled then
+        self:_scan()
     end
 end
 
@@ -1637,6 +1790,7 @@ function AutoOpenEggs:setEnabled(enabled)
         self.connection = nil
     end
     table.clear(self.opening)
+    table.clear(self.placing)
     self.elapsed = 0
 end
 
@@ -1831,7 +1985,7 @@ function HighlightEsp:_refreshEgg(uid)
         self.eggLabels,
         uid,
         model,
-        ("%s\n%s • %.1fx"):format(
+        ("%s\n%s â€¢ %.1fx"):format(
             tostring(record.AssetCategory),
             tostring(rarity.DisplayName or rarity._id or "Egg"),
             record.AssetScale

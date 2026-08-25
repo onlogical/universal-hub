@@ -26,8 +26,14 @@ function AutoFarm.new(options)
         getSecuredEggs = options.getSecuredEggs or function()
             return {}
         end,
+        hasMissingIndex = options.hasMissingIndex or function()
+            return false
+        end,
         isGlobalSpawnKnown = options.isGlobalSpawnKnown or function()
             return false
+        end,
+        isIndexed = options.isIndexed or function()
+            return true
         end,
         markGlobalSpawn = options.markGlobalSpawn or function() end,
         onSecured = options.onSecured,
@@ -40,6 +46,7 @@ function AutoFarm.new(options)
         spawn = options.spawn or task.spawn,
         wait = options.wait or task.wait,
         workspace = options.workspace or workspace,
+        completeIndex = false,
         enabled = false,
         targetRarities = { Eternal = true, Secret = true },
         highPopulation = false,
@@ -89,7 +96,8 @@ function AutoFarm:_publish(stage, detail, targetUid)
         local available = record.State == "Slot"
             or record.State == "Dropped"
             or (isCarried(record) and record.CarrierUserId ~= self.localPlayer.UserId)
-        if available and self.targetRarities[rarityName] == true then
+        local indexTarget = self:_isIndexTarget(record)
+        if available and (self.targetRarities[rarityName] == true or indexTarget) then
             targets += 1
         end
         table.insert(eggs, {
@@ -139,6 +147,10 @@ function AutoFarm:_rarity(record)
         rarity and (rarity.DisplayName or rarity._id) or "Unknown"
 end
 
+function AutoFarm:_isIndexTarget(record)
+    return self.completeIndex and not self.isIndexed(record.AssetCategory)
+end
+
 function AutoFarm:_carrierRoot(record)
     if not self.players or type(self.players.GetPlayerByUserId) ~= "function" then
         return nil
@@ -159,24 +171,34 @@ function AutoFarm:_selectTarget()
             or (isCarried(record) and record.CarrierUserId ~= self.localPlayer.UserId)
         then
             local rarityNumber, rarityName = self:_rarity(record)
-            if self.targetRarities[rarityName] == true then
-                self.markGlobalSpawn(rarityName)
+            local indexTarget = self:_isIndexTarget(record)
+            if self.targetRarities[rarityName] == true or indexTarget then
+                if self.targetRarities[rarityName] == true then
+                    self.markGlobalSpawn(rarityName)
+                end
                 local carrierRoot = isCarried(record) and self:_carrierRoot(record) or nil
                 local targetPosition = carrierRoot and carrierRoot.Position
                     or record.BottomCFrame.Position
                 local distance = position and (position - targetPosition).Magnitude or math.huge
                 if
                     not best
-                    or rarityNumber > best.rarityNumber
-                    or (rarityNumber == best.rarityNumber and distance < best.distance)
+                    or (indexTarget and not best.indexTarget)
                     or (
-                        rarityNumber == best.rarityNumber
-                        and distance == best.distance
-                        and record.Uid < best.record.Uid
+                        indexTarget == best.indexTarget
+                        and (
+                            rarityNumber > best.rarityNumber
+                            or (rarityNumber == best.rarityNumber and distance < best.distance)
+                            or (
+                                rarityNumber == best.rarityNumber
+                                and distance == best.distance
+                                and record.Uid < best.record.Uid
+                            )
+                        )
                     )
                 then
                     best = {
                         distance = distance,
+                        indexTarget = indexTarget,
                         rarityName = rarityName,
                         rarityNumber = rarityNumber,
                         record = record,
@@ -342,7 +364,8 @@ function AutoFarm:_hop(token)
         end)
         return
     end
-    local selectedSpawnKnown = (self.targetRarities.Eternal and self.isGlobalSpawnKnown("Eternal"))
+    local selectedSpawnKnown = (self.completeIndex and self.hasMissingIndex())
+        or (self.targetRarities.Eternal and self.isGlobalSpawnKnown("Eternal"))
         or (self.targetRarities.Secret and self.isGlobalSpawnKnown("Secret"))
     if not selectedSpawnKnown then
         self:_idleOnTreadmill(token)
@@ -534,6 +557,18 @@ function AutoFarm:_startRun()
             self:_log("error", "run failed", { error = err })
         end
     end)
+end
+
+function AutoFarm:setCompleteIndex(enabled)
+    enabled = enabled == true
+    if self.completeIndex == enabled then
+        return
+    end
+    self.completeIndex = enabled
+    if self.enabled then
+        self.token += 1
+        self:_startRun()
+    end
 end
 
 function AutoFarm:setTargetRarities(eternal, secret)
