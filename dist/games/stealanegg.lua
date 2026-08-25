@@ -1,5 +1,5 @@
 return {
-    buildId = [[1c6fb3e8]],
+    buildId = [[3ae439e8]],
     id = [[stealanegg]],
     sources = {
         ["games/stealanegg/Adapter.lua"] = [[local function importDependency(path, relativePath)
@@ -1809,6 +1809,9 @@ function AutoFarm:_idleOnTreadmill(token)
         return
     end
     self:_publish("Training while idle", "No farm action is ready. Walking onto your treadmill.")
+    if type(self.navigator.jump) == "function" then
+        self.navigator:jump()
+    end
     local reached = self.navigator:moveToDirect(position, function()
         return self:_active(token) and self:_selectCarried() == nil
     end, 4)
