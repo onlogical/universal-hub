@@ -18,6 +18,7 @@ local settings = {
     autoDeflect = false,
     rapidFire = false,
     fireRate = 200,
+    quickReload = false,
     triggerDelay = 0,
     cameraFov = 58,
     cameraFullScreenAim = false,
@@ -68,6 +69,7 @@ local catalog = Catalog.new({
         "triggerDelay",
         "rapidFire",
         "fireRate",
+        "quickReload",
         "skipDeflect",
         "autoDeflect",
         "alwaysScoped",
@@ -132,6 +134,7 @@ end
 assert(triggerIds.triggerBot and triggerIds.skipDeflect.label == "Katana Stop")
 assert(triggerIds.autoDeflect and triggerIds.autoDeflect.label == "Auto Katana")
 assert(triggerIds.rapidFire and triggerIds.rapidFire.label == "Rapid Fire")
+assert(triggerIds.quickReload and triggerIds.quickReload.label == "Quick Reload")
 assert(triggerIds.triggerDelay == nil, "Delay must wait until Trigger Bot is on")
 assert(triggerIds.fireRate == nil, "Fire Rate must wait until Rapid Fire is on")
 settings.triggerBot = true
@@ -154,10 +157,12 @@ for _, control in ipairs(model.pages[1].sections[4].controls) do
     triggerIds[control.id] = control
 end
 assert(triggerIds.fireRate and triggerIds.fireRate.parent == "rapidFire")
-assert(triggerIds.fireRate.min == 100 and triggerIds.fireRate.max == 300)
+assert(triggerIds.fireRate.min == 100 and triggerIds.fireRate.max == 500)
 assert(triggerIds.fireRate.step == 5 and triggerIds.fireRate.unit == "%")
 model.onValueChange("fireRate", 250, true)
 assert(settings.fireRate == 250)
+model.onValueChange("quickReload", true, true)
+assert(settings.quickReload == true)
 
 local writeCount = #writes
 model.onValueChange("aimMode", "camera", true)

@@ -1,5 +1,5 @@
 return {
-    buildId = [[00bc427e]],
+    buildId = [[79921af9]],
     id = [[rivals]],
     sources = {
         ["games/rivals/Adapter.lua"] = [[local Targeting = require("./libraries/Targeting")
@@ -10,6 +10,7 @@ local SilentAim = require("./features/SilentAim")
 local TeleportBehind = require("./features/TeleportBehind")
 local TriggerBot = require("./features/TriggerBot")
 local RapidFire = require("./features/RapidFire")
+local QuickReload = require("./features/QuickReload")
 local SkipBlocks = require("./features/SkipBlocks")
 local AutoDeflect = require("./features/AutoDeflect")
 local AutoCounter = require("./features/AutoCounter")
@@ -313,6 +314,7 @@ function Rivals.new(context)
         return FighterController.LocalFighter
     end)
     local rapidFire = RapidFire.new(WeaponPolicy)
+    local quickReload = QuickReload.new()
     local function startShooting()
         return combatInput:fire()
     end
@@ -1655,6 +1657,7 @@ function Rivals.new(context)
         local utilityObservations = {}
         local taskHazards = utilityObservations
         local fighter = FighterController.LocalFighter
+        quickReload:update(settings, fighter and fighter.EquippedItem)
         rapidFire:update(
             settings,
             fighter and fighter.EquippedItem,
@@ -2296,6 +2299,7 @@ function Rivals.new(context)
         end
         releaseFire()
         rapidFire:stop()
+        quickReload:stop()
         movement:stop()
         movement:stopWallNoclip()
         effects:stop()
@@ -2411,15 +2415,16 @@ function Presentation.mount(host)
     if type(host.slider) == "function" then
         host:slider("trigger", "fireRate", "Fire Rate", {
             min = 100,
-            max = 300,
+            max = 500,
             step = 5,
             unit = "%",
             parent = "rapidFire",
         })
     end
-    host:option("trigger", 3, "skipDeflect", "Katana Stop")
-    host:option("trigger", 3, "autoDeflect", "Auto Katana")
-    host:option("trigger", 4, "alwaysScoped", "Always Scoped")
+    host:option("trigger", 3, "quickReload", "Quick Reload")
+    host:option("trigger", 4, "skipDeflect", "Katana Stop")
+    host:option("trigger", 4, "autoDeflect", "Auto Katana")
+    host:option("trigger", 5, "alwaysScoped", "Always Scoped")
 
     host:section("Rage", "rage", "RAGE", 70)
     host:option("rage", 1, "teleportBehind", "Warp")
@@ -3484,55 +3489,124 @@ end
 
 return Pickup
 ]],
+        ["games/rivals/features/QuickReload.lua"] = [[local QuickReload = {}
+QuickReload.__index = QuickReload
+
+local RELOADS = {
+    { "ReloadLength", "ReloadActionTimestamp" },
+    { "EmptyReloadLength", "EmptyReloadActionTimestamp" },
+}
+
+function QuickReload.new()
+    return setmetatable({
+        item = nil,
+        originals = {},
+    }, QuickReload)
+end
+
+function QuickReload:restore()
+    local info = self.item and self.item.Info
+    if type(info) == "table" then
+        for key, value in pairs(self.originals) do
+            info[key] = value
+        end
+    end
+    self.item = nil
+    table.clear(self.originals)
+end
+
+function QuickReload:update(settings, item)
+    local info = item and item.Info
+    if settings.quickReload ~= true or type(info) ~= "table" then
+        self:restore()
+        return
+    end
+    if self.item ~= item then
+        self:restore()
+        self.item = item
+    end
+
+    for _, keys in ipairs(RELOADS) do
+        local lengthKey, actionKey = keys[1], keys[2]
+        local length = self.originals[lengthKey] or info[lengthKey]
+        local actionAt = info[actionKey]
+        if
+            type(length) == "number"
+            and type(actionAt) == "number"
+            and actionAt > 0
+            and length > actionAt
+        then
+            self.originals[lengthKey] = length
+            info[lengthKey] = actionAt
+        end
+    end
+end
+
+function QuickReload:stop()
+    self:restore()
+end
+
+return QuickReload
+]],
         ["games/rivals/features/RapidFire.lua"] = [[local RapidFire = {}
 RapidFire.__index = RapidFire
+
+local COOLDOWN_KEYS = {
+    "ShootCooldown",
+    "AttackCooldown",
+    "ChargeReleaseCooldown",
+}
 
 function RapidFire.new(weaponPolicy)
     return setmetatable({
         item = nil,
-        cooldownKey = nil,
-        originalCooldown = nil,
+        originals = {},
         weaponPolicy = weaponPolicy,
     }, RapidFire)
 end
 
 function RapidFire:restore()
-    if self.item and self.cooldownKey and self.originalCooldown then
-        self.item.Info[self.cooldownKey] = self.originalCooldown
+    local info = self.item and self.item.Info
+    if type(info) == "table" then
+        for key, value in pairs(self.originals) do
+            info[key] = value
+        end
     end
     self.item = nil
-    self.cooldownKey = nil
-    self.originalCooldown = nil
+    table.clear(self.originals)
 end
 
 function RapidFire:update(settings, item, canFire, fireHeld, fire)
     local info = item and item.Info
-    local cooldownKey = type(info) == "table"
-            and type(info.ShootCooldown) == "number"
-            and "ShootCooldown"
-        or type(info) == "table" and type(info.AttackCooldown) == "number" and "AttackCooldown"
-        or nil
-    local cooldown = cooldownKey and info[cooldownKey]
-    if settings.rapidFire ~= true or type(cooldown) ~= "number" or cooldown <= 0 then
+    if settings.rapidFire ~= true or type(info) ~= "table" then
         self:restore()
         return
     end
 
     if self.item ~= item then
         self:restore()
+        for _, key in ipairs(COOLDOWN_KEYS) do
+            local cooldown = info[key]
+            if type(cooldown) == "number" and cooldown > 0 then
+                self.originals[key] = cooldown
+            end
+        end
+        if next(self.originals) == nil then
+            return
+        end
         self.item = item
-        self.cooldownKey = cooldownKey
-        self.originalCooldown = cooldown
     end
 
     local rate =
-        math.clamp(type(settings.fireRate) == "number" and settings.fireRate or 200, 100, 300)
-    info[self.cooldownKey] = self.originalCooldown * 100 / rate
+        math.clamp(type(settings.fireRate) == "number" and settings.fireRate or 200, 100, 500)
+    for key, cooldown in pairs(self.originals) do
+        info[key] = cooldown * 100 / rate
+    end
 
     if
         canFire
         and fireHeld
-        and not self.weaponPolicy.holdToFire(item)
+        and (not self.weaponPolicy.holdToFire(item) or self.weaponPolicy.repeatShootingInput(item))
         and type(fire) == "function"
     then
         fire()

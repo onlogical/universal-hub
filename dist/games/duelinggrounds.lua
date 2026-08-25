@@ -1,5 +1,5 @@
 return {
-    buildId = [[00bc427e]],
+    buildId = [[79921af9]],
     id = [[duelinggrounds]],
     sources = {
         ["games/duelinggrounds/Adapter.lua"] = [[local function importDependency(path, relativePath)

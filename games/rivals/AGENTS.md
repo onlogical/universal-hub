@@ -90,9 +90,14 @@ from Adapter. Do not copy `importDependency` into a feature.
     `settings.triggerDelay` is a first-shot wait in milliseconds; do
     not add it to the native cooldown after the hold starts.
 - `features/RapidFire.lua`
-  - User-facing Rapid Fire. Reversibly scales native `ShootCooldown` or melee
-    `AttackCooldown` and repeats normal primary-fire input for held semi-automatic weapons. Restore every
-    patched item when disabled, unequipped, or stopped.
+  - User-facing Rapid Fire. Reversibly scales native `ShootCooldown`, melee
+    `AttackCooldown`, and Bow `ChargeReleaseCooldown`; repeats normal primary-fire
+    input for held semi-automatic and burst-input weapons. Restore every patched
+    item when disabled, unequipped, or stopped.
+- `features/QuickReload.lua`
+  - User-facing Quick Reload. Ends normal and empty reloads at their native ammo
+    insertion timestamps, removing only the post-ammo animation lockout. Restore
+    every patched length when disabled, unequipped, or stopped.
 - `features/SkipBlocks.lua`
   - User-facing Katana Stop (`settings.skipDeflect`). Hooks fighter input's
     `StartShooting` action so a manual click does not fire into a deflect

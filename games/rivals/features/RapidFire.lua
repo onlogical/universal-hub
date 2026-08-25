@@ -1,52 +1,62 @@
 local RapidFire = {}
 RapidFire.__index = RapidFire
 
+local COOLDOWN_KEYS = {
+    "ShootCooldown",
+    "AttackCooldown",
+    "ChargeReleaseCooldown",
+}
+
 function RapidFire.new(weaponPolicy)
     return setmetatable({
         item = nil,
-        cooldownKey = nil,
-        originalCooldown = nil,
+        originals = {},
         weaponPolicy = weaponPolicy,
     }, RapidFire)
 end
 
 function RapidFire:restore()
-    if self.item and self.cooldownKey and self.originalCooldown then
-        self.item.Info[self.cooldownKey] = self.originalCooldown
+    local info = self.item and self.item.Info
+    if type(info) == "table" then
+        for key, value in pairs(self.originals) do
+            info[key] = value
+        end
     end
     self.item = nil
-    self.cooldownKey = nil
-    self.originalCooldown = nil
+    table.clear(self.originals)
 end
 
 function RapidFire:update(settings, item, canFire, fireHeld, fire)
     local info = item and item.Info
-    local cooldownKey = type(info) == "table"
-            and type(info.ShootCooldown) == "number"
-            and "ShootCooldown"
-        or type(info) == "table" and type(info.AttackCooldown) == "number" and "AttackCooldown"
-        or nil
-    local cooldown = cooldownKey and info[cooldownKey]
-    if settings.rapidFire ~= true or type(cooldown) ~= "number" or cooldown <= 0 then
+    if settings.rapidFire ~= true or type(info) ~= "table" then
         self:restore()
         return
     end
 
     if self.item ~= item then
         self:restore()
+        for _, key in ipairs(COOLDOWN_KEYS) do
+            local cooldown = info[key]
+            if type(cooldown) == "number" and cooldown > 0 then
+                self.originals[key] = cooldown
+            end
+        end
+        if next(self.originals) == nil then
+            return
+        end
         self.item = item
-        self.cooldownKey = cooldownKey
-        self.originalCooldown = cooldown
     end
 
     local rate =
-        math.clamp(type(settings.fireRate) == "number" and settings.fireRate or 200, 100, 300)
-    info[self.cooldownKey] = self.originalCooldown * 100 / rate
+        math.clamp(type(settings.fireRate) == "number" and settings.fireRate or 200, 100, 500)
+    for key, cooldown in pairs(self.originals) do
+        info[key] = cooldown * 100 / rate
+    end
 
     if
         canFire
         and fireHeld
-        and not self.weaponPolicy.holdToFire(item)
+        and (not self.weaponPolicy.holdToFire(item) or self.weaponPolicy.repeatShootingInput(item))
         and type(fire) == "function"
     then
         fire()
