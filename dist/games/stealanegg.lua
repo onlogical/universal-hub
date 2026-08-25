@@ -1,5 +1,5 @@
 return {
-    buildId = [[602622e2]],
+    buildId = [[1c6fb3e8]],
     id = [[stealanegg]],
     sources = {
         ["games/stealanegg/Adapter.lua"] = [[local function importDependency(path, relativePath)
@@ -129,6 +129,7 @@ function Adapter.new(context)
     local Assets = require(ReplicatedStorage.Directory.Assets)
     local Sakura = require(ReplicatedStorage.Directory.Sakura)
     local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
+    local GuardChasePolicy = require(ReplicatedStorage.Library.Modules.GuardAreas.GuardChasePolicy)
     local GuardEscapePrediction =
         require(ReplicatedStorage.Library.Modules.GuardAreas.GuardEscapePrediction)
     local Save = require(ReplicatedStorage.Library.Client.Save)
@@ -334,7 +335,10 @@ function Adapter.new(context)
         if not predictionOk then
             return nil
         end
-        return prediction.Outcome ~= "Caught"
+        if prediction.Outcome == "EscapedSafely" or prediction.CatchTime == nil then
+            return true
+        end
+        return prediction.CatchTime - prediction.ExitTime >= readPing() / 1000
     end
     local function currentPing()
         for _, metric in ipairs(context.store:Get().footerMetrics or {}) do
@@ -357,6 +361,7 @@ function Adapter.new(context)
             end
         end,
         runService = RunService,
+        wakingDuration = GuardChasePolicy.GetWakingDuration(),
     })
     local resetPadding = AreaEggResetConfig.WallCountdownDelayAfterDayStartsSeconds
         + AreaEggResetConfig.WallCountdownSeconds
@@ -835,15 +840,7 @@ function AntiHit:_requestReclaim(uid)
     self.carriedUid = uid
     self.reclaimUid = nil
     self.claimToken += 1
-    if self.reclaimMoving then
-        local character = self.localPlayer.Character
-        local root = character and character:FindFirstChild("HumanoidRootPart")
-        local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-        if root and humanoid then
-            humanoid:MoveTo(root.Position)
-        end
-        self.reclaimMoving = nil
-    end
+    self.reclaimMoving = nil
     return true
 end
 
@@ -1417,6 +1414,7 @@ function AutoFarm.new(options)
         localPlayer = options.localPlayer,
         logger = options.logger,
         navigator = options.navigator,
+        defer = options.defer or task.defer,
         getEscapePosition = options.getEscapePosition or function()
             return nil
         end,
@@ -1737,6 +1735,14 @@ function AutoFarm:_claim(record, token)
             local position = rootPosition(self.localPlayer)
             if not position or (position - current.BottomCFrame.Position).Magnitude > 10 then
                 return false, "egg-moved"
+            end
+            local escapePosition = self.getEscapePosition(current)
+            if typeof(escapePosition) == "Vector3" then
+                self.defer(function()
+                    if self:_active(token) then
+                        self.navigator:headToward(escapePosition)
+                    end
+                end)
             end
             local ok, carried, carryReason =
                 pcall(self.eggCmds.RequestCarryAreaEgg, current.Uid, self:_slotKey(current))
@@ -2987,6 +2993,7 @@ function LagSafeMovement.new(options)
         pingThreshold = options.pingThreshold or 170,
         reclaimDistance = options.reclaimDistance or 9,
         runService = options.runService,
+        wakingDuration = options.wakingDuration or 0.63,
     }, LagSafeMovement)
 end
 
@@ -3007,6 +3014,7 @@ end
 function LagSafeMovement:_resetEncounter()
     self.phase = nil
     self.phaseArea = nil
+    self.wakingStartedAt = nil
 end
 
 function LagSafeMovement:_beginEscape()
@@ -3060,10 +3068,26 @@ function LagSafeMovement:_shouldBait(humanoid, areaId, config)
     if guardState == "RetrievingEgg" then
         self:_beginEscape()
         return false
-    elseif guardState == "Sleeping" or guardState == "Waking" then
+    elseif guardState == "Sleeping" then
+        self.wakingStartedAt = nil
+        self.phase = "bait"
+        return true
+    elseif guardState == "Waking" then
+        self.wakingStartedAt = self.wakingStartedAt or self.clock()
+        if
+            self.clock() - self.wakingStartedAt
+            >= math.max(0, self.wakingDuration - (ping * 2) / 1000)
+        then
+            self:_beginEscape()
+            return false
+        end
         self.phase = "bait"
         return true
     elseif guardState == "Chasing" then
+        self.wakingStartedAt = nil
+        if self.phase == "escape" then
+            return false
+        end
         local interval = self.hitIntervals[areaId]
         local elapsed = self.carryStartedAt and self.clock() - self.carryStartedAt
         if interval and elapsed then
@@ -3151,11 +3175,6 @@ function LagSafeMovement:setEnabled(enabled)
             if not self:_shouldBait(humanoid, areaId, config) then
                 self:_restore()
                 return
-            end
-            local character = self.localPlayer.Character
-            local root = character and character:FindFirstChild("HumanoidRootPart")
-            if root and root:IsA("BasePart") then
-                humanoid:MoveTo(root.Position)
             end
             if humanoid ~= self.humanoid or humanoid.WalkSpeed ~= self.appliedSpeed then
                 self.humanoid = humanoid
@@ -3475,6 +3494,18 @@ function WalkNavigator:moveToDirect(destination, isActive, tolerance)
     return self:_walkPoint(destination, isActive or function()
         return true
     end, tolerance or 4)
+end
+
+function WalkNavigator:headToward(destination)
+    assert(typeof(destination) == "Vector3", "WalkNavigator destination must be a Vector3")
+    local humanoid = characterParts(self.localPlayer)
+    if not humanoid then
+        return false
+    end
+    self.movementId = (self.movementId or 0) + 1
+    self.activeHumanoid = humanoid
+    self.activePosition = destination
+    return pcall(humanoid.MoveTo, humanoid, destination)
 end
 
 function WalkNavigator:resume()
