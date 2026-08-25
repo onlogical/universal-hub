@@ -1,5 +1,5 @@
 return {
-    buildId = [[0bcb82c0]],
+    buildId = [[7cc534ab]],
     id = [[counterblox]],
     sources = {
         ["games/counterblox/Composition.lua"] = [[local Composition = {}
