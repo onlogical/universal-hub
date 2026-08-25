@@ -55,6 +55,24 @@ function Adapter.new(context)
     local RunService = game:GetService("RunService")
     local Stats = game:GetService("Stats")
     local TeleportService = game:GetService("TeleportService")
+    local historySettingKey = "UniversalHubStealAnEggFarmHistory"
+    if type(gameRuntime.farmHistory) ~= "table" then
+        local loaded, history =
+            pcall(TeleportService.GetTeleportSetting, TeleportService, historySettingKey)
+        gameRuntime.farmHistory = loaded and type(history) == "table" and history
+            or { active = false, eggs = {} }
+    end
+    if type(gameRuntime.farmHistory.eggs) ~= "table" then
+        gameRuntime.farmHistory.eggs = {}
+    end
+    local function persistFarmHistory()
+        pcall(
+            TeleportService.SetTeleportSetting,
+            TeleportService,
+            historySettingKey,
+            gameRuntime.farmHistory
+        )
+    end
     local visitedSettingKey = "UniversalHubStealAnEggVisitedServers"
     if next(gameRuntime.visitedServerIds) == nil then
         local loaded, visited =
@@ -76,6 +94,42 @@ function Adapter.new(context)
     local AreaEggResetConfig = require(ReplicatedStorage.Directory.AreaEggResetCycle)
     local AreaEggResetTimeUtil = require(ReplicatedStorage.Library.Util.AreaEggResetTimeUtil)
     local Assets = require(ReplicatedStorage.Directory.Assets)
+    local function securedEggs()
+        local eggs = {}
+        for index, egg in ipairs(gameRuntime.farmHistory.eggs) do
+            local color = egg.rarityColor
+            table.insert(eggs, {
+                area = egg.area,
+                icon = egg.icon,
+                name = egg.name,
+                rarity = egg.rarity,
+                rarityColor = type(color) == "table"
+                        and Color3.new(color[1] or 0.7, color[2] or 0.7, color[3] or 0.7)
+                    or Color3.fromRGB(177, 188, 199),
+                secured = true,
+                size = egg.size,
+                state = "Secured",
+                target = false,
+                uid = ("secured-%d-%s"):format(index, tostring(egg.uid)),
+            })
+        end
+        return eggs
+    end
+    local function recordSecuredEgg(record)
+        local asset = Assets.Directory[record.AssetCategory]
+        local rarity = asset and asset.Rarity
+        local color = rarity and rarity.Color or Color3.fromRGB(177, 188, 199)
+        table.insert(gameRuntime.farmHistory.eggs, 1, {
+            area = record.AreaId or "Unknown",
+            icon = asset and asset.Icon or "",
+            name = asset and asset.DisplayName or record.AssetCategory,
+            rarity = rarity and (rarity.DisplayName or rarity._id) or "Unknown",
+            rarityColor = { color.R, color.G, color.B },
+            size = tonumber(record.AssetScale) or 1,
+            uid = record.Uid,
+        })
+        persistFarmHistory()
+    end
     local Constants = require(ReplicatedStorage.Library.Globals.Constants)
     local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
     local Network = require(ReplicatedStorage.Library.Client.Network)
@@ -195,7 +249,9 @@ function Adapter.new(context)
         localPlayer = LocalPlayer,
         logger = context.logger,
         getResetSeconds = resetSecondsRemaining,
+        getSecuredEggs = securedEggs,
         navigator = navigator,
+        onSecured = recordSecuredEgg,
         plotCmds = PlotCmds,
         players = context.players,
         publishStatus = function(model)
@@ -219,6 +275,13 @@ function Adapter.new(context)
     end)
     local function apply(state)
         local farming = state.settings.autoFarm == true
+        if gameRuntime.farmHistory.active ~= farming then
+            if farming then
+                table.clear(gameRuntime.farmHistory.eggs)
+            end
+            gameRuntime.farmHistory.active = farming
+            persistFarmHistory()
+        end
         antiHit:setEnabled(state.settings.antiHit == true or farming)
         antiTrap:setEnabled(state.settings.antiTrap == true or farming)
         autoOpenEggs:setEnabled(state.settings.autoOpenEggs == true)
@@ -227,8 +290,8 @@ function Adapter.new(context)
         highlightEsp:setMinimumSize(state.settings.eggEspMinimumSize)
         highlightEsp:setEggsEnabled(state.settings.eggEsp == true)
         highlightEsp:setTrapsEnabled(state.settings.trapEsp == true)
-        hitAura:setIgnoreFriends(state.settings.hitAuraIgnoreFriends == true)
-        hitAura:setEnabled(state.settings.hitAura == true)
+        hitAura:setIgnoreFriends(not farming and state.settings.hitAuraIgnoreFriends == true)
+        hitAura:setEnabled(state.settings.hitAura == true or farming)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
         lagSafeMovement:setPingThreshold(state.settings.serverHopMaxPing)
         lagSafeMovement:setEnabled(
@@ -843,6 +906,10 @@ local function rootPosition(localPlayer)
     return root and root:IsA("BasePart") and root.Position or nil
 end
 
+local function isCarried(record)
+    return record.State == "Carried" or record.State == "Claimed"
+end
+
 function AutoFarm.new(options)
     assert(options and options.assets and options.eggCmds and options.localPlayer)
     assert(options.navigator and options.plotCmds and options.serverHop and options.slotIdentity)
@@ -855,6 +922,10 @@ function AutoFarm.new(options)
         getResetSeconds = options.getResetSeconds or function()
             return 0
         end,
+        getSecuredEggs = options.getSecuredEggs or function()
+            return {}
+        end,
+        onSecured = options.onSecured,
         plotCmds = options.plotCmds,
         players = options.players,
         publishStatus = options.publishStatus,
@@ -876,6 +947,14 @@ function AutoFarm.new(options)
             self.claimed = true
         end
     end)
+    if self.eggCmds.AreaEggUpdated then
+        self.eggUpdateConnection = self.eggCmds.AreaEggUpdated:Connect(function()
+            if self.enabled and self.waitingForEggUpdate == self.token then
+                self.waitingForEggUpdate = nil
+                self:_startRun()
+            end
+        end)
+    end
     return self
 end
 
@@ -896,7 +975,9 @@ function AutoFarm:_publish(stage, detail, targetUid)
     for _, record in ipairs(snapshot.Records) do
         local rarityNumber, rarityName = self:_rarity(record)
         local asset = self.assets.Directory[record.AssetCategory]
-        local available = record.State == "Slot" or record.State == "Dropped"
+        local available = record.State == "Slot"
+            or record.State == "Dropped"
+            or (isCarried(record) and record.CarrierUserId ~= self.localPlayer.UserId)
         if available and self.targetRarities[rarityName] == true then
             targets += 1
         end
@@ -910,7 +991,7 @@ function AutoFarm:_publish(stage, detail, targetUid)
             rarityNumber = rarityNumber,
             area = record.AreaId or "Unknown",
             size = tonumber(record.AssetScale) or 1,
-            state = record.State,
+            state = record.State == "Claimed" and "Contested" or record.State,
             target = record.Uid == targetUid,
         })
     end
@@ -932,6 +1013,7 @@ function AutoFarm:_publish(stage, detail, targetUid)
         detail = detail,
         targets = targets,
         eggs = eggs,
+        securedEggs = self.getSecuredEggs(),
     })
 end
 
@@ -946,15 +1028,31 @@ function AutoFarm:_rarity(record)
         rarity and (rarity.DisplayName or rarity._id) or "Unknown"
 end
 
+function AutoFarm:_carrierRoot(record)
+    if not self.players or type(self.players.GetPlayerByUserId) ~= "function" then
+        return nil
+    end
+    local player = self.players:GetPlayerByUserId(record.CarrierUserId)
+    local character = player and player.Character
+    local root = character and character:FindFirstChild("HumanoidRootPart")
+    return root and root:IsA("BasePart") and root or nil
+end
+
 function AutoFarm:_selectTarget()
     local position = rootPosition(self.localPlayer)
     local best
     for _, record in ipairs(self.eggCmds.GetAreaEggSnapshot().Records) do
-        if record.State == "Slot" or record.State == "Dropped" then
+        if
+            record.State == "Slot"
+            or record.State == "Dropped"
+            or (isCarried(record) and record.CarrierUserId ~= self.localPlayer.UserId)
+        then
             local rarityNumber, rarityName = self:_rarity(record)
             if self.targetRarities[rarityName] == true then
-                local distance = position and (position - record.BottomCFrame.Position).Magnitude
-                    or math.huge
+                local carrierRoot = isCarried(record) and self:_carrierRoot(record) or nil
+                local targetPosition = carrierRoot and carrierRoot.Position
+                    or record.BottomCFrame.Position
+                local distance = position and (position - targetPosition).Magnitude or math.huge
                 if
                     not best
                     or rarityNumber > best.rarityNumber
@@ -980,7 +1078,7 @@ end
 
 function AutoFarm:_selectCarried()
     for _, record in ipairs(self.eggCmds.GetAreaEggSnapshot().Records) do
-        if record.State == "Carried" and record.CarrierUserId == self.localPlayer.UserId then
+        if isCarried(record) and record.CarrierUserId == self.localPlayer.UserId then
             local rarityNumber, rarityName = self:_rarity(record)
             return {
                 distance = 0,
@@ -993,34 +1091,35 @@ function AutoFarm:_selectCarried()
     return nil
 end
 
-function AutoFarm:_activeCompetitor(record)
-    if not self.players or type(self.players.GetPlayers) ~= "function" then
-        return nil
-    end
-    local localPosition = rootPosition(self.localPlayer)
-    local localCharacter = self.localPlayer.Character
-    local localHumanoid = localCharacter and localCharacter:FindFirstChildOfClass("Humanoid")
-    local localSpeed = math.max(localHumanoid and localHumanoid.WalkSpeed or 16, 1)
-    local targetPosition = record.BottomCFrame.Position
-    local localEta = localPosition and (localPosition - targetPosition).Magnitude / localSpeed
-        or math.huge
-    for _, player in ipairs(self.players:GetPlayers()) do
-        if player ~= self.localPlayer then
-            local character = player.Character
-            local root = character and character:FindFirstChild("HumanoidRootPart")
-            local humanoid = character and character:FindFirstChildOfClass("Humanoid")
-            if root and root:IsA("BasePart") and humanoid then
-                local moving = humanoid.MoveDirection.Magnitude > 0.05
-                    or root.AssemblyLinearVelocity.Magnitude > 2
-                local eta = (root.Position - targetPosition).Magnitude
-                    / math.max(humanoid.WalkSpeed, 1)
-                if moving and eta < localEta then
-                    return player
-                end
-            end
+function AutoFarm:_pursueCarrier(record, token)
+    local deadline = self.workspace:GetServerTimeNow() + 30
+    while self:_active(token) and self.workspace:GetServerTimeNow() <= deadline do
+        local current = self.eggCmds.GetAreaEggRecord(record.Uid)
+        if not current then
+            return nil, "egg-removed"
         end
+        if current.CarrierUserId == self.localPlayer.UserId or not isCarried(current) then
+            return current
+        end
+        local carrierRoot = self:_carrierRoot(current)
+        if not carrierRoot then
+            return nil, "carrier-unavailable"
+        end
+        self:_publish(
+            "Contesting carrier",
+            "Staying close so Hit Aura can force a drop, then taking the egg.",
+            current.Uid
+        )
+        self.navigator:walkTo(carrierRoot.Position, function()
+            local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
+            return self:_active(token)
+                and latest ~= nil
+                and isCarried(latest)
+                and latest.CarrierUserId ~= self.localPlayer.UserId
+        end, 12)
+        self.wait(0.1)
     end
-    return nil
+    return nil, self:_active(token) and "pursuit-timeout" or "cancelled"
 end
 
 function AutoFarm:_slotKey(record)
@@ -1081,6 +1180,20 @@ function AutoFarm:_homePosition()
     return typeof(respawn) == "CFrame" and respawn.Position or nil
 end
 
+function AutoFarm:_idleOnTreadmill(token)
+    if self:_selectCarried() then
+        return
+    end
+    local respawn = self.plotCmds.GetRespawnPointCFrame()
+    if typeof(respawn) ~= "CFrame" then
+        return
+    end
+    self:_publish("Training while idle", "No farm action is ready. Walking onto your treadmill.")
+    self.navigator:walkTo(respawn.Position, function()
+        return self:_active(token) and self:_selectCarried() == nil
+    end, 8)
+end
+
 function AutoFarm:_waitForClaim(uid, token)
     local deadline = self.workspace:GetServerTimeNow() + 10
     while self:_active(token) and self.workspace:GetServerTimeNow() <= deadline do
@@ -1094,6 +1207,9 @@ end
 
 function AutoFarm:_waitForReset(token)
     local remaining = math.max(0, tonumber(self.getResetSeconds()) or 0)
+    if remaining > 0 then
+        self:_idleOnTreadmill(token)
+    end
     while self:_active(token) and remaining > 0 do
         self:_publish(
             "Reset in progress",
@@ -1115,16 +1231,12 @@ function AutoFarm:_hop(token)
         return
     end
     if not self.serverHopping then
+        self:_idleOnTreadmill(token)
+        self.waitingForEggUpdate = token
         self:_publish(
             "Waiting for targets",
-            "No selected egg is available here. Server Hopping is off; scanning again in 5 seconds."
+            "No selected egg is available here. Waiting for the server egg state to change."
         )
-        self.spawn(function()
-            self.wait(5)
-            if self:_active(token) then
-                self:_run(token)
-            end
-        end)
         return
     end
     self.serverHop:run(self.maxPing, function(succeeded)
@@ -1158,6 +1270,7 @@ function AutoFarm:_run(token)
     if not target then
         if not self.targetRarities.Eternal and not self.targetRarities.Secret then
             self:_log("warn", "no target rarities selected")
+            self:_idleOnTreadmill(token)
             self:_publish("Waiting for targets", "Select Eternal Eggs, Secret Eggs, or both.")
             return
         end
@@ -1178,21 +1291,22 @@ function AutoFarm:_run(token)
 
     local record = target.record
     self.claimCategory = record.AssetCategory
-    if not alreadyCarried then
-        local competitor = self:_activeCompetitor(record)
-        if competitor then
-            self:_log("info", "active competitor detected; hopping", {
-                player = competitor.Name,
-                userId = competitor.UserId,
+    if not alreadyCarried and isCarried(record) then
+        local pursued, pursuitReason = self:_pursueCarrier(record, token)
+        if not pursued then
+            self:_log("warn", "carrier pursuit ended", {
+                reason = pursuitReason,
+                uid = record.Uid,
             })
-            self:_publish(
-                "Avoiding competition",
-                "Another active player has the better route to this egg.",
-                record.Uid
-            )
-            self:_hop(token)
+            if self:_active(token) then
+                self:_hop(token)
+            end
             return
         end
+        record = pursued
+        alreadyCarried = record.CarrierUserId == self.localPlayer.UserId
+    end
+    if not alreadyCarried then
         self:_log("info", "target selected", {
             area = record.AreaId,
             category = record.AssetCategory,
@@ -1278,6 +1392,9 @@ function AutoFarm:_run(token)
     end
 
     self:_log("info", "egg secured; hopping", { uid = record.Uid })
+    if type(self.onSecured) == "function" then
+        pcall(self.onSecured, record)
+    end
     self:_publish("Egg secured", "Deposit confirmed. Preparing the next server.")
     self.wait(1)
     if self:_active(token) then
@@ -1314,7 +1431,16 @@ function AutoFarm:setHighPopulation(enabled)
 end
 
 function AutoFarm:setServerHopping(enabled)
-    self.serverHopping = enabled == true
+    enabled = enabled == true
+    if self.serverHopping == enabled then
+        return
+    end
+    self.serverHopping = enabled
+    if self.enabled then
+        self.token += 1
+        self.waitingForEggUpdate = nil
+        self:_startRun()
+    end
 end
 
 function AutoFarm:setMaxPing(value)
@@ -1328,6 +1454,7 @@ function AutoFarm:setEnabled(enabled)
     end
     self.enabled = enabled
     self.token += 1
+    self.waitingForEggUpdate = nil
     self:_log("info", enabled and "enabled" or "disabled")
     if enabled then
         self:_publish("Starting", "Reading the current server and preparing the farm.")
@@ -1346,6 +1473,10 @@ function AutoFarm:stop()
     if self.claimConnection then
         pcall(self.claimConnection.Disconnect, self.claimConnection)
         self.claimConnection = nil
+    end
+    if self.eggUpdateConnection then
+        pcall(self.eggUpdateConnection.Disconnect, self.eggUpdateConnection)
+        self.eggUpdateConnection = nil
     end
 end
 

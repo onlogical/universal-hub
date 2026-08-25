@@ -201,6 +201,7 @@ export interface FarmMonitorEgg {
 	readonly size: number;
 	readonly state: string;
 	readonly target?: boolean;
+	readonly secured?: boolean;
 }
 
 export interface FloatingMonitorModel {
@@ -210,6 +211,7 @@ export interface FloatingMonitorModel {
 	readonly players: number;
 	readonly targets: number;
 	readonly eggs: readonly FarmMonitorEgg[];
+	readonly securedEggs?: readonly FarmMonitorEgg[];
 }
 
 export interface UniversalHubMenuModel {

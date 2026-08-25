@@ -15,7 +15,7 @@ function Metric({
 	icon,
 	value,
 }: {
-	readonly icon: "egg" | "target" | "users";
+	readonly icon: "package-check" | "target" | "users";
 	readonly value: string;
 }): React.ReactElement {
 	return (
@@ -91,7 +91,9 @@ export function FloatingFarmMonitor({ monitor }: { readonly monitor?: FloatingMo
 
 	if (monitor?.visible !== true) return <></>;
 	const height = collapsed ? 52 : 390;
-	const canvasHeight = monitor.eggs.size() * 44;
+	const securedEggs = monitor.securedEggs ?? [];
+	const eggs = [...monitor.eggs, ...securedEggs];
+	const canvasHeight = eggs.size() * 44;
 	const beginDrag = (input: InputObject) => {
 		if (input.UserInputType !== Enum.UserInputType.MouseButton1 && input.UserInputType !== Enum.UserInputType.Touch) return;
 		const panel = panelRef.current;
@@ -135,14 +137,14 @@ export function FloatingFarmMonitor({ monitor }: { readonly monitor?: FloatingMo
 					<textlabel Position={UDim2.fromOffset(14, 12)} Size={new UDim2(1, -28, 0, 34)} BackgroundTransparency={1} Text={monitor.detail} TextColor3={Color3.fromRGB(244, 247, 249)} TextSize={13} Font={Enum.Font.BuilderSansMedium} TextWrapped TextXAlignment={Enum.TextXAlignment.Left} TextYAlignment={Enum.TextYAlignment.Top} />
 					<frame Position={UDim2.fromOffset(14, 54)} Size={new UDim2(1, -28, 0, 34)} BackgroundTransparency={1}>
 						<uilistlayout FillDirection={Enum.FillDirection.Horizontal} Padding={new UDim(0, 8)} />
-						<Metric icon="egg" value={tostring(monitor.eggs.size())} />
+						<Metric icon="package-check" value={tostring(securedEggs.size())} />
 						<Metric icon="target" value={tostring(monitor.targets)} />
 						<Metric icon="users" value={tostring(monitor.players)} />
 					</frame>
 					<frame Position={UDim2.fromOffset(14, 98)} Size={new UDim2(1, -28, 0, 1)} BackgroundColor3={Color3.fromRGB(48, 48, 52)} BorderSizePixel={0} />
 					<scrollingframe Position={UDim2.fromOffset(8, 110)} Size={new UDim2(1, -16, 1, -118)} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollBarImageColor3={Color3.fromRGB(101, 101, 108)} CanvasSize={UDim2.fromOffset(0, canvasHeight)}>
 						<uilistlayout Padding={new UDim(0, 2)} SortOrder={Enum.SortOrder.LayoutOrder} />
-						{monitor.eggs.map((egg, index) => {
+						{eggs.map((egg, index) => {
 							const rarity = readableRarity(egg.rarityColor);
 							const surface = Color3.fromRGB(24, 24, 26).Lerp(egg.rarityColor, egg.target ? 0.2 : 0.09);
 							return (

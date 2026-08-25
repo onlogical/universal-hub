@@ -19,6 +19,7 @@ local function signal()
     }
 end
 
+local eggUpdated = signal()
 local records = {
     {
         AreaId = "Cosmic",
@@ -51,7 +52,14 @@ local walks = {}
 local hops = 0
 local now = 0
 local resetSeconds = 2
+local secured = 0
 local farm
+local carrierRoot = {
+    IsA = function(_, className)
+        return className == "BasePart"
+    end,
+    Position = Vector3.new(60, 0, 0),
+}
 local root = {
     IsA = function(_, className)
         return className == "BasePart"
@@ -60,6 +68,7 @@ local root = {
 }
 local eggCmds = {
     AreaEggClaimed = signal(),
+    AreaEggUpdated = eggUpdated,
     GetAreaEggSnapshot = function()
         return { Records = records }
     end,
@@ -77,10 +86,16 @@ local eggCmds = {
 }
 local navigator = {
     walkTo = function(_, position)
-        assert(resetSeconds <= 0, "Auto Farm must wait for the reset phase to finish")
+        if position ~= Vector3.new(0, 0, 100) then
+            assert(resetSeconds <= 0, "Auto Farm must wait for the reset phase to finish")
+        end
         root.Position = position
         table.insert(walks, position)
-        if #walks == 2 then
+        if byUid.contested and position == carrierRoot.Position then
+            byUid.contested.State = "Dropped"
+            byUid.contested.BottomCFrame = CFrame.new(position)
+        end
+        if #walks == 3 then
             byUid.eternal = nil
             farm.claimed = true
         end
@@ -110,6 +125,23 @@ farm = AutoFarm.new({
         },
     },
     navigator = navigator,
+    onSecured = function(record)
+        assert(record.Uid == "eternal")
+        secured += 1
+    end,
+    players = {
+        GetPlayerByUserId = function(_, userId)
+            if userId == 99 then
+                return {
+                    Character = {
+                        FindFirstChild = function(_, name)
+                            return name == "HumanoidRootPart" and carrierRoot or nil
+                        end,
+                    },
+                }
+            end
+        end,
+    },
     plotCmds = {
         GetRespawnPointCFrame = function()
             return CFrame.new(0, 0, 100)
@@ -144,11 +176,31 @@ farm:setTargetRarities(true, true)
 farm:setMaxPing(90)
 farm:setEnabled(true)
 queued()
-assert(walks[1] == Vector3.new(40, 0, 0), "Auto Farm must prefer Eternal over Secret")
-assert(walks[2] == Vector3.new(0, 0, 100), "Auto Farm must walk back to the base")
+assert(walks[1] == Vector3.new(0, 0, 100), "Auto Farm must use the treadmill while idle")
+assert(walks[2] == Vector3.new(40, 0, 0), "Auto Farm must prefer Eternal over Secret")
+assert(walks[3] == Vector3.new(0, 0, 100), "Auto Farm must walk back to the base")
 assert(hops == 1, "Auto Farm must hop only after the egg is secured")
+assert(secured == 1, "Secured eggs must be recorded exactly once")
+local contested = {
+    AreaId = "Volcano",
+    AssetCategory = "Secret Egg",
+    BottomCFrame = CFrame.new(55, 0, 0),
+    CarrierUserId = 99,
+    State = "Claimed",
+    Uid = "contested",
+}
+byUid.contested = contested
+local dropped = farm:_pursueCarrier(contested, farm.token)
+assert(
+    dropped == contested and contested.State == "Dropped",
+    "Claimed eggs must be pursued until dropped"
+)
 farm:setServerHopping(false)
+queued = nil
 farm:_hop(farm.token)
 assert(hops == 1, "Auto Farm must stay in the current server when Server Hopping is off")
+assert(queued == nil, "Disabled server hopping must not poll on a timer")
+eggUpdated:Fire(records[1])
+assert(type(queued) == "function", "Egg updates must wake the event-driven farm")
 farm:stop()
 print("auto-farm-ok")

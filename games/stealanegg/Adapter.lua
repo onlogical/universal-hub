@@ -51,6 +51,24 @@ function Adapter.new(context)
     local RunService = game:GetService("RunService")
     local Stats = game:GetService("Stats")
     local TeleportService = game:GetService("TeleportService")
+    local historySettingKey = "UniversalHubStealAnEggFarmHistory"
+    if type(gameRuntime.farmHistory) ~= "table" then
+        local loaded, history =
+            pcall(TeleportService.GetTeleportSetting, TeleportService, historySettingKey)
+        gameRuntime.farmHistory = loaded and type(history) == "table" and history
+            or { active = false, eggs = {} }
+    end
+    if type(gameRuntime.farmHistory.eggs) ~= "table" then
+        gameRuntime.farmHistory.eggs = {}
+    end
+    local function persistFarmHistory()
+        pcall(
+            TeleportService.SetTeleportSetting,
+            TeleportService,
+            historySettingKey,
+            gameRuntime.farmHistory
+        )
+    end
     local visitedSettingKey = "UniversalHubStealAnEggVisitedServers"
     if next(gameRuntime.visitedServerIds) == nil then
         local loaded, visited =
@@ -72,6 +90,42 @@ function Adapter.new(context)
     local AreaEggResetConfig = require(ReplicatedStorage.Directory.AreaEggResetCycle)
     local AreaEggResetTimeUtil = require(ReplicatedStorage.Library.Util.AreaEggResetTimeUtil)
     local Assets = require(ReplicatedStorage.Directory.Assets)
+    local function securedEggs()
+        local eggs = {}
+        for index, egg in ipairs(gameRuntime.farmHistory.eggs) do
+            local color = egg.rarityColor
+            table.insert(eggs, {
+                area = egg.area,
+                icon = egg.icon,
+                name = egg.name,
+                rarity = egg.rarity,
+                rarityColor = type(color) == "table"
+                        and Color3.new(color[1] or 0.7, color[2] or 0.7, color[3] or 0.7)
+                    or Color3.fromRGB(177, 188, 199),
+                secured = true,
+                size = egg.size,
+                state = "Secured",
+                target = false,
+                uid = ("secured-%d-%s"):format(index, tostring(egg.uid)),
+            })
+        end
+        return eggs
+    end
+    local function recordSecuredEgg(record)
+        local asset = Assets.Directory[record.AssetCategory]
+        local rarity = asset and asset.Rarity
+        local color = rarity and rarity.Color or Color3.fromRGB(177, 188, 199)
+        table.insert(gameRuntime.farmHistory.eggs, 1, {
+            area = record.AreaId or "Unknown",
+            icon = asset and asset.Icon or "",
+            name = asset and asset.DisplayName or record.AssetCategory,
+            rarity = rarity and (rarity.DisplayName or rarity._id) or "Unknown",
+            rarityColor = { color.R, color.G, color.B },
+            size = tonumber(record.AssetScale) or 1,
+            uid = record.Uid,
+        })
+        persistFarmHistory()
+    end
     local Constants = require(ReplicatedStorage.Library.Globals.Constants)
     local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
     local Network = require(ReplicatedStorage.Library.Client.Network)
@@ -191,7 +245,9 @@ function Adapter.new(context)
         localPlayer = LocalPlayer,
         logger = context.logger,
         getResetSeconds = resetSecondsRemaining,
+        getSecuredEggs = securedEggs,
         navigator = navigator,
+        onSecured = recordSecuredEgg,
         plotCmds = PlotCmds,
         players = context.players,
         publishStatus = function(model)
@@ -215,6 +271,13 @@ function Adapter.new(context)
     end)
     local function apply(state)
         local farming = state.settings.autoFarm == true
+        if gameRuntime.farmHistory.active ~= farming then
+            if farming then
+                table.clear(gameRuntime.farmHistory.eggs)
+            end
+            gameRuntime.farmHistory.active = farming
+            persistFarmHistory()
+        end
         antiHit:setEnabled(state.settings.antiHit == true or farming)
         antiTrap:setEnabled(state.settings.antiTrap == true or farming)
         autoOpenEggs:setEnabled(state.settings.autoOpenEggs == true)
@@ -223,8 +286,8 @@ function Adapter.new(context)
         highlightEsp:setMinimumSize(state.settings.eggEspMinimumSize)
         highlightEsp:setEggsEnabled(state.settings.eggEsp == true)
         highlightEsp:setTrapsEnabled(state.settings.trapEsp == true)
-        hitAura:setIgnoreFriends(state.settings.hitAuraIgnoreFriends == true)
-        hitAura:setEnabled(state.settings.hitAura == true)
+        hitAura:setIgnoreFriends(not farming and state.settings.hitAuraIgnoreFriends == true)
+        hitAura:setEnabled(state.settings.hitAura == true or farming)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
         lagSafeMovement:setPingThreshold(state.settings.serverHopMaxPing)
         lagSafeMovement:setEnabled(
