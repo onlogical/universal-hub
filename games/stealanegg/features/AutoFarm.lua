@@ -425,7 +425,7 @@ end
 
 function AutoFarm:_waitForReset(token)
     local remaining = math.max(0, tonumber(self.getResetSeconds()) or 0)
-    if remaining > 0 and not self:_selectTarget() then
+    if remaining > 0 then
         self:_idleOnTreadmill(token)
     end
     while self:_active(token) and remaining > 0 do

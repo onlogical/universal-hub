@@ -300,14 +300,17 @@ farm:setEnabled(true)
 closerRetries = 1
 timeoutWalk = true
 queued()
-assert(walks[1] == Vector3.new(40, 0, 0), "Auto Farm must skip the treadmill when a target exists")
+assert(
+    walks[1] == Vector3.new(0, 0, 100) and walks[2] == Vector3.new(40, 0, 0),
+    "Auto Farm must train through an active reset, then leave for the ready target"
+)
 assert(globalSpawns.Eternal == true, "Seeing a target must remember its global spawn")
 assert(
-    walks[3] == Vector3.new(40, 0, -80) and directMoves == 3,
+    walks[4] == Vector3.new(40, 0, -80) and directMoves == 4,
     "Auto Farm must recover a timed-out route, correct pickup distance, then take the direct exit"
 )
 assert(
-    walks[4] == Vector3.new(0, 0, 100),
+    walks[5] == Vector3.new(0, 0, 100),
     "Auto Farm must continue from the guard exit to base instead of stopping at the boundary"
 )
 assert(hops == 0, "Auto Farm must rescan before leaving a server with more targets")
@@ -353,6 +356,8 @@ assert(
 )
 failWalk = false
 records = {}
+jumps = 0
+treadmillUnequips = 0
 assert(
     farm.setIndexServerHopping == nil,
     "Index Server Hopping must not remain a configurable mode"
