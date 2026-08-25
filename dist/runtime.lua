@@ -1,4 +1,4 @@
-local buildId = [[27484cec]]
+local buildId = [[4bf835d1]]
 local shared = {
     ["changelog.json"] = [[{
   "current": "0.3.0",
@@ -2619,6 +2619,7 @@ return Counterblox
         autoFarm = false,
         autoFarmEternal = true,
         autoFarmHighPopulation = false,
+        autoFarmIndex = false,
         autoFarmSecret = true,
         autoFarmServerHopping = true,
         autoOpenEggs = false,
@@ -2642,6 +2643,7 @@ return Counterblox
             "autoFarm",
             "autoFarmEternal",
             "autoFarmHighPopulation",
+            "autoFarmIndex",
             "autoFarmSecret",
             "autoFarmServerHopping",
             "autoOpenEggs",
