@@ -1,5 +1,5 @@
 return {
-    buildId = [[51e70b59]],
+    buildId = [[58d79cb1]],
     id = [[stealanegg]],
     sources = {
         ["games/stealanegg/Adapter.lua"] = [[local function importDependency(path, relativePath)
@@ -129,6 +129,8 @@ function Adapter.new(context)
     local Assets = require(ReplicatedStorage.Directory.Assets)
     local Sakura = require(ReplicatedStorage.Directory.Sakura)
     local EggCmds = require(ReplicatedStorage.Library.Client.EggCmds)
+    local GuardEscapePrediction =
+        require(ReplicatedStorage.Library.Modules.GuardAreas.GuardEscapePrediction)
     local Save = require(ReplicatedStorage.Library.Client.Save)
     local indexCategories = {}
     for _, area in pairs(Areas.Directory) do
@@ -200,12 +202,19 @@ function Adapter.new(context)
     local Network = require(ReplicatedStorage.Library.Client.Network)
     local PlotCmds = require(ReplicatedStorage.Library.Client.PlotCmds)
     local SlotIdentity = require(ReplicatedStorage.Library.Util.AreaEggSlotIdentity)
+    local stopped = false
+    local navigator
     local antiHit = AntiHit.new({
         eggCmds = EggCmds,
         guardHitEndpoint = Constants.NETWORK_MAP.Guards.FOREST_HIT,
         localPlayer = LocalPlayer,
         logger = context.logger,
         network = Network,
+        onRecovered = function()
+            if navigator then
+                navigator:resume()
+            end
+        end,
         ragdoll = require(ReplicatedStorage.Library.Modules.Ragdoll),
         runService = RunService,
         slotIdentity = SlotIdentity,
@@ -242,18 +251,90 @@ function Adapter.new(context)
         workspace = Workspace,
     })
     local instantPrompts = InstantPrompts.new(Workspace)
-    local guardSpeeds = {}
+    local guardConfigs = {}
     local guardModels = {}
     local objects = Workspace:FindFirstChild("__OBJECTS")
     local areas = objects and objects:FindFirstChild("Areas")
     local guardAreas = areas and areas:FindFirstChild("GuardAreas")
+    local separationLine = areas and areas:FindFirstChild("SeparationLine")
     for areaId, config in pairs(require(ReplicatedStorage.Directory.Guards).Directory) do
-        guardSpeeds[areaId] = config.WalkSpeed
+        guardConfigs[areaId] = config
         local area = guardAreas and guardAreas:FindFirstChild(areaId)
         local guard = area and area:FindFirstChild("Guard")
         if guard and guard:IsA("Model") then
             guardModels[areaId] = guard
         end
+    end
+    local function nativeEscapePosition(record)
+        local character = LocalPlayer.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local area = guardAreas and guardAreas:FindFirstChild(record.AreaId)
+        local bounds = area and area:FindFirstChild("Bounds")
+        if
+            not root
+            or not root:IsA("BasePart")
+            or not bounds
+            or not bounds:IsA("BasePart")
+            or not separationLine
+            or not separationLine:IsA("BasePart")
+        then
+            return nil
+        end
+        local direction = -separationLine.CFrame.LookVector
+        local ok, distance = pcall(
+            GuardEscapePrediction.ResolveExitDistance,
+            bounds.CFrame,
+            bounds.Size,
+            root.Position,
+            direction
+        )
+        return ok and root.Position + direction * (distance + 18) or nil
+    end
+    local function canOutrunGuard(areaId, playerSpeed)
+        local config = guardConfigs[areaId]
+        local guard = guardModels[areaId]
+        local character = LocalPlayer.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local area = guardAreas and guardAreas:FindFirstChild(areaId)
+        local bounds = area and area:FindFirstChild("Bounds")
+        if
+            not config
+            or not guard
+            or not guard.Parent
+            or not root
+            or not root:IsA("BasePart")
+            or not bounds
+            or not bounds:IsA("BasePart")
+            or not separationLine
+            or not separationLine:IsA("BasePart")
+        then
+            return nil
+        end
+        local direction = -separationLine.CFrame.LookVector
+        local distanceOk, exitDistance = pcall(
+            GuardEscapePrediction.ResolveExitDistance,
+            bounds.CFrame,
+            bounds.Size,
+            root.Position,
+            direction
+        )
+        if not distanceOk then
+            return nil
+        end
+        local predictionOk, prediction = pcall(GuardEscapePrediction.Resolve, {
+            BaseGuardWalkSpeed = config.WalkSpeed,
+            ExitDirection = direction,
+            ExitDistance = exitDistance,
+            FlatRadius = config.FlatRadius,
+            GuardStartPosition = guard:GetPivot().Position,
+            HitDistance = config.HitDistance or 10,
+            PlayerStartPosition = root.Position,
+            PlayerWalkSpeed = playerSpeed,
+        })
+        if not predictionOk then
+            return nil
+        end
+        return prediction.Outcome ~= "Caught"
     end
     local function currentPing()
         for _, metric in ipairs(context.store:Get().footerMetrics or {}) do
@@ -264,11 +345,17 @@ function Adapter.new(context)
         return 0
     end
     local lagSafeMovement = LagSafeMovement.new({
+        canOutrun = canOutrunGuard,
         eggCmds = EggCmds,
         getPing = currentPing,
+        guardConfigs = guardConfigs,
         guardModels = guardModels,
-        guardSpeeds = guardSpeeds,
         localPlayer = LocalPlayer,
+        onEscape = function()
+            if navigator then
+                navigator:resume()
+            end
+        end,
         runService = RunService,
     })
     local resetPadding = AreaEggResetConfig.WallCountdownDelayAfterDayStartsSeconds
@@ -318,17 +405,34 @@ function Adapter.new(context)
         persistVisitedServers()
         persistFarmHistory()
     end)
-    local navigator = WalkNavigator.new({
+    local function treadmillBottom()
+        local plot = PlotCmds.GetPlotData()
+        local bottom = plot and plot.PlotFolder:FindFirstChild("TreadmillBottom")
+        return bottom and bottom:IsA("BasePart") and bottom or nil
+    end
+    local function idleTreadmillPosition()
+        local bottom = treadmillBottom()
+        return bottom and bottom.Position or nil
+    end
+    local function isOnTreadmill()
+        local character = LocalPlayer.Character
+        local root = character and character:FindFirstChild("HumanoidRootPart")
+        local bottom = treadmillBottom()
+        if not root or not root:IsA("BasePart") or not bottom then
+            return false
+        end
+        local position = bottom.CFrame:PointToObjectSpace(root.Position)
+        return math.abs(position.X) <= bottom.Size.X * 0.5 + 2
+            and math.abs(position.Z) <= bottom.Size.Z * 0.5 + 2
+            and math.abs(position.Y) <= 8
+    end
+    navigator = WalkNavigator.new({
+        blockedParts = { treadmillBottom() },
         localPlayer = LocalPlayer,
         pathfindingService = PathfindingService,
         runService = RunService,
         workspace = Workspace,
     })
-    local function idleTreadmillPosition()
-        local plot = PlotCmds.GetPlotData()
-        local bottom = plot and plot.PlotFolder:FindFirstChild("TreadmillBottom")
-        return bottom and bottom:IsA("BasePart") and bottom.Position or nil
-    end
     local autoFarm
     local autoBlossom
     local blossomSelected = false
@@ -361,6 +465,7 @@ function Adapter.new(context)
         eggCmds = EggCmds,
         localPlayer = LocalPlayer,
         logger = context.logger,
+        getEscapePosition = nativeEscapePosition,
         getIdlePosition = idleTreadmillPosition,
         getResetSeconds = resetSecondsRemaining,
         getSecuredEggs = securedEggs,
@@ -368,6 +473,10 @@ function Adapter.new(context)
         isGlobalSpawnKnown = isGlobalSpawnKnown,
         isIndexed = isIndexed,
         isIndexPending = isIndexPending,
+        isOnTreadmill = isOnTreadmill,
+        leaveTreadmill = function()
+            return Network.Invoke(Constants.NETWORK_MAP.Treadmills.REQUEST_UNEQUIP)
+        end,
         markGlobalSpawn = markGlobalSpawn,
         navigator = navigator,
         onRareAvailable = function()
@@ -396,6 +505,30 @@ function Adapter.new(context)
         slotIdentity = SlotIdentity,
         workspace = Workspace,
     })
+    local inventoryUids = {}
+    for uid in pairs((Save.Get() and Save.Get().Inventory) or {}) do
+        inventoryUids[uid] = true
+    end
+    local equipBestQueued = false
+    local inventoryConnection = Save.GetStatChangedSignal("Inventory"):Connect(function()
+        local nextUids = {}
+        local added = false
+        for uid in pairs((Save.Get() and Save.Get().Inventory) or {}) do
+            nextUids[uid] = true
+            added = added or inventoryUids[uid] ~= true
+        end
+        inventoryUids = nextUids
+        if not added or equipBestQueued or stopped then
+            return
+        end
+        equipBestQueued = true
+        task.defer(function()
+            if not stopped then
+                pcall(Network.Invoke, Constants.NETWORK_MAP.Backpack.EQUIP_BEST)
+            end
+            equipBestQueued = false
+        end)
+    end)
     local unsubscribePing = context.subscribeFooterMetric("ping", {
         kind = "latency",
         label = "Ping",
@@ -428,7 +561,7 @@ function Adapter.new(context)
         instantPrompts:setEnabled(state.settings.instantPrompts == true)
         lagSafeMovement:setPingThreshold(state.settings.serverHopMaxPing)
         lagSafeMovement:setEnabled(
-            state.settings.antiHit == true and state.settings.lagSafeMovement == true
+            (state.settings.antiHit == true or farming) and state.settings.lagSafeMovement == true
         )
         autoFarm:setIdleTreadmill(state.settings.idleTreadmill)
         autoFarm:setTargetRarities(state.settings.autoFarmEternal, state.settings.autoFarmSecret)
@@ -456,7 +589,6 @@ function Adapter.new(context)
         end
     end
     local unsubscribe = context.store:Subscribe(apply, false)
-    local stopped = false
     local function stop()
         if stopped then
             return
@@ -465,6 +597,7 @@ function Adapter.new(context)
         pcall(unsubscribe)
         pcall(unsubscribePing)
         pcall(resetConnection.Disconnect, resetConnection)
+        pcall(inventoryConnection.Disconnect, inventoryConnection)
         pcall(antiHit.stop, antiHit)
         pcall(antiTrap.stop, antiTrap)
         pcall(autoBlossom.stop, autoBlossom)
@@ -644,6 +777,7 @@ function AntiHit.new(options)
         localPlayer = options.localPlayer,
         logger = options.logger,
         network = options.network,
+        onRecovered = options.onRecovered,
         workspace = options.workspace,
         runService = options.runService,
         ragdoll = options.ragdoll,
@@ -808,6 +942,9 @@ function AntiHit:_recover()
     if humanoid then
         humanoid.PlatformStand = false
         humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+    end
+    if type(self.onRecovered) == "function" then
+        pcall(self.onRecovered)
     end
 end
 
@@ -1280,6 +1417,9 @@ function AutoFarm.new(options)
         localPlayer = options.localPlayer,
         logger = options.logger,
         navigator = options.navigator,
+        getEscapePosition = options.getEscapePosition or function()
+            return nil
+        end,
         getIdlePosition = options.getIdlePosition or function()
             return nil
         end,
@@ -1301,6 +1441,10 @@ function AutoFarm.new(options)
         isIndexPending = options.isIndexPending or function()
             return false
         end,
+        isOnTreadmill = options.isOnTreadmill or function()
+            return false
+        end,
+        leaveTreadmill = options.leaveTreadmill or function() end,
         markGlobalSpawn = options.markGlobalSpawn or function() end,
         onRareAvailable = options.onRareAvailable,
         onSecured = options.onSecured,
@@ -1594,10 +1738,18 @@ function AutoFarm:_claim(record, token)
             if not position or (position - current.BottomCFrame.Position).Magnitude > 10 then
                 return false, "egg-moved"
             end
-            local ok, carried =
+            local ok, carried, carryReason =
                 pcall(self.eggCmds.RequestCarryAreaEgg, current.Uid, self:_slotKey(current))
             if ok and carried == true then
                 return true
+            end
+            if ok and carryReason == "Get closer to the egg" then
+                self.navigator:moveToDirect(current.BottomCFrame.Position, function()
+                    local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
+                    return self:_active(token)
+                        and latest ~= nil
+                        and (latest.State == "Slot" or latest.State == "Dropped")
+                end, 1)
             end
         end
         self.wait(0.25)
@@ -1631,10 +1783,11 @@ function AutoFarm:_homePosition()
 end
 
 function AutoFarm:_leaveTreadmill()
-    if not self.onTreadmill then
+    if not self.onTreadmill and not self.isOnTreadmill() then
         return
     end
     self.onTreadmill = false
+    pcall(self.leaveTreadmill)
     if type(self.navigator.jump) == "function" then
         self.navigator:jump()
         self.wait(0.1)
@@ -1808,12 +1961,18 @@ function AutoFarm:_run(token)
             ("%s %s · %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
             record.Uid
         )
-        local reached, reason = self.navigator:walkTo(record.BottomCFrame.Position, function()
+        local function targetAvailable()
             local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
             return self:_active(token)
                 and latest ~= nil
                 and (latest.State == "Slot" or latest.State == "Dropped")
-        end, 7)
+        end
+        local reached, reason =
+            self.navigator:walkTo(record.BottomCFrame.Position, targetAvailable, 2)
+        if not reached and reason == "timeout" and targetAvailable() then
+            reached, reason =
+                self.navigator:moveToDirect(record.BottomCFrame.Position, targetAvailable, 2)
+        end
         if not reached then
             local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
             if
@@ -1857,25 +2016,61 @@ function AutoFarm:_run(token)
         record.Uid
     )
     local secured = false
+    local escaped = false
     while self:_active(token) and not secured do
-        local home = self:_homePosition()
+        local crossedEscape = false
+        local escape = not escaped and self.getEscapePosition(record) or nil
+        local home = escape or self:_homePosition()
         if home then
             self.claimed = false
-            local returned, returnReason = self.navigator:walkTo(home, function()
-                return self:_active(token) and not self.claimed
+            local navigate = escape and self.navigator.moveToDirect or self.navigator.walkTo
+            local returned, returnReason = navigate(self.navigator, home, function()
+                local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
+                return self:_active(token)
+                    and not self.claimed
+                    and latest ~= nil
+                    and latest.State == "Carried"
+                    and latest.CarrierUserId == self.localPlayer.UserId
             end, 8)
-            if returned or self.claimed then
+            if returned and escape then
+                escaped = true
+                crossedEscape = true
+            elseif returned or self.claimed then
                 secured = self:_waitForClaim(record.Uid, token)
             else
-                self:_log("warn", "return walk failed", {
-                    reason = returnReason,
-                    uid = record.Uid,
-                })
-                self:_publish(
-                    "Retrying return",
-                    "The route stalled. Rebuilding the safe path without dropping the egg.",
-                    record.Uid
-                )
+                local latest = self.eggCmds.GetAreaEggRecord(record.Uid)
+                if not latest then
+                    secured = true
+                elseif latest.State == "Slot" or latest.State == "Dropped" then
+                    self:_publish(
+                        "Recovering egg",
+                        "The boss interrupted the return. Reclaiming the same egg immediately.",
+                        record.Uid
+                    )
+                    self:_startRun()
+                    return
+                elseif
+                    latest.State ~= "Carried"
+                    or latest.CarrierUserId ~= self.localPlayer.UserId
+                then
+                    self.waitingForEggUpdate = token
+                    self:_publish(
+                        "Tracking boss",
+                        "Waiting for the same egg to leave the boss, then reclaiming it.",
+                        record.Uid
+                    )
+                    return
+                else
+                    self:_log("warn", "return walk failed", {
+                        reason = returnReason,
+                        uid = record.Uid,
+                    })
+                    self:_publish(
+                        "Retrying return",
+                        "The route stalled. Rebuilding the safe path without dropping the egg.",
+                        record.Uid
+                    )
+                end
             end
         else
             self:_log("warn", "home unavailable; retrying", { uid = record.Uid })
@@ -1885,7 +2080,7 @@ function AutoFarm:_run(token)
                 record.Uid
             )
         end
-        if not secured then
+        if not secured and not crossedEscape then
             self.wait(2)
         end
     end
@@ -2776,14 +2971,21 @@ function LagSafeMovement.new(options)
     return setmetatable({
         eggCmds = options.eggCmds,
         enabled = false,
+        clock = options.clock or os.clock,
         factor = 0.65,
+        canOutrun = options.canOutrun or function()
+            return nil
+        end,
         getPing = options.getPing or function()
             return math.huge
         end,
+        guardConfigs = assert(options.guardConfigs),
         guardModels = options.guardModels or {},
-        guardSpeeds = assert(options.guardSpeeds),
+        hitIntervals = {},
         localPlayer = options.localPlayer,
+        onEscape = options.onEscape,
         pingThreshold = options.pingThreshold or 170,
+        reclaimDistance = options.reclaimDistance or 9,
         runService = options.runService,
     }, LagSafeMovement)
 end
@@ -2793,29 +2995,101 @@ function LagSafeMovement:_humanoid()
     return character and character:FindFirstChildOfClass("Humanoid") or nil
 end
 
-function LagSafeMovement:_shouldApply(humanoid, areaId, guardSpeed)
-    if not self.carrying or type(guardSpeed) ~= "number" or guardSpeed < 180 then
+function LagSafeMovement:_restore()
+    if self.humanoid and self.humanoid.Parent and self.humanoid.WalkSpeed == self.appliedSpeed then
+        self.humanoid.WalkSpeed = self.baseSpeed
+    end
+    self.humanoid = nil
+    self.baseSpeed = nil
+    self.appliedSpeed = nil
+end
+
+function LagSafeMovement:_resetEncounter()
+    self.phase = nil
+    self.phaseArea = nil
+end
+
+function LagSafeMovement:_beginEscape()
+    if self.phase ~= "escape" and type(self.onEscape) == "function" then
+        pcall(self.onEscape)
+    end
+    self.phase = "escape"
+end
+
+function LagSafeMovement:_shouldBait(humanoid, areaId, config)
+    if not self.carrying or type(config) ~= "table" then
+        return false
+    end
+    local guardSpeed = tonumber(config.WalkSpeed)
+    local flatRadius = tonumber(config.FlatRadius)
+    local hitDistance = tonumber(config.HitDistance) or 10
+    if not guardSpeed or not flatRadius then
+        self:_resetEncounter()
         return false
     end
     local ping = tonumber(self.getPing()) or 0
     if ping < self.pingThreshold then
+        self:_resetEncounter()
         return false
     end
     local playerSpeed = humanoid == self.humanoid and self.baseSpeed or humanoid.WalkSpeed
-    if type(playerSpeed) == "number" and playerSpeed >= guardSpeed * 1.05 then
+    local guard = self.guardModels[areaId]
+    local character = self.localPlayer.Character
+    local root = character and character:FindFirstChild("HumanoidRootPart")
+    if not guard or not guard.Parent or not root or not root:IsA("BasePart") then
+        self:_resetEncounter()
         return false
     end
-    local guard = self.guardModels[areaId]
-    if guard and guard.Parent then
-        local character = self.localPlayer.Character
-        local root = character and character:FindFirstChild("HumanoidRootPart")
-        if root and root:IsA("BasePart") then
-            local distance = (guard:GetPivot().Position - root.Position).Magnitude
-            local threatRadius = 140 + math.min(ping, 300) * 0.25
-            if distance > threatRadius then
+    local offset = guard:GetPivot().Position - root.Position
+    local distance = Vector3.new(offset.X, 0, offset.Z).Magnitude
+    if distance > flatRadius * 7 then
+        self:_resetEncounter()
+        return false
+    end
+    if type(playerSpeed) ~= "number" or self.canOutrun(areaId, playerSpeed) ~= false then
+        self:_resetEncounter()
+        return false
+    end
+    if self.phaseArea ~= areaId then
+        self.phaseArea = areaId
+        self.phase = "bait"
+    end
+    local slowedSpeed = playerSpeed * self.factor
+    local releaseDistance = hitDistance + math.max(0, guardSpeed - slowedSpeed) * (ping / 1000)
+    local guardState = guard:GetAttribute("GuardState")
+    if guardState == "RetrievingEgg" then
+        self:_beginEscape()
+        return false
+    elseif guardState == "Sleeping" or guardState == "Waking" then
+        self.phase = "bait"
+        return true
+    elseif guardState == "Chasing" then
+        local interval = self.hitIntervals[areaId]
+        local elapsed = self.carryStartedAt and self.clock() - self.carryStartedAt
+        if interval and elapsed then
+            local lead = math.min(ping / 1000, self.reclaimDistance / math.max(playerSpeed, 1))
+            if
+                elapsed >= math.max(0, interval - lead)
+                and elapsed <= interval + math.max(0.1, lead * 0.5)
+            then
+                self:_beginEscape()
                 return false
             end
+            self.phase = "bait"
+            return true
+        elseif distance <= releaseDistance then
+            self:_beginEscape()
+            return false
         end
+        self.phase = "bait"
+        return true
+    end
+    if self.phase == "escape" then
+        return false
+    end
+    if distance <= releaseDistance then
+        self:_beginEscape()
+        return false
     end
     return true
 end
@@ -2835,11 +3109,37 @@ function LagSafeMovement:setEnabled(enabled)
         for _, record in ipairs(self.eggCmds.GetAreaEggSnapshot().Records) do
             if record.State == "Carried" and record.CarrierUserId == self.localPlayer.UserId then
                 self.carrying = true
+                self.carryUid = record.Uid
+                self.carryStartedAt = self.clock()
                 break
             end
         end
         self.carryConnection = self.eggCmds.AreaEggCarryStateChanged:Connect(function(state)
-            self.carrying = state.IsCarrying == true
+            if state.IsCarrying == true then
+                if self.carryUid and state.Uid and state.Uid ~= self.carryUid then
+                    self:_resetEncounter()
+                end
+                self.carryUid = state.Uid or self.carryUid
+                self.carrying = true
+                self.carryStartedAt = self.clock()
+            else
+                local guard = self.phaseArea and self.guardModels[self.phaseArea]
+                if
+                    self.carryStartedAt
+                    and guard
+                    and guard:GetAttribute("GuardState") == "RetrievingEgg"
+                then
+                    local interval = self.clock() - self.carryStartedAt
+                    if interval > 0 and interval < 5 then
+                        self.hitIntervals[self.phaseArea] = interval
+                    end
+                end
+                self.carrying = false
+                self.carryStartedAt = nil
+                if self.phaseArea then
+                    self.phase = "bait"
+                end
+            end
         end)
         self.connection = self.runService.Heartbeat:Connect(function()
             local humanoid = self:_humanoid()
@@ -2847,15 +3147,15 @@ function LagSafeMovement:setEnabled(enabled)
                 return
             end
             local areaId = self.localPlayer:GetAttribute("AreaId")
-            local guardSpeed = self.guardSpeeds[areaId]
-            if not self:_shouldApply(humanoid, areaId, guardSpeed) then
-                if humanoid == self.humanoid and humanoid.WalkSpeed == self.appliedSpeed then
-                    humanoid.WalkSpeed = self.baseSpeed
-                end
-                self.humanoid = nil
-                self.baseSpeed = nil
-                self.appliedSpeed = nil
+            local config = self.guardConfigs[areaId]
+            if not self:_shouldBait(humanoid, areaId, config) then
+                self:_restore()
                 return
+            end
+            local character = self.localPlayer.Character
+            local root = character and character:FindFirstChild("HumanoidRootPart")
+            if root and root:IsA("BasePart") then
+                humanoid:MoveTo(root.Position)
             end
             if humanoid ~= self.humanoid or humanoid.WalkSpeed ~= self.appliedSpeed then
                 self.humanoid = humanoid
@@ -2869,21 +3169,15 @@ function LagSafeMovement:setEnabled(enabled)
             self.carryConnection:Disconnect()
             self.carryConnection = nil
         end
-        self.carrying = false
         if self.connection then
             self.connection:Disconnect()
             self.connection = nil
         end
-        if
-            self.humanoid
-            and self.humanoid.Parent
-            and self.humanoid.WalkSpeed == self.appliedSpeed
-        then
-            self.humanoid.WalkSpeed = self.baseSpeed
-        end
-        self.humanoid = nil
-        self.baseSpeed = nil
-        self.appliedSpeed = nil
+        self.carrying = false
+        self.carryStartedAt = nil
+        self.carryUid = nil
+        self:_resetEncounter()
+        self:_restore()
     end
 end
 
@@ -3032,6 +3326,11 @@ return ServerHop
         ["games/stealanegg/features/WalkNavigator.lua"] = [[local WalkNavigator = {}
 WalkNavigator.__index = WalkNavigator
 
+local function flatDistance(from, to)
+    local delta = from - to
+    return math.sqrt(delta.X * delta.X + delta.Z * delta.Z)
+end
+
 local function characterParts(localPlayer)
     local character = localPlayer.Character
     local humanoid = character and character:FindFirstChildOfClass("Humanoid")
@@ -3044,13 +3343,26 @@ end
 
 function WalkNavigator.new(options)
     assert(options and options.localPlayer and options.runService)
-    return setmetatable({
+    local self = setmetatable({
         localPlayer = options.localPlayer,
+        modifiers = {},
+        pathCosts = {},
         pathfindingService = options.pathfindingService,
         runService = options.runService,
         workspace = options.workspace or workspace,
         stopped = false,
     }, WalkNavigator)
+    for _, part in ipairs(options.blockedParts or {}) do
+        if part and part.Parent and part:IsA("BasePart") then
+            local modifier = Instance.new("PathfindingModifier")
+            modifier.Label = "UniversalHubTreadmill"
+            modifier.PassThrough = false
+            modifier.Parent = part
+            table.insert(self.modifiers, modifier)
+            self.pathCosts[modifier.Label] = 1000000
+        end
+    end
+    return self
 end
 
 function WalkNavigator:_waitForCharacter(isActive)
@@ -3070,16 +3382,28 @@ function WalkNavigator:_walkPoint(position, isActive, tolerance)
     if not humanoid then
         return false, "character-unavailable"
     end
+    self.movementId = (self.movementId or 0) + 1
+    local movementId = self.movementId
+    self.activeHumanoid = humanoid
+    self.activePosition = position
+    local function finish(reached, reason)
+        if self.movementId == movementId then
+            self.activeHumanoid = nil
+            self.activePosition = nil
+        end
+        return reached, reason
+    end
     local deadline = self.workspace:GetServerTimeNow()
-        + math.max(10, (root.Position - position).Magnitude / 6)
+        + math.max(10, flatDistance(root.Position, position) / 6)
     local nextMove = -math.huge
     while not self.stopped and isActive() and self.workspace:GetServerTimeNow() <= deadline do
         humanoid, root = characterParts(self.localPlayer)
         if not humanoid or not root then
-            return false, "character-lost"
+            return finish(false, "character-lost")
         end
-        if (root.Position - position).Magnitude <= tolerance then
-            return true
+        self.activeHumanoid = humanoid
+        if flatDistance(root.Position, position) <= tolerance then
+            return finish(true)
         end
         local now = self.workspace:GetServerTimeNow()
         if now >= nextMove then
@@ -3095,7 +3419,7 @@ function WalkNavigator:_walkPoint(position, isActive, tolerance)
             humanoid:MoveTo(root.Position)
         end
     end
-    return false, cancelled and "cancelled" or "timeout"
+    return finish(false, cancelled and "cancelled" or "timeout")
 end
 
 function WalkNavigator:_waypoints(startPosition, destination)
@@ -3106,6 +3430,7 @@ function WalkNavigator:_waypoints(startPosition, destination)
         AgentCanJump = true,
         AgentRadius = 2,
         AgentHeight = 5,
+        Costs = self.pathCosts,
         WaypointSpacing = 12,
     })
     local ok = pcall(path.ComputeAsync, path, startPosition, destination)
@@ -3127,16 +3452,18 @@ function WalkNavigator:walkTo(destination, isActive, tolerance)
     end
     local waypoints = self:_waypoints(root.Position, destination)
     if waypoints then
-        for _, waypoint in ipairs(waypoints) do
-            if waypoint.Action == Enum.PathWaypointAction.Jump then
-                local humanoid = characterParts(self.localPlayer)
-                if humanoid then
-                    humanoid.Jump = true
+        for index, waypoint in ipairs(waypoints) do
+            if index > 1 then
+                if waypoint.Action == Enum.PathWaypointAction.Jump then
+                    local humanoid = characterParts(self.localPlayer)
+                    if humanoid then
+                        humanoid.Jump = true
+                    end
                 end
-            end
-            local reached, reason = self:_walkPoint(waypoint.Position, isActive, tolerance)
-            if not reached then
-                return false, reason
+                local reached, reason = self:_walkPoint(waypoint.Position, isActive, tolerance)
+                if not reached then
+                    return false, reason
+                end
             end
         end
     end
@@ -3148,6 +3475,15 @@ function WalkNavigator:moveToDirect(destination, isActive, tolerance)
     return self:_walkPoint(destination, isActive or function()
         return true
     end, tolerance or 4)
+end
+
+function WalkNavigator:resume()
+    local humanoid = self.activeHumanoid
+    local position = self.activePosition
+    if not humanoid or typeof(position) ~= "Vector3" then
+        return false
+    end
+    return pcall(humanoid.MoveTo, humanoid, position)
 end
 
 function WalkNavigator:jump()
@@ -3162,10 +3498,17 @@ end
 
 function WalkNavigator:stop()
     self.stopped = true
+    self.movementId = (self.movementId or 0) + 1
+    self.activeHumanoid = nil
+    self.activePosition = nil
     local humanoid, root = characterParts(self.localPlayer)
     if humanoid and root then
         humanoid:MoveTo(root.Position)
     end
+    for _, modifier in ipairs(self.modifiers) do
+        pcall(modifier.Destroy, modifier)
+    end
+    table.clear(self.modifiers)
 end
 
 return WalkNavigator

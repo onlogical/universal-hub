@@ -1,5 +1,5 @@
 return {
-    buildId = [[51e70b59]],
+    buildId = [[58d79cb1]],
     id = [[hoodrivals]],
     sources = {
         ["games/hoodrivals/Adapter.lua"] = [[local function importDependency(path, relativePath)
