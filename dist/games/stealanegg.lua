@@ -1352,7 +1352,7 @@ function AutoFarm:_run(token)
         })
         self:_publish(
             "Walking to target",
-            ("%s %s · %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
+            ("%s %s Â· %s"):format(target.rarityName, record.AssetCategory, record.AreaId),
             record.Uid
         )
         local reached, reason = self.navigator:walkTo(record.BottomCFrame.Position, function()
@@ -1361,12 +1361,13 @@ function AutoFarm:_run(token)
         if not reached then
             self:_log("warn", "target walk failed", { reason = reason, uid = record.Uid })
             self:_publish(
-                "Route failed",
-                "The target path was blocked. Moving to another server.",
+                "Rebuilding route",
+                "The target path was blocked. Retrying inside this server.",
                 record.Uid
             )
+            self.wait(1)
             if self:_active(token) then
-                self:_hop(token)
+                self:_startRun()
             end
             return
         end
@@ -1428,14 +1429,14 @@ function AutoFarm:_run(token)
         return
     end
 
-    self:_log("info", "egg secured; hopping", { uid = record.Uid })
+    self:_log("info", "egg secured; rescanning", { uid = record.Uid })
     if type(self.onSecured) == "function" then
         pcall(self.onSecured, record)
     end
-    self:_publish("Egg secured", "Deposit confirmed. Preparing the next server.")
+    self:_publish("Egg secured", "Deposit confirmed. Checking this server for another target.")
     self.wait(1)
     if self:_active(token) then
-        self:_hop(token)
+        self:_startRun()
     end
 end
 
@@ -1782,7 +1783,7 @@ function HighlightEsp:_refreshEgg(uid)
         self.eggLabels,
         uid,
         model,
-        ("%s\n%s • %.1fx"):format(
+        ("%s\n%s â€¢ %.1fx"):format(
             tostring(record.AssetCategory),
             tostring(rarity.DisplayName or rarity._id or "Egg"),
             record.AssetScale

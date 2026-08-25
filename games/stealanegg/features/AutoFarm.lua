@@ -425,12 +425,13 @@ function AutoFarm:_run(token)
         if not reached then
             self:_log("warn", "target walk failed", { reason = reason, uid = record.Uid })
             self:_publish(
-                "Route failed",
-                "The target path was blocked. Moving to another server.",
+                "Rebuilding route",
+                "The target path was blocked. Retrying inside this server.",
                 record.Uid
             )
+            self.wait(1)
             if self:_active(token) then
-                self:_hop(token)
+                self:_startRun()
             end
             return
         end
@@ -492,14 +493,14 @@ function AutoFarm:_run(token)
         return
     end
 
-    self:_log("info", "egg secured; hopping", { uid = record.Uid })
+    self:_log("info", "egg secured; rescanning", { uid = record.Uid })
     if type(self.onSecured) == "function" then
         pcall(self.onSecured, record)
     end
-    self:_publish("Egg secured", "Deposit confirmed. Preparing the next server.")
+    self:_publish("Egg secured", "Deposit confirmed. Checking this server for another target.")
     self.wait(1)
     if self:_active(token) then
-        self:_hop(token)
+        self:_startRun()
     end
 end
 

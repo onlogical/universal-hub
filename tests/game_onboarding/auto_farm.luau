@@ -52,6 +52,7 @@ local walks = {}
 local hops = 0
 local now = 0
 local resetSeconds = 2
+local failWalk = false
 local secured = 0
 local farm
 local carrierRoot = {
@@ -86,6 +87,9 @@ local eggCmds = {
 }
 local navigator = {
     walkTo = function(_, position)
+        if failWalk then
+            return false, "blocked"
+        end
         if position ~= Vector3.new(0, 0, 100) then
             assert(resetSeconds <= 0, "Auto Farm must wait for the reset phase to finish")
         end
@@ -179,8 +183,25 @@ queued()
 assert(walks[1] == Vector3.new(0, 0, 100), "Auto Farm must use the treadmill while idle")
 assert(walks[2] == Vector3.new(40, 0, 0), "Auto Farm must prefer Eternal over Secret")
 assert(walks[3] == Vector3.new(0, 0, 100), "Auto Farm must walk back to the base")
-assert(hops == 1, "Auto Farm must hop only after the egg is secured")
+assert(hops == 0, "Auto Farm must rescan before leaving a server with more targets")
+assert(type(queued) == "function", "A secured egg must queue another scan of the current server")
 assert(secured == 1, "Secured eggs must be recorded exactly once")
+local blocked = {
+    AreaId = "Cosmic",
+    AssetCategory = "Eternal Egg",
+    BottomCFrame = CFrame.new(80, 0, 0),
+    NestId = "Blocked",
+    State = "Slot",
+    Uid = "blocked",
+}
+records = { blocked }
+byUid.blocked = blocked
+failWalk = true
+queued = nil
+farm:_run(farm.token)
+assert(hops == 0, "A blocked path must not force a server hop")
+assert(type(queued) == "function", "A blocked path must rebuild its route in the same server")
+failWalk = false
 local contested = {
     AreaId = "Volcano",
     AssetCategory = "Secret Egg",
@@ -198,7 +219,7 @@ assert(
 farm:setServerHopping(false)
 queued = nil
 farm:_hop(farm.token)
-assert(hops == 1, "Auto Farm must stay in the current server when Server Hopping is off")
+assert(hops == 0, "Auto Farm must stay in the current server when Server Hopping is off")
 assert(queued == nil, "Disabled server hopping must not poll on a timer")
 eggUpdated:Fire(records[1])
 assert(type(queued) == "function", "Egg updates must wake the event-driven farm")
