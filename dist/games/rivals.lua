@@ -1,5 +1,5 @@
 return {
-    buildId = [[275d1097]],
+    buildId = [[727fb9fc]],
     id = [[rivals]],
     sources = {
         ["games/rivals/Adapter.lua"] = [[local Targeting = require("./libraries/Targeting")

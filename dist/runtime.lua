@@ -1,4 +1,4 @@
-local buildId = [[275d1097]]
+local buildId = [[727fb9fc]]
 local shared = {
     ["changelog.json"] = [[{
   "current": "0.3.0",
@@ -14379,8 +14379,6 @@ return Closure
 
 local moduleFiles = {
     closure = "Closure",
-    controls = "DrawingControls",
-    drawing = "Drawing",
     lifecycle = "Lifecycle",
     remote = "Remote",
     targeting = "Targeting",
@@ -14459,7 +14457,6 @@ function Helpers.attach(session, options)
     options.state = options.state or session.State or session.state
     options.modules = options.modules or {
         "closure",
-        "drawing",
         "lifecycle",
         "targeting",
     }
@@ -14811,25 +14808,15 @@ local function defaultContext()
         return bounds, allCornersProjected and projectedCorners or nil
     end
 
-    local function getVisibleAim(localPlayer, character, options)
+    local function getVisibleAim(localPlayer, character)
         local camera = Workspace.CurrentCamera
         if not camera then
             return nil, {}
         end
 
-        options = options or {}
-        local raycastIgnore = {}
-        if localPlayer.Character then
-            table.insert(raycastIgnore, localPlayer.Character)
-        end
-        for _index, instance in ipairs(options.raycastIgnore or {}) do
-            if instance and not table.find(raycastIgnore, instance) then
-                table.insert(raycastIgnore, instance)
-            end
-        end
         local raycastParams = RaycastParams.new()
         raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-        raycastParams.FilterDescendantsInstances = raycastIgnore
+        raycastParams.FilterDescendantsInstances = localPlayer.Character and { localPlayer.Character } or {}
         raycastParams.IgnoreWater = true
 
         local origin = camera:GetRenderCFrame().Position
@@ -14963,7 +14950,7 @@ local function defaultContext()
             return nil
         end
 
-        local aim, bodyParts = getVisibleAim(localPlayer, character, options)
+        local aim, bodyParts = getVisibleAim(localPlayer, character)
         local fallbackPart
         local fallbackPosition
         local fallbackScreenPosition
