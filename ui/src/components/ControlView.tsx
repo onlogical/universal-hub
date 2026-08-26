@@ -2,6 +2,7 @@ import React from "@rbxts/react";
 import { Box } from "@prism/components/Box";
 import { Button } from "@prism/components/Button";
 import { KeybindInput } from "@prism/components/KeybindInput";
+import { Input } from "@prism/components/Input";
 import { Modal } from "@prism/components/Modal";
 import { SegmentedControl } from "@prism/components/SegmentedControl";
 import { Slider } from "@prism/components/Slider";
@@ -32,6 +33,67 @@ function intentColor(
     default:
       return theme.primary.main;
   }
+}
+
+function NumberControlView({
+  control,
+  model,
+  disabled,
+  layoutOrder,
+}: {
+  readonly control: Extract<MenuControl, { readonly kind: "number" }>;
+  readonly model: UniversalHubMenuModel;
+  readonly disabled: boolean;
+  readonly layoutOrder?: number;
+}): React.ReactElement {
+  const [draft, setDraft] = React.useState(tostring(control.value));
+  const focused = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!focused.current) setDraft(tostring(control.value));
+  }, [control.value]);
+
+  const commit = () => {
+    focused.current = false;
+    let value = tonumber(draft);
+    if (value === undefined) {
+      setDraft(tostring(control.value));
+      return;
+    }
+    if (control.min !== undefined) value = math.max(value, control.min);
+    if (control.max !== undefined) value = math.min(value, control.max);
+    setDraft(tostring(value));
+    model.onValueChange(control.id, value, true);
+  };
+
+  return (
+    <Stack width="100%" direction="horizontal" align="center" gap="sm" layoutOrder={layoutOrder}>
+      {control.parent !== undefined && (
+        <frame BackgroundTransparency={1} BorderSizePixel={0} Size={UDim2.fromOffset(HUB_THEME.spacing?.md ?? 12, 1)} />
+      )}
+      <Text
+        text={control.label}
+        size={control.parent !== undefined ? "sm" : "md"}
+        weight={control.parent !== undefined ? 500 : 600}
+        color={control.parent !== undefined ? theme.text.secondary : theme.text.primary}
+        width={control.parent !== undefined ? 120 : 170}
+        slotProps={{ root: { TextXAlignment: Enum.TextXAlignment.Left } }}
+      />
+      <Input
+        value={draft}
+        onChange={setDraft}
+        placeholder={control.placeholder ?? "Enter a number"}
+        disabled={disabled}
+        size="sm"
+        fullWidth
+        Event={{
+          Focused: () => { focused.current = true; },
+          FocusLost: commit,
+        }}
+        slotProps={{ textbox: { TextXAlignment: Enum.TextXAlignment.Right } }}
+      />
+    </Stack>
+  );
 }
 
 export function ControlView({
@@ -243,6 +305,10 @@ export function ControlView({
         </Stack>
       </Stack>
     );
+  }
+
+  if (control.kind === "number") {
+    return <NumberControlView control={control} model={model} disabled={disabled} layoutOrder={layoutOrder} />;
   }
 
   if (control.kind === "toggle") {

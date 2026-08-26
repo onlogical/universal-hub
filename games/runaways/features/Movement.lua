@@ -40,7 +40,7 @@ function Movement:update(settings, character, camera, input)
     local humanoid, root = humanoidAndRoot(character)
 
     if settings.speed == true and humanoid then
-        local desired = math.clamp(tonumber(settings.walkSpeed) or 32, 16, 100)
+        local desired = math.max(tonumber(settings.walkSpeed) or 32, 0)
         if self.speedHumanoid ~= humanoid then
             self:releaseSpeed()
             self.speedHumanoid = humanoid
@@ -83,7 +83,7 @@ function Movement:update(settings, character, camera, input)
     if input:IsKeyDown(Enum.KeyCode.LeftControl) then
         direction -= Vector3.yAxis
     end
-    local speed = math.clamp(tonumber(settings.flySpeed) or 60, 20, 500)
+    local speed = math.max(tonumber(settings.flySpeed) or 60, 0)
     root.AssemblyLinearVelocity = direction.Magnitude > 1e-3 and direction.Unit * speed
         or Vector3.zero
 end

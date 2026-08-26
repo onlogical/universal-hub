@@ -11,6 +11,11 @@ end
 
 local Targeting = importDependency("games/runaways/Targeting", "./Targeting")
 local Movement = importDependency("games/runaways/features/Movement", "./features/Movement")
+local MeleeKnockback = importDependency(
+    "games/runaways/features/MeleeKnockback",
+    "./features/MeleeKnockback"
+)
+local VehicleFly = importDependency("games/runaways/features/VehicleFly", "./features/VehicleFly")
 
 local Adapter = {}
 
@@ -23,6 +28,16 @@ function Adapter.new(context)
     local Workspace = context.workspace or workspace
     local LocalPlayer = context.localPlayer or Players.LocalPlayer
     local movement = Movement.new()
+    local meleeKnockback = MeleeKnockback.new({
+        input = UserInputService,
+        localPlayer = LocalPlayer,
+        workspace = Workspace,
+        getSettings = function()
+            return context.store:Get().settings
+        end,
+    })
+    meleeKnockback:start()
+    local vehicleFly = VehicleFly.new()
     local stopped = false
 
     local connection = RunService.Heartbeat:Connect(function()
@@ -32,6 +47,7 @@ function Adapter.new(context)
         local camera = Workspace.CurrentCamera
         local settings = context.store:Get().settings
         movement:update(settings, LocalPlayer.Character, camera, UserInputService)
+        vehicleFly:update(settings, LocalPlayer.Character, camera, UserInputService)
         context.render(
             camera and Targeting.observations(Players, LocalPlayer, camera) or {},
             UserInputService:GetMouseLocation(),
@@ -50,7 +66,11 @@ function Adapter.new(context)
             "weapon",
             "fly",
             "flySpeed",
+            "meleeKnockback",
+            "meleeKnockbackForce",
             "speed",
+            "vehicleFly",
+            "vehicleFlySpeed",
             "walkSpeed",
         },
         isOpponent = function(player)
@@ -63,6 +83,8 @@ function Adapter.new(context)
             stopped = true
             connection:Disconnect()
             movement:stop()
+            meleeKnockback:stop()
+            vehicleFly:stop()
         end,
     }
 end

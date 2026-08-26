@@ -11,23 +11,21 @@ function Presentation.mount(host)
 
     host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "fly", "Fly")
-    if type(host.slider) == "function" then
-        host:slider("movement", "flySpeed", "Fly Speed", {
-            min = 20,
-            max = 500,
-            step = 10,
-            parent = "fly",
-        })
-    end
+    host:number("movement", "flySpeed", "Fly Speed", { min = 0, parent = "fly" })
     host:option("movement", 2, "speed", "Speed")
-    if type(host.slider) == "function" then
-        host:slider("movement", "walkSpeed", "Walk Speed", {
-            min = 16,
-            max = 100,
-            step = 2,
-            parent = "speed",
-        })
-    end
+    host:number("movement", "walkSpeed", "Walk Speed", { min = 0, parent = "speed" })
+    host:option("movement", 3, "vehicleFly", "Vehicle Fly")
+    host:number("movement", "vehicleFlySpeed", "Vehicle Fly Speed", {
+        min = 0,
+        parent = "vehicleFly",
+    })
+
+    host:section("Combat", "combat", "MELEE", 70)
+    host:option("combat", 1, "meleeKnockback", "Melee Knockback")
+    host:number("combat", "meleeKnockbackForce", "Knockback Force", {
+        min = 0,
+        parent = "meleeKnockback",
+    })
 end
 
 return Presentation

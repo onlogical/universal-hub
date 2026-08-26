@@ -42,13 +42,13 @@ local character = {
         return name == "HumanoidRootPart" and root or nil
     end,
 }
-local pressed = { [Enum.KeyCode.W] = true, [Enum.KeyCode.Space] = true }
+local pressed = { W = true, Space = true }
 local movement = Movement.new()
 movement:update({ fly = true, flySpeed = 80, speed = true, walkSpeed = 48 }, character, {
     CFrame = roblox.CFrame.new(),
 }, {
     IsKeyDown = function(_self, key)
-        return pressed[key] == true
+        return pressed[key.Name] == true
     end,
 })
 assert(humanoid.PlatformStand == true and humanoid.WalkSpeed == 48)
@@ -57,10 +57,10 @@ movement:update({ fly = true, flySpeed = 999, speed = false }, character, {
     CFrame = roblox.CFrame.new(),
 }, {
     IsKeyDown = function(_self, key)
-        return key == Enum.KeyCode.W
+        return key.Name == "W"
     end,
 })
-assert(math.abs(root.AssemblyLinearVelocity.Magnitude - 500) < 0.001)
+assert(math.abs(root.AssemblyLinearVelocity.Magnitude - 999) < 0.001)
 movement:stop()
 assert(humanoid.PlatformStand == false and humanoid.WalkSpeed == 16)
 

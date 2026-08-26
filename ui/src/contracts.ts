@@ -26,6 +26,14 @@ export interface SliderControl extends ControlBase {
 	readonly intent?: "primary" | "success" | "warning" | "error" | "info";
 }
 
+export interface NumberControl extends ControlBase {
+	readonly kind: "number";
+	readonly value: number;
+	readonly min?: number;
+	readonly max?: number;
+	readonly placeholder?: string;
+}
+
 export interface SegmentedControlModel extends ControlBase {
 	readonly kind: "segmented";
 	readonly emphasis?: "prominent" | "row";
@@ -61,6 +69,7 @@ export interface ModelViewerControl extends ControlBase {
 
 export type MenuControl =
 	| SliderControl
+	| NumberControl
 	| SegmentedControlModel
 	| ToggleControl
 	| KeybindControl
@@ -258,6 +267,8 @@ export function validateModel(model: UniversalHubMenuModel): void {
 					if (control.value < control.min || control.value > control.max)
 						error(`Slider ${control.id} value is outside its range`);
 				}
+				if (control.kind === "number" && control.min !== undefined && control.max !== undefined && control.max < control.min)
+					error(`Number input ${control.id} requires max >= min`);
 				if (control.kind === "segmented") {
 					if (control.options.size() < 2) error(`Segmented control ${control.id} requires at least two options`);
 					if (control.options.find((option) => option.value === control.value) === undefined)

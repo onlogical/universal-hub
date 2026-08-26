@@ -55,6 +55,14 @@ function Catalog.collectEphemeralSettings(presentation)
         end
     end
 
+    function collector:number(sectionId, id, _label, spec)
+        local section =
+            assert(sections[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+        if section.ephemeral or isEphemeral(section.page, spec) then
+            result[id] = true
+        end
+    end
+
     function collector:button() end
 
     function collector:keybind(sectionId, id)
@@ -115,6 +123,7 @@ function Catalog.new(context)
         ephemeralSettings = {},
         rates = {},
         relatedValues = {},
+        numberById = {},
         segments = {},
         segmentById = {},
         sliderById = {},
@@ -232,9 +241,34 @@ function Catalog:section(page, id, label, lineOffset, includesRates, columns, sp
         options = {},
         keybinds = {},
         sliders = {},
+        numbers = {},
     }
     self.groupById[id] = group
     table.insert(self.groups, group)
+end
+
+function Catalog:number(sectionId, id, label, spec)
+    if not self.available[id] then
+        return
+    end
+    local group =
+        assert(self.groupById[sectionId], "Unknown presentation section: " .. tostring(sectionId))
+    spec = spec or {}
+    local number = {
+        ephemeral = group.ephemeral or isEphemeral(group.page, spec),
+        id = id,
+        label = label,
+        min = spec.min,
+        max = spec.max,
+        parent = spec.parent,
+        placeholder = spec.placeholder,
+    }
+    if number.ephemeral then
+        self.ephemeralSettings[id] = true
+    end
+    table.insert(group.numbers, number)
+    self.numberById[id] = number
+    self:_markPage(group.page)
 end
 
 function Catalog:button(sectionId, id, label, spec)
@@ -505,6 +539,7 @@ function Catalog:model(state)
             or #group.options > 0
             or #group.keybinds > 0
             or #group.sliders > 0
+            or #group.numbers > 0
         then
             local controls = {}
             for _, action in ipairs(group.actions) do
@@ -574,6 +609,20 @@ function Catalog:model(state)
                             })
                         end
                     end
+                    for _, number in ipairs(group.numbers) do
+                        if number.parent == option.id and settings[option.id] == true then
+                            append(controls, {
+                                id = number.id,
+                                kind = "number",
+                                label = number.label,
+                                parent = number.parent,
+                                value = tonumber(settings[number.id]) or 0,
+                                min = number.min,
+                                max = number.max,
+                                placeholder = number.placeholder,
+                            })
+                        end
+                    end
                 end
             end
             for _, slider in ipairs(group.sliders) do
@@ -594,6 +643,20 @@ function Catalog:model(state)
                     step = slider.step,
                     unit = slider.unit,
                     emphasis = "row",
+                })
+            end
+            for _, number in ipairs(group.numbers) do
+                if number.parent then
+                    continue
+                end
+                append(controls, {
+                    id = number.id,
+                    kind = "number",
+                    label = number.label,
+                    value = tonumber(settings[number.id]) or 0,
+                    min = number.min,
+                    max = number.max,
+                    placeholder = number.placeholder,
                 })
             end
             if #controls > 0 or group.renderEmpty then

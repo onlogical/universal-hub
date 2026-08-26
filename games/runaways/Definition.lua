@@ -2,7 +2,11 @@ return {
     defaults = {
         fly = false,
         flySpeed = 60,
+        meleeKnockback = false,
+        meleeKnockbackForce = 120,
         speed = false,
+        vehicleFly = false,
+        vehicleFlySpeed = 100,
         walkSpeed = 32,
     },
     features = {
@@ -16,7 +20,11 @@ return {
             "weapon",
             "fly",
             "flySpeed",
+            "meleeKnockback",
+            "meleeKnockbackForce",
             "speed",
+            "vehicleFly",
+            "vehicleFlySpeed",
             "walkSpeed",
         },
         cosmetics = false,
@@ -36,5 +44,7 @@ return {
         "games/runaways/Presentation",
         "games/runaways/Targeting",
         "games/runaways/features/Movement",
+        "games/runaways/features/MeleeKnockback",
+        "games/runaways/features/VehicleFly",
     },
 }
