@@ -16,6 +16,10 @@ local MeleeKnockback = importDependency(
     "./features/MeleeKnockback"
 )
 local VehicleFly = importDependency("games/runaways/features/VehicleFly", "./features/VehicleFly")
+local InstantPrompt = importDependency(
+    "games/runaways/features/InstantPrompt",
+    "./features/InstantPrompt"
+)
 
 local Adapter = {}
 
@@ -38,6 +42,13 @@ function Adapter.new(context)
     })
     meleeKnockback:start()
     local vehicleFly = VehicleFly.new()
+    local instantPrompt = InstantPrompt.new({
+        getSettings = function()
+            return context.store:Get().settings
+        end,
+        service = game:GetService("ProximityPromptService"),
+    })
+    instantPrompt:start()
     local stopped = false
 
     local connection = RunService.Heartbeat:Connect(function()
@@ -66,6 +77,7 @@ function Adapter.new(context)
             "weapon",
             "fly",
             "flySpeed",
+            "instantPrompt",
             "meleeKnockback",
             "meleeKnockbackForce",
             "speed",
@@ -85,6 +97,7 @@ function Adapter.new(context)
             movement:stop()
             meleeKnockback:stop()
             vehicleFly:stop()
+            instantPrompt:stop()
         end,
     }
 end

@@ -2,6 +2,7 @@ return {
     defaults = {
         fly = false,
         flySpeed = 60,
+        instantPrompt = false,
         meleeKnockback = false,
         meleeKnockbackForce = 120,
         speed = false,
@@ -20,6 +21,7 @@ return {
             "weapon",
             "fly",
             "flySpeed",
+            "instantPrompt",
             "meleeKnockback",
             "meleeKnockbackForce",
             "speed",
@@ -46,5 +48,6 @@ return {
         "games/runaways/features/Movement",
         "games/runaways/features/MeleeKnockback",
         "games/runaways/features/VehicleFly",
+        "games/runaways/features/InstantPrompt",
     },
 }

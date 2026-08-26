@@ -26,6 +26,9 @@ function Presentation.mount(host)
         min = 0,
         parent = "meleeKnockback",
     })
+
+    host:section("Tools", "automation", "AUTOMATION", 70)
+    host:option("automation", 1, "instantPrompt", "Instant Prompt")
 end
 
 return Presentation

@@ -66,6 +66,15 @@ function NumberControlView({
     model.onValueChange(control.id, value, true);
   };
 
+  const updateDraft = (nextText: string) => {
+    setDraft(nextText);
+    let value = tonumber(nextText);
+    if (value === undefined) return;
+    if (control.min !== undefined) value = math.max(value, control.min);
+    if (control.max !== undefined) value = math.min(value, control.max);
+    model.onValueChange(control.id, value, false);
+  };
+
   return (
     <Stack width="100%" direction="horizontal" align="center" gap="sm" layoutOrder={layoutOrder}>
       {control.parent !== undefined && (
@@ -81,7 +90,7 @@ function NumberControlView({
       />
       <Input
         value={draft}
-        onChange={setDraft}
+        onChange={updateDraft}
         placeholder={control.placeholder ?? "Enter a number"}
         disabled={disabled}
         size="sm"
