@@ -1,5 +1,5 @@
 return {
-    buildId = [[1f019d65]],
+    buildId = [[41e56994]],
     id = [[runaways]],
     sources = {
         ["games/runaways/Adapter.lua"] = [[local function importDependency(path, relativePath)
@@ -89,8 +89,8 @@ function Presentation.mount(host)
     if type(host.slider) == "function" then
         host:slider("movement", "flySpeed", "Fly Speed", {
             min = 20,
-            max = 150,
-            step = 5,
+            max = 500,
+            step = 10,
             parent = "fly",
         })
     end
@@ -237,7 +237,7 @@ function Movement:update(settings, character, camera, input)
     if input:IsKeyDown(Enum.KeyCode.LeftControl) then
         direction -= Vector3.yAxis
     end
-    local speed = math.clamp(tonumber(settings.flySpeed) or 60, 20, 150)
+    local speed = math.clamp(tonumber(settings.flySpeed) or 60, 20, 500)
     root.AssemblyLinearVelocity = direction.Magnitude > 1e-3 and direction.Unit * speed
         or Vector3.zero
 end
