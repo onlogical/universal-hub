@@ -53,6 +53,14 @@ movement:update({ fly = true, flySpeed = 80, speed = true, walkSpeed = 48 }, cha
 })
 assert(humanoid.PlatformStand == true and humanoid.WalkSpeed == 48)
 assert(math.abs(root.AssemblyLinearVelocity.Magnitude - 80) < 0.001)
+movement:update({ fly = true, flySpeed = 999, speed = false }, character, {
+    CFrame = roblox.CFrame.new(),
+}, {
+    IsKeyDown = function(_self, key)
+        return key == Enum.KeyCode.W
+    end,
+})
+assert(math.abs(root.AssemblyLinearVelocity.Magnitude - 500) < 0.001)
 movement:stop()
 assert(humanoid.PlatformStand == false and humanoid.WalkSpeed == 16)
 

@@ -14,8 +14,8 @@ function Presentation.mount(host)
     if type(host.slider) == "function" then
         host:slider("movement", "flySpeed", "Fly Speed", {
             min = 20,
-            max = 150,
-            step = 5,
+            max = 500,
+            step = 10,
             parent = "fly",
         })
     end
