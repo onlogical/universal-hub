@@ -1,5 +1,5 @@
 return {
-    buildId = [[41e56994]],
+    buildId = [[49b3fdc0]],
     id = [[runaways]],
     sources = {
         ["games/runaways/Adapter.lua"] = [[local function importDependency(path, relativePath)
@@ -15,6 +15,11 @@ end
 
 local Targeting = importDependency("games/runaways/Targeting", "./Targeting")
 local Movement = importDependency("games/runaways/features/Movement", "./features/Movement")
+local MeleeKnockback = importDependency(
+    "games/runaways/features/MeleeKnockback",
+    "./features/MeleeKnockback"
+)
+local VehicleFly = importDependency("games/runaways/features/VehicleFly", "./features/VehicleFly")
 
 local Adapter = {}
 
@@ -27,6 +32,16 @@ function Adapter.new(context)
     local Workspace = context.workspace or workspace
     local LocalPlayer = context.localPlayer or Players.LocalPlayer
     local movement = Movement.new()
+    local meleeKnockback = MeleeKnockback.new({
+        input = UserInputService,
+        localPlayer = LocalPlayer,
+        workspace = Workspace,
+        getSettings = function()
+            return context.store:Get().settings
+        end,
+    })
+    meleeKnockback:start()
+    local vehicleFly = VehicleFly.new()
     local stopped = false
 
     local connection = RunService.Heartbeat:Connect(function()
@@ -36,6 +51,7 @@ function Adapter.new(context)
         local camera = Workspace.CurrentCamera
         local settings = context.store:Get().settings
         movement:update(settings, LocalPlayer.Character, camera, UserInputService)
+        vehicleFly:update(settings, LocalPlayer.Character, camera, UserInputService)
         context.render(
             camera and Targeting.observations(Players, LocalPlayer, camera) or {},
             UserInputService:GetMouseLocation(),
@@ -54,7 +70,11 @@ function Adapter.new(context)
             "weapon",
             "fly",
             "flySpeed",
+            "meleeKnockback",
+            "meleeKnockbackForce",
             "speed",
+            "vehicleFly",
+            "vehicleFlySpeed",
             "walkSpeed",
         },
         isOpponent = function(player)
@@ -67,6 +87,8 @@ function Adapter.new(context)
             stopped = true
             connection:Disconnect()
             movement:stop()
+            meleeKnockback:stop()
+            vehicleFly:stop()
         end,
     }
 end
@@ -86,23 +108,21 @@ function Presentation.mount(host)
 
     host:section("Movement", "movement", "MOVEMENT", 70)
     host:option("movement", 1, "fly", "Fly")
-    if type(host.slider) == "function" then
-        host:slider("movement", "flySpeed", "Fly Speed", {
-            min = 20,
-            max = 500,
-            step = 10,
-            parent = "fly",
-        })
-    end
+    host:number("movement", "flySpeed", "Fly Speed", { min = 0, parent = "fly" })
     host:option("movement", 2, "speed", "Speed")
-    if type(host.slider) == "function" then
-        host:slider("movement", "walkSpeed", "Walk Speed", {
-            min = 16,
-            max = 100,
-            step = 2,
-            parent = "speed",
-        })
-    end
+    host:number("movement", "walkSpeed", "Walk Speed", { min = 0, parent = "speed" })
+    host:option("movement", 3, "vehicleFly", "Vehicle Fly")
+    host:number("movement", "vehicleFlySpeed", "Vehicle Fly Speed", {
+        min = 0,
+        parent = "vehicleFly",
+    })
+
+    host:section("Combat", "combat", "MELEE", 70)
+    host:option("combat", 1, "meleeKnockback", "Melee Knockback")
+    host:number("combat", "meleeKnockbackForce", "Knockback Force", {
+        min = 0,
+        parent = "meleeKnockback",
+    })
 end
 
 return Presentation
@@ -152,6 +172,73 @@ end
 
 return Targeting
 ]],
+        ["games/runaways/features/MeleeKnockback.lua"] = [[local MeleeKnockback = {}
+MeleeKnockback.__index = MeleeKnockback
+
+local HIT_DELAY_SECONDS = 0.1
+local HIT_RADIUS = 4.5
+
+local function isMelee(character)
+    local tool = character and character:FindFirstChildWhichIsA("Tool")
+    return tool == nil or tool:HasTag("Melee")
+end
+
+function MeleeKnockback.new(context)
+    assert(context and context.input and context.localPlayer and context.workspace)
+    assert(type(context.getSettings) == "function")
+    return setmetatable({ context = context, stopped = false }, MeleeKnockback)
+end
+
+function MeleeKnockback:_apply()
+    local settings = self.context.getSettings()
+    if settings.meleeKnockback ~= true then
+        return
+    end
+    local character = self.context.localPlayer.Character
+    local localRoot = character and character:FindFirstChild("HumanoidRootPart")
+    local npcs = self.context.workspace:FindFirstChild("NPCs")
+    if not localRoot or not npcs or not isMelee(character) then
+        return
+    end
+    local force = math.max(tonumber(settings.meleeKnockbackForce) or 120, 0)
+    for _, model in ipairs(npcs:GetChildren()) do
+        local humanoid = model:FindFirstChildOfClass("Humanoid")
+        local root = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("Torso")
+        if humanoid and humanoid.Health > 0 and root then
+            local offset = root.Position - localRoot.Position
+            if offset.Magnitude <= HIT_RADIUS and offset.Magnitude > 0 then
+                local direction = (offset.Unit + Vector3.new(0, 0.25, 0)).Unit
+                root:ApplyImpulse(direction * force * root.AssemblyMass)
+            end
+        end
+    end
+end
+
+function MeleeKnockback:start()
+    self.connection = self.context.input.InputBegan:Connect(function(input, processed)
+        if processed or input.UserInputType ~= Enum.UserInputType.MouseButton1 then
+            return
+        end
+        task.delay(HIT_DELAY_SECONDS, function()
+            if not self.stopped then
+                self:_apply()
+            end
+        end)
+    end)
+end
+
+function MeleeKnockback:stop()
+    if self.stopped then
+        return
+    end
+    self.stopped = true
+    if self.connection then
+        self.connection:Disconnect()
+    end
+end
+
+return MeleeKnockback
+]],
         ["games/runaways/features/Movement.lua"] = [[local Movement = {}
 Movement.__index = Movement
 
@@ -194,7 +281,7 @@ function Movement:update(settings, character, camera, input)
     local humanoid, root = humanoidAndRoot(character)
 
     if settings.speed == true and humanoid then
-        local desired = math.clamp(tonumber(settings.walkSpeed) or 32, 16, 100)
+        local desired = math.max(tonumber(settings.walkSpeed) or 32, 0)
         if self.speedHumanoid ~= humanoid then
             self:releaseSpeed()
             self.speedHumanoid = humanoid
@@ -237,7 +324,7 @@ function Movement:update(settings, character, camera, input)
     if input:IsKeyDown(Enum.KeyCode.LeftControl) then
         direction -= Vector3.yAxis
     end
-    local speed = math.clamp(tonumber(settings.flySpeed) or 60, 20, 500)
+    local speed = math.max(tonumber(settings.flySpeed) or 60, 0)
     root.AssemblyLinearVelocity = direction.Magnitude > 1e-3 and direction.Unit * speed
         or Vector3.zero
 end
@@ -252,6 +339,75 @@ function Movement:stop()
 end
 
 return Movement
+]],
+        ["games/runaways/features/VehicleFly.lua"] = [[local VehicleFly = {}
+VehicleFly.__index = VehicleFly
+
+function VehicleFly.new()
+    return setmetatable({ root = nil, stopped = false }, VehicleFly)
+end
+
+function VehicleFly:release()
+    if self.root and self.root.Parent then
+        self.root.AssemblyLinearVelocity = Vector3.zero
+        self.root.AssemblyAngularVelocity = Vector3.zero
+    end
+    self.root = nil
+end
+
+function VehicleFly:update(settings, character, camera, input)
+    if self.stopped then
+        return
+    end
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    local seat = humanoid and humanoid.SeatPart
+    if
+        settings.vehicleFly ~= true
+        or not camera
+        or not seat
+        or not (seat:IsA("Seat") or seat:IsA("VehicleSeat"))
+        or seat.Occupant ~= humanoid
+    then
+        self:release()
+        return
+    end
+    local root = seat.AssemblyRootPart or seat
+    self.root = root
+
+    local direction = Vector3.zero
+    if input:IsKeyDown(Enum.KeyCode.W) then
+        direction += camera.CFrame.LookVector
+    end
+    if input:IsKeyDown(Enum.KeyCode.S) then
+        direction -= camera.CFrame.LookVector
+    end
+    if input:IsKeyDown(Enum.KeyCode.D) then
+        direction += camera.CFrame.RightVector
+    end
+    if input:IsKeyDown(Enum.KeyCode.A) then
+        direction -= camera.CFrame.RightVector
+    end
+    if input:IsKeyDown(Enum.KeyCode.Space) then
+        direction += Vector3.yAxis
+    end
+    if input:IsKeyDown(Enum.KeyCode.LeftControl) then
+        direction -= Vector3.yAxis
+    end
+    local speed = math.max(tonumber(settings.vehicleFlySpeed) or 100, 0)
+    root.AssemblyLinearVelocity = direction.Magnitude > 1e-3 and direction.Unit * speed
+        or Vector3.zero
+    root.AssemblyAngularVelocity = Vector3.zero
+end
+
+function VehicleFly:stop()
+    if self.stopped then
+        return
+    end
+    self.stopped = true
+    self:release()
+end
+
+return VehicleFly
 ]],
     },
 }
