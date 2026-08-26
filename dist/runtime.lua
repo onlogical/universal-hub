@@ -1,4 +1,4 @@
-local buildId = [[49b3fdc0]]
+local buildId = [[4dfdf616]]
 local shared = {
     ["changelog.json"] = [[{
   "current": "0.3.0",
@@ -2620,6 +2620,7 @@ return Counterblox
     defaults = {
         fly = false,
         flySpeed = 60,
+        instantPrompt = false,
         meleeKnockback = false,
         meleeKnockbackForce = 120,
         speed = false,
@@ -2638,6 +2639,7 @@ return Counterblox
             "weapon",
             "fly",
             "flySpeed",
+            "instantPrompt",
             "meleeKnockback",
             "meleeKnockbackForce",
             "speed",
@@ -2664,6 +2666,7 @@ return Counterblox
         "games/runaways/features/Movement",
         "games/runaways/features/MeleeKnockback",
         "games/runaways/features/VehicleFly",
+        "games/runaways/features/InstantPrompt",
     },
 }
 ]],

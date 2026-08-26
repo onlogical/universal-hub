@@ -1,5 +1,5 @@
 return {
-    buildId = [[49b3fdc0]],
+    buildId = [[4dfdf616]],
     id = [[runaways]],
     sources = {
         ["games/runaways/Adapter.lua"] = [[local function importDependency(path, relativePath)
@@ -20,6 +20,10 @@ local MeleeKnockback = importDependency(
     "./features/MeleeKnockback"
 )
 local VehicleFly = importDependency("games/runaways/features/VehicleFly", "./features/VehicleFly")
+local InstantPrompt = importDependency(
+    "games/runaways/features/InstantPrompt",
+    "./features/InstantPrompt"
+)
 
 local Adapter = {}
 
@@ -42,6 +46,13 @@ function Adapter.new(context)
     })
     meleeKnockback:start()
     local vehicleFly = VehicleFly.new()
+    local instantPrompt = InstantPrompt.new({
+        getSettings = function()
+            return context.store:Get().settings
+        end,
+        service = game:GetService("ProximityPromptService"),
+    })
+    instantPrompt:start()
     local stopped = false
 
     local connection = RunService.Heartbeat:Connect(function()
@@ -70,6 +81,7 @@ function Adapter.new(context)
             "weapon",
             "fly",
             "flySpeed",
+            "instantPrompt",
             "meleeKnockback",
             "meleeKnockbackForce",
             "speed",
@@ -89,6 +101,7 @@ function Adapter.new(context)
             movement:stop()
             meleeKnockback:stop()
             vehicleFly:stop()
+            instantPrompt:stop()
         end,
     }
 end
@@ -123,6 +136,9 @@ function Presentation.mount(host)
         min = 0,
         parent = "meleeKnockback",
     })
+
+    host:section("Tools", "automation", "AUTOMATION", 70)
+    host:option("automation", 1, "instantPrompt", "Instant Prompt")
 end
 
 return Presentation
@@ -171,6 +187,65 @@ function Targeting.observations(players, localPlayer, camera)
 end
 
 return Targeting
+]],
+        ["games/runaways/features/InstantPrompt.lua"] = [[local InstantPrompt = {}
+InstantPrompt.__index = InstantPrompt
+
+local function executorFirePrompt()
+    if type(getgenv) ~= "function" then
+        return nil
+    end
+    local environment = getgenv()
+    return type(environment.fireproximityprompt) == "function"
+            and environment.fireproximityprompt
+        or nil
+end
+
+function InstantPrompt.new(context)
+    assert(context and context.service and type(context.getSettings) == "function")
+    return setmetatable({ context = context, stopped = false }, InstantPrompt)
+end
+
+function InstantPrompt:_fire(prompt)
+    if self.context.getSettings().instantPrompt ~= true or not prompt.Enabled then
+        return
+    end
+    local firePrompt = executorFirePrompt()
+    if firePrompt then
+        pcall(firePrompt, prompt, 0)
+        return
+    end
+
+    local originalDuration = prompt.HoldDuration
+    prompt.HoldDuration = 0
+    prompt:InputHoldBegin()
+    task.defer(function()
+        pcall(prompt.InputHoldEnd, prompt)
+        if prompt.Parent then
+            prompt.HoldDuration = originalDuration
+        end
+    end)
+end
+
+function InstantPrompt:start()
+    self.connection = self.context.service.PromptShown:Connect(function(prompt)
+        if not self.stopped then
+            self:_fire(prompt)
+        end
+    end)
+end
+
+function InstantPrompt:stop()
+    if self.stopped then
+        return
+    end
+    self.stopped = true
+    if self.connection then
+        self.connection:Disconnect()
+    end
+end
+
+return InstantPrompt
 ]],
         ["games/runaways/features/MeleeKnockback.lua"] = [[local MeleeKnockback = {}
 MeleeKnockback.__index = MeleeKnockback
