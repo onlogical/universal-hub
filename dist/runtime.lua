@@ -1,4 +1,4 @@
-local buildId = [[3c872aab]]
+local buildId = [[1f019d65]]
 local shared = {
     ["changelog.json"] = [[{
   "current": "0.3.0",
@@ -75,6 +75,7 @@ local shared = {
     "games/duelinggrounds/Definition",
     "games/hoodrivals/Definition",
     "games/stealanegg/Definition",
+    "games/runaways/Definition",
 }
 ]],
     ["games/Compatibility.lua"] = [[local Compatibility = {}
@@ -2612,6 +2613,47 @@ return Counterblox
         "games/rivals/world/TrajectoryRenderer",
         "games/rivals/world/ObservationRuntime",
         "games/rivals/world/WorldPolicy",
+    },
+}
+]],
+    ["games/runaways/Definition.lua"] = [[return {
+    defaults = {
+        fly = false,
+        flySpeed = 60,
+        speed = false,
+        walkSpeed = 32,
+    },
+    features = {
+        capabilities = {
+            "boxes",
+            "chams",
+            "showEnemies",
+            "showTeammates",
+            "names",
+            "health",
+            "weapon",
+            "fly",
+            "flySpeed",
+            "speed",
+            "walkSpeed",
+        },
+        cosmetics = false,
+    },
+    hydroxide = {},
+    id = "runaways",
+    initialState = {},
+    label = "RUNAWAYS",
+    manifest = {
+        gameIds = { 7585140258 },
+        placeIds = { 118418618261207, 117311404196294 },
+    },
+    module = "games/runaways/Adapter",
+    presentation = "games/runaways/Presentation",
+    sources = {
+        "games/runaways/Adapter",
+        "games/runaways/Presentation",
+        "games/runaways/Targeting",
+        "games/runaways/features/Movement",
     },
 }
 ]],
@@ -15233,6 +15275,7 @@ local gameIds = {
     ["115797356"] = [[counterblox]],
     ["1718755273"] = [[town]],
     ["6035872082"] = [[rivals]],
+    ["7585140258"] = [[runaways]],
     ["7633926880"] = [[bloxstrike]],
     ["9051406594"] = [[duelinggrounds]],
 }
@@ -15240,6 +15283,8 @@ local placeIds = {
     ["107778070777162"] = [[stealanegg]],
     ["113272123504853"] = [[hoodrivals]],
     ["114234929420007"] = [[bloxstrike]],
+    ["117311404196294"] = [[runaways]],
+    ["118418618261207"] = [[runaways]],
     ["17625359962"] = [[rivals]],
     ["301549746"] = [[counterblox]],
     ["4991214437"] = [[town]],
