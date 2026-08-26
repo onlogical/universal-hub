@@ -85,12 +85,19 @@ function NumberControlView({
         placeholder={control.placeholder ?? "Enter a number"}
         disabled={disabled}
         size="sm"
-        fullWidth
+        width={220}
         Event={{
           Focused: () => { focused.current = true; },
           FocusLost: commit,
         }}
-        slotProps={{ textbox: { TextXAlignment: Enum.TextXAlignment.Right } }}
+        slotProps={{
+          textbox: {
+            PlaceholderColor3: Color3.fromRGB(133, 130, 132),
+            TextColor3: Color3.fromRGB(244, 241, 240),
+            TextTransparency: 0,
+            TextXAlignment: Enum.TextXAlignment.Right,
+          },
+        }}
       />
     </Stack>
   );
