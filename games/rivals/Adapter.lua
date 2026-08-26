@@ -904,28 +904,36 @@ function Rivals.new(context)
         return nearest
     end
 
+    local function activeTargetMode(settings)
+        local shotOnly = settings.shotAim == true
+        local mode = shotOnly and settings.shotTargetMode or settings.cameraTargetMode
+        if mode == "radius" or mode == "fullscreen" or mode == "360" then
+            return mode
+        end
+        local fullScreenAim = shotOnly
+                and (settings.shotFullScreenAim == nil and settings.fullScreenAim or settings.shotFullScreenAim)
+            or not shotOnly
+                and (settings.cameraFullScreenAim == nil and settings.fullScreenAim or settings.cameraFullScreenAim)
+        return fullScreenAim == true and "fullscreen" or "radius"
+    end
+
     local function selectTarget(maxScreenDistance, includeBlocked, ignoreAimFov, preferVisible)
         local settings = store:Get().settings
+        local targetMode = activeTargetMode(settings)
         local options = {
-            includeBlocked = includeBlocked,
+            includeBlocked = includeBlocked or targetMode == "360",
             isEligible = isTargetable,
             screenOrigin = UserInputService:GetMouseLocation(),
         }
         if maxScreenDistance then
             options.maxScreenDistance = maxScreenDistance
-        elseif not ignoreAimFov then
+        elseif not ignoreAimFov and targetMode == "radius" then
             local shotOnly = settings.shotAim == true
-            local fullScreenAim = shotOnly
-                    and (settings.shotFullScreenAim == nil and settings.fullScreenAim or settings.shotFullScreenAim)
-                or not shotOnly
-                    and (settings.cameraFullScreenAim == nil and settings.fullScreenAim or settings.cameraFullScreenAim)
-            if not fullScreenAim then
-                options.maxScreenDistance = shotOnly and (settings.shotFov or settings.fov)
-                    or (settings.cameraFov or settings.fov)
-            end
+            options.maxScreenDistance = shotOnly and (settings.shotFov or settings.fov)
+                or (settings.cameraFov or settings.fov)
         end
         local preferredVisible = false
-        if preferVisible then
+        if preferVisible and targetMode ~= "360" then
             for _, observation in ipairs(observations) do
                 local screenDistance = observation.screenDistance
                 if
@@ -954,7 +962,7 @@ function Rivals.new(context)
                     table.insert(eligible, observation)
                 end
             end
-            if settings.humanAim then
+            if settings.humanAim or targetMode == "360" then
                 local camera = Workspace.CurrentCamera
                 local cameraFrame = camera
                     and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
@@ -1251,6 +1259,7 @@ function Rivals.new(context)
         end,
         getPlayerTone = playerTone,
         isOpponent = isOpponent,
+        players = Players,
         targeting = targeting,
         workspace = Workspace,
     })
@@ -1646,7 +1655,8 @@ function Rivals.new(context)
             observations, visualObservations = observationRuntime:update(
                 UserInputService:GetMouseLocation(),
                 settings.showTeammates == true,
-                settings.showEnemies ~= false
+                settings.showEnemies ~= false,
+                activeTargetMode(settings) == "360"
             )
         elseif #observations > 0 or #visualObservations > 0 then
             observations = {}

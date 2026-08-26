@@ -24,12 +24,14 @@ local settings = {
     triggerDelay = 0,
     cameraFov = 58,
     cameraFullScreenAim = false,
+    cameraTargetMode = "radius",
     fov = 58,
     minimumFov = 40,
     maximumFov = 500,
     fullScreenAim = false,
     shotFov = 96,
     shotFullScreenAim = true,
+    shotTargetMode = "fullscreen",
     teleportBehind = false,
     boxes = true,
     chams = true,
@@ -66,6 +68,7 @@ local catalog = Catalog.new({
     capabilities = {
         "silentAim",
         "shotAim",
+        "target360",
         "humanAim",
         "triggerBot",
         "triggerDelay",
@@ -123,13 +126,17 @@ assert(ephemeralSettings.triggerBot == nil, "Non-Rage settings must remain persi
 local model = catalog:model(state)
 local combat = model.pages[1]
 assert(combat.id == "Combat")
-local expected = { "aimMode", "response", "targeting", "trigger" }
+local expected = { "aimMode", "targeting", "response", "trigger" }
 for index, id in ipairs(expected) do
     assert(combat.sections[index].id == id, "RIVALS Combat hierarchy changed at " .. index)
 end
 assert(combat.sections[1].controls[1].kind == "segmented")
 assert(combat.sections[1].controls[1].value == "off")
-assert(combat.sections[2].controls[1].emphasis == "row")
+local targetMode = combat.sections[2].controls[1]
+assert(targetMode.emphasis == "prominent" and targetMode.value == "radius")
+assert(#targetMode.options == 3 and targetMode.options[3].value == "360")
+assert(combat.sections[2].controls[2].id == "fov")
+assert(combat.sections[3].controls[1].emphasis == "row")
 assert(combat.sections[4].label == "Trigger Bot")
 local triggerIds = {}
 for _, control in ipairs(combat.sections[4].controls) do
@@ -190,10 +197,14 @@ assert(model.pages[1].sections[1].controls[1].value == "camera")
 assert(#model.pages[1].sections[1].controls == 2)
 assert(model.pages[1].sections[1].controls[2].id == "humanAim")
 assert(model.pages[1].sections[4].id == "trigger")
-assert(model.pages[1].sections[3].controls[1].value == 58)
+assert(model.pages[1].sections[2].controls[2].value == 58)
 model.onValueChange("fov", 72, true)
-model.onValueChange("fullScreenAim", "fullscreen", true)
+model.onValueChange("fullScreenAim", "360", true)
 assert(settings.cameraFov == 72 and settings.cameraFullScreenAim == true)
+assert(settings.cameraTargetMode == "360")
+model = catalog:model(state)
+assert(#model.pages[1].sections[2].controls == 1)
+assert(model.pages[1].sections[2].controls[1].value == "360")
 
 model.onValueChange("humanAim", true, true)
 assert(settings.humanAim == true)
@@ -202,8 +213,8 @@ assert(settings.silentAim == false and settings.shotAim == true)
 assert(settings.humanAim == false)
 model = catalog:model(state)
 assert(model.pages[1].sections[1].controls[1].value == "silent")
-assert(model.pages[1].sections[3].controls[1].value == 96)
-assert(model.pages[1].sections[3].controls[1].disabled == true)
+assert(#model.pages[1].sections[2].controls == 1)
+assert(model.pages[1].sections[2].controls[1].value == "fullscreen")
 assert(#model.pages[1].sections == 4)
 assert(#model.pages[1].sections[1].controls == 1)
 assert(model.pages[1].sections[4].id == "trigger")
@@ -214,6 +225,7 @@ model = catalog:model(state)
 assert(model.pages[1].sections[1].controls[1].value == "camera")
 assert(model.pages[1].sections[1].controls[2].id == "humanAim")
 assert(model.pages[1].sections[1].controls[2].value == true)
+assert(model.pages[1].sections[2].controls[1].value == "360")
 
 local visuals
 for _, page in ipairs(model.pages) do

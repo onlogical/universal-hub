@@ -46,6 +46,7 @@ local config = Config.new({
         assert(value.fullScreenAim == true)
         assert(value.cameraFov == 320 and value.shotFov == 320)
         assert(value.cameraFullScreenAim == true and value.shotFullScreenAim == true)
+        assert(value.cameraTargetMode == "fullscreen" and value.shotTargetMode == "fullscreen")
         assert(value.espOutlineColor == "#123456" and value.espFillAlpha == 0.73)
         assert(value.skinOverrides["AK-47"].skin == "PinPoint")
         assert(value.skinOverrides["T Knife"].weapon == "Karambit")
@@ -74,6 +75,7 @@ local config = Config.new({
 local loaded = config:load({
     cameraFov = 180,
     cameraFullScreenAim = false,
+    cameraTargetMode = "radius",
     fov = 180,
     espOutlineColor = "",
     espFillAlpha = -1,
@@ -83,12 +85,14 @@ local loaded = config:load({
     silentAim = false,
     shotFov = 180,
     shotFullScreenAim = false,
+    shotTargetMode = "radius",
     teleportBehind = false,
     skinOverrides = {},
 })
 assert(loaded.fov == 320 and loaded.fullScreenAim == true and loaded.silentAim == true)
 assert(loaded.cameraFov == 320 and loaded.shotFov == 320)
 assert(loaded.cameraFullScreenAim == true and loaded.shotFullScreenAim == true)
+assert(loaded.cameraTargetMode == "fullscreen" and loaded.shotTargetMode == "fullscreen")
 assert(loaded.espOutlineColor == "#123456" and loaded.espFillAlpha == 0.73)
 assert(loaded.skinOverrides["AK-47"].wear == 0.1)
 assert(loaded.skinOverrides["T Knife"].skin == "Fade")

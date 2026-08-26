@@ -20,6 +20,7 @@ return {
         capabilities = {
             "silentAim",
             "shotAim",
+            "target360",
             "triggerBot",
             "triggerDelay",
             "rapidFire",

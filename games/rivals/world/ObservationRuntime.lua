@@ -21,12 +21,30 @@ function ObservationRuntime.new(options)
         getPlayerTone = options.getPlayerTone,
         isOpponent = options.isOpponent,
         maximumDistance = options.maximumDistance or 2000,
+        players = options.players,
         targeting = options.targeting,
         workspace = options.workspace,
     }, ObservationRuntime)
 end
 
-function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemies)
+local function offscreenObservation(cameraPosition, character, player)
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    local root = character and character:FindFirstChild("HumanoidRootPart")
+    if not humanoid or humanoid.Health <= 0 or not root or not root.Position then
+        return nil
+    end
+    return {
+        character = character,
+        distance = cameraPosition and (root.Position - cameraPosition).Magnitude or nil,
+        offscreen = true,
+        part = root,
+        player = player,
+        position = root.Position,
+        visible = false,
+    }
+end
+
+function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemies, include360)
     local raycastIgnore = self.effects and self.effects:smokeRaycastIgnore() or {}
     local eligibility = self.isOpponent
     if includeTeammates and self.getPlayerTone then
@@ -42,6 +60,30 @@ function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemie
     local fighter = self.getFighter()
     local data = fighter and fighter.Data
     local camera = self.workspace.CurrentCamera
+    local cameraFrame = camera
+        and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
+    local cameraPosition = cameraFrame and cameraFrame.Position
+    if include360 and self.players and type(self.players.GetPlayers) == "function" then
+        local observedCharacters = {}
+        for _, observation in ipairs(observations) do
+            if observation.character then
+                observedCharacters[observation.character] = true
+            end
+        end
+        for _, player in ipairs(self.players:GetPlayers()) do
+            local character = player.Character
+            if
+                character
+                and not observedCharacters[character]
+                and eligibility(player, character)
+            then
+                local observation = offscreenObservation(cameraPosition, character, player)
+                if observation then
+                    table.insert(observations, observation)
+                end
+            end
+        end
+    end
     local rangeEntities = self.workspace:FindFirstChild("ShootingRangeEntities")
     if type(data) == "table" and data.IsInShootingRange and camera and rangeEntities then
         local containers = { rangeEntities }
@@ -62,6 +104,9 @@ function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemie
                     local observation = self.targeting.observeCharacter(entity, {
                         screenOrigin = screenOrigin,
                     })
+                    if not observation and include360 then
+                        observation = offscreenObservation(cameraPosition, entity, entity)
+                    end
                     if observation then
                         observation.player = entity
                         observation.health, observation.maxHealth =
@@ -72,9 +117,6 @@ function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemie
             end
         end
     end
-    local cameraFrame = camera
-        and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
-    local cameraPosition = cameraFrame and cameraFrame.Position
     local nearby = {}
     if cameraPosition then
         for _, observation in ipairs(observations) do
@@ -101,30 +143,38 @@ function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemie
     end
     local opponents = {}
     local allies = {}
+    local visibleOpponents = {}
+    local visibleAllies = {}
     for _, observation in ipairs(nearby) do
         if observation.player ~= observation.character and observation.tone == "team" then
             table.insert(allies, observation)
+            if not observation.offscreen then
+                table.insert(visibleAllies, observation)
+            end
         else
             table.insert(opponents, observation)
+            if not observation.offscreen then
+                table.insert(visibleOpponents, observation)
+            end
         end
     end
     if includeTeammates and includeEnemies ~= false then
         local visual = {}
-        for _, observation in ipairs(opponents) do
+        for _, observation in ipairs(visibleOpponents) do
             table.insert(visual, observation)
         end
-        for _, observation in ipairs(allies) do
+        for _, observation in ipairs(visibleAllies) do
             table.insert(visual, observation)
         end
         return opponents, visual
     end
     if includeTeammates then
-        return opponents, allies
+        return opponents, visibleAllies
     end
     if includeEnemies == false then
         return opponents, {}
     end
-    return opponents, opponents
+    return opponents, visibleOpponents
 end
 
 return ObservationRuntime

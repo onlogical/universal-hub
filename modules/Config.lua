@@ -129,6 +129,14 @@ function Config:load(defaults)
             if decoded.shotFullScreenAim == nil then
                 decoded.shotFullScreenAim = decoded.fullScreenAim
             end
+            if decoded.cameraTargetMode == nil then
+                decoded.cameraTargetMode = decoded.cameraFullScreenAim == true and "fullscreen"
+                    or "radius"
+            end
+            if decoded.shotTargetMode == nil then
+                decoded.shotTargetMode = decoded.shotFullScreenAim == true and "fullscreen"
+                    or "radius"
+            end
         end
         mergeKnown(result, omitKeys(decoded, self.omittedKeys))
     end
