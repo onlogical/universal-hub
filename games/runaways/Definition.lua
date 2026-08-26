@@ -1,0 +1,40 @@
+return {
+    defaults = {
+        fly = false,
+        flySpeed = 60,
+        speed = false,
+        walkSpeed = 32,
+    },
+    features = {
+        capabilities = {
+            "boxes",
+            "chams",
+            "showEnemies",
+            "showTeammates",
+            "names",
+            "health",
+            "weapon",
+            "fly",
+            "flySpeed",
+            "speed",
+            "walkSpeed",
+        },
+        cosmetics = false,
+    },
+    hydroxide = {},
+    id = "runaways",
+    initialState = {},
+    label = "RUNAWAYS",
+    manifest = {
+        gameIds = { 7585140258 },
+        placeIds = { 118418618261207, 117311404196294 },
+    },
+    module = "games/runaways/Adapter",
+    presentation = "games/runaways/Presentation",
+    sources = {
+        "games/runaways/Adapter",
+        "games/runaways/Presentation",
+        "games/runaways/Targeting",
+        "games/runaways/features/Movement",
+    },
+}
