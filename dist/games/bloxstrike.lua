@@ -1,5 +1,5 @@
 return {
-    buildId = [[60773827]],
+    buildId = [[3c872aab]],
     id = [[bloxstrike]],
     sources = {
         ["games/Bloxstrike.lua"] = [[local Bloxstrike = {}

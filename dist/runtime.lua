@@ -1,4 +1,4 @@
-local buildId = [[60773827]]
+local buildId = [[3c872aab]]
 local shared = {
     ["changelog.json"] = [[{
   "current": "0.3.0",
@@ -90,6 +90,7 @@ local DEFAULTS = {
     chamsPerPart = false,
     cameraFov = 180,
     cameraFullScreenAim = false,
+    cameraTargetMode = "radius",
     fov = 180,
     fovCircle = true,
     -- Legacy shared palette remains for config migration; relationship-specific
@@ -137,6 +138,7 @@ local DEFAULTS = {
     alwaysScoped = false,
     shotFov = 180,
     shotFullScreenAim = false,
+    shotTargetMode = "radius",
     shotAim = false,
     showEnemies = true,
     showTeammates = false,
@@ -2490,6 +2492,7 @@ return Counterblox
         capabilities = {
             "silentAim",
             "shotAim",
+            "target360",
             "triggerBot",
             "triggerDelay",
             "rapidFire",
@@ -4369,6 +4372,14 @@ function Config:load(defaults)
             end
             if decoded.shotFullScreenAim == nil then
                 decoded.shotFullScreenAim = decoded.fullScreenAim
+            end
+            if decoded.cameraTargetMode == nil then
+                decoded.cameraTargetMode = decoded.cameraFullScreenAim == true and "fullscreen"
+                    or "radius"
+            end
+            if decoded.shotTargetMode == nil then
+                decoded.shotTargetMode = decoded.shotFullScreenAim == true and "fullscreen"
+                    or "radius"
             end
         end
         mergeKnown(result, omitKeys(decoded, self.omittedKeys))
@@ -9281,6 +9292,18 @@ local function selectedSegmentValue(segment, settings)
     return selected
 end
 
+local function selectedTargetMode(settings, cameraMode)
+    local mode = cameraMode and settings.cameraTargetMode or settings.shotTargetMode
+    if mode == "radius" or mode == "fullscreen" or mode == "360" then
+        return mode
+    end
+    local fullScreenAim = cameraMode
+            and (settings.cameraFullScreenAim == nil and settings.fullScreenAim or settings.cameraFullScreenAim)
+        or not cameraMode
+            and (settings.shotFullScreenAim == nil and settings.fullScreenAim or settings.shotFullScreenAim)
+    return fullScreenAim == true and "fullscreen" or "radius"
+end
+
 function Catalog:model(state)
     self:finalize()
     state = state or self.context.store:Get()
@@ -9322,6 +9345,47 @@ function Catalog:model(state)
         })
     end
 
+    if self.hasAim then
+        local cameraMode = settings.shotAim ~= true
+        local targetMode = selectedTargetMode(settings, cameraMode)
+        local targetOptions = {
+            { value = "radius", label = "Radius" },
+            { value = "fullscreen", label = "Fullscreen" },
+        }
+        if self.available.target360 then
+            table.insert(targetOptions, { value = "360", label = "360" })
+        end
+        local controls = {
+            {
+                id = "fullScreenAim",
+                kind = "segmented",
+                label = "Target Mode",
+                value = targetMode,
+                emphasis = "prominent",
+                options = targetOptions,
+            },
+        }
+        if targetMode == "radius" then
+            append(controls, {
+                id = "fov",
+                kind = "slider",
+                label = "FOV",
+                value = (cameraMode and settings.cameraFov or settings.shotFov) or settings.fov,
+                min = settings.minimumFov,
+                max = settings.maximumFov,
+                step = 1,
+                unit = "px",
+                emphasis = "row",
+            })
+        end
+        append(sectionsByPage.Combat, {
+            id = "targeting",
+            label = "Targeting",
+            treatment = "card",
+            controls = controls,
+        })
+    end
+
     if #self.rates > 0 then
         local controls = {}
         for _, rate in ipairs(self.rates) do
@@ -9342,44 +9406,6 @@ function Catalog:model(state)
             label = "Response",
             treatment = "card",
             controls = controls,
-        })
-    end
-
-    if self.hasAim then
-        local cameraMode = settings.shotAim ~= true
-        local fov = (cameraMode and settings.cameraFov or settings.shotFov) or settings.fov
-        local fullScreenAim = cameraMode
-                and (settings.cameraFullScreenAim == nil and settings.fullScreenAim or settings.cameraFullScreenAim)
-            or not cameraMode
-                and (settings.shotFullScreenAim == nil and settings.fullScreenAim or settings.shotFullScreenAim)
-        append(sectionsByPage.Combat, {
-            id = "targeting",
-            label = "Targeting",
-            treatment = "card",
-            controls = {
-                {
-                    id = "fov",
-                    kind = "slider",
-                    label = "FOV",
-                    value = fov,
-                    min = settings.minimumFov,
-                    max = settings.maximumFov,
-                    step = 1,
-                    unit = "px",
-                    emphasis = "row",
-                    disabled = fullScreenAim == true,
-                },
-                {
-                    id = "fullScreenAim",
-                    kind = "segmented",
-                    label = "Target Mode",
-                    value = fullScreenAim and "fullscreen" or "radius",
-                    options = {
-                        { value = "radius", label = "Radius" },
-                        { value = "fullscreen", label = "Fullscreen" },
-                    },
-                },
-            },
         })
     end
 
@@ -9855,6 +9881,7 @@ function Catalog:model(state)
                         if id == "aimMode" then
                             local settings = self.context.store:Get().settings
                             local shotOnly = settings.shotAim == true
+                            local targetMode = selectedTargetMode(settings, not shotOnly)
                             self.context.setFov(
                                 (shotOnly and settings.shotFov or settings.cameraFov)
                                     or settings.fov,
@@ -9862,11 +9889,7 @@ function Catalog:model(state)
                             )
                             self.context.setOption(
                                 "fullScreenAim",
-                                (
-                                    shotOnly and settings.shotFullScreenAim
-                                    or not shotOnly and settings.cameraFullScreenAim
-                                )
-                                    == true,
+                                targetMode ~= "radius",
                                 shouldPersist
                             )
                         end
@@ -9924,14 +9947,18 @@ function Catalog:model(state)
                 end
             elseif id == "fullScreenAim" then
                 local settings = self.context.store:Get().settings
-                local name = settings.shotAim == true and "shotFullScreenAim"
-                    or "cameraFullScreenAim"
-                if settings[name] == nil then
-                    name = "fullScreenAim"
+                local modeName = settings.shotAim == true and "shotTargetMode" or "cameraTargetMode"
+                if settings[modeName] ~= nil then
+                    self.context.setSetting(modeName, value, persist == true)
                 end
-                self.context.setOption(name, value == "fullscreen", true)
-                if name ~= "fullScreenAim" then
-                    self.context.setOption("fullScreenAim", value == "fullscreen", true)
+                local fullScreenName = settings.shotAim == true and "shotFullScreenAim"
+                    or "cameraFullScreenAim"
+                if settings[fullScreenName] == nil then
+                    fullScreenName = "fullScreenAim"
+                end
+                self.context.setOption(fullScreenName, value ~= "radius", persist == true)
+                if fullScreenName ~= "fullScreenAim" then
+                    self.context.setOption("fullScreenAim", value ~= "radius", persist == true)
                 end
             elseif id == "cosmeticWear" and self.context.setWear then
                 local cosmetics = self.context.store:Get().cosmetics or {}
@@ -14401,8 +14428,6 @@ return Closure
 
 local moduleFiles = {
     closure = "Closure",
-    controls = "DrawingControls",
-    drawing = "Drawing",
     lifecycle = "Lifecycle",
     remote = "Remote",
     targeting = "Targeting",
@@ -14481,7 +14506,6 @@ function Helpers.attach(session, options)
     options.state = options.state or session.State or session.state
     options.modules = options.modules or {
         "closure",
-        "drawing",
         "lifecycle",
         "targeting",
     }
@@ -14833,25 +14857,15 @@ local function defaultContext()
         return bounds, allCornersProjected and projectedCorners or nil
     end
 
-    local function getVisibleAim(localPlayer, character, options)
+    local function getVisibleAim(localPlayer, character)
         local camera = Workspace.CurrentCamera
         if not camera then
             return nil, {}
         end
 
-        options = options or {}
-        local raycastIgnore = {}
-        if localPlayer.Character then
-            table.insert(raycastIgnore, localPlayer.Character)
-        end
-        for _index, instance in ipairs(options.raycastIgnore or {}) do
-            if instance and not table.find(raycastIgnore, instance) then
-                table.insert(raycastIgnore, instance)
-            end
-        end
         local raycastParams = RaycastParams.new()
         raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-        raycastParams.FilterDescendantsInstances = raycastIgnore
+        raycastParams.FilterDescendantsInstances = localPlayer.Character and { localPlayer.Character } or {}
         raycastParams.IgnoreWater = true
 
         local origin = camera:GetRenderCFrame().Position
@@ -14985,7 +14999,7 @@ local function defaultContext()
             return nil
         end
 
-        local aim, bodyParts = getVisibleAim(localPlayer, character, options)
+        local aim, bodyParts = getVisibleAim(localPlayer, character)
         local fallbackPart
         local fallbackPosition
         local fallbackScreenPosition

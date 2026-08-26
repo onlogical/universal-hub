@@ -1,5 +1,5 @@
 return {
-    buildId = [[60773827]],
+    buildId = [[3c872aab]],
     id = [[rivals]],
     sources = {
         ["games/rivals/Adapter.lua"] = [[local Targeting = require("./libraries/Targeting")
@@ -908,28 +908,36 @@ function Rivals.new(context)
         return nearest
     end
 
+    local function activeTargetMode(settings)
+        local shotOnly = settings.shotAim == true
+        local mode = shotOnly and settings.shotTargetMode or settings.cameraTargetMode
+        if mode == "radius" or mode == "fullscreen" or mode == "360" then
+            return mode
+        end
+        local fullScreenAim = shotOnly
+                and (settings.shotFullScreenAim == nil and settings.fullScreenAim or settings.shotFullScreenAim)
+            or not shotOnly
+                and (settings.cameraFullScreenAim == nil and settings.fullScreenAim or settings.cameraFullScreenAim)
+        return fullScreenAim == true and "fullscreen" or "radius"
+    end
+
     local function selectTarget(maxScreenDistance, includeBlocked, ignoreAimFov, preferVisible)
         local settings = store:Get().settings
+        local targetMode = activeTargetMode(settings)
         local options = {
-            includeBlocked = includeBlocked,
+            includeBlocked = includeBlocked or targetMode == "360",
             isEligible = isTargetable,
             screenOrigin = UserInputService:GetMouseLocation(),
         }
         if maxScreenDistance then
             options.maxScreenDistance = maxScreenDistance
-        elseif not ignoreAimFov then
+        elseif not ignoreAimFov and targetMode == "radius" then
             local shotOnly = settings.shotAim == true
-            local fullScreenAim = shotOnly
-                    and (settings.shotFullScreenAim == nil and settings.fullScreenAim or settings.shotFullScreenAim)
-                or not shotOnly
-                    and (settings.cameraFullScreenAim == nil and settings.fullScreenAim or settings.cameraFullScreenAim)
-            if not fullScreenAim then
-                options.maxScreenDistance = shotOnly and (settings.shotFov or settings.fov)
-                    or (settings.cameraFov or settings.fov)
-            end
+            options.maxScreenDistance = shotOnly and (settings.shotFov or settings.fov)
+                or (settings.cameraFov or settings.fov)
         end
         local preferredVisible = false
-        if preferVisible then
+        if preferVisible and targetMode ~= "360" then
             for _, observation in ipairs(observations) do
                 local screenDistance = observation.screenDistance
                 if
@@ -958,7 +966,7 @@ function Rivals.new(context)
                     table.insert(eligible, observation)
                 end
             end
-            if settings.humanAim then
+            if settings.humanAim or targetMode == "360" then
                 local camera = Workspace.CurrentCamera
                 local cameraFrame = camera
                     and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
@@ -1255,6 +1263,7 @@ function Rivals.new(context)
         end,
         getPlayerTone = playerTone,
         isOpponent = isOpponent,
+        players = Players,
         targeting = targeting,
         workspace = Workspace,
     })
@@ -1650,7 +1659,8 @@ function Rivals.new(context)
             observations, visualObservations = observationRuntime:update(
                 UserInputService:GetMouseLocation(),
                 settings.showTeammates == true,
-                settings.showEnemies ~= false
+                settings.showEnemies ~= false,
+                activeTargetMode(settings) == "360"
             )
         elseif #observations > 0 or #visualObservations > 0 then
             observations = {}
@@ -10410,12 +10420,30 @@ function ObservationRuntime.new(options)
         getPlayerTone = options.getPlayerTone,
         isOpponent = options.isOpponent,
         maximumDistance = options.maximumDistance or 2000,
+        players = options.players,
         targeting = options.targeting,
         workspace = options.workspace,
     }, ObservationRuntime)
 end
 
-function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemies)
+local function offscreenObservation(cameraPosition, character, player)
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    local root = character and character:FindFirstChild("HumanoidRootPart")
+    if not humanoid or humanoid.Health <= 0 or not root or not root.Position then
+        return nil
+    end
+    return {
+        character = character,
+        distance = cameraPosition and (root.Position - cameraPosition).Magnitude or nil,
+        offscreen = true,
+        part = root,
+        player = player,
+        position = root.Position,
+        visible = false,
+    }
+end
+
+function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemies, include360)
     local raycastIgnore = self.effects and self.effects:smokeRaycastIgnore() or {}
     local eligibility = self.isOpponent
     if includeTeammates and self.getPlayerTone then
@@ -10431,6 +10459,30 @@ function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemie
     local fighter = self.getFighter()
     local data = fighter and fighter.Data
     local camera = self.workspace.CurrentCamera
+    local cameraFrame = camera
+        and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
+    local cameraPosition = cameraFrame and cameraFrame.Position
+    if include360 and self.players and type(self.players.GetPlayers) == "function" then
+        local observedCharacters = {}
+        for _, observation in ipairs(observations) do
+            if observation.character then
+                observedCharacters[observation.character] = true
+            end
+        end
+        for _, player in ipairs(self.players:GetPlayers()) do
+            local character = player.Character
+            if
+                character
+                and not observedCharacters[character]
+                and eligibility(player, character)
+            then
+                local observation = offscreenObservation(cameraPosition, character, player)
+                if observation then
+                    table.insert(observations, observation)
+                end
+            end
+        end
+    end
     local rangeEntities = self.workspace:FindFirstChild("ShootingRangeEntities")
     if type(data) == "table" and data.IsInShootingRange and camera and rangeEntities then
         local containers = { rangeEntities }
@@ -10451,6 +10503,9 @@ function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemie
                     local observation = self.targeting.observeCharacter(entity, {
                         screenOrigin = screenOrigin,
                     })
+                    if not observation and include360 then
+                        observation = offscreenObservation(cameraPosition, entity, entity)
+                    end
                     if observation then
                         observation.player = entity
                         observation.health, observation.maxHealth =
@@ -10461,9 +10516,6 @@ function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemie
             end
         end
     end
-    local cameraFrame = camera
-        and (camera.GetRenderCFrame and camera:GetRenderCFrame() or camera.CFrame)
-    local cameraPosition = cameraFrame and cameraFrame.Position
     local nearby = {}
     if cameraPosition then
         for _, observation in ipairs(observations) do
@@ -10490,30 +10542,38 @@ function ObservationRuntime:update(screenOrigin, includeTeammates, includeEnemie
     end
     local opponents = {}
     local allies = {}
+    local visibleOpponents = {}
+    local visibleAllies = {}
     for _, observation in ipairs(nearby) do
         if observation.player ~= observation.character and observation.tone == "team" then
             table.insert(allies, observation)
+            if not observation.offscreen then
+                table.insert(visibleAllies, observation)
+            end
         else
             table.insert(opponents, observation)
+            if not observation.offscreen then
+                table.insert(visibleOpponents, observation)
+            end
         end
     end
     if includeTeammates and includeEnemies ~= false then
         local visual = {}
-        for _, observation in ipairs(opponents) do
+        for _, observation in ipairs(visibleOpponents) do
             table.insert(visual, observation)
         end
-        for _, observation in ipairs(allies) do
+        for _, observation in ipairs(visibleAllies) do
             table.insert(visual, observation)
         end
         return opponents, visual
     end
     if includeTeammates then
-        return opponents, allies
+        return opponents, visibleAllies
     end
     if includeEnemies == false then
         return opponents, {}
     end
-    return opponents, opponents
+    return opponents, visibleOpponents
 end
 
 return ObservationRuntime
