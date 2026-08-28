@@ -1,4 +1,4 @@
-local buildId = [[4dfdf616]]
+local buildId = [[64f70c03]]
 local shared = {
     ["changelog.json"] = [[{
   "current": "0.3.0",
@@ -76,6 +76,7 @@ local shared = {
     "games/hoodrivals/Definition",
     "games/stealanegg/Definition",
     "games/runaways/Definition",
+    "games/animeexpeditions/Definition",
 }
 ]],
     ["games/Compatibility.lua"] = [[local Compatibility = {}
@@ -2267,6 +2268,30 @@ function Counterblox.new(context)
 end
 
 return Counterblox
+]],
+    ["games/animeexpeditions/Definition.lua"] = [[return {
+    defaults = {
+        animeExpeditionsReady = true,
+    },
+    features = {
+        capabilities = { "animeExpeditionsReady" },
+        cosmetics = false,
+    },
+    hydroxide = {},
+    id = "animeexpeditions",
+    initialState = {},
+    label = "Anime Expeditions",
+    manifest = {
+        gameIds = { 7613921865 },
+        placeIds = { 84515722934860 },
+    },
+    module = "games/AnimeExpeditions",
+    presentation = "games/animeexpeditions/Presentation",
+    sources = {
+        "games/AnimeExpeditions",
+        "games/animeexpeditions/Presentation",
+    },
+}
 ]],
     ["games/bloxstrike/Definition.lua"] = [[return {
     composition = "games/bloxstrike/Composition",
@@ -15352,6 +15377,7 @@ local gameIds = {
     ["1718755273"] = [[town]],
     ["6035872082"] = [[rivals]],
     ["7585140258"] = [[runaways]],
+    ["7613921865"] = [[animeexpeditions]],
     ["7633926880"] = [[bloxstrike]],
     ["9051406594"] = [[duelinggrounds]],
 }
@@ -15365,6 +15391,7 @@ local placeIds = {
     ["301549746"] = [[counterblox]],
     ["4991214437"] = [[town]],
     ["77463332823746"] = [[hoodrivals]],
+    ["84515722934860"] = [[animeexpeditions]],
     ["94217045453265"] = [[duelinggrounds]],
 }
 local function run(bundle)
