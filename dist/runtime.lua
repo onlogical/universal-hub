@@ -1,4 +1,4 @@
-local buildId = [[64f70c03]]
+local buildId = [[32cfc07a]]
 local shared = {
     ["changelog.json"] = [[{
   "current": "0.3.0",
@@ -2272,9 +2272,15 @@ return Counterblox
     ["games/animeexpeditions/Definition.lua"] = [[return {
     defaults = {
         animeExpeditionsReady = true,
+        unlimitedPlacement = false,
+        zeroUnitCosts = false,
     },
     features = {
-        capabilities = { "animeExpeditionsReady" },
+        capabilities = {
+            "animeExpeditionsReady",
+            "unlimitedPlacement",
+            "zeroUnitCosts",
+        },
         cosmetics = false,
     },
     hydroxide = {},
@@ -2290,6 +2296,7 @@ return Counterblox
     sources = {
         "games/AnimeExpeditions",
         "games/animeexpeditions/Presentation",
+        "games/animeexpeditions/features/EconomyOverrides",
     },
 }
 ]],

@@ -1,5 +1,5 @@
 return {
-    buildId = [[64f70c03]],
+    buildId = [[32cfc07a]],
     id = [[runaways]],
     sources = {
         ["games/runaways/Adapter.lua"] = [[local function importDependency(path, relativePath)
