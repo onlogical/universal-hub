@@ -7,4 +7,5 @@ return {
     "games/hoodrivals/Definition",
     "games/stealanegg/Definition",
     "games/runaways/Definition",
+    "games/animeexpeditions/Definition",
 }
