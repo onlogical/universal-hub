@@ -23,11 +23,43 @@ assert(
     "Anime Expeditions must resolve from the live Roblox identifiers"
 )
 
+local unit = {
+    PlacementLimit = 3,
+    UpgradeInfo = {
+        [0] = { Cost = 900 },
+        [1] = { Cost = 1300 },
+    },
+}
+local listener
+local unsubscribed = false
 local adapter = require("../../games/AnimeExpeditions").new({
-    store = {},
+    animeExpeditionsInformation = {
+        Units = { TestUnit = unit },
+    },
+    store = {
+        Subscribe = function(_, callback)
+            listener = callback
+            callback({ settings = {} })
+            return function()
+                unsubscribed = true
+            end
+        end,
+    },
 })
 assert(type(adapter.stop) == "function", "Anime Expeditions must expose its cleanup seam")
+
+listener({ settings = { unlimitedPlacement = true, zeroUnitCosts = true } })
+assert(unit.PlacementLimit == math.huge, "Unlimited Placement must remove the client cap")
+assert(unit.UpgradeInfo[0].Cost == 0, "Zero Unit Costs must clear placement costs")
+assert(unit.UpgradeInfo[1].Cost == 0, "Zero Unit Costs must clear upgrade costs")
+
+listener({ settings = { unlimitedPlacement = false, zeroUnitCosts = false } })
+assert(unit.PlacementLimit == 3, "Unlimited Placement must restore the original cap")
+assert(unit.UpgradeInfo[0].Cost == 900, "Zero Unit Costs must restore placement costs")
+assert(unit.UpgradeInfo[1].Cost == 1300, "Zero Unit Costs must restore upgrade costs")
+
 adapter:stop()
 assert(adapter:isStopped(), "Anime Expeditions cleanup must be observable")
+assert(unsubscribed, "Anime Expeditions cleanup must unsubscribe from settings")
 
 print("anime-expeditions-contracts-ok")

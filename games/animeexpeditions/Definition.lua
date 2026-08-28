@@ -1,9 +1,15 @@
 return {
     defaults = {
         animeExpeditionsReady = true,
+        unlimitedPlacement = false,
+        zeroUnitCosts = false,
     },
     features = {
-        capabilities = { "animeExpeditionsReady" },
+        capabilities = {
+            "animeExpeditionsReady",
+            "unlimitedPlacement",
+            "zeroUnitCosts",
+        },
         cosmetics = false,
     },
     hydroxide = {},
@@ -19,5 +25,6 @@ return {
     sources = {
         "games/AnimeExpeditions",
         "games/animeexpeditions/Presentation",
+        "games/animeexpeditions/features/EconomyOverrides",
     },
 }
